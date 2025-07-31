@@ -45,11 +45,20 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
     },
   });
 
-  const { data: timeSlots, isLoading: slotsLoading } = useQuery({
-    queryKey: ["/api/services", service.id, "slots", selectedDate],
-    queryFn: () => fetch(`/api/services/${service.id}/slots/${selectedDate}`).then(res => res.json()),
-    enabled: !!selectedDate,
-  });
+  // Static time slots from 10 AM to 7 PM
+  const timeSlots = [
+    { id: "10:00", startTime: "10:00 AM", endTime: "11:00 AM", isAvailable: true },
+    { id: "11:00", startTime: "11:00 AM", endTime: "12:00 PM", isAvailable: true },
+    { id: "12:00", startTime: "12:00 PM", endTime: "1:00 PM", isAvailable: true },
+    { id: "13:00", startTime: "1:00 PM", endTime: "2:00 PM", isAvailable: true },
+    { id: "14:00", startTime: "2:00 PM", endTime: "3:00 PM", isAvailable: true },
+    { id: "15:00", startTime: "3:00 PM", endTime: "4:00 PM", isAvailable: true },
+    { id: "16:00", startTime: "4:00 PM", endTime: "5:00 PM", isAvailable: true },
+    { id: "17:00", startTime: "5:00 PM", endTime: "6:00 PM", isAvailable: true },
+    { id: "18:00", startTime: "6:00 PM", endTime: "7:00 PM", isAvailable: true },
+  ];
+
+  const slotsLoading = false;
 
   const bookingMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -143,7 +152,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto bg-dark-gray text-white border-medium-gray">
+      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto bg-dark-gray text-white border-medium-gray p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold gradient-text" data-testid="text-booking-modal-title">
             {service.title}
@@ -264,7 +273,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
               
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="date">Select Date</Label>
                       <Input
@@ -284,14 +293,14 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Select Time</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value} disabled={!selectedDate || slotsLoading}>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={!selectedDate}>
                             <FormControl>
                               <SelectTrigger className="bg-dark-gray border-gray-600 text-white" data-testid="select-time">
                                 <SelectValue placeholder="Choose time slot" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="bg-dark-gray border-gray-600">
-                              {timeSlots?.filter((slot: any) => slot.isAvailable).map((slot: any) => (
+                              {timeSlots.filter((slot: any) => slot.isAvailable).map((slot: any) => (
                                 <SelectItem key={slot.id} value={slot.id} data-testid={`option-slot-${slot.id}`}>
                                   {slot.startTime} - {slot.endTime}
                                 </SelectItem>
@@ -364,11 +373,12 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                   
                   <Button 
                     type="submit" 
-                    className="w-full bg-neon-green text-deep-black hover:bg-neon-green/90 neon-glow font-semibold text-lg py-4"
+                    className="w-full bg-neon-green text-deep-black hover:bg-neon-green/90 neon-glow font-semibold text-sm sm:text-lg py-4 px-4"
                     disabled={bookingMutation.isPending}
                     data-testid="button-proceed-payment"
                   >
-                    {bookingMutation.isPending ? "Processing..." : "Pay ₹299 Booking Fee + Get FREE Voucher"}
+                    <span className="block sm:hidden">Pay ₹299 + FREE Voucher</span>
+                    <span className="hidden sm:block">{bookingMutation.isPending ? "Processing..." : "Pay ₹299 Booking Fee + Get FREE Voucher"}</span>
                   </Button>
                 </form>
               </Form>
