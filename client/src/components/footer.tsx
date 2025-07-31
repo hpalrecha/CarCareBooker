@@ -20,10 +20,23 @@ export function Footer() {
               Bangalore's premier car detailing center offering professional services 
               with guaranteed satisfaction. Transform your car with our expert technicians.
             </p>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <MapPin className="w-5 h-5 text-green-400" />
-                <span className="text-gray-300">Bangalore, Karnataka</span>
+            <div className="space-y-4">
+              <div className="flex items-start space-x-3">
+                <MapPin className="w-5 h-5 text-green-400 mt-1 flex-shrink-0" />
+                <div className="text-gray-300">
+                  <div>No. 123, Adugodi Main Road,</div>
+                  <div>Near Forum Mall, Adugodi,</div>
+                  <div>Bangalore - 560030</div>
+                  <a 
+                    href="https://g.co/kgs/45xsTvV" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-green-400 hover:text-green-300 text-sm mt-1 inline-block"
+                    data-testid="link-google-maps"
+                  >
+                    📍 View on Google Maps
+                  </a>
+                </div>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="w-5 h-5 text-green-400" />
