@@ -126,7 +126,7 @@ export default function Home() {
             </h2>
             
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              From quick wash to complete transformation - we have the perfect package for your car's needs
+              From quick detail to complete transformation - we have the perfect package for your car's needs
             </p>
           </div>
           
@@ -184,7 +184,7 @@ export default function Home() {
               Why 2000+ Customers Trust P91?
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              We're not just another car wash - we're Bangalore's premium car care experts
+              We're not just another service - we're Bangalore's premium car detailing experts
             </p>
           </div>
 
@@ -209,16 +209,16 @@ export default function Home() {
               <div className="w-16 h-16 bg-green-400 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MapPin className="w-8 h-8 text-black" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Free Pickup</h3>
-              <p className="text-gray-400">We come to you - anywhere in Bangalore</p>
+              <h3 className="text-xl font-bold text-white mb-2">All Bangalore Areas</h3>
+              <p className="text-gray-400">Professional detailing across the city</p>
             </div>
             
             <div className="text-center">
               <div className="w-16 h-16 bg-green-400 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Award className="w-8 h-8 text-black" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">ISO Certified</h3>
-              <p className="text-gray-400">International quality standards</p>
+              <h3 className="text-xl font-bold text-white mb-2">Expert Technicians</h3>
+              <p className="text-gray-400">Certified car detailing specialists</p>
             </div>
           </div>
         </div>
