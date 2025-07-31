@@ -334,42 +334,100 @@ export default function ServiceLanding() {
         </section>
       )}
 
-      {/* Gallery Section */}
+      {/* Gallery Section - Single Video in 16:9 Format */}
       {service.gallery && service.gallery.length > 0 && (
-        <section className="py-20 px-4 bg-gray-900">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl font-bold text-center mb-12">Process Videos & Photos</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {service.gallery.map((item, index) => (
-                <div key={index} className="relative group overflow-hidden rounded-lg bg-gray-800">
-                  {item.type === 'video' ? (
-                    <div className="relative">
-                      <iframe
-                        className="w-full h-64 rounded-lg"
-                        src={item.url}
-                        title={item.caption || "Service video"}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                      <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
-                        <Play className="w-3 h-3" />
-                        VIDEO
-                      </div>
-                    </div>
-                  ) : (
-                    <img
-                      className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                      src={item.url}
-                      alt={item.caption || service.title}
+        <section className="py-24 px-4 bg-gray-900">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
+                Watch Our Process
+              </h2>
+              <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+                See our expert technicians in action as they transform your car with precision and care.
+              </p>
+            </div>
+
+            {/* Single Video - Full Width 16:9 */}
+            {service.gallery.find(item => item.type === 'video') && (
+              <div className="max-w-6xl mx-auto mb-16">
+                <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
+                  <div className="aspect-video"> {/* 16:9 aspect ratio */}
+                    <iframe
+                      className="w-full h-full rounded-2xl"
+                      src={service.gallery.find(item => item.type === 'video')?.url}
+                      title={service.gallery.find(item => item.type === 'video')?.caption || `${service.title} Process Video`}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      data-testid="video-process"
                     />
-                  )}
-                  {item.caption && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 p-4">
-                      <p className="text-sm font-medium">{item.caption}</p>
+                  </div>
+                  <div className="absolute top-6 left-6">
+                    <div className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg flex items-center gap-2">
+                      <Play className="w-4 h-4" />
+                      PROCESS VIDEO
+                    </div>
+                  </div>
+                  {service.gallery.find(item => item.type === 'video')?.caption && (
+                    <div className="absolute bottom-6 left-6 right-6">
+                      <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-3 rounded-lg">
+                        <p className="text-sm font-medium">
+                          {service.gallery.find(item => item.type === 'video')?.caption}
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
-              ))}
+              </div>
+            )}
+
+            {/* Single Image - Full Width */}
+            {service.gallery.find(item => item.type === 'image') && (
+              <div className="max-w-6xl mx-auto">
+                <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl group">
+                  <img
+                    className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
+                    src={service.gallery.find(item => item.type === 'image')?.url}
+                    alt={service.gallery.find(item => item.type === 'image')?.caption || `${service.title} Process`}
+                    data-testid="image-process"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                  <div className="absolute top-6 left-6">
+                    <div className="bg-green-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                      PROCESS IMAGE
+                    </div>
+                  </div>
+                  {service.gallery.find(item => item.type === 'image')?.caption && (
+                    <div className="absolute bottom-6 left-6 right-6">
+                      <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-3 rounded-lg">
+                        <p className="text-sm font-medium">
+                          {service.gallery.find(item => item.type === 'image')?.caption}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Optional CTA below gallery */}
+            <div className="mt-16 text-center">
+              <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 max-w-2xl mx-auto">
+                <h3 className="text-2xl font-bold mb-4 text-white">
+                  Experience Professional Car Care
+                </h3>
+                <p className="text-gray-300 mb-6">
+                  Book your service today and let our experts give your car the attention it deserves
+                </p>
+                <Button
+                  size="lg"
+                  onClick={() => setBookingModalOpen(true)}
+                  className="bg-green-400 hover:bg-green-500 text-black font-bold px-8 py-4"
+                  data-testid="button-book-gallery"
+                >
+                  Book Your Service
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </div>
             </div>
           </div>
         </section>
