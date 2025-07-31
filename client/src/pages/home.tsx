@@ -222,54 +222,69 @@ export default function Home() {
       </section>
 
       {/* Interior Deep Clean - Full Section Before & After */}
-      <section className="relative h-screen bg-black overflow-hidden">
-        <div className="absolute inset-0 grid grid-cols-2">
-          {/* Before Side */}
-          <div className="relative">
-            <img
-              className="w-full h-full object-cover"
-              src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1200"
-              alt="Interior before deep cleaning"
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-            <div className="absolute top-8 left-8 bg-red-600 text-white px-6 py-3 rounded-lg font-bold text-2xl">
-              BEFORE
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black via-black/80 to-transparent">
-              <h3 className="text-3xl font-bold text-white mb-4">Worn & Stained Interior</h3>
-              <p className="text-gray-300 text-lg mb-6">Coffee stains, dust buildup, fabric wear, and years of neglect</p>
-            </div>
-          </div>
-          
-          {/* After Side */}
-          <div className="relative">
-            <img
-              className="w-full h-full object-cover"
-              src="https://images.unsplash.com/photo-1581235720704-06d3acfcb36f?w=1200"
-              alt="Interior after deep cleaning"
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-            <div className="absolute top-8 right-8 bg-green-600 text-white px-6 py-3 rounded-lg font-bold text-2xl">
-              AFTER
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black via-black/80 to-transparent">
-              <h3 className="text-3xl font-bold text-white mb-4">Pristine & Fresh Interior</h3>
-              <p className="text-gray-300 text-lg mb-6">Deep cleaned, conditioned, and protected like showroom new</p>
-            </div>
-          </div>
-        </div>
-        
-        {/* Center Content */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="bg-black bg-opacity-90 p-12 rounded-2xl text-center border border-green-400">
+      <section className="py-20 bg-black">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
             <h2 className="text-5xl font-bold text-white mb-6">
               Interior Deep Clean Transformation
             </h2>
-            <p className="text-xl text-gray-300 mb-8 max-w-2xl">
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Professional deep cleaning that transforms stained, worn interiors into pristine condition
             </p>
+          </div>
+          
+          <div className="relative">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+              {/* Before Image */}
+              <div className="relative group overflow-hidden rounded-2xl">
+                <img
+                  className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
+                  src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1200"
+                  alt="Interior before deep cleaning"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+                <div className="absolute top-6 left-6 bg-red-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
+                  BEFORE
+                </div>
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
+                    <h3 className="text-2xl font-bold text-white mb-2">Worn & Stained Interior</h3>
+                    <p className="text-gray-300">Coffee stains, dust buildup, fabric wear, and years of neglect</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* After Image */}
+              <div className="relative group overflow-hidden rounded-2xl">
+                <img
+                  className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
+                  src="https://images.unsplash.com/photo-1581235720704-06d3acfcb36f?w=1200"
+                  alt="Interior after deep cleaning"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+                <div className="absolute top-6 right-6 bg-green-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
+                  AFTER
+                </div>
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
+                    <h3 className="text-2xl font-bold text-white mb-2">Pristine & Fresh Interior</h3>
+                    <p className="text-gray-300">Deep cleaned, conditioned, and protected like showroom new</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* VS Divider */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 hidden lg:block">
+              <div className="bg-green-400 text-black px-8 py-4 rounded-full font-bold text-2xl shadow-xl border-4 border-white">
+                VS
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-center mt-12">
             <Link href="/service/interior-deep-clean">
-              <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-4">
+              <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg">
                 Get Interior Deep Clean - ₹2,500
                 <ArrowRight className="ml-2 w-6 h-6" />
               </Button>
@@ -279,54 +294,69 @@ export default function Home() {
       </section>
 
       {/* Glass Coating - Full Section Before & After */}
-      <section className="relative h-screen bg-gray-900 overflow-hidden">
-        <div className="absolute inset-0 grid grid-cols-2">
-          {/* Before Side */}
-          <div className="relative">
-            <img
-              className="w-full h-full object-cover"
-              src="https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1200"
-              alt="Glass before coating - water spotted and dirty"
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-            <div className="absolute top-8 left-8 bg-red-600 text-white px-6 py-3 rounded-lg font-bold text-2xl">
-              BEFORE
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black via-black/80 to-transparent">
-              <h3 className="text-3xl font-bold text-white mb-4">Dirty & Water Spotted Glass</h3>
-              <p className="text-gray-300 text-lg mb-6">Poor visibility, water spots, grime buildup, and reduced safety</p>
-            </div>
-          </div>
-          
-          {/* After Side */}
-          <div className="relative">
-            <img
-              className="w-full h-full object-cover"
-              src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=1200"
-              alt="Glass after coating - crystal clear"
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-            <div className="absolute top-8 right-8 bg-green-600 text-white px-6 py-3 rounded-lg font-bold text-2xl">
-              AFTER
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black via-black/80 to-transparent">
-              <h3 className="text-3xl font-bold text-white mb-4">Crystal Clear & Protected</h3>
-              <p className="text-gray-300 text-lg mb-6">Hydrophobic coating, perfect clarity, rain repellent technology</p>
-            </div>
-          </div>
-        </div>
-        
-        {/* Center Content */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="bg-black bg-opacity-90 p-12 rounded-2xl text-center border border-green-400">
+      <section className="py-20 bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
             <h2 className="text-5xl font-bold text-white mb-6">
               Professional Glass Coating
             </h2>
-            <p className="text-xl text-gray-300 mb-8 max-w-2xl">
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Nano-ceramic coating for crystal clear visibility and 6-month water repellent protection
             </p>
+          </div>
+          
+          <div className="relative">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+              {/* Before Image */}
+              <div className="relative group overflow-hidden rounded-2xl">
+                <img
+                  className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
+                  src="https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1200"
+                  alt="Glass before coating - water spotted and dirty"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+                <div className="absolute top-6 left-6 bg-red-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
+                  BEFORE
+                </div>
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
+                    <h3 className="text-2xl font-bold text-white mb-2">Dirty & Water Spotted Glass</h3>
+                    <p className="text-gray-300">Poor visibility, water spots, grime buildup, and reduced safety</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* After Image */}
+              <div className="relative group overflow-hidden rounded-2xl">
+                <img
+                  className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
+                  src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=1200"
+                  alt="Glass after coating - crystal clear"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+                <div className="absolute top-6 right-6 bg-green-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
+                  AFTER
+                </div>
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
+                    <h3 className="text-2xl font-bold text-white mb-2">Crystal Clear & Protected</h3>
+                    <p className="text-gray-300">Hydrophobic coating, perfect clarity, rain repellent technology</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* VS Divider */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 hidden lg:block">
+              <div className="bg-green-400 text-black px-8 py-4 rounded-full font-bold text-2xl shadow-xl border-4 border-white">
+                VS
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-center mt-12">
             <Link href="/service/glass-coating">
-              <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-4">
+              <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg">
                 Get Glass Coating - ₹3,000
                 <ArrowRight className="ml-2 w-6 h-6" />
               </Button>
@@ -336,54 +366,69 @@ export default function Home() {
       </section>
 
       {/* Headlight Restoration - Full Section Before & After */}
-      <section className="relative h-screen bg-black overflow-hidden">
-        <div className="absolute inset-0 grid grid-cols-2">
-          {/* Before Side */}
-          <div className="relative">
-            <img
-              className="w-full h-full object-cover"
-              src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1200"
-              alt="Foggy yellowed headlights before restoration"
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-            <div className="absolute top-8 left-8 bg-red-600 text-white px-6 py-3 rounded-lg font-bold text-2xl">
-              BEFORE
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black via-black/80 to-transparent">
-              <h3 className="text-3xl font-bold text-white mb-4">Foggy & Yellowed Headlights</h3>
-              <p className="text-gray-300 text-lg mb-6">Reduced visibility, poor light output, oxidation, safety risk</p>
-            </div>
-          </div>
-          
-          {/* After Side */}
-          <div className="relative">
-            <img
-              className="w-full h-full object-cover"
-              src="https://images.unsplash.com/photo-1627634777217-c864268db30c?w=1200"
-              alt="Crystal clear restored headlights"
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-            <div className="absolute top-8 right-8 bg-green-600 text-white px-6 py-3 rounded-lg font-bold text-2xl">
-              AFTER
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black via-black/80 to-transparent">
-              <h3 className="text-3xl font-bold text-white mb-4">Crystal Clear & Bright</h3>
-              <p className="text-gray-300 text-lg mb-6">Maximum visibility, like-new appearance, UV protection coating</p>
-            </div>
-          </div>
-        </div>
-        
-        {/* Center Content */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="bg-black bg-opacity-90 p-12 rounded-2xl text-center border border-green-400">
+      <section className="py-20 bg-black">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
             <h2 className="text-5xl font-bold text-white mb-6">
               Headlight Restoration Magic
             </h2>
-            <p className="text-xl text-gray-300 mb-8 max-w-2xl">
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Professional restoration removes oxidation and yellowing for factory-new clarity
             </p>
+          </div>
+          
+          <div className="relative">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+              {/* Before Image */}
+              <div className="relative group overflow-hidden rounded-2xl">
+                <img
+                  className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
+                  src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1200"
+                  alt="Foggy yellowed headlights before restoration"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+                <div className="absolute top-6 left-6 bg-red-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
+                  BEFORE
+                </div>
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
+                    <h3 className="text-2xl font-bold text-white mb-2">Foggy & Yellowed Headlights</h3>
+                    <p className="text-gray-300">Reduced visibility, poor light output, oxidation, safety risk</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* After Image */}
+              <div className="relative group overflow-hidden rounded-2xl">
+                <img
+                  className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
+                  src="https://images.unsplash.com/photo-1627634777217-c864268db30c?w=1200"
+                  alt="Crystal clear restored headlights"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+                <div className="absolute top-6 right-6 bg-green-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
+                  AFTER
+                </div>
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
+                    <h3 className="text-2xl font-bold text-white mb-2">Crystal Clear & Bright</h3>
+                    <p className="text-gray-300">Maximum visibility, like-new appearance, UV protection coating</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* VS Divider */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 hidden lg:block">
+              <div className="bg-green-400 text-black px-8 py-4 rounded-full font-bold text-2xl shadow-xl border-4 border-white">
+                VS
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-center mt-12">
             <Link href="/service/headlight-restoration">
-              <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-4">
+              <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg">
                 Restore My Headlights - ₹1,800
                 <ArrowRight className="ml-2 w-6 h-6" />
               </Button>
@@ -393,54 +438,69 @@ export default function Home() {
       </section>
 
       {/* Complete Exterior Transformation - Full Section Before & After */}
-      <section className="relative h-screen bg-gray-900 overflow-hidden">
-        <div className="absolute inset-0 grid grid-cols-2">
-          {/* Before Side */}
-          <div className="relative">
-            <img
-              className="w-full h-full object-cover"
-              src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200"
-              alt="Car exterior before premium wash - dirty and dull"
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-            <div className="absolute top-8 left-8 bg-red-600 text-white px-6 py-3 rounded-lg font-bold text-2xl">
-              BEFORE
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black via-black/80 to-transparent">
-              <h3 className="text-3xl font-bold text-white mb-4">Dirty & Dull Exterior</h3>
-              <p className="text-gray-300 text-lg mb-6">Road grime, water spots, faded paint, and neglected appearance</p>
-            </div>
-          </div>
-          
-          {/* After Side */}
-          <div className="relative">
-            <img
-              className="w-full h-full object-cover"
-              src="https://images.unsplash.com/photo-1607860108855-64acf2078ed9?w=1200"
-              alt="Car exterior after premium wash - showroom shine"
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-            <div className="absolute top-8 right-8 bg-green-600 text-white px-6 py-3 rounded-lg font-bold text-2xl">
-              AFTER
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black via-black/80 to-transparent">
-              <h3 className="text-3xl font-bold text-white mb-4">Showroom Perfect Shine</h3>
-              <p className="text-gray-300 text-lg mb-6">Mirror finish, protected paint, and lasting showroom shine</p>
-            </div>
-          </div>
-        </div>
-        
-        {/* Center Content */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="bg-black bg-opacity-90 p-12 rounded-2xl text-center border border-green-400">
+      <section className="py-20 bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
             <h2 className="text-5xl font-bold text-white mb-6">
               Complete Exterior Transformation
             </h2>
-            <p className="text-xl text-gray-300 mb-8 max-w-2xl">
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Premium wash and detail service that transforms your car from dull to showroom perfect
             </p>
+          </div>
+          
+          <div className="relative">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+              {/* Before Image */}
+              <div className="relative group overflow-hidden rounded-2xl">
+                <img
+                  className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
+                  src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200"
+                  alt="Car exterior before premium wash - dirty and dull"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+                <div className="absolute top-6 left-6 bg-red-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
+                  BEFORE
+                </div>
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
+                    <h3 className="text-2xl font-bold text-white mb-2">Dirty & Dull Exterior</h3>
+                    <p className="text-gray-300">Road grime, water spots, faded paint, and neglected appearance</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* After Image */}
+              <div className="relative group overflow-hidden rounded-2xl">
+                <img
+                  className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
+                  src="https://images.unsplash.com/photo-1607860108855-64acf2078ed9?w=1200"
+                  alt="Car exterior after premium wash - showroom shine"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+                <div className="absolute top-6 right-6 bg-green-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
+                  AFTER
+                </div>
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
+                    <h3 className="text-2xl font-bold text-white mb-2">Showroom Perfect Shine</h3>
+                    <p className="text-gray-300">Mirror finish, protected paint, and lasting showroom shine</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* VS Divider */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 hidden lg:block">
+              <div className="bg-green-400 text-black px-8 py-4 rounded-full font-bold text-2xl shadow-xl border-4 border-white">
+                VS
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-center mt-12">
             <Link href="/service/premium-wash-detail">
-              <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-4">
+              <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg">
                 Get Premium Wash & Detail - ₹1,500
                 <ArrowRight className="ml-2 w-6 h-6" />
               </Button>
