@@ -648,17 +648,17 @@ export default function ServiceLanding() {
           data-testid="floating-cta-button"
           style={{ pointerEvents: 'auto' }}
         >
-          <div className="bg-gradient-to-r from-red-600 via-red-500 to-orange-500 rounded-full shadow-2xl px-4 sm:px-6 py-3 sm:py-4 mx-4 max-w-sm sm:max-w-md relative">
-            <div className="flex items-center justify-between gap-2 sm:gap-4">
-              <div className="flex-1 min-w-0">
+          <div className="bg-gradient-to-r from-red-500 via-red-600 to-orange-600 rounded-2xl shadow-2xl px-4 py-3 mx-4 max-w-xs relative border border-red-400/30">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                  <span className="text-white text-xs font-bold tracking-wide">
-                    Limited slots!
+                  <span className="text-white text-xs font-bold tracking-wide uppercase">
+                    Limited Slots
                   </span>
                 </div>
-                <div className="text-white text-xs sm:text-sm font-medium">
-                  Book your slot now
+                <div className="text-white text-sm font-semibold">
+                  Book now for ₹299
                 </div>
               </div>
               <Button
@@ -667,21 +667,21 @@ export default function ServiceLanding() {
                   e.stopPropagation();
                   setBookingModalOpen(true);
                 }}
-                className="bg-white hover:bg-gray-100 text-red-600 font-bold px-3 sm:px-4 py-2 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-1 sm:gap-2 min-w-fit relative z-10"
+                className="bg-white hover:bg-gray-100 text-red-600 font-bold px-4 py-2 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 min-w-fit relative z-10 border-2 border-white"
                 data-testid="button-floating-book-now"
               >
-                <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="text-xs sm:text-sm">₹299</span>
+                <Zap className="w-4 h-4" />
+                <span className="text-sm font-bold">BOOK</span>
               </Button>
             </div>
             
-            {/* Pulse Animation Ring */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-red-600 via-red-500 to-orange-500 animate-ping opacity-20"></div>
+            {/* Subtle Glow Effect */}
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-red-500 via-red-600 to-orange-600 opacity-40 blur-sm -z-10"></div>
           </div>
           
-          {/* Price Badge */}
+          {/* Enhanced Save Badge */}
           {service?.originalPrice && parseFloat(service.originalPrice) > parseFloat(service.price) && (
-            <div className="absolute -top-3 -right-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+            <div className="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full shadow-lg border-2 border-white animate-bounce">
               Save ₹{(parseFloat(service.originalPrice) - parseFloat(service.price)).toLocaleString()}
             </div>
           )}

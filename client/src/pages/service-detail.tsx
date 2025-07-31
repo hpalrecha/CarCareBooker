@@ -202,14 +202,15 @@ export default function ServiceDetail() {
           {/* Mobile Floating Button */}
           <div className="lg:hidden fixed bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-deep-black via-deep-black/95 to-transparent z-40">
             <Button
-              className="w-full bg-neon-green text-deep-black hover:bg-neon-green/90 neon-glow font-semibold text-sm sm:text-lg py-3 sm:py-4 shadow-2xl rounded-full"
+              className="w-full bg-neon-green text-deep-black hover:bg-neon-green/90 font-bold text-sm sm:text-lg py-4 shadow-2xl rounded-2xl border-2 border-neon-green/30 relative overflow-hidden"
               onClick={() => setIsBookingModalOpen(true)}
               data-testid="button-mobile-book-now"
             >
-              <span className="flex items-center justify-center gap-2">
-                <span className="text-sm sm:text-base">Pay ₹299 & Get FREE Voucher</span>
-                <span className="hidden sm:inline">→</span>
+              <span className="flex items-center justify-center gap-3 relative z-10">
+                <span className="text-sm sm:text-base font-bold">Pay ₹299 & Get FREE Voucher</span>
+                <span className="text-lg">🎁</span>
               </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
             </Button>
           </div>
         </div>
