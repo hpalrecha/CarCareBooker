@@ -141,11 +141,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Time Slot Routes
-  app.get("/api/services/:serviceId/slots", async (req, res) => {
+  app.get("/api/services/:serviceId/slots/:date", async (req, res) => {
     try {
-      const { date } = req.query;
-      const serviceDate = date ? new Date(date as string) : undefined;
-      const slots = await storage.getServiceTimeSlots(req.params.serviceId, serviceDate);
+      const { serviceId, date } = req.params;
+      const serviceDate = new Date(date);
+      const slots = await storage.getServiceTimeSlots(serviceId, serviceDate);
       res.json(slots);
     } catch (error) {
       console.error("Get time slots error:", error);

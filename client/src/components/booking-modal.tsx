@@ -47,6 +47,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
 
   const { data: timeSlots, isLoading: slotsLoading } = useQuery({
     queryKey: ["/api/services", service.id, "slots", selectedDate],
+    queryFn: () => fetch(`/api/services/${service.id}/slots/${selectedDate}`).then(res => res.json()),
     enabled: !!selectedDate,
   });
 
