@@ -94,8 +94,31 @@ export default function ServiceLanding() {
       <title>{service.metaTitle || `${service.title} - P91 Car Care`}</title>
       <meta name="description" content={service.metaDescription || service.description} />
       
+      {/* Header with Logo */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-gray-800">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img 
+              src="/Car Care (4)_1753951564515.png" 
+              alt="P91 Car Care" 
+              className="h-8 w-auto"
+              data-testid="img-logo"
+            />
+            <span className="text-xl font-bold text-green-400">P91 Car Care</span>
+          </div>
+          <Button
+            onClick={() => setLocation("/")}
+            variant="ghost"
+            className="text-green-400 hover:text-green-300"
+            data-testid="button-back-home"
+          >
+            ← Back to Services
+          </Button>
+        </div>
+      </header>
+      
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
         {/* Background Image/Video */}
         <div className="absolute inset-0 z-0">
           {service.heroVideo && showVideo ? (
@@ -118,59 +141,56 @@ export default function ServiceLanding() {
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
-          {service.discountText && (
-            <Badge className="mb-4 bg-red-600 hover:bg-red-700 text-white text-lg px-4 py-2">
-              <Zap className="w-4 h-4 mr-2" />
-              {service.discountText}
+        <div className="relative z-10 text-center max-w-5xl mx-auto px-4 py-8">
+          {discountPercent > 0 && (
+            <Badge className="mb-6 bg-red-600 hover:bg-red-700 text-white text-lg px-6 py-3 rounded-full">
+              <Zap className="w-5 h-5 mr-2" />
+              {discountPercent}% OFF - Limited Time!
             </Badge>
           )}
           
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
-            {service.heroTitle || service.title}
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent leading-tight">
+            {service.title}
           </h1>
           
-          <p className="text-xl md:text-2xl mb-8 text-gray-300 max-w-2xl mx-auto">
-            {service.heroSubtitle || service.description}
+          <p className="text-lg md:text-xl lg:text-2xl mb-8 text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            {service.description}
           </p>
 
           {/* Booking Fee Pricing */}
-          <div className="mb-8">
-            <div className="bg-gradient-to-r from-green-900/40 to-blue-900/40 rounded-2xl p-6 border border-green-500/30 max-w-lg mx-auto">
+          <div className="mb-10">
+            <div className="bg-gradient-to-r from-green-900/40 to-blue-900/40 rounded-2xl p-8 border border-green-500/30 max-w-2xl mx-auto">
               <div className="text-center">
-                <div className="mb-3">
+                <div className="mb-4">
                   <span className="text-sm text-gray-400 uppercase tracking-wider">Secure Your Slot For Just</span>
                 </div>
-                <div className="flex items-center justify-center gap-4 mb-4">
-                  <span className="text-5xl font-bold text-green-400">₹299</span>
+                <div className="flex items-center justify-center gap-6 mb-6">
+                  <span className="text-6xl font-bold text-green-400">₹299</span>
                   <div className="text-left">
-                    <div className="text-xs text-gray-400">Booking Fee</div>
-                    <div className="text-xs text-green-400">+ FREE ₹500 Voucher</div>
+                    <div className="text-sm text-gray-400">Booking Fee</div>
+                    <div className="text-sm text-green-400 font-semibold">+ FREE ₹500 Voucher</div>
                   </div>
                 </div>
-                <div className="text-sm text-gray-300 mb-2">
+                <div className="text-base text-gray-300 mb-4">
                   Full Service Value: 
                   {service.originalPrice && (
-                    <span className="text-gray-500 line-through ml-2">₹{service.originalPrice}</span>
+                    <span className="text-gray-500 line-through ml-2 text-lg">₹{service.originalPrice}</span>
                   )}
-                  <span className="text-green-400 font-bold ml-2">₹{service.price}</span>
+                  <span className="text-green-400 font-bold ml-2 text-xl">₹{service.price}</span>
                 </div>
-                <div className="text-xs text-yellow-400 bg-yellow-500/20 rounded-lg px-3 py-1 inline-block">
+                <div className="text-sm text-yellow-400 bg-yellow-500/20 rounded-lg px-4 py-2 inline-block">
                   🎁 Get FREE Car Wash Voucher Worth ₹500
                 </div>
               </div>
             </div>
-            {service.urgencyText && (
-              <p className="text-red-400 font-semibold animate-pulse mt-4">{service.urgencyText}</p>
-            )}
           </div>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
             <Button
               size="lg"
               onClick={() => setBookingModalOpen(true)}
-              className="bg-green-400 hover:bg-green-500 text-black font-bold px-8 py-4 text-lg"
+              className="bg-green-400 hover:bg-green-500 text-black font-bold px-10 py-4 text-lg rounded-full transform hover:scale-105 transition-all duration-200"
               data-testid="button-book-now-hero"
             >
               Pay ₹299 & Get FREE Voucher
@@ -182,7 +202,7 @@ export default function ServiceLanding() {
                 variant="outline"
                 size="lg"
                 onClick={() => setShowVideo(true)}
-                className="border-green-400 text-green-400 hover:bg-green-400 hover:text-black"
+                className="border-green-400 text-green-400 hover:bg-green-400 hover:text-black px-8 py-4 text-lg rounded-full"
                 data-testid="button-watch-video"
               >
                 <Play className="mr-2 w-5 h-5" />

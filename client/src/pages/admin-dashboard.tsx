@@ -98,9 +98,17 @@ export default function AdminDashboard() {
       <div className="glass-effect border-b border-medium-gray">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-2xl font-semibold gradient-text" data-testid="text-dashboard-title">
-              P91 Admin Panel
-            </h1>
+            <div className="flex items-center gap-3">
+              <img 
+                src="/Car Care (4)_1753951564515.png" 
+                alt="P91 Car Care" 
+                className="h-8 w-auto"
+                data-testid="img-logo-admin"
+              />
+              <h1 className="text-2xl font-semibold gradient-text" data-testid="text-dashboard-title">
+                P91 Admin Panel
+              </h1>
+            </div>
             <div className="flex items-center space-x-4">
               <Button
                 onClick={() => setLocation("/admin/whatsapp")}

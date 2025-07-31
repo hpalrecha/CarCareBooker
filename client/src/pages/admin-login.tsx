@@ -56,9 +56,12 @@ export default function AdminLogin() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-2" data-testid="link-home">
-            <div className="w-12 h-12 bg-neon-green rounded-lg flex items-center justify-center">
-              <span className="text-deep-black font-bold text-xl">P91</span>
-            </div>
+            <img 
+              src="/Car Care (4)_1753951564515.png" 
+              alt="P91 Car Care" 
+              className="h-12 w-auto"
+              data-testid="img-logo-login"
+            />
             <span className="text-2xl font-bold gradient-text">Car Care</span>
           </Link>
           <h1 className="text-2xl font-bold text-white mt-4" data-testid="text-admin-login-title">
