@@ -52,9 +52,9 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Legal */}
+          {/* Legal & Policies */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Legal</h3>
+            <h3 className="text-lg font-semibold mb-4">Legal & Policies</h3>
             <ul className="space-y-2">
               <li><Link href="/privacy-policy" className="text-gray-300 hover:text-green-400 transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms-of-service" className="text-gray-300 hover:text-green-400 transition-colors">Terms of Service</Link></li>
@@ -69,9 +69,15 @@ export function Footer() {
             <p className="text-gray-400 text-sm">
               © 2024 P91 Car Care. All rights reserved.
             </p>
-            <p className="text-gray-400 text-sm mt-4 md:mt-0">
-              Powered by professional car detailing experts
-            </p>
+            <div className="flex flex-wrap justify-center gap-4 mt-4 md:mt-0 text-sm">
+              <Link href="/privacy-policy" className="text-gray-400 hover:text-green-400 transition-colors">Privacy</Link>
+              <span className="text-gray-600">|</span>
+              <Link href="/terms-of-service" className="text-gray-400 hover:text-green-400 transition-colors">Terms</Link>
+              <span className="text-gray-600">|</span>
+              <Link href="/refund-policy" className="text-gray-400 hover:text-green-400 transition-colors">Refunds</Link>
+              <span className="text-gray-600">|</span>
+              <Link href="/cancellation-policy" className="text-gray-400 hover:text-green-400 transition-colors">Cancellation</Link>
+            </div>
           </div>
         </div>
       </div>
