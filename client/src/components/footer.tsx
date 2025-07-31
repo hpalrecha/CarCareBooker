@@ -35,10 +35,17 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Legal */}
+          {/* Quick Links */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-neon-green">Legal</h3>
+            <h3 className="text-lg font-semibold text-neon-green">Quick Links</h3>
             <ul className="space-y-2 text-gray-400 text-sm">
+              <li>
+                <Link href="/contact">
+                  <span className="hover:text-neon-green transition-colors cursor-pointer" data-testid="link-contact">
+                    Contact Us
+                  </span>
+                </Link>
+              </li>
               <li>
                 <Link href="/terms-conditions">
                   <span className="hover:text-neon-green transition-colors cursor-pointer" data-testid="link-terms">

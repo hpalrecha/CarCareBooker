@@ -13,6 +13,7 @@ import NotFound from "@/pages/not-found";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import TermsConditions from "@/pages/terms-conditions";
 import RefundPolicy from "@/pages/refund-policy";
+import Contact from "@/pages/contact";
 
 function Router() {
   return (
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/admin/whatsapp" component={AdminWhatsApp} />
       <Route path="/service/:slug" component={ServiceLanding} />
       <Route path="/booking-confirmation/:id" component={BookingConfirmation} />
+      <Route path="/contact" component={Contact} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/terms-conditions" component={TermsConditions} />
       <Route path="/refund-policy" component={RefundPolicy} />

@@ -362,7 +362,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const httpServer = createServer(app);
   // WhatsApp Business API Routes
   app.get("/api/whatsapp/config", authenticateAdmin, async (req, res) => {
     try {
@@ -421,5 +420,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Contact form submission route
+  const contactFormSchema = z.object({
+    name: z.string().min(2),
+    email: z.string().email(),
+    phone: z.string().min(10),
+    subject: z.string().min(5),
+    message: z.string().min(10),
+  });
+
+  app.post("/api/contact", async (req, res) => {
+    try {
+      const contactData = contactFormSchema.parse(req.body);
+      
+      // Store contact submission (you can add a contacts table if needed)
+      console.log("Contact form submission:", contactData);
+      
+      // For now, we'll just log the contact form submission
+      // In a real application, you would:
+      // 1. Store it in database
+      // 2. Send email notification to admin
+      // 3. Send auto-reply to customer
+      
+      res.json({ message: "Contact form submitted successfully" });
+    } catch (error) {
+      console.error("Contact form error:", error);
+      res.status(400).json({ message: "Invalid contact form data" });
+    }
+  });
+
+  const httpServer = createServer(app);
   return httpServer;
 }
