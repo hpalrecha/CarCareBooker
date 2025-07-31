@@ -43,7 +43,7 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-2">
               <Award className="w-4 h-4 text-blue-400" />
-              <span className="text-gray-300">ISO Certified</span>
+              <span className="text-gray-300">Premium Equipment</span>
             </div>
           </div>
 
@@ -51,7 +51,7 @@ export default function Home() {
             <span className="bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
               Bangalore's #1
             </span><br />
-            <span className="text-white">Car Care Service</span>
+            <span className="text-white">Car Detailing Center</span>
           </h1>
           
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
@@ -80,7 +80,7 @@ export default function Home() {
           <div className="flex justify-center items-center gap-4 text-sm text-gray-400">
             <div className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-green-400" />
-              <span>Free Pickup & Drop</span>
+              <span>Professional Detailing</span>
             </div>
             <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
             <div className="flex items-center gap-2">
