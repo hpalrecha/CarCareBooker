@@ -200,13 +200,16 @@ export default function ServiceDetail() {
           </div>
           
           {/* Mobile Floating Button */}
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-deep-black via-deep-black/95 to-transparent z-50">
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-deep-black via-deep-black/95 to-transparent z-40">
             <Button
-              className="w-full bg-neon-green text-deep-black hover:bg-neon-green/90 neon-glow font-semibold text-lg py-4 shadow-2xl"
+              className="w-full bg-neon-green text-deep-black hover:bg-neon-green/90 neon-glow font-semibold text-sm sm:text-lg py-3 sm:py-4 shadow-2xl rounded-full"
               onClick={() => setIsBookingModalOpen(true)}
               data-testid="button-mobile-book-now"
             >
-              Book Now - ₹{service.price}
+              <span className="flex items-center justify-center gap-2">
+                <span className="text-sm sm:text-base">Pay ₹299 & Get FREE Voucher</span>
+                <span className="hidden sm:inline">→</span>
+              </span>
             </Button>
           </div>
         </div>
