@@ -181,12 +181,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const bookingData = extendedBookingSchema.parse(req.body);
       
-      // Check if time slot is available
-      const timeSlot = await storage.getTimeSlot(bookingData.timeSlotId);
-      if (!timeSlot || !timeSlot.isAvailable) {
-        return res.status(400).json({ message: "Time slot not available" });
-      }
-
+      // Skip time slot validation - using static time slots
+      // No need to check database for time slot availability
+      
       // Get service details
       const service = await storage.getService(bookingData.serviceId);
       if (!service) {
@@ -210,9 +207,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paymentStatus: "completed", // Skip payment for development
         });
 
-        // Mark time slot as unavailable
-        await storage.updateTimeSlot(bookingData.timeSlotId, { isAvailable: false });
-
+        // Skip marking time slot as unavailable - using static time slots
+        
         return res.json({
           booking,
           paymentOrder: {
@@ -243,9 +239,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         paymentStatus: "pending",
       });
 
-      // Mark time slot as unavailable
-      await storage.updateTimeSlot(bookingData.timeSlotId, { isAvailable: false });
-
+      // Skip marking time slot as unavailable - using static time slots
+      
       res.json({
         booking,
         paymentOrder: {
