@@ -5,13 +5,14 @@ import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 import { authenticateAdmin, hashPassword, comparePassword } from "./middleware/auth";
 import { createPaymentOrder, verifyPaymentSignature } from "./services/payment";
-import { sendWhatsAppMessage, generateBookingConfirmationMessage } from "./services/whatsapp";
+import { whatsappService } from "./services/whatsapp";
 import { sendBookingConfirmationEmail } from "./services/email";
 import {
   adminLoginSchema,
   bookingFormSchema,
   insertServiceSchema,
   insertTimeSlotSchema,
+  whatsappConfigSchema,
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -314,5 +315,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  // WhatsApp Business API Routes
+  app.get("/api/whatsapp/config", authenticateAdmin, async (req, res) => {
+    try {
+      const config = await whatsappService.getConfig();
+      if (!config) {
+        return res.json(null);
+      }
+      // Don't expose sensitive data
+      res.json({
+        id: config.id,
+        phoneNumberId: config.phoneNumberId,
+        businessAccountId: config.businessAccountId,
+        isActive: config.isActive,
+        createdAt: config.createdAt,
+      });
+    } catch (error) {
+      console.error("Get WhatsApp config error:", error);
+      res.status(500).json({ message: "Failed to fetch WhatsApp configuration" });
+    }
+  });
+
+  app.post("/api/whatsapp/config", authenticateAdmin, async (req, res) => {
+    try {
+      const configData = whatsappConfigSchema.parse(req.body);
+      const config = await whatsappService.saveConfig(configData);
+      res.json({
+        id: config.id,
+        phoneNumberId: config.phoneNumberId,
+        businessAccountId: config.businessAccountId,
+        isActive: config.isActive,
+        createdAt: config.createdAt,
+      });
+    } catch (error) {
+      console.error("Save WhatsApp config error:", error);
+      res.status(400).json({ message: "Invalid WhatsApp configuration data" });
+    }
+  });
+
+  app.get("/api/whatsapp/templates", authenticateAdmin, async (req, res) => {
+    try {
+      const templates = await whatsappService.getTemplates();
+      res.json(templates);
+    } catch (error) {
+      console.error("Get WhatsApp templates error:", error);
+      res.status(500).json({ message: "Failed to fetch WhatsApp templates" });
+    }
+  });
+
+  app.post("/api/whatsapp/templates/fetch", authenticateAdmin, async (req, res) => {
+    try {
+      const templates = await whatsappService.fetchTemplatesFromMeta();
+      res.json(templates);
+    } catch (error) {
+      console.error("Fetch WhatsApp templates error:", error);
+      res.status(500).json({ message: "Failed to fetch templates from Meta API" });
+    }
+  });
+
   return httpServer;
 }

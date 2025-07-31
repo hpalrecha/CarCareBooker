@@ -22,6 +22,32 @@ export const admins = pgTable("admins", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// WhatsApp Business API configuration
+export const whatsappConfig = pgTable("whatsapp_config", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  accessToken: text("access_token").notNull(),
+  phoneNumberId: varchar("phone_number_id").notNull(),
+  businessAccountId: varchar("business_account_id").notNull(),
+  webhookVerifyToken: varchar("webhook_verify_token"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// WhatsApp message templates
+export const whatsappTemplates = pgTable("whatsapp_templates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  templateName: varchar("template_name").notNull(),
+  templateId: varchar("template_id").notNull(),
+  category: varchar("category").notNull(), // booking_confirmation, appointment_reminder, etc.
+  language: varchar("language").default("en").notNull(),
+  status: varchar("status").notNull(), // APPROVED, PENDING, REJECTED
+  components: jsonb("components").notNull(), // Template structure from Meta API
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Services table
 export const services = pgTable("services", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -111,6 +137,12 @@ export type InsertTimeSlot = typeof timeSlots.$inferInsert;
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = typeof bookings.$inferInsert;
 
+export type WhatsappConfig = typeof whatsappConfig.$inferSelect;
+export type InsertWhatsappConfig = typeof whatsappConfig.$inferInsert;
+
+export type WhatsappTemplate = typeof whatsappTemplates.$inferSelect;
+export type InsertWhatsappTemplate = typeof whatsappTemplates.$inferInsert;
+
 // Zod schemas
 export const insertAdminSchema = createInsertSchema(admins).omit({
   id: true,
@@ -146,4 +178,20 @@ export const bookingFormSchema = z.object({
   customerName: z.string().min(2),
   customerEmail: z.string().email(),
   customerPhone: z.string().regex(/^\+?[1-9]\d{9,14}$/),
+});
+
+export const whatsappConfigSchema = z.object({
+  accessToken: z.string().min(1),
+  phoneNumberId: z.string().min(1),
+  businessAccountId: z.string().min(1),
+  webhookVerifyToken: z.string().optional(),
+});
+
+export const whatsappTemplateSchema = z.object({
+  templateName: z.string().min(1),
+  templateId: z.string().min(1),
+  category: z.string().min(1),
+  language: z.string().default("en"),
+  status: z.string(),
+  components: z.any(),
 });

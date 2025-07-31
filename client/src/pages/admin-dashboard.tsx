@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import AdminServiceForm from "@/components/admin-service-form";
-import { Plus, Eye, MessageCircle, Edit, Users, Clock, CheckCircle, DollarSign } from "lucide-react";
+import { Plus, Eye, MessageCircle, Edit, Users, Clock, CheckCircle, DollarSign, Settings } from "lucide-react";
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
@@ -102,6 +102,15 @@ export default function AdminDashboard() {
               P91 Admin Panel
             </h1>
             <div className="flex items-center space-x-4">
+              <Button
+                onClick={() => setLocation("/admin/whatsapp")}
+                variant="outline"
+                className="border-gray-600 text-gray-300 hover:bg-gray-800"
+                data-testid="button-whatsapp-config"
+              >
+                <MessageCircle className="mr-2 h-4 w-4" />
+                WhatsApp
+              </Button>
               <Button
                 onClick={() => setShowServiceForm(true)}
                 className="bg-neon-green text-deep-black hover:bg-neon-green/90"
