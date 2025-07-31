@@ -97,23 +97,24 @@ export class DatabaseStorage implements IStorage {
 
   // Time slot operations
   async getServiceTimeSlots(serviceId: string, date?: Date): Promise<TimeSlot[]> {
-    const query = db.select().from(timeSlots).where(eq(timeSlots.serviceId, serviceId));
-    
     if (date) {
-      const startOfDay = new Date(date);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
+      const dateStr = date.toISOString().split('T')[0]; // Convert to YYYY-MM-DD format
       
-      return await query.where(
-        and(
-          eq(timeSlots.serviceId, serviceId),
-          gte(timeSlots.date, startOfDay)
+      return await db.select()
+        .from(timeSlots)
+        .where(
+          and(
+            eq(timeSlots.serviceId, serviceId),
+            sql`DATE(${timeSlots.date}) = ${dateStr}`
+          )
         )
-      ).orderBy(asc(timeSlots.startTime));
+        .orderBy(asc(timeSlots.startTime));
     }
     
-    return await query.orderBy(asc(timeSlots.date), asc(timeSlots.startTime));
+    return await db.select()
+      .from(timeSlots)
+      .where(eq(timeSlots.serviceId, serviceId))
+      .orderBy(asc(timeSlots.date), asc(timeSlots.startTime));
   }
 
   async getTimeSlot(id: string): Promise<TimeSlot | undefined> {
