@@ -4,6 +4,8 @@ import ServiceCard from "@/components/service-card";
 
 import CountdownTimer from "@/components/countdown-timer";
 import FakeBookingPopup from "@/components/fake-booking-popup";
+import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +18,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-black text-white relative">
+      <Header />
       {/* Fake Booking Notifications */}
       <FakeBookingPopup />
       
@@ -149,7 +152,7 @@ export default function Home() {
                 </div>
               ))
             ) : (
-              services?.map((service: any) => (
+              services && Array.isArray(services) && services.map((service: any) => (
                 <ServiceCard key={service.id} service={service} />
               ))
             )}
