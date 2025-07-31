@@ -97,14 +97,13 @@ export default function ServiceLanding() {
       {/* Header with Logo */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-gray-800">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center">
             <img 
               src="/Car Care (4)_1753951564515.png" 
               alt="P91 Car Care" 
               className="h-8 w-auto"
               data-testid="img-logo"
             />
-            <span className="text-xl font-bold text-green-400">P91 Car Care</span>
           </div>
           <Button
             onClick={() => setLocation("/")}
