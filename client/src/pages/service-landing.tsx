@@ -228,20 +228,72 @@ export default function ServiceLanding() {
         </section>
       )}
 
+      {/* Before & After Section */}
+      {service.beforeAfter && service.beforeAfter.length > 0 && (
+        <section className="py-20 px-4">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-4xl font-bold text-center mb-12">Before & After Transformation</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {service.beforeAfter.map((comparison, index) => (
+                <Card key={index} className="bg-gray-900 border-gray-800 overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="grid grid-cols-2">
+                      <div className="relative">
+                        <img
+                          className="w-full h-48 object-cover"
+                          src={comparison.before}
+                          alt="Before"
+                        />
+                        <div className="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded text-sm font-bold">
+                          BEFORE
+                        </div>
+                      </div>
+                      <div className="relative">
+                        <img
+                          className="w-full h-48 object-cover"
+                          src={comparison.after}
+                          alt="After"
+                        />
+                        <div className="absolute top-2 right-2 bg-green-600 text-white px-2 py-1 rounded text-sm font-bold">
+                          AFTER
+                        </div>
+                      </div>
+                    </div>
+                    {comparison.description && (
+                      <div className="p-4">
+                        <p className="text-sm text-gray-300">{comparison.description}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Gallery Section */}
       {service.gallery && service.gallery.length > 0 && (
         <section className="py-20 px-4 bg-gray-900">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl font-bold text-center mb-12">Gallery</h2>
+            <h2 className="text-4xl font-bold text-center mb-12">Process Videos & Photos</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {service.gallery.map((item, index) => (
-                <div key={index} className="relative group overflow-hidden rounded-lg">
+                <div key={index} className="relative group overflow-hidden rounded-lg bg-gray-800">
                   {item.type === 'video' ? (
-                    <video
-                      className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                      controls
-                      src={item.url}
-                    />
+                    <div className="relative">
+                      <iframe
+                        className="w-full h-64 rounded-lg"
+                        src={item.url}
+                        title={item.caption || "Service video"}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                      <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
+                        <Play className="w-3 h-3" />
+                        VIDEO
+                      </div>
+                    </div>
                   ) : (
                     <img
                       className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
@@ -251,7 +303,7 @@ export default function ServiceLanding() {
                   )}
                   {item.caption && (
                     <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 p-4">
-                      <p className="text-sm">{item.caption}</p>
+                      <p className="text-sm font-medium">{item.caption}</p>
                     </div>
                   )}
                 </div>
