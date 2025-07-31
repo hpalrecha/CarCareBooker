@@ -666,55 +666,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Contact Info */}
-      <footer className="py-12 bg-black border-t border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8 text-center md:text-left">
-            <div>
-              <h3 className="text-2xl font-bold text-green-400 mb-4">P91 Car Care</h3>
-              <p className="text-gray-400">
-                Bangalore's premier car detailing and maintenance service center.
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold text-white mb-4">Contact Info</h4>
-              <div className="space-y-2 text-gray-400">
-                <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <MapPin className="w-4 h-4 text-green-400" />
-                  <span>Adugodi, Bangalore</span>
-                </div>
-                <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <Phone className="w-4 h-4 text-green-400" />
-                  <span>+91 98765 43210</span>
-                </div>
-                <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <Mail className="w-4 h-4 text-green-400" />
-                  <span>info@p91carcare.com</span>
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold text-white mb-4">Service Hours</h4>
-              <div className="space-y-2 text-gray-400">
-                <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <Clock className="w-4 h-4 text-green-400" />
-                  <span>Mon-Sat: 8AM - 8PM</span>
-                </div>
-                <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <Clock className="w-4 h-4 text-green-400" />
-                  <span>Sunday: 9AM - 6PM</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-8 pt-8 border-t border-gray-800 text-center">
-            <p className="text-gray-400">© 2024 P91 Car Care. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
