@@ -1,0 +1,92 @@
+You are an expert full-stack developer. Build a lightweight booking portal for P91 Car Care with the following specifications:
+
+### Objective:
+A simple portal where the admin can create appointment-based events (like services), and users can book them by selecting date & time, paying online, and getting confirmation via WhatsApp and email.
+
+---
+
+### Core Requirements:
+
+#### 1. Admin Panel:
+- Admin login (simple email/password)
+- Create, edit, delete service events with:
+  - Title
+  - Description (with rich text for “Why this service”, “Before/After”, “What’s included”)
+  - Upload images/videos
+  - Price
+  - Duration (e.g., 2 hrs)
+  - Available dates and time slots
+- Auto-generate event page URL after creation
+- Dashboard to view all bookings with filters (status: Paid, Pending)
+
+#### 2. Event Page (Frontend):
+- Event Title, Banner Image, Description sections:
+  - **Why do this service?**
+  - **Before/After Gallery**
+  - **What you get**
+- Price display (show original and discounted price if applicable)
+- **BOOK NOW** button
+  - On click → Date & Time picker → User details form (Name, Mobile, Email)
+  - Validate slot availability
+  - Redirect to Payment Gateway (Razorpay or Stripe)
+- After payment success:
+  - Store booking in DB
+  - Trigger WhatsApp + Email confirmation
+
+#### 3. Booking Flow:
+- User clicks “Book Now”
+- Select date & time (show only available slots)
+- Fill user details
+- Pay online
+- Booking confirmed → Show confirmation page
+
+#### 4. Notifications:
+- WhatsApp Confirmation (via Meta WhatsApp Cloud API):
+  “Hi [Name], your booking for [Service Name] on [Date, Time] is confirmed. Location: P91 Car Care, Adugodi, Bangalore. [Google Maps Link]”
+- Email Confirmation:
+  Subject: Booking Confirmed – P91 Car Care
+  Body: Event details, location, contact info.
+
+---
+
+### Tech Stack:
+- Frontend: React (or Next.js for SEO)
+- Backend: Node.js (Express)
+- Database: MySQL (or MongoDB)
+- Payment Gateway: Razorpay
+- WhatsApp API: Meta WhatsApp Cloud API
+- Email: SendGrid or SMTP
+
+---
+
+### Additional Details:
+- Responsive design (mobile-first)
+- Minimal UI with P91 branding (Neon Green on Black)
+- Event page URL structure: /event/[slug]
+- Include SEO meta tags for event pages
+- Error handling for payment failures
+
+---
+
+### Deliverables:
+- Full working code (frontend + backend)
+- .env sample for keys (Payment Gateway, WhatsApp API, Email)
+- SQL/Mongo schema for:
+  - Events
+  - Bookings
+  - Users (Admin)
+- REST API Endpoints for:
+  - Create Event (POST /api/events)
+  - Get Event (GET /api/events/:id)
+  - Book Slot (POST /api/bookings)
+  - Payment Webhook (POST /api/payment-webhook)
+- Deployment instructions (Vercel/Netlify for frontend, Heroku/AWS for backend)
+
+---
+
+### Goal:
+Give me complete source code in structured folders:
+- `/frontend`
+- `/backend`
+Include documentation for setup.
+
