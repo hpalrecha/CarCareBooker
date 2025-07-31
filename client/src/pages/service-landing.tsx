@@ -131,19 +131,34 @@ export default function ServiceLanding() {
             {service.heroSubtitle || service.description}
           </p>
 
-          {/* Pricing */}
+          {/* Booking Fee Pricing */}
           <div className="mb-8">
-            <div className="flex items-center justify-center gap-4 mb-4">
-              <span className="text-4xl font-bold text-green-400">₹{service.price}</span>
-              {service.originalPrice && (
-                <>
-                  <span className="text-2xl text-gray-500 line-through">₹{service.originalPrice}</span>
-                  <Badge className="bg-green-600 text-white">Save {discountPercent}%</Badge>
-                </>
-              )}
+            <div className="bg-gradient-to-r from-green-900/40 to-blue-900/40 rounded-2xl p-6 border border-green-500/30 max-w-lg mx-auto">
+              <div className="text-center">
+                <div className="mb-3">
+                  <span className="text-sm text-gray-400 uppercase tracking-wider">Secure Your Slot For Just</span>
+                </div>
+                <div className="flex items-center justify-center gap-4 mb-4">
+                  <span className="text-5xl font-bold text-green-400">₹299</span>
+                  <div className="text-left">
+                    <div className="text-xs text-gray-400">Booking Fee</div>
+                    <div className="text-xs text-green-400">+ FREE ₹500 Voucher</div>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-300 mb-2">
+                  Full Service Value: 
+                  {service.originalPrice && (
+                    <span className="text-gray-500 line-through ml-2">₹{service.originalPrice}</span>
+                  )}
+                  <span className="text-green-400 font-bold ml-2">₹{service.price}</span>
+                </div>
+                <div className="text-xs text-yellow-400 bg-yellow-500/20 rounded-lg px-3 py-1 inline-block">
+                  🎁 Get FREE Car Wash Voucher Worth ₹500
+                </div>
+              </div>
             </div>
             {service.urgencyText && (
-              <p className="text-red-400 font-semibold animate-pulse">{service.urgencyText}</p>
+              <p className="text-red-400 font-semibold animate-pulse mt-4">{service.urgencyText}</p>
             )}
           </div>
 
@@ -155,7 +170,7 @@ export default function ServiceLanding() {
               className="bg-green-400 hover:bg-green-500 text-black font-bold px-8 py-4 text-lg"
               data-testid="button-book-now-hero"
             >
-              {service.ctaText || "Book Now"}
+              Pay ₹299 & Get FREE Voucher
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             
@@ -187,6 +202,39 @@ export default function ServiceLanding() {
               <Star className="w-4 h-4 text-green-400" />
               5-Star Rated Service
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Booking Fee Explanation Section */}
+      <section className="py-16 px-4 bg-gradient-to-r from-green-900/20 to-blue-900/20">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-6 text-green-400">🎉 Special Booking Offer</h2>
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
+              <div className="text-4xl mb-4">💰</div>
+              <h3 className="text-xl font-bold mb-2">Just ₹299</h3>
+              <p className="text-gray-300">Secure your preferred time slot with a small booking fee</p>
+            </div>
+            <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
+              <div className="text-4xl mb-4">🎁</div>
+              <h3 className="text-xl font-bold mb-2">FREE ₹500 Voucher</h3>
+              <p className="text-gray-300">Get a complimentary car wash voucher as a bonus</p>
+            </div>
+            <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
+              <div className="text-4xl mb-4">✨</div>
+              <h3 className="text-xl font-bold mb-2">Transparent</h3>
+              <p className="text-gray-300">No hidden charges, pay remainder at service time</p>
+            </div>
+          </div>
+          <p className="text-lg text-gray-300 mb-4">
+            Pay just ₹299 now to reserve your slot and receive a FREE car wash voucher worth ₹500. 
+            Show your booking confirmation at our store to claim your bonus!
+          </p>
+          <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 inline-block">
+            <p className="text-yellow-300 text-sm">
+              💡 <strong>Smart booking system:</strong> No wasted slots, guaranteed service, plus amazing bonus value!
+            </p>
           </div>
         </div>
       </section>
@@ -596,8 +644,8 @@ export default function ServiceLanding() {
                 data-testid="button-floating-book-now"
               >
                 <Zap className="w-4 h-4" />
-                <span className="hidden sm:inline">Book Now</span>
-                <span className="sm:hidden">Book</span>
+                <span className="hidden sm:inline">₹299 Only</span>
+                <span className="sm:hidden">₹299</span>
               </Button>
             </div>
             
