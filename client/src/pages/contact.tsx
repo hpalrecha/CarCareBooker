@@ -110,8 +110,8 @@ export default function Contact() {
                   <div>
                     <h3 className="font-semibold text-lg mb-2">Call Us</h3>
                     <p className="text-gray-300" data-testid="text-phone">
-                      <a href="tel:+919876543210" className="hover:text-neon-green transition-colors">
-                        +91 98765 43210
+                      <a href="tel:+917406619191" className="hover:text-neon-green transition-colors">
+                        +91 74066 19191
                       </a>
                     </p>
                     <p className="text-sm text-gray-400">Mon - Sat: 9:00 AM - 7:00 PM</p>
@@ -136,8 +136,8 @@ export default function Contact() {
                   <div>
                     <h3 className="font-semibold text-lg mb-2">WhatsApp</h3>
                     <p className="text-gray-300" data-testid="text-whatsapp">
-                      <a href="https://wa.me/919876543210" className="hover:text-neon-green transition-colors">
-                        +91 98765 43210
+                      <a href="https://wa.me/917406619191" className="hover:text-neon-green transition-colors">
+                        +91 74066 19191
                       </a>
                     </p>
                     <p className="text-sm text-gray-400">Quick responses during business hours</p>

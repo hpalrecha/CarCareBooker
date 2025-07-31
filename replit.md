@@ -135,3 +135,9 @@ Preferred communication style: Simple, everyday language.
 - Payment transaction logging
 - Error tracking and handling
 - Performance monitoring through query optimization
+
+## Recent Changes
+- **January 31, 2025**: Updated WhatsApp contact number to +91 74066 19191
+- **January 31, 2025**: Created professional Contact Us page with form validation and backend integration
+- **January 31, 2025**: Added Contact Us link to footer navigation under "Quick Links" section
+- **January 31, 2025**: Fixed mobile responsiveness issues in booking modal and date picker functionality
