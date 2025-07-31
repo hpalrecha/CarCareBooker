@@ -101,7 +101,7 @@ export const timeSlots = pgTable("time_slots", {
 export const bookings = pgTable("bookings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   serviceId: varchar("service_id").notNull().references(() => services.id),
-  timeSlotId: varchar("time_slot_id").notNull().references(() => timeSlots.id),
+  timeSlotId: varchar("time_slot_id").notNull(), // Changed: removed foreign key constraint for static time slots
   customerName: varchar("customer_name").notNull(),
   customerEmail: varchar("customer_email").notNull(),
   customerPhone: varchar("customer_phone").notNull(),
