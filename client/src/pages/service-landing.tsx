@@ -47,9 +47,14 @@ export default function ServiceLanding() {
       const scrollY = window.scrollY;
       const viewportHeight = window.innerHeight;
       // Show floating CTA after scrolling past first viewport (hero section)
-      setShowFloatingCTA(scrollY > viewportHeight * 0.8);
+      const shouldShow = scrollY > viewportHeight * 0.3; // Reduced threshold for easier testing
+      console.log('Scroll position:', scrollY, 'Viewport:', viewportHeight, 'Should show CTA:', shouldShow);
+      setShowFloatingCTA(shouldShow);
     };
 
+    // Check immediately on mount
+    handleScroll();
+    
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -620,12 +625,13 @@ export default function ServiceLanding() {
       {/* Floating FOMO CTA Button */}
       {showFloatingCTA && (
         <div 
-          className={`fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ease-in-out ${
+          className={`fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[9999] transition-all duration-500 ease-in-out ${
             showFloatingCTA ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
           }`}
           data-testid="floating-cta-button"
+          style={{ pointerEvents: 'auto' }}
         >
-          <div className="bg-gradient-to-r from-red-600 via-red-500 to-orange-500 rounded-full shadow-2xl px-6 py-4 mx-4 max-w-sm">
+          <div className="bg-gradient-to-r from-red-600 via-red-500 to-orange-500 rounded-full shadow-2xl px-6 py-4 mx-4 max-w-sm relative">
             <div className="flex items-center justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
@@ -639,8 +645,13 @@ export default function ServiceLanding() {
                 </div>
               </div>
               <Button
-                onClick={() => setBookingModalOpen(true)}
-                className="bg-white hover:bg-gray-100 text-red-600 font-bold px-4 py-2 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 min-w-fit"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Floating CTA clicked');
+                  setBookingModalOpen(true);
+                }}
+                className="bg-white hover:bg-gray-100 text-red-600 font-bold px-4 py-2 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 min-w-fit relative z-10"
                 data-testid="button-floating-book-now"
               >
                 <Zap className="w-4 h-4" />
