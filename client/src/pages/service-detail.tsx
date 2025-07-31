@@ -17,7 +17,8 @@ export default function ServiceDetail() {
     enabled: !!slug,
   });
 
-  if (isLoading) {
+  // Early return for loading state to prevent type errors
+  if (isLoading || !service) {
     return (
       <div className="min-h-screen bg-deep-black text-white">
         <Navbar />
@@ -37,6 +38,8 @@ export default function ServiceDetail() {
       </div>
     );
   }
+
+
 
   if (error || !service) {
     return (
@@ -108,7 +111,7 @@ export default function ServiceDetail() {
           />
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-8 pb-20 lg:pb-8">
           {/* Service Details */}
           <div className="lg:col-span-2 space-y-8">
             {/* Description */}
@@ -194,6 +197,17 @@ export default function ServiceDetail() {
                 <p>✓ Secure payment</p>
               </div>
             </div>
+          </div>
+          
+          {/* Mobile Floating Button */}
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-deep-black via-deep-black/95 to-transparent z-50">
+            <Button
+              className="w-full bg-neon-green text-deep-black hover:bg-neon-green/90 neon-glow font-semibold text-lg py-4 shadow-2xl"
+              onClick={() => setIsBookingModalOpen(true)}
+              data-testid="button-mobile-book-now"
+            >
+              Book Now - ₹{service.price}
+            </Button>
           </div>
         </div>
       </div>

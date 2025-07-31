@@ -143,7 +143,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-dark-gray text-white border-medium-gray">
+      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto bg-dark-gray text-white border-medium-gray">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold gradient-text" data-testid="text-booking-modal-title">
             {service.title}
@@ -165,7 +165,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
             <img 
               src={service.images?.[0] || "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=600"} 
               alt={service.title}
-              className="w-full h-64 object-cover rounded-xl" 
+              className="w-full h-48 sm:h-64 object-cover rounded-xl" 
               data-testid="img-service-banner"
             />
           </div>
@@ -184,7 +184,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
             {service.whatIncluded && (
               <div>
                 <h3 className="text-xl font-semibold text-neon-green mb-4">What You Get</h3>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <ul className="space-y-3 text-gray-300">
                     {service.whatIncluded.slice(0, Math.ceil(service.whatIncluded.length / 2)).map((item, index) => (
                       <li key={index} className="flex items-center" data-testid={`text-included-${index}`}>
@@ -194,8 +194,8 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                     ))}
                   </ul>
                   <ul className="space-y-3 text-gray-300">
-                    {service.whatIncluded.slice(Math.ceil(service.whatIncluded.length / 2)).map((item, index) => (
-                      <li key={index} className="flex items-center" data-testid={`text-included-${index + Math.ceil(service.whatIncluded.length / 2)}`}>
+                    {service.whatIncluded?.slice(Math.ceil(service.whatIncluded.length / 2)).map((item, index) => (
+                      <li key={index} className="flex items-center" data-testid={`text-included-${index + Math.ceil(service.whatIncluded?.length || 0 / 2)}`}>
                         <Check className="w-4 h-4 text-neon-green mr-3 flex-shrink-0" />
                         {item}
                       </li>
@@ -213,7 +213,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
               <p className="text-gray-300">Secure your slot with just ₹299 booking fee</p>
             </div>
             
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
               <div className="text-center p-4 bg-dark-gray rounded-lg">
                 <div className="text-3xl font-bold text-white mb-2">₹299</div>
                 <div className="text-sm text-gray-400 mb-2">Booking Fee Only</div>
@@ -304,7 +304,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                     />
                   </div>
                   
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="customerName"
