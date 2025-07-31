@@ -1,4 +1,4 @@
-import Navbar from "@/components/navbar";
+import { Header } from "@/components/header";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,9 +64,9 @@ export default function Contact() {
 
   return (
     <div className="min-h-screen bg-deep-black text-white">
-      <Navbar />
+      <Header />
       
-      <div className="pt-20">
+      <div className="pt-4">
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-deep-black via-dark-gray to-deep-black py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
