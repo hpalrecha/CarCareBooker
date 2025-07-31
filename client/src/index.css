@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(142, 100%, 50%);
+  --primary-foreground: hsl(240, 10%, 3.9%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+
+  /* P91 Custom Colors */
+  --neon-green: hsl(142, 100%, 50%);
+  --deep-black: hsl(240, 10%, 3.9%);
+  --dark-gray: hsl(240, 3.7%, 10.2%);
+  --medium-gray: hsl(240, 3.7%, 20%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(142, 100%, 50%);
+  --primary-foreground: hsl(240, 10%, 3.9%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    background-color: var(--deep-black);
+    color: var(--foreground);
+  }
+}
+
+@layer components {
+  .neon-green {
+    color: var(--neon-green);
+  }
+  
+  .bg-neon-green {
+    background-color: var(--neon-green);
+  }
+  
+  .bg-deep-black {
+    background-color: var(--deep-black);
+  }
+  
+  .bg-dark-gray {
+    background-color: var(--dark-gray);
+  }
+  
+  .bg-medium-gray {
+    background-color: var(--medium-gray);
+  }
+  
+  .gradient-text {
+    background: linear-gradient(135deg, var(--neon-green) 0%, white 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .glass-effect {
+    background: rgba(26, 26, 27, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 255, 148, 0.2);
+  }
+  
+  .neon-glow {
+    box-shadow: 0 0 20px var(--neon-green);
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+  
+  @keyframes glow {
+    from { box-shadow: 0 0 20px var(--neon-green); }
+    to { box-shadow: 0 0 30px var(--neon-green), 0 0 40px var(--neon-green); }
+  }
+}
