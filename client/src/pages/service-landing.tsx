@@ -648,7 +648,7 @@ export default function ServiceLanding() {
           data-testid="floating-cta-button"
           style={{ pointerEvents: 'auto' }}
         >
-          <div className="bg-gradient-to-r from-red-600 via-red-500 to-orange-500 rounded-full shadow-2xl px-4 sm:px-6 py-3 sm:py-4 mx-4 max-w-xs sm:max-w-sm relative">
+          <div className="bg-gradient-to-r from-red-600 via-red-500 to-orange-500 rounded-full shadow-2xl px-4 sm:px-6 py-3 sm:py-4 mx-4 max-w-sm sm:max-w-md relative">
             <div className="flex items-center justify-between gap-2 sm:gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
@@ -657,8 +657,8 @@ export default function ServiceLanding() {
                     Limited slots!
                   </span>
                 </div>
-                <div className="text-white text-xs sm:text-sm font-medium truncate">
-                  Book your {service?.title?.toLowerCase() || 'service'} now
+                <div className="text-white text-xs sm:text-sm font-medium">
+                  Book your slot now
                 </div>
               </div>
               <Button
