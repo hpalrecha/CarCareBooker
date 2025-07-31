@@ -7,6 +7,7 @@ import { authenticateAdmin, hashPassword, comparePassword } from "./middleware/a
 import { createPaymentOrder, verifyPaymentSignature } from "./services/payment";
 import { whatsappService } from "./services/whatsapp";
 import { sendBookingConfirmationEmail } from "./services/email";
+import { z } from "zod";
 import {
   adminLoginSchema,
   bookingFormSchema,
@@ -170,7 +171,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Booking Routes
   app.post("/api/bookings", async (req, res) => {
     try {
-      const bookingData = bookingFormSchema.parse(req.body);
+      console.log("Booking request body:", req.body);
+      
+      // Parse booking data with extended schema to include amount
+      const extendedBookingSchema = bookingFormSchema.extend({
+        amount: z.number().optional(),
+        isBookingFee: z.boolean().optional(),
+      });
+      
+      const bookingData = extendedBookingSchema.parse(req.body);
       
       // Check if time slot is available
       const timeSlot = await storage.getTimeSlot(bookingData.timeSlotId);
@@ -187,6 +196,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use booking fee amount (₹299) instead of full service price
       const bookingFeeAmount = bookingData.amount || 299; // ₹299 booking fee
       
+      // Check if payment service is configured
+      if (!process.env.RAZORPAY_KEY_ID && !process.env.RAZORPAY_TEST_KEY_ID) {
+        // For development, create booking without payment
+        const booking = await storage.createBooking({
+          serviceId: bookingData.serviceId,
+          timeSlotId: bookingData.timeSlotId,
+          customerName: bookingData.customerName,
+          customerEmail: bookingData.customerEmail,
+          customerPhone: bookingData.customerPhone,
+          amount: bookingFeeAmount.toString(),
+          razorpayOrderId: `dev_order_${Date.now()}`,
+          paymentStatus: "completed", // Skip payment for development
+        });
+
+        // Mark time slot as unavailable
+        await storage.updateTimeSlot(bookingData.timeSlotId, { isAvailable: false });
+
+        return res.json({
+          booking,
+          paymentOrder: {
+            id: `dev_order_${Date.now()}`,
+            amount: bookingFeeAmount * 100, // Convert to paisa
+            currency: "INR",
+            key: "dev_key",
+          },
+          message: "Development mode: Booking created without payment"
+        });
+      }
+      
       // Create Razorpay order with booking fee
       const paymentOrder = await createPaymentOrder(
         bookingFeeAmount,
@@ -195,8 +233,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create booking with pending payment
       const booking = await storage.createBooking({
-        ...bookingData,
-        amount: bookingFeeAmount.toString(), // Store as booking fee amount
+        serviceId: bookingData.serviceId,
+        timeSlotId: bookingData.timeSlotId,
+        customerName: bookingData.customerName,
+        customerEmail: bookingData.customerEmail,
+        customerPhone: bookingData.customerPhone,
+        amount: bookingFeeAmount.toString(),
         razorpayOrderId: paymentOrder.id,
         paymentStatus: "pending",
       });
@@ -215,6 +257,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Create booking error:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`)
+        });
+      }
       res.status(400).json({ message: "Invalid booking data" });
     }
   });
