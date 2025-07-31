@@ -29,6 +29,9 @@ export const whatsappConfig = pgTable("whatsapp_config", {
   phoneNumberId: varchar("phone_number_id").notNull(),
   businessAccountId: varchar("business_account_id").notNull(),
   webhookVerifyToken: varchar("webhook_verify_token"),
+  // Template mappings for notifications
+  bookingConfirmationTemplateId: varchar("booking_confirmation_template_id"),
+  appointmentReminderTemplateId: varchar("appointment_reminder_template_id"),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -185,6 +188,8 @@ export const whatsappConfigSchema = z.object({
   phoneNumberId: z.string().min(1),
   businessAccountId: z.string().min(1),
   webhookVerifyToken: z.string().optional(),
+  bookingConfirmationTemplateId: z.string().optional(),
+  appointmentReminderTemplateId: z.string().optional(),
 });
 
 export const whatsappTemplateSchema = z.object({

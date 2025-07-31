@@ -40,6 +40,8 @@ export class WhatsAppService {
     phoneNumberId: string;
     businessAccountId: string;
     webhookVerifyToken?: string;
+    bookingConfirmationTemplateId?: string;
+    appointmentReminderTemplateId?: string;
   }): Promise<WhatsappConfig> {
     // Deactivate existing configs
     await db.update(whatsappConfig).set({ isActive: false });
@@ -186,11 +188,28 @@ export class WhatsAppService {
     appointmentTime: string,
     bookingAmount: string = "299"
   ): Promise<boolean> {
-    // Try to find booking confirmation template
-    const templates = await this.getTemplates();
-    const bookingTemplate = templates.find(t => 
-      t.category === "booking_confirmation" && t.status === "APPROVED"
-    );
+    const config = await this.getConfig();
+    if (!config) {
+      console.log("WhatsApp not configured, skipping booking confirmation");
+      return false;
+    }
+
+    // Use mapped template if available, otherwise fall back to category search
+    let bookingTemplate;
+    if (config.bookingConfirmationTemplateId) {
+      const templates = await this.getTemplates();
+      bookingTemplate = templates.find(t => 
+        t.templateId === config.bookingConfirmationTemplateId && t.status === "APPROVED"
+      );
+    }
+    
+    // Fallback to category search
+    if (!bookingTemplate) {
+      const templates = await this.getTemplates();
+      bookingTemplate = templates.find(t => 
+        t.category === "booking_confirmation" && t.status === "APPROVED"
+      );
+    }
 
     if (!bookingTemplate) {
       console.log("No approved booking confirmation template found");
@@ -230,10 +249,28 @@ export class WhatsAppService {
     appointmentDate: string,
     appointmentTime: string
   ): Promise<boolean> {
-    const templates = await this.getTemplates();
-    const reminderTemplate = templates.find(t => 
-      t.category === "appointment_reminder" && t.status === "APPROVED"
-    );
+    const config = await this.getConfig();
+    if (!config) {
+      console.log("WhatsApp not configured, skipping appointment reminder");
+      return false;
+    }
+
+    // Use mapped template if available, otherwise fall back to category search
+    let reminderTemplate;
+    if (config.appointmentReminderTemplateId) {
+      const templates = await this.getTemplates();
+      reminderTemplate = templates.find(t => 
+        t.templateId === config.appointmentReminderTemplateId && t.status === "APPROVED"
+      );
+    }
+    
+    // Fallback to category search
+    if (!reminderTemplate) {
+      const templates = await this.getTemplates();
+      reminderTemplate = templates.find(t => 
+        t.category === "appointment_reminder" && t.status === "APPROVED"
+      );
+    }
 
     if (!reminderTemplate) {
       console.log("No approved appointment reminder template found");

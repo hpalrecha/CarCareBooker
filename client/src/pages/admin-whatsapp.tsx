@@ -12,6 +12,7 @@ import { MessageCircle, Download, CheckCircle, AlertCircle, Clock } from "lucide
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { whatsappConfigSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -26,6 +27,8 @@ export default function AdminWhatsApp() {
       phoneNumberId: "",
       businessAccountId: "",
       webhookVerifyToken: "",
+      bookingConfirmationTemplateId: "",
+      appointmentReminderTemplateId: "",
     },
   });
 
@@ -207,6 +210,68 @@ export default function AdminWhatsApp() {
                     )}
                   />
                 </div>
+
+                {/* Template Mapping Section */}
+                {templates && Array.isArray(templates) && templates.length > 0 && (
+                  <div className="space-y-4 border-t border-gray-700 pt-6 mb-6">
+                    <h3 className="text-lg font-semibold text-white">Template Mapping</h3>
+                    <p className="text-gray-400 text-sm">Choose which templates to use for different notifications</p>
+                    
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="bookingConfirmationTemplateId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-white">Booking Confirmation Template</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="bg-deep-black border-gray-600 text-white">
+                                  <SelectValue placeholder="Select template for booking confirmations" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="bg-deep-black border-gray-600">
+                                <SelectItem value="">No template selected</SelectItem>
+                                {templates.filter((t: any) => t.status === "APPROVED").map((template: any) => (
+                                  <SelectItem key={template.templateId} value={template.templateId}>
+                                    {template.templateName} ({template.category})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="appointmentReminderTemplateId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-white">Appointment Reminder Template</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="bg-deep-black border-gray-600 text-white">
+                                  <SelectValue placeholder="Select template for appointment reminders" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="bg-deep-black border-gray-600">
+                                <SelectItem value="">No template selected</SelectItem>
+                                {templates.filter((t: any) => t.status === "APPROVED").map((template: any) => (
+                                  <SelectItem key={template.templateId} value={template.templateId}>
+                                    {template.templateName} ({template.category})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <Button
                   type="submit"
