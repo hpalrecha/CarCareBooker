@@ -621,7 +621,7 @@ export default function ServiceLanding() {
       </section>
 
       {/* Floating FOMO CTA Button */}
-      {showFloatingCTA && (
+      {showFloatingCTA && !bookingModalOpen && (
         <div 
           className={`fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[9999] transition-all duration-500 ease-in-out ${
             showFloatingCTA ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
