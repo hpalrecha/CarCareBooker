@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import ServiceCard from "@/components/service-card";
 
 import CountdownTimer from "@/components/countdown-timer";
+import FakeBookingPopup from "@/components/fake-booking-popup";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +16,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-black text-white relative">
+      {/* Fake Booking Notifications */}
+      <FakeBookingPopup />
       
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -283,12 +286,20 @@ export default function Home() {
           </div>
           
           <div className="text-center mt-12">
-            <Link href="/service/interior-deep-clean">
-              <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg">
-                Get Interior Deep Clean - ₹2,500
-                <ArrowRight className="ml-2 w-6 h-6" />
-              </Button>
-            </Link>
+            <div className="space-y-4">
+              <div className="inline-block bg-red-600 text-white px-6 py-2 rounded-full font-bold text-lg animate-pulse">
+                🔥 SPECIAL OFFER: 60% OFF! 🔥
+              </div>
+              <div className="text-center">
+                <div className="text-gray-400 line-through text-lg mb-2">Original Price: ₹6,250</div>
+                <Link href="/service/interior-deep-clean">
+                  <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg">
+                    Get Interior Deep Clean - ₹2,500 ONLY!
+                    <ArrowRight className="ml-2 w-6 h-6" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -355,12 +366,20 @@ export default function Home() {
           </div>
           
           <div className="text-center mt-12">
-            <Link href="/service/glass-coating">
-              <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg">
-                Get Glass Coating - ₹3,000
-                <ArrowRight className="ml-2 w-6 h-6" />
-              </Button>
-            </Link>
+            <div className="space-y-4">
+              <div className="inline-block bg-red-600 text-white px-6 py-2 rounded-full font-bold text-lg animate-pulse">
+                🔥 LIMITED TIME: 50% OFF! 🔥
+              </div>
+              <div className="text-center">
+                <div className="text-gray-400 line-through text-lg mb-2">Original Price: ₹6,000</div>
+                <Link href="/service/glass-coating">
+                  <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg">
+                    Get Glass Coating - ₹3,000 ONLY!
+                    <ArrowRight className="ml-2 w-6 h-6" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -427,12 +446,20 @@ export default function Home() {
           </div>
           
           <div className="text-center mt-12">
-            <Link href="/service/headlight-restoration">
-              <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg">
-                Restore My Headlights - ₹1,800
-                <ArrowRight className="ml-2 w-6 h-6" />
-              </Button>
-            </Link>
+            <div className="space-y-4">
+              <div className="inline-block bg-red-600 text-white px-6 py-2 rounded-full font-bold text-lg animate-pulse">
+                🔥 MEGA DEAL: 70% OFF! 🔥
+              </div>
+              <div className="text-center">
+                <div className="text-gray-400 line-through text-lg mb-2">Original Price: ₹6,000</div>
+                <Link href="/service/headlight-restoration">
+                  <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg">
+                    Restore My Headlights - ₹1,800 ONLY!
+                    <ArrowRight className="ml-2 w-6 h-6" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -499,12 +526,20 @@ export default function Home() {
           </div>
           
           <div className="text-center mt-12">
-            <Link href="/service/premium-wash-detail">
-              <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg">
-                Get Premium Wash & Detail - ₹1,500
-                <ArrowRight className="ml-2 w-6 h-6" />
-              </Button>
-            </Link>
+            <div className="space-y-4">
+              <div className="inline-block bg-red-600 text-white px-6 py-2 rounded-full font-bold text-lg animate-pulse">
+                🔥 SUPER SAVER: 75% OFF! 🔥
+              </div>
+              <div className="text-center">
+                <div className="text-gray-400 line-through text-lg mb-2">Original Price: ₹6,000</div>
+                <Link href="/service/premium-wash-detail">
+                  <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg">
+                    Get Premium Detail - ₹1,500 ONLY!
+                    <ArrowRight className="ml-2 w-6 h-6" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
