@@ -183,16 +183,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Service not found" });
       }
 
-      // Create Razorpay order
+      // Use booking fee amount (₹299) instead of full service price
+      const bookingFeeAmount = bookingData.amount || 299; // ₹299 booking fee
+      
+      // Create Razorpay order with booking fee
       const paymentOrder = await createPaymentOrder(
-        parseFloat(service.price),
+        bookingFeeAmount,
         `booking_${Date.now()}`
       );
 
       // Create booking with pending payment
       const booking = await storage.createBooking({
         ...bookingData,
-        amount: service.price,
+        amount: bookingFeeAmount.toString(), // Store as booking fee amount
         razorpayOrderId: paymentOrder.id,
         paymentStatus: "pending",
       });

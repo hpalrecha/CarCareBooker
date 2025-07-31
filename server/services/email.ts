@@ -71,11 +71,32 @@ export async function sendBookingConfirmationEmail(data: BookingEmailData): Prom
               <span class="label">Date & Time:</span> ${data.date} at ${data.time}
             </div>
             <div class="detail-row">
-              <span class="label">Amount Paid:</span> ₹${data.amount}
+              <span class="label">Booking Fee Paid:</span> ₹${data.amount}
+            </div>
+            <div class="detail-row">
+              <span class="label">🎁 BONUS EARNED:</span> FREE Car Wash Voucher (Worth ₹500)
             </div>
             <div class="detail-row">
               <span class="label">Booking ID:</span> ${data.bookingId}
             </div>
+            
+            <div style="background-color: #00FF94; color: #0A0A0B; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+              <h3 style="margin: 0 0 10px 0;">🎁 CONGRATULATIONS!</h3>
+              <p style="margin: 0; font-size: 16px; font-weight: bold;">You've earned a FREE Car Wash Voucher worth ₹500!</p>
+            </div>
+            
+            <div style="background-color: #333334; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <h4 style="color: #00FF94; margin: 0 0 10px 0;">How to claim your voucher:</h4>
+              <p style="margin: 5px 0;">✅ Visit P91 Car Care on your booking date</p>
+              <p style="margin: 5px 0;">✅ Show this email confirmation at our store</p>
+              <p style="margin: 5px 0;">✅ Get your FREE car wash service (worth ₹500)</p>
+            </div>
+            
+            <p><strong>Important Notes:</strong></p>
+            <p>• Your ₹299 booking fee secures your preferred time slot</p>
+            <p>• The FREE voucher is a bonus for early booking</p>
+            <p>• No hidden charges - transparent pricing</p>
+            
             <div class="detail-row">
               <span class="label">Location:</span> P91 Car Care, 123 Service Road, Adugodi, Bangalore 560030
             </div>

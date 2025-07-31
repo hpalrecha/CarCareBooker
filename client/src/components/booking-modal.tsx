@@ -52,7 +52,13 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
 
   const bookingMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/bookings", data);
+      // Add booking fee amount (₹299) to the request
+      const bookingData = {
+        ...data,
+        amount: 299, // Fixed booking fee
+        isBookingFee: true, // Flag to indicate this is a booking fee, not full payment
+      };
+      const response = await apiRequest("POST", "/api/bookings", bookingData);
       return response.json();
     },
     onSuccess: async (data) => {
@@ -69,7 +75,12 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
           amount: paymentOrder.amount,
           currency: paymentOrder.currency,
           name: "P91 Car Care",
-          description: service.title,
+          description: `Booking Fee - ${service.title}`,
+          notes: {
+            booking_fee: "₹299 booking fee to secure your slot",
+            free_voucher: "Includes FREE car wash voucher worth ₹500",
+            service_title: service.title,
+          },
           order_id: paymentOrder.id,
           handler: async (response: any) => {
             try {
@@ -194,24 +205,58 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
             )}
           </div>
           
-          {/* Booking Form */}
-          <div className="bg-medium-gray rounded-xl p-6">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h3 className="text-xl font-semibold">Service Price</h3>
-                <p className="text-gray-400">Duration: {Math.floor(service.duration / 60)} hours</p>
+          {/* Booking Fee Structure */}
+          <div className="bg-gradient-to-r from-green-900/30 to-blue-900/30 rounded-xl p-6 border border-green-500/30">
+            <div className="text-center mb-4">
+              <h3 className="text-2xl font-bold text-neon-green mb-2">🎉 Special Booking Offer!</h3>
+              <p className="text-gray-300">Secure your slot with just ₹299 booking fee</p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className="text-center p-4 bg-dark-gray rounded-lg">
+                <div className="text-3xl font-bold text-white mb-2">₹299</div>
+                <div className="text-sm text-gray-400 mb-2">Booking Fee Only</div>
+                <div className="text-xs text-green-400">✓ Secures your preferred slot</div>
               </div>
-              <div className="text-right">
+              <div className="text-center p-4 bg-dark-gray rounded-lg">
+                <div className="text-3xl font-bold text-neon-green mb-2">FREE</div>
+                <div className="text-sm text-gray-400 mb-2">Car Wash Voucher</div>
+                <div className="text-xs text-green-400">✓ Worth ₹500 - Show at store</div>
+              </div>
+            </div>
+
+            <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <div className="text-yellow-400">💡</div>
+                <div>
+                  <div className="font-semibold text-yellow-300 mb-1">How it works:</div>
+                  <ul className="text-sm text-gray-300 space-y-1">
+                    <li>• Pay ₹299 booking fee to reserve your slot</li>
+                    <li>• Get a FREE car wash voucher worth ₹500</li>
+                    <li>• Show your booking confirmation at our store to claim</li>
+                    <li>• No hidden charges - transparent pricing</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <div className="text-sm text-gray-400 mb-2">Full Service Price: 
                 {service.originalPrice && (
-                  <span className="text-gray-500 line-through text-lg" data-testid="text-original-price">
+                  <span className="text-gray-500 line-through ml-2" data-testid="text-original-price">
                     ₹{service.originalPrice}
                   </span>
                 )}
-                <span className="text-neon-green font-bold text-2xl ml-2" data-testid="text-current-price">
+                <span className="text-neon-green font-bold text-lg ml-2" data-testid="text-current-price">
                   ₹{service.price}
                 </span>
               </div>
+              <div className="text-xs text-gray-500">Duration: {Math.floor(service.duration / 60)} hours</div>
             </div>
+          </div>
+
+          {/* Booking Form */}
+          <div className="bg-medium-gray rounded-xl p-6">
             
             <div className="border-t border-gray-600 pt-4">
               <h4 className="font-semibold mb-4">Book Your Appointment</h4>
@@ -322,7 +367,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                     disabled={bookingMutation.isPending}
                     data-testid="button-proceed-payment"
                   >
-                    {bookingMutation.isPending ? "Processing..." : `Proceed to Payment - ₹${service.price}`}
+                    {bookingMutation.isPending ? "Processing..." : "Pay ₹299 Booking Fee + Get FREE Voucher"}
                   </Button>
                 </form>
               </Form>

@@ -51,5 +51,19 @@ export function generateBookingConfirmationMessage(
   date: string,
   time: string
 ): string {
-  return `Hi ${customerName}, your booking for ${serviceName} on ${date} at ${time} is confirmed. Location: P91 Car Care, Adugodi, Bangalore. Google Maps: https://maps.google.com/?q=P91+Car+Care+Adugodi+Bangalore`;
+  return `🎉 Hi ${customerName}! Your booking is CONFIRMED!
+
+📅 Service: ${serviceName}
+🕐 Date & Time: ${date} at ${time}
+💰 Booking Fee: ₹299 PAID ✅
+
+🎁 BONUS: You've earned a FREE Car Wash Voucher worth ₹500! 
+✨ Show this confirmation at our store to claim your voucher.
+
+📍 P91 Car Care, Adugodi, Bangalore
+🗺️ Location: https://g.co/kgs/45xsTvV
+📞 Call: +91 98765 43210
+
+Thank you for choosing P91 Car Care! 
+Your slot is secured. See you soon! 🚗✨`;
 }
