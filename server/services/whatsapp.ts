@@ -196,7 +196,7 @@ export class WhatsAppService {
 
     // Use mapped template if available, otherwise fall back to category search
     let bookingTemplate;
-    if (config.bookingConfirmationTemplateId) {
+    if (config.bookingConfirmationTemplateId && config.bookingConfirmationTemplateId !== "none") {
       const templates = await this.getTemplates();
       bookingTemplate = templates.find(t => 
         t.templateId === config.bookingConfirmationTemplateId && t.status === "APPROVED"
@@ -257,7 +257,7 @@ export class WhatsAppService {
 
     // Use mapped template if available, otherwise fall back to category search
     let reminderTemplate;
-    if (config.appointmentReminderTemplateId) {
+    if (config.appointmentReminderTemplateId && config.appointmentReminderTemplateId !== "none") {
       const templates = await this.getTemplates();
       reminderTemplate = templates.find(t => 
         t.templateId === config.appointmentReminderTemplateId && t.status === "APPROVED"

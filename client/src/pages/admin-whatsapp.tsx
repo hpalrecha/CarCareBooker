@@ -27,8 +27,8 @@ export default function AdminWhatsApp() {
       phoneNumberId: "",
       businessAccountId: "",
       webhookVerifyToken: "",
-      bookingConfirmationTemplateId: "",
-      appointmentReminderTemplateId: "",
+      bookingConfirmationTemplateId: "none",
+      appointmentReminderTemplateId: "none",
     },
   });
 
@@ -231,8 +231,8 @@ export default function AdminWhatsApp() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="bg-deep-black border-gray-600">
-                                <SelectItem value="">No template selected</SelectItem>
-                                {templates.filter((t: any) => t.status === "APPROVED").map((template: any) => (
+                                <SelectItem value="none">No template selected</SelectItem>
+                                {(templates as any[])?.filter((t: any) => t.status === "APPROVED").map((template: any) => (
                                   <SelectItem key={template.templateId} value={template.templateId}>
                                     {template.templateName} ({template.category})
                                   </SelectItem>
@@ -257,8 +257,8 @@ export default function AdminWhatsApp() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="bg-deep-black border-gray-600">
-                                <SelectItem value="">No template selected</SelectItem>
-                                {templates.filter((t: any) => t.status === "APPROVED").map((template: any) => (
+                                <SelectItem value="none">No template selected</SelectItem>
+                                {(templates as any[])?.filter((t: any) => t.status === "APPROVED").map((template: any) => (
                                   <SelectItem key={template.templateId} value={template.templateId}>
                                     {template.templateName} ({template.category})
                                   </SelectItem>
