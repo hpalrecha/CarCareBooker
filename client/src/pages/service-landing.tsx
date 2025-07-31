@@ -228,45 +228,107 @@ export default function ServiceLanding() {
         </section>
       )}
 
-      {/* Before & After Section */}
+      {/* Before & After Section - Full Section Layout */}
       {service.beforeAfter && service.beforeAfter.length > 0 && (
-        <section className="py-20 px-4">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl font-bold text-center mb-12">Before & After Transformation</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <section className="py-24 px-4 bg-gradient-to-b from-gray-900 to-black">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
+                Dramatic Transformations
+              </h2>
+              <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+                See the incredible before and after results of our expert car detailing services. 
+                These real transformations speak for themselves.
+              </p>
+            </div>
+
+            <div className="space-y-16">
               {service.beforeAfter.map((comparison, index) => (
-                <Card key={index} className="bg-gray-900 border-gray-800 overflow-hidden">
-                  <CardContent className="p-0">
-                    <div className="grid grid-cols-2">
-                      <div className="relative">
-                        <img
-                          className="w-full h-48 object-cover"
-                          src={comparison.before}
-                          alt="Before"
-                        />
-                        <div className="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded text-sm font-bold">
+                <div key={index} className="group">
+                  <div className="grid lg:grid-cols-2 gap-8 items-center">
+                    {/* Before Image */}
+                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
+                      <img
+                        className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
+                        src={comparison.before}
+                        alt={`Before ${service.title}`}
+                        data-testid={`image-before-${index}`}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      <div className="absolute top-6 left-6">
+                        <div className="bg-red-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
                           BEFORE
                         </div>
                       </div>
-                      <div className="relative">
-                        <img
-                          className="w-full h-48 object-cover"
-                          src={comparison.after}
-                          alt="After"
-                        />
-                        <div className="absolute top-2 right-2 bg-green-600 text-white px-2 py-1 rounded text-sm font-bold">
-                          AFTER
+                      <div className="absolute bottom-6 left-6">
+                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
+                          <p className="text-sm opacity-90">Original Condition</p>
                         </div>
                       </div>
                     </div>
-                    {comparison.description && (
-                      <div className="p-4">
-                        <p className="text-sm text-gray-300">{comparison.description}</p>
+
+                    {/* After Image */}
+                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
+                      <img
+                        className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
+                        src={comparison.after}
+                        alt={`After ${service.title}`}
+                        data-testid={`image-after-${index}`}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      <div className="absolute top-6 right-6">
+                        <div className="bg-green-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
+                          AFTER
+                        </div>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
+                      <div className="absolute bottom-6 right-6">
+                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
+                          <p className="text-sm opacity-90">P91 Transformation</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  {comparison.description && (
+                    <div className="mt-8 text-center">
+                      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 max-w-4xl mx-auto">
+                        <p className="text-lg text-gray-300 leading-relaxed">
+                          {comparison.description}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Separator */}
+                  {index < service.beforeAfter.length - 1 && (
+                    <div className="flex justify-center mt-16">
+                      <div className="w-32 h-1 bg-gradient-to-r from-transparent via-green-400 to-transparent"></div>
+                    </div>
+                  )}
+                </div>
               ))}
+            </div>
+
+            {/* CTA at bottom of before/after section */}
+            <div className="mt-20 text-center">
+              <div className="bg-green-600/20 backdrop-blur-sm rounded-2xl p-8 max-w-2xl mx-auto border border-green-400/30">
+                <h3 className="text-2xl font-bold mb-4 text-white">
+                  Ready for Your Transformation?
+                </h3>
+                <p className="text-gray-300 mb-6">
+                  Join hundreds of satisfied customers who've experienced the P91 difference
+                </p>
+                <Button
+                  size="lg"
+                  onClick={() => setBookingModalOpen(true)}
+                  className="bg-green-400 hover:bg-green-500 text-black font-bold px-8 py-4 text-lg"
+                  data-testid="button-book-transformation"
+                >
+                  Book Your Transformation
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </div>
             </div>
           </div>
         </section>
