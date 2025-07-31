@@ -75,20 +75,25 @@ export default function AdminDashboard() {
     totalBookings: bookings?.length || 0,
     pendingBookings: bookings?.filter((b: any) => b.paymentStatus === "pending").length || 0,
     paidBookings: bookings?.filter((b: any) => b.paymentStatus === "paid").length || 0,
-    totalRevenue: bookings?.filter((b: any) => b.paymentStatus === "paid")
+    completedBookings: bookings?.filter((b: any) => b.paymentStatus === "completed").length || 0,
+    totalRevenue: bookings?.filter((b: any) => b.paymentStatus === "paid" || b.paymentStatus === "completed")
       .reduce((sum: number, b: any) => sum + parseFloat(b.amount), 0) || 0,
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "paid":
-        return <Badge className="bg-green-900 text-green-300">Paid</Badge>;
+        return <Badge className="bg-green-900 text-green-300 font-semibold">✓ Paid</Badge>;
       case "pending":
-        return <Badge className="bg-yellow-900 text-yellow-300">Pending</Badge>;
+        return <Badge className="bg-yellow-900 text-yellow-300 font-semibold">⏳ Payment Pending</Badge>;
+      case "completed":
+        return <Badge className="bg-blue-900 text-blue-300 font-semibold">🏁 Service Completed</Badge>;
       case "failed":
-        return <Badge className="bg-red-900 text-red-300">Failed</Badge>;
+        return <Badge className="bg-red-900 text-red-300 font-semibold">✗ Payment Failed</Badge>;
+      case "cancelled":
+        return <Badge className="bg-gray-900 text-gray-300 font-semibold">⊘ Cancelled</Badge>;
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        return <Badge variant="secondary" className="font-semibold">{status}</Badge>;
     }
   };
 
@@ -174,9 +179,9 @@ export default function AdminDashboard() {
             <CardContent className="p-6 text-center">
               <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-400" />
               <div className="text-3xl font-bold text-green-400 mb-2" data-testid="stat-paid-bookings">
-                {stats.paidBookings}
+                {stats.paidBookings + stats.completedBookings}
               </div>
-              <div className="text-gray-400">Paid</div>
+              <div className="text-gray-400">Paid/Completed</div>
             </CardContent>
           </Card>
 
@@ -197,14 +202,16 @@ export default function AdminDashboard() {
             <div className="flex justify-between items-center">
               <CardTitle className="text-xl text-neon-green">Recent Bookings</CardTitle>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-48 bg-medium-gray border-gray-600 text-white" data-testid="select-status-filter">
+                <SelectTrigger className="w-56 bg-medium-gray border-gray-600 text-white" data-testid="select-status-filter">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent className="bg-medium-gray border-gray-600">
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
+                  <SelectItem value="pending">⏳ Payment Pending</SelectItem>
+                  <SelectItem value="paid">✓ Paid</SelectItem>
+                  <SelectItem value="completed">🏁 Service Completed</SelectItem>
+                  <SelectItem value="failed">✗ Payment Failed</SelectItem>
+                  <SelectItem value="cancelled">⊘ Cancelled</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -248,8 +255,13 @@ export default function AdminDashboard() {
                           {booking.timeSlot?.startTime}
                         </div>
                       </TableCell>
-                      <TableCell className="font-semibold text-neon-green" data-testid={`text-booking-amount-${booking.id}`}>
-                        ₹{booking.amount}
+                      <TableCell data-testid={`text-booking-amount-${booking.id}`}>
+                        <div className="font-semibold text-neon-green">₹{booking.amount}</div>
+                        <div className="text-xs text-gray-500">
+                          {booking.paymentStatus === "completed" ? "Dev Mode" : 
+                           booking.paymentStatus === "paid" ? "Payment Received" : 
+                           booking.paymentStatus === "pending" ? "Awaiting Payment" : ""}
+                        </div>
                       </TableCell>
                       <TableCell data-testid={`status-${booking.id}`}>
                         {getStatusBadge(booking.paymentStatus)}
