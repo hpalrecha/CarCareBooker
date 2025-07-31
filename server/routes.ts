@@ -85,26 +85,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/services/:id", async (req, res) => {
     try {
-      const service = await storage.getService(req.params.id);
+      // Check if this is a slug or an ID
+      const param = req.params.id;
+      let service;
+      
+      if (param.includes('-')) {
+        // Looks like a slug
+        service = await storage.getServiceBySlug(param);
+      } else {
+        // Looks like an ID
+        service = await storage.getService(param);
+      }
+      
       if (!service) {
         return res.status(404).json({ message: "Service not found" });
       }
       res.json(service);
     } catch (error) {
       console.error("Get service error:", error);
-      res.status(500).json({ message: "Failed to fetch service" });
-    }
-  });
-
-  app.get("/api/services/slug/:slug", async (req, res) => {
-    try {
-      const service = await storage.getServiceBySlug(req.params.slug);
-      if (!service) {
-        return res.status(404).json({ message: "Service not found" });
-      }
-      res.json(service);
-    } catch (error) {
-      console.error("Get service by slug error:", error);
       res.status(500).json({ message: "Failed to fetch service" });
     }
   });

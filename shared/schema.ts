@@ -28,12 +28,30 @@ export const services = pgTable("services", {
   title: varchar("title").notNull(),
   slug: varchar("slug").notNull().unique(),
   description: text("description"),
+  // Landing page content fields
+  heroTitle: varchar("hero_title"),
+  heroSubtitle: text("hero_subtitle"),
+  heroVideo: varchar("hero_video"), // YouTube/Vimeo URL or video file URL
   whyChoose: text("why_choose"),
   whatIncluded: jsonb("what_included").$type<string[]>(),
+  process: jsonb("process").$type<{step: number, title: string, description: string}[]>(),
+  beforeAfter: jsonb("before_after").$type<{before: string, after: string, description?: string}[]>(),
+  testimonials: jsonb("testimonials").$type<{name: string, rating: number, comment: string, image?: string}[]>(),
+  faq: jsonb("faq").$type<{question: string, answer: string}[]>(),
+  // Pricing and booking
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   originalPrice: decimal("original_price", { precision: 10, scale: 2 }),
+  discountText: varchar("discount_text"), // e.g., "Limited Time Offer!"
   duration: integer("duration").notNull(), // in minutes
+  // Media
   images: jsonb("images").$type<string[]>(),
+  gallery: jsonb("gallery").$type<{url: string, type: 'image' | 'video', caption?: string}[]>(),
+  // SEO and conversion
+  metaTitle: varchar("meta_title"),
+  metaDescription: text("meta_description"),
+  ctaText: varchar("cta_text").default("Book Now"),
+  urgencyText: varchar("urgency_text"), // e.g., "Only 3 slots left today!"
+  guaranteeText: text("guarantee_text"),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
