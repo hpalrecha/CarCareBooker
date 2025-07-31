@@ -1,102 +1,131 @@
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-black text-white">
-      <Header />
-      
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-4xl font-bold text-center mb-8">Privacy Policy</h1>
-        <div className="text-gray-300 space-y-6">
-          <p className="text-sm text-gray-400 text-center">Last updated: January 2024</p>
-          
-          <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">1. Information We Collect</h2>
-            <p>P91 Car Care ("we," "our," or "us") collects the following information when you use our services:</p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>Personal identification information (Name, email address, phone number)</li>
-              <li>Vehicle information (make, model, year, license plate)</li>
-              <li>Service preferences and booking history</li>
-              <li>Payment information (processed securely through Razorpay)</li>
-              <li>Location data for service delivery</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">2. How We Use Your Information</h2>
-            <p>We use your information to:</p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>Provide car detailing and maintenance services</li>
-              <li>Process payments and manage bookings</li>
-              <li>Send service confirmations and updates via WhatsApp/Email</li>
-              <li>Improve our services and customer experience</li>
-              <li>Comply with legal and regulatory requirements</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">3. Payment Processing</h2>
-            <p>All payments are processed securely through Razorpay. We do not store your credit card or payment information on our servers. Razorpay handles all payment data in compliance with industry security standards including PCI DSS compliance.</p>
-            <p className="mt-2">For more information about Razorpay's privacy practices, please visit: <a href="https://razorpay.com/privacy/" className="text-green-400 hover:underline" target="_blank" rel="noopener noreferrer">Razorpay Privacy Policy</a></p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">4. Information Sharing</h2>
-            <p>We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:</p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>With service providers who assist in our operations (payment processing, communication services)</li>
-              <li>When required by law or to protect our rights</li>
-              <li>In case of business transfer or merger</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">5. Data Security</h2>
-            <p>We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. This includes:</p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>Encrypted data transmission (SSL/TLS)</li>
-              <li>Secure payment processing through Razorpay</li>
-              <li>Regular security audits and updates</li>
-              <li>Limited access to personal information</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">6. Your Rights</h2>
-            <p>You have the right to:</p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>Access your personal information</li>
-              <li>Correct inaccurate information</li>
-              <li>Request deletion of your information</li>
-              <li>Opt-out of marketing communications</li>
-              <li>File a complaint with relevant authorities</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">7. Cookies and Tracking</h2>
-            <p>We use cookies and similar technologies to enhance your browsing experience and analyze website usage. You can control cookie settings through your browser preferences.</p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">8. Changes to This Policy</h2>
-            <p>We may update this privacy policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "last updated" date.</p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">9. Contact Us</h2>
-            <p>If you have any questions about this Privacy Policy, please contact us:</p>
-            <div className="mt-2">
-              <p>Email: privacy@p91carcare.com</p>
-              <p>Phone: +91 9876543210</p>
-              <p>Address: Bangalore, Karnataka, India</p>
+    <div className="min-h-screen bg-deep-black text-white">
+      {/* Header */}
+      <div className="glass-effect border-b border-medium-gray">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-3">
+              <img 
+                src="/Car Care (4)_1753951564515.png" 
+                alt="P91 Car Care" 
+                className="h-8 w-auto"
+                data-testid="img-logo-privacy"
+              />
+              <h1 className="text-xl font-semibold gradient-text">
+                Plus Nine One Inc
+              </h1>
             </div>
-          </section>
+            <Link href="/">
+              <Button variant="ghost" className="text-gray-300 hover:text-white" data-testid="button-back-home">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Home
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
-      <Footer />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="prose prose-invert max-w-none">
+          <h1 className="text-4xl font-bold gradient-text mb-8" data-testid="text-privacy-title">
+            Privacy Policy
+          </h1>
+          
+          <div className="space-y-8 text-gray-300 leading-relaxed">
+            <section>
+              <h2 className="text-2xl font-semibold text-neon-green mb-4">1. Information We Collect</h2>
+              <p>Plus Nine One Inc collects the following information when you book our services:</p>
+              <ul className="list-disc ml-6 space-y-2">
+                <li><strong>Personal Information:</strong> Name, phone number, email address</li>
+                <li><strong>Service Information:</strong> Booking details, service preferences, location</li>
+                <li><strong>Payment Information:</strong> Payment details processed securely through Razorpay</li>
+                <li><strong>Communication Data:</strong> Messages sent via WhatsApp and email for service updates</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold text-neon-green mb-4">2. How We Use Your Information</h2>
+              <p>We use your information for the following purposes:</p>
+              <ul className="list-disc ml-6 space-y-2">
+                <li>Processing and managing your service bookings</li>
+                <li>Sending booking confirmations and service updates</li>
+                <li>Providing customer support and addressing inquiries</li>
+                <li>Processing payments securely through our payment gateway</li>
+                <li>Improving our services based on customer feedback</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold text-neon-green mb-4">3. Information Sharing and Disclosure</h2>
+              <p>We do not sell, trade, or rent your personal information to third parties. We may share information with:</p>
+              <ul className="list-disc ml-6 space-y-2">
+                <li><strong>Payment Processors:</strong> Razorpay for secure payment processing</li>
+                <li><strong>Service Providers:</strong> WhatsApp Business API and email services for communications</li>
+                <li><strong>Legal Requirements:</strong> When required by law or to protect our rights</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold text-neon-green mb-4">4. Data Security</h2>
+              <p>We implement appropriate security measures to protect your personal information:</p>
+              <ul className="list-disc ml-6 space-y-2">
+                <li>SSL encryption for all data transmission</li>
+                <li>Secure payment processing through PCI-compliant gateways</li>
+                <li>Regular security audits and updates</li>
+                <li>Limited access to personal information on a need-to-know basis</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold text-neon-green mb-4">5. Data Retention</h2>
+              <p>We retain your personal information for as long as necessary to provide services and comply with legal obligations. Booking records are maintained for up to 3 years for service history and warranty purposes.</p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold text-neon-green mb-4">6. Your Rights</h2>
+              <p>You have the right to:</p>
+              <ul className="list-disc ml-6 space-y-2">
+                <li>Access your personal information</li>
+                <li>Correct inaccurate information</li>
+                <li>Request deletion of your information</li>
+                <li>Opt-out of marketing communications</li>
+                <li>File complaints with data protection authorities</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold text-neon-green mb-4">7. Cookies and Tracking</h2>
+              <p>Our website uses essential cookies for functionality and session management. We do not use tracking cookies for advertising purposes.</p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold text-neon-green mb-4">8. Updates to Privacy Policy</h2>
+              <p>We may update this privacy policy periodically. Changes will be posted on our website with an updated effective date.</p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold text-neon-green mb-4">9. Contact Us</h2>
+              <p>For privacy-related questions or concerns, please contact us through our customer service channels.</p>
+              <p><strong>Business Name:</strong> Plus Nine One Inc</p>
+              <p><strong>GST Number:</strong> 29AMIPP3288M1Z6</p>
+            </section>
+
+            <div className="mt-12 p-6 bg-medium-gray rounded-lg">
+              <p className="text-sm text-gray-400">
+                Last updated: {new Date().toLocaleDateString('en-IN')}
+              </p>
+              <p className="text-sm text-gray-400 mt-2">
+                © 2025 Plus Nine One Inc. All rights reserved.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

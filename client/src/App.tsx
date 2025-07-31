@@ -11,9 +11,8 @@ import ServiceLanding from "@/pages/service-landing";
 import BookingConfirmation from "@/pages/booking-confirmation";
 import NotFound from "@/pages/not-found";
 import PrivacyPolicy from "@/pages/privacy-policy";
-import TermsOfService from "@/pages/terms-of-service";
+import TermsConditions from "@/pages/terms-conditions";
 import RefundPolicy from "@/pages/refund-policy";
-import CancellationPolicy from "@/pages/cancellation-policy";
 
 function Router() {
   return (
@@ -25,9 +24,8 @@ function Router() {
       <Route path="/service/:slug" component={ServiceLanding} />
       <Route path="/booking-confirmation/:id" component={BookingConfirmation} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
-      <Route path="/terms-of-service" component={TermsOfService} />
+      <Route path="/terms-conditions" component={TermsConditions} />
       <Route path="/refund-policy" component={RefundPolicy} />
-      <Route path="/cancellation-policy" component={CancellationPolicy} />
       <Route component={NotFound} />
     </Switch>
   );
