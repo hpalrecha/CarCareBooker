@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { CheckCircle, Star, Clock, Shield, Phone, Mail, MapPin, Play, ArrowRight, Zap } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import BookingModal from "@/components/booking-modal";
 
 interface Service {
@@ -39,6 +39,20 @@ export default function ServiceLanding() {
   const { slug } = useParams();
   const [, setLocation] = useLocation();
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [showFloatingCTA, setShowFloatingCTA] = useState(false);
+
+  // Track scroll position for floating CTA
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const viewportHeight = window.innerHeight;
+      // Show floating CTA after scrolling past first viewport (hero section)
+      setShowFloatingCTA(scrollY > viewportHeight * 0.8);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   const [showVideo, setShowVideo] = useState(false);
 
   const { data: service, isLoading } = useQuery<Service>({
@@ -554,6 +568,51 @@ export default function ServiceLanding() {
           </div>
         </div>
       </section>
+
+      {/* Floating FOMO CTA Button */}
+      {showFloatingCTA && (
+        <div 
+          className={`fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ease-in-out ${
+            showFloatingCTA ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
+          }`}
+          data-testid="floating-cta-button"
+        >
+          <div className="bg-gradient-to-r from-red-600 via-red-500 to-orange-500 rounded-full shadow-2xl px-6 py-4 mx-4 max-w-sm">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  <span className="text-white text-xs font-bold tracking-wide">
+                    {service?.urgencyText || "⚡ HURRY! LIMITED SLOTS"}
+                  </span>
+                </div>
+                <div className="text-white text-sm font-medium">
+                  {service?.discountText || "🔥 60% OFF TODAY"}
+                </div>
+              </div>
+              <Button
+                onClick={() => setBookingModalOpen(true)}
+                className="bg-white hover:bg-gray-100 text-red-600 font-bold px-4 py-2 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 min-w-fit"
+                data-testid="button-floating-book-now"
+              >
+                <Zap className="w-4 h-4" />
+                <span className="hidden sm:inline">Book Now</span>
+                <span className="sm:hidden">Book</span>
+              </Button>
+            </div>
+            
+            {/* Pulse Animation Ring */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-red-600 via-red-500 to-orange-500 animate-ping opacity-20"></div>
+          </div>
+          
+          {/* Price Badge */}
+          {service?.originalPrice && parseFloat(service.originalPrice) > parseFloat(service.price) && (
+            <div className="absolute -top-3 -right-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+              Save ₹{(parseFloat(service.originalPrice) - parseFloat(service.price)).toLocaleString()}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Booking Modal */}
       <BookingModal
