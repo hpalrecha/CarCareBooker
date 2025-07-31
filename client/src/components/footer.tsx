@@ -9,13 +9,12 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center space-x-3 mb-6">
+            <div className="mb-6">
               <img 
                 src={logoPath} 
                 alt="P91 Car Care" 
                 className="h-12 w-auto"
               />
-              <span className="text-2xl font-bold">P91 Car Care</span>
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
               Bangalore's premier car detailing center offering professional services 
