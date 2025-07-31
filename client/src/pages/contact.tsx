@@ -66,7 +66,7 @@ export default function Contact() {
     <div className="min-h-screen bg-deep-black text-white">
       <Navbar />
       
-      <div className="pt-16">
+      <div className="pt-20">
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-deep-black via-dark-gray to-deep-black py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
