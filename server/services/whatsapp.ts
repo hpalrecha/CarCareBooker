@@ -80,26 +80,51 @@ export class WhatsAppService {
       const data = await response.json();
       const templates: WhatsappTemplate[] = [];
 
+      // Check if we have templates data
+      if (!data.data || !Array.isArray(data.data)) {
+        console.log("No templates found in Meta API response:", data);
+        return templates;
+      }
+
+      console.log(`Found ${data.data.length} templates from Meta API`);
+
       for (const template of data.data) {
-        const [savedTemplate] = await db
-          .insert(whatsappTemplates)
-          .values({
-            templateName: template.name,
-            templateId: template.id,
-            category: template.category,
-            language: template.language,
-            status: template.status,
-            components: template.components,
-          })
-          .onConflictDoUpdate({
-            target: whatsappTemplates.templateId,
-            set: {
+        // Check if template exists first
+        const [existingTemplate] = await db
+          .select()
+          .from(whatsappTemplates)
+          .where(eq(whatsappTemplates.templateId, template.id))
+          .limit(1);
+
+        let savedTemplate;
+        if (existingTemplate) {
+          // Update existing template
+          [savedTemplate] = await db
+            .update(whatsappTemplates)
+            .set({
+              templateName: template.name,
+              category: template.category,
+              language: template.language,
               status: template.status,
               components: template.components,
               updatedAt: new Date(),
-            },
-          })
-          .returning();
+            })
+            .where(eq(whatsappTemplates.templateId, template.id))
+            .returning();
+        } else {
+          // Insert new template
+          [savedTemplate] = await db
+            .insert(whatsappTemplates)
+            .values({
+              templateName: template.name,
+              templateId: template.id,
+              category: template.category,
+              language: template.language,
+              status: template.status,
+              components: template.components,
+            })
+            .returning();
+        }
 
         templates.push(savedTemplate);
       }

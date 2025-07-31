@@ -38,7 +38,7 @@ export const whatsappConfig = pgTable("whatsapp_config", {
 export const whatsappTemplates = pgTable("whatsapp_templates", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   templateName: varchar("template_name").notNull(),
-  templateId: varchar("template_id").notNull(),
+  templateId: varchar("template_id").notNull().unique(),
   category: varchar("category").notNull(), // booking_confirmation, appointment_reminder, etc.
   language: varchar("language").default("en").notNull(),
   status: varchar("status").notNull(), // APPROVED, PENDING, REJECTED
