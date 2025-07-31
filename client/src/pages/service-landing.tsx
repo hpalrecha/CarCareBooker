@@ -46,10 +46,8 @@ export default function ServiceLanding() {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       const viewportHeight = window.innerHeight;
-      // Show floating CTA after scrolling past first viewport (hero section)
-      const shouldShow = scrollY > viewportHeight * 0.3; // Reduced threshold for easier testing
-      console.log('Scroll position:', scrollY, 'Viewport:', viewportHeight, 'Should show CTA:', shouldShow);
-      setShowFloatingCTA(shouldShow);
+      // Show floating CTA after scrolling past 30% of viewport
+      setShowFloatingCTA(scrollY > viewportHeight * 0.3);
     };
 
     // Check immediately on mount
@@ -637,18 +635,17 @@ export default function ServiceLanding() {
                 <div className="flex items-center gap-2 mb-1">
                   <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                   <span className="text-white text-xs font-bold tracking-wide">
-                    {service?.urgencyText || "⚡ HURRY! LIMITED SLOTS"}
+                    Limited slots available!
                   </span>
                 </div>
                 <div className="text-white text-sm font-medium">
-                  {service?.discountText || "🔥 60% OFF TODAY"}
+                  Book your {service?.title?.toLowerCase() || 'service'} slot now
                 </div>
               </div>
               <Button
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Floating CTA clicked');
                   setBookingModalOpen(true);
                 }}
                 className="bg-white hover:bg-gray-100 text-red-600 font-bold px-4 py-2 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 min-w-fit relative z-10"
