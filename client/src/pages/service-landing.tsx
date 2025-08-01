@@ -12,7 +12,7 @@ import BookingModal from "@/components/booking-modal";
 import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029992282.webp";
 import headlightAfter from "@assets/GVXjDlbWcAAoQD1_1754029992281.jpg";
 import glassCoating from "@assets/Before-and-After-Ceramic-Coating-on-Glass (1)_1754028454560.jpg";
-import exteriorDetailingBefore from "@assets/exterior-detailing-service.jpg";
+import exteriorDetailingBefore from "@assets/WhatsApp Image 2025-01-03 at 3.39.31 PM_1754032180088.jpeg";
 import exteriorDetailingAfter from "@assets/20241227_164016_1754031651194.jpg";
 
 interface Service {
@@ -422,7 +422,7 @@ export default function ServiceLanding() {
                     </div>
                   </div>
 
-                  {/* YouTube Video */}
+                  {/* Optimized Video */}
                   <div className="mt-12 max-w-4xl mx-auto">
                     <div className="text-center mb-6">
                       <h3 className="text-2xl font-bold text-white mb-2">Watch The Detailing Process</h3>
@@ -432,8 +432,10 @@ export default function ServiceLanding() {
                       <video
                         className="w-full h-full object-cover"
                         controls
-                        preload="metadata"
+                        preload="none"
                         poster={exteriorDetailingAfter}
+                        width="640"
+                        height="360"
                       >
                         <source src="/attached_assets/Exterior Detailing_1754031679196.mp4" type="video/mp4" />
                         Your browser does not support the video tag.
