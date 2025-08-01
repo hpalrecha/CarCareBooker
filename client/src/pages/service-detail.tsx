@@ -18,7 +18,7 @@ export default function ServiceDetail() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   const { data: service, isLoading, error } = useQuery({
-    queryKey: ["/api/services", slug],
+    queryKey: [`/api/services/${slug}`],
     enabled: !!slug,
   });
 
@@ -136,6 +136,14 @@ export default function ServiceDetail() {
                 </p>
               </div>
             )}
+
+            {/* DEBUG: Service data check */}
+            <div className="bg-yellow-900 text-yellow-100 p-4 rounded mb-4">
+              <strong>DEBUG INFO:</strong><br/>
+              Service loaded: {service ? 'YES' : 'NO'}<br/>
+              Service slug: {service?.slug || 'undefined'}<br/>
+              Service title: {service?.title || 'undefined'}
+            </div>
 
             {/* ALWAYS SHOW - Before & After Results for Headlight Services */}
             <div>
