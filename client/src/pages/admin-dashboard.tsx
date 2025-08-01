@@ -275,7 +275,8 @@ export default function AdminDashboard() {
                   <TableRow className="border-gray-700">
                     <TableHead className="text-gray-400">Customer</TableHead>
                     <TableHead className="text-gray-400">Service</TableHead>
-                    <TableHead className="text-gray-400">Date & Time</TableHead>
+                    <TableHead className="text-gray-400">Appointment Date</TableHead>
+                    <TableHead className="text-gray-400">Booked Date</TableHead>
                     <TableHead className="text-gray-400">Amount</TableHead>
                     <TableHead className="text-gray-400">Payment Status</TableHead>
                     <TableHead className="text-gray-400">Service Status</TableHead>
@@ -300,10 +301,23 @@ export default function AdminDashboard() {
                       </TableCell>
                       <TableCell className="text-gray-300">
                         <div data-testid={`text-booking-date-${booking.id}`}>
-                          {new Date(booking.timeSlot?.date).toLocaleDateString()}
+                          {booking.timeSlotId && booking.timeSlotId.includes(':') ? 
+                            `Today at ${booking.timeSlotId}` : 
+                            booking.timeSlotId && booking.timeSlotId.length > 10 ?
+                            'Legacy booking' :
+                            'To be scheduled'
+                          }
                         </div>
                         <div className="text-sm text-gray-400" data-testid={`text-booking-time-${booking.id}`}>
-                          {booking.timeSlot?.startTime}
+                          {booking.timeSlotId && booking.timeSlotId.includes(':') ? 'Time slot confirmed' : 'Appointment pending'}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-gray-300">
+                        <div data-testid={`text-booking-created-${booking.id}`}>
+                          {new Date(booking.createdAt).toLocaleDateString()}
+                        </div>
+                        <div className="text-sm text-gray-400" data-testid={`text-booking-created-time-${booking.id}`}>
+                          {new Date(booking.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </TableCell>
                       <TableCell data-testid={`text-booking-amount-${booking.id}`}>
