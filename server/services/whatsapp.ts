@@ -195,42 +195,25 @@ export class WhatsAppService {
       return false;
     }
 
-    // Use mapped template if available, otherwise fall back to category search
-    let bookingTemplate;
-    if (config.bookingConfirmationTemplateId && config.bookingConfirmationTemplateId !== "none") {
-      const templates = await this.getTemplates();
-      bookingTemplate = templates.find(t => 
-        t.templateId === config.bookingConfirmationTemplateId && t.status === "APPROVED"
-      );
-    }
+    // Use the configured booking confirmation template directly
+    const templates = await this.getTemplates();
+    let bookingTemplate = templates.find(t => 
+      t.templateId === config.bookingConfirmationTemplateId && t.status === "APPROVED"
+    );
     
-    // Fallback to category search or use any available utility template
+    // If no mapped template, use p91_booking_confirmation directly
     if (!bookingTemplate) {
-      const templates = await this.getTemplates();
       bookingTemplate = templates.find(t => 
-        t.category === "booking_confirmation" && t.status === "APPROVED"
+        t.templateName === "p91_booking_confirmation" && t.status === "APPROVED"
       );
-      
-      // If no booking confirmation template, try booking reminder
-      if (!bookingTemplate) {
-        bookingTemplate = templates.find(t => 
-          t.templateName === "p91_booking_reminder" && t.status === "APPROVED"
-        );
-      }
-      
-      // Last fallback - use hello_world for testing
-      if (!bookingTemplate) {
-        bookingTemplate = templates.find(t => 
-          t.templateName === "hello_world" && t.status === "APPROVED"
-        );
-        console.log("Using hello_world template as fallback for booking confirmation");
-      }
     }
 
     if (!bookingTemplate) {
-      console.log("No approved templates found at all");
+      console.log("No approved p91_booking_confirmation template found");
       return false;
     }
+
+    console.log(`Using WhatsApp template: ${bookingTemplate.templateName}`);
 
     const message: WhatsAppMessage = {
       messaging_product: "whatsapp",
@@ -247,9 +230,9 @@ export class WhatsAppService {
             parameters: [
               { type: "text", text: customerName },
               { type: "text", text: serviceName },
-              { type: "text", text: appointmentDate },
-              { type: "text", text: appointmentTime },
-              { type: "text", text: `₹${bookingAmount}` },
+              { type: "text", text: `${appointmentDate} at ${appointmentTime}` },
+              { type: "text", text: bookingAmount },
+              { type: "text", text: `BOOK-${Date.now()}` }
             ],
           },
         ],
