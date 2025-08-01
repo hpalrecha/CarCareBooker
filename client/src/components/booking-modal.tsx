@@ -42,8 +42,8 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
   });
 
   useEffect(() => {
-    if (bookingAmountSetting?.value) {
-      setBookingAmount(parseFloat(bookingAmountSetting.value));
+    if (bookingAmountSetting && typeof bookingAmountSetting === 'object' && 'value' in bookingAmountSetting) {
+      setBookingAmount(parseFloat(String(bookingAmountSetting.value)));
     }
   }, [bookingAmountSetting]);
 

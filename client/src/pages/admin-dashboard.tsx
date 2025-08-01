@@ -4,6 +4,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
@@ -26,15 +28,7 @@ export default function AdminDashboard() {
     paymentGateway: "razorpay"
   });
 
-  // Update settings state when data is loaded
-  useEffect(() => {
-    if (siteSettings && siteSettings.length > 0) {
-      const bookingAmountSetting = siteSettings.find((s: any) => s.key === "booking_amount");
-      if (bookingAmountSetting) {
-        setSettings(prev => ({ ...prev, bookingAmount: bookingAmountSetting.value }));
-      }
-    }
-  }, [siteSettings]);
+
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -266,9 +260,9 @@ export default function AdminDashboard() {
               </Button>
               <div className="flex items-center space-x-2 text-gray-400">
                 <div className="w-8 h-8 bg-neon-green rounded-full flex items-center justify-center">
-                  <span className="text-deep-black font-semibold text-sm">{admin?.name?.[0]}</span>
+                  <span className="text-deep-black font-semibold text-sm">{admin?.name?.[0] || 'A'}</span>
                 </div>
-                <span data-testid="text-admin-name">{admin?.name}</span>
+                <span data-testid="text-admin-name">{admin?.name || 'Admin'}</span>
               </div>
               <Button
                 variant="ghost"
@@ -519,7 +513,7 @@ export default function AdminDashboard() {
                 <div className="text-center py-8">Loading services...</div>
               ) : (
                 <div className="grid gap-4">
-                  {services?.map((service: any) => (
+                  {Array.isArray(services) && services.map((service: any) => (
                     <div key={service.id} className="border border-gray-700 rounded-lg p-4 hover:bg-medium-gray/20" data-testid={`service-card-${service.id}`}>
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
@@ -576,7 +570,7 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                   ))}
-                  {(!services || services.length === 0) && (
+                  {(!Array.isArray(services) || services.length === 0) && (
                     <div className="text-center py-8 text-gray-400">
                       No services found. Click "Add Service" to create your first service.
                     </div>
@@ -604,7 +598,7 @@ export default function AdminDashboard() {
                       <Input
                         type="number"
                         value={settings.bookingAmount}
-                        onChange={(e) => setSettings(prev => ({ ...prev, bookingAmount: e.target.value }))}
+                        onChange={(e: any) => setSettings((prev: any) => ({ ...prev, bookingAmount: e.target.value }))}
                         className="bg-dark-gray border-gray-600 text-white text-lg font-semibold"
                         placeholder="299"
                         data-testid="input-booking-amount"
@@ -658,7 +652,7 @@ export default function AdminDashboard() {
                   <div className="text-center py-8">Loading settings...</div>
                 ) : (
                   <div className="space-y-4">
-                    {siteSettings?.map((setting: any) => (
+                    {Array.isArray(siteSettings) && siteSettings.map((setting: any) => (
                       <div key={setting.key} className="border border-gray-700 rounded-lg p-4" data-testid={`setting-${setting.key}`}>
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
@@ -677,7 +671,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     ))}
-                    {(!siteSettings || siteSettings.length === 0) && (
+                    {(!Array.isArray(siteSettings) || siteSettings.length === 0) && (
                       <div className="text-center py-8 text-gray-400">
                         No custom settings configured. Settings will appear here as you configure them.
                       </div>
