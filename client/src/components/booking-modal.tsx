@@ -80,8 +80,11 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
           throw new Error("Razorpay failed to load");
         }
 
+        console.log("Payment order data:", paymentOrder);
+        console.log("Using Razorpay key:", paymentOrder.key);
+        
         const options = {
-          key: paymentOrder.key,
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID || paymentOrder.key,
           amount: paymentOrder.amount,
           currency: paymentOrder.currency,
           name: "P91 Car Care",
@@ -93,6 +96,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
           },
           order_id: paymentOrder.id,
           handler: async (response: any) => {
+            console.log("Payment successful:", response);
             try {
               await apiRequest("POST", "/api/payment-webhook", {
                 razorpay_order_id: response.razorpay_order_id,
@@ -108,11 +112,17 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
               onClose();
               form.reset();
             } catch (error) {
+              console.error("Payment confirmation error:", error);
               toast({
                 title: "Payment Error",
                 description: "Payment was successful but confirmation failed. Please contact support.",
                 variant: "destructive",
               });
+            }
+          },
+          modal: {
+            ondismiss: () => {
+              console.log("Payment modal dismissed");
             }
           },
           prefill: {

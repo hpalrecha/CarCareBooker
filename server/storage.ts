@@ -182,6 +182,11 @@ export class DatabaseStorage implements IStorage {
   async getBookingsByStatus(status: string): Promise<Booking[]> {
     return await db.select().from(bookings).where(eq(bookings.paymentStatus, status));
   }
+
+  async getBookingByPaymentOrderId(orderId: string): Promise<Booking | undefined> {
+    const [booking] = await db.select().from(bookings).where(eq(bookings.razorpayOrderId, orderId));
+    return booking;
+  }
 }
 
 export const storage = new DatabaseStorage();

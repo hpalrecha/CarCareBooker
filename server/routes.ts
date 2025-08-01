@@ -254,7 +254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: paymentOrder.id,
           amount: paymentOrder.amount,
           currency: paymentOrder.currency,
-          key: process.env.RAZORPAY_KEY_ID || process.env.RAZORPAY_TEST_KEY_ID,
+          key: process.env.VITE_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID,
         },
       });
     } catch (error) {
