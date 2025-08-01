@@ -125,6 +125,8 @@ export const bookings = pgTable("bookings", {
   razorpayOrderId: varchar("razorpay_order_id"),
   whatsappSent: boolean("whatsapp_sent").default(false).notNull(),
   emailSent: boolean("email_sent").default(false).notNull(),
+  reminder24hSent: boolean("reminder_24h_sent").default(false).notNull(),
+  reminder2hSent: boolean("reminder_2h_sent").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

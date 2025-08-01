@@ -8,6 +8,8 @@ import { authenticateAdmin, hashPassword, comparePassword } from "./middleware/a
 import { createPaymentOrder, verifyPaymentSignature } from "./services/payment";
 import { whatsappService } from "./services/whatsapp";
 import { sendBookingConfirmationEmail } from "./services/email";
+import { WhatsAppTemplates, sendWhatsAppMessage, type BookingDetails } from "./templates/whatsapp-messages";
+import { reminderScheduler } from "./services/reminder-scheduler";
 import { z } from "zod";
 import {
   adminLoginSchema,
@@ -73,6 +75,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/me", authenticateAdmin, (req, res) => {
     const admin = (req as any).admin;
     res.json({ id: admin.id, email: admin.email, name: admin.name });
+  });
+
+  // WhatsApp Testing and Management Routes
+  app.post("/api/admin/test-reminder/:bookingId", authenticateAdmin, async (req, res) => {
+    try {
+      const { bookingId } = req.params;
+      const { type = '24h' } = req.body;
+      
+      const result = await reminderScheduler.sendTestReminder(bookingId, type);
+      
+      if (result.success) {
+        res.json({ message: result.message });
+      } else {
+        res.status(400).json({ message: result.message });
+      }
+    } catch (error) {
+      console.error("Test reminder error:", error);
+      res.status(500).json({ message: "Failed to send test reminder" });
+    }
+  });
+
+  app.post("/api/admin/send-custom-message", authenticateAdmin, async (req, res) => {
+    try {
+      const { phoneNumber, message } = req.body;
+      
+      if (!phoneNumber || !message) {
+        return res.status(400).json({ message: "Phone number and message are required" });
+      }
+
+      await sendWhatsAppMessage(phoneNumber, message);
+      res.json({ message: "Custom message sent successfully" });
+    } catch (error) {
+      console.error("Custom message error:", error);
+      res.status(500).json({ message: "Failed to send custom message" });
+    }
   });
 
   // Service Management Routes
@@ -365,36 +402,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const service = await storage.getService(booking.serviceId);
       const timeSlot = await storage.getTimeSlot(booking.timeSlotId);
 
-      if (service && timeSlot) {
-        // Send WhatsApp confirmation
-        const whatsappMessage = generateBookingConfirmationMessage(
-          booking.customerName,
-          service.title,
-          timeSlot.date.toLocaleDateString(),
-          timeSlot.startTime
-        );
+      if (service) {
+        // Send WhatsApp confirmation using templates
+        try {
+          const bookingDetails: BookingDetails = {
+            customerName: booking.customerName,
+            serviceName: service.title,
+            appointmentDate: booking.appointmentDate || '',
+            appointmentTime: booking.appointmentTime || '',
+            amount: parseFloat(booking.amount),
+            bookingId: booking.id,
+            customerPhone: booking.customerPhone,
+            customerEmail: booking.customerEmail
+          };
 
-        const whatsappSent = await sendWhatsAppMessage({
-          to: booking.customerPhone,
-          message: whatsappMessage,
-        });
+          const confirmationMessage = WhatsAppTemplates.bookingConfirmation(bookingDetails);
+          const paymentMessage = WhatsAppTemplates.paymentReceived(bookingDetails);
+          
+          // Send booking confirmation
+          await sendWhatsAppMessage(booking.customerPhone, confirmationMessage);
+          
+          // Send payment confirmation after a short delay
+          setTimeout(async () => {
+            await sendWhatsAppMessage(booking.customerPhone, paymentMessage);
+          }, 2000);
+          
+        } catch (whatsappError) {
+          console.error("WhatsApp notification failed:", whatsappError);
+        }
 
         // Send email confirmation
-        const emailSent = await sendBookingConfirmationEmail({
-          customerName: booking.customerName,
-          customerEmail: booking.customerEmail,
-          serviceName: service.title,
-          date: timeSlot.date.toLocaleDateString(),
-          time: timeSlot.startTime,
-          amount: booking.amount,
-          bookingId: booking.id,
-        });
-
-        // Update notification status
-        await storage.updateBooking(booking.id, {
-          whatsappSent,
-          emailSent,
-        });
+        try {
+          await sendBookingConfirmationEmail(booking, service);
+        } catch (emailError) {
+          console.error("Email confirmation failed:", emailError);
+        }
       }
 
       res.json({ message: "Payment confirmed" });
