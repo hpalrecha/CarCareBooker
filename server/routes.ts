@@ -341,7 +341,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/payment-webhook", async (req, res) => {
     try {
+      console.log("Payment webhook called with:", req.body);
       const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+      if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+        console.error("Missing required payment fields");
+        return res.status(400).json({ message: "Missing required payment fields" });
+      }
 
       // Verify payment signature
       const isValid = await verifyPaymentSignature(
@@ -350,6 +356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         razorpay_signature
       );
 
+      console.log("Payment signature verification:", isValid);
       if (!isValid) {
         return res.status(400).json({ message: "Invalid payment signature" });
       }

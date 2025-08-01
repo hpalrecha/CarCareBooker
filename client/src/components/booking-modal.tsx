@@ -106,6 +106,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
           currency: paymentOrder.currency,
           name: "P91 Car Care",
           description: `₹${bookingAmount} Booking Fee - ${service.title}`,
+          image: "https://img.icons8.com/color/96/car-wash.png", // Add logo
           notes: {
             booking_fee: `₹${bookingAmount} booking fee to secure your slot`,
             free_voucher: "Includes FREE car wash voucher worth ₹500",
@@ -114,12 +115,16 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
           order_id: paymentOrder.id,
           handler: async (response: any) => {
             console.log("Payment successful:", response);
+            console.log("Payment response object:", JSON.stringify(response, null, 2));
+            
             try {
-              await apiRequest("POST", "/api/payment-webhook", {
+              const webhookResponse = await apiRequest("POST", "/api/payment-webhook", {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
               });
+              
+              console.log("Webhook response:", webhookResponse);
               
               toast({
                 title: "Booking Confirmed!",
@@ -131,7 +136,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
             } catch (error) {
               console.error("Payment confirmation error:", error);
               toast({
-                title: "Payment Error",
+                title: "Payment Error", 
                 description: "Payment was successful but confirmation failed. Please contact support.",
                 variant: "destructive",
               });
@@ -139,8 +144,10 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
           },
           modal: {
             ondismiss: () => {
-              console.log("Payment modal dismissed");
-            }
+              console.log("Payment modal dismissed by user");
+            },
+            escape: true,
+            backdrop_close: false
           },
           prefill: {
             name: form.getValues("customerName"),
@@ -150,9 +157,29 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
           theme: {
             color: "#00FF94",
           },
+          method: {
+            upi: true,
+            card: true, 
+            netbanking: true,
+            wallet: true,
+          },
+          remember_customer: false,
+          timeout: 300, // 5 minutes timeout
         };
 
         const payment = new razorpay(options);
+        
+        // Add error handlers
+        payment.on('payment.failed', function (response: any) {
+          console.error('Payment failed:', response.error);
+          toast({
+            title: "Payment Failed",
+            description: response.error.description || "Payment could not be processed. Please try again.",
+            variant: "destructive",
+          });
+        });
+        
+        console.log("Opening Razorpay payment gateway...");
         payment.open();
       } catch (error) {
         toast({
