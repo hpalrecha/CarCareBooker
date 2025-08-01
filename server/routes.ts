@@ -173,10 +173,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Booking request body:", req.body);
       
-      // Parse booking data with extended schema to include amount
+      // Parse booking data with extended schema to include amount and appointment fields
       const extendedBookingSchema = bookingFormSchema.extend({
         amount: z.number().optional(),
         isBookingFee: z.boolean().optional(),
+        appointmentDate: z.string().optional(),
+        appointmentTime: z.string().optional(),
       });
       
       const bookingData = extendedBookingSchema.parse(req.body);
