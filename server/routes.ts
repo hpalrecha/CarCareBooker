@@ -142,6 +142,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Settings Routes
+  app.get("/api/settings", authenticateAdmin, async (req, res) => {
+    try {
+      const category = req.query.category as string;
+      const settings = category 
+        ? await storage.getSettingsByCategory(category)
+        : await storage.getAllSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Get settings error:", error);
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+
+  app.get("/api/settings/:key", async (req, res) => {
+    try {
+      const setting = await storage.getSetting(req.params.key);
+      if (!setting) {
+        return res.status(404).json({ message: "Setting not found" });
+      }
+      res.json(setting);
+    } catch (error) {
+      console.error("Get setting error:", error);
+      res.status(500).json({ message: "Failed to fetch setting" });
+    }
+  });
+
+  app.put("/api/settings/:key", authenticateAdmin, async (req, res) => {
+    try {
+      const { value, description, category, dataType } = req.body;
+      const settingData = {
+        key: req.params.key,
+        value: value.toString(),
+        description,
+        category: category || "general",
+        dataType: dataType || "string",
+      };
+      const setting = await storage.upsertSetting(settingData);
+      res.json(setting);
+    } catch (error) {
+      console.error("Update setting error:", error);
+      res.status(400).json({ message: "Failed to update setting" });
+    }
+  });
+
+  app.delete("/api/settings/:key", authenticateAdmin, async (req, res) => {
+    try {
+      await storage.deleteSetting(req.params.key);
+      res.json({ message: "Setting deleted successfully" });
+    } catch (error) {
+      console.error("Delete setting error:", error);
+      res.status(500).json({ message: "Failed to delete setting" });
+    }
+  });
+
   // Time Slot Routes
   app.get("/api/services/:serviceId/slots/:date", async (req, res) => {
     try {
@@ -193,8 +248,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Service not found" });
       }
 
-      // Use booking fee amount (₹299) instead of full service price
-      const bookingFeeAmount = bookingData.amount || 299; // ₹299 booking fee
+      // Get booking fee amount from settings or use default
+      let bookingFeeAmount = bookingData.amount || 299; // Default ₹299 booking fee
+      try {
+        const bookingAmountSetting = await storage.getSetting("booking_amount");
+        if (bookingAmountSetting && bookingAmountSetting.value) {
+          bookingFeeAmount = parseFloat(bookingAmountSetting.value);
+        }
+      } catch (error) {
+        console.log("Using default booking amount due to setting fetch error:", error);
+      }
       
       // Check if payment service is configured
       if (!process.env.RAZORPAY_KEY_ID && !process.env.RAZORPAY_TEST_KEY_ID) {

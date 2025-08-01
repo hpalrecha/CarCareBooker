@@ -20,6 +20,21 @@ export default function AdminDashboard() {
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [activeTab, setActiveTab] = useState("bookings");
   const [editingService, setEditingService] = useState<any>(null);
+  const [settings, setSettings] = useState<any>({
+    bookingAmount: "299",
+    currency: "INR",
+    paymentGateway: "razorpay"
+  });
+
+  // Update settings state when data is loaded
+  useEffect(() => {
+    if (siteSettings && siteSettings.length > 0) {
+      const bookingAmountSetting = siteSettings.find((s: any) => s.key === "booking_amount");
+      if (bookingAmountSetting) {
+        setSettings(prev => ({ ...prev, bookingAmount: bookingAmountSetting.value }));
+      }
+    }
+  }, [siteSettings]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -39,6 +54,11 @@ export default function AdminDashboard() {
 
   const { data: services, isLoading: servicesLoading } = useQuery({
     queryKey: ["/api/services"],
+    enabled: isAuthenticated,
+  });
+
+  const { data: siteSettings = [], isLoading: settingsLoading } = useQuery({
+    queryKey: ["/api/settings"],
     enabled: isAuthenticated,
   });
 
@@ -118,6 +138,42 @@ export default function AdminDashboard() {
         });
       }
     }
+  };
+
+  const updateSettingMutation = useMutation({
+    mutationFn: async ({ key, value, description, category, dataType }: any) => {
+      const response = await apiRequest("PUT", `/api/settings/${key}`, {
+        value,
+        description,
+        category,
+        dataType
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
+      toast({
+        title: "Setting Updated",
+        description: "Setting has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update setting",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleUpdateBookingAmount = (amount: string) => {
+    updateSettingMutation.mutate({
+      key: "booking_amount",
+      value: amount,
+      description: "Default booking fee amount charged to customers",
+      category: "booking",
+      dataType: "number"
+    });
   };
 
   if (authLoading) {
@@ -247,6 +303,14 @@ export default function AdminDashboard() {
               data-testid="tab-services"
             >
               Services
+            </Button>
+            <Button
+              variant={activeTab === "settings" ? "default" : "ghost"}
+              onClick={() => setActiveTab("settings")}
+              className={activeTab === "settings" ? "bg-neon-green text-deep-black" : "text-gray-400 hover:text-white"}
+              data-testid="tab-settings"
+            >
+              Settings
             </Button>
           </div>
         </div>
@@ -521,6 +585,108 @@ export default function AdminDashboard() {
               )}
             </CardContent>
           </Card>
+        )}
+
+        {activeTab === "settings" && (
+          <div className="space-y-6">
+            <Card className="glass-effect border-medium-gray">
+              <CardHeader>
+                <CardTitle className="text-xl text-neon-green">Booking Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <Label className="text-white text-lg font-semibold mb-3 block">Booking Amount (₹)</Label>
+                    <p className="text-gray-400 text-sm mb-4">
+                      This is the booking fee amount charged to customers. The remaining amount will be collected during service.
+                    </p>
+                    <div className="flex gap-3">
+                      <Input
+                        type="number"
+                        value={settings.bookingAmount}
+                        onChange={(e) => setSettings(prev => ({ ...prev, bookingAmount: e.target.value }))}
+                        className="bg-dark-gray border-gray-600 text-white text-lg font-semibold"
+                        placeholder="299"
+                        data-testid="input-booking-amount"
+                      />
+                      <Button
+                        onClick={() => handleUpdateBookingAmount(settings.bookingAmount)}
+                        disabled={updateSettingMutation.isPending}
+                        className="bg-neon-green text-deep-black hover:bg-neon-green/90"
+                        data-testid="button-update-booking-amount"
+                      >
+                        {updateSettingMutation.isPending ? "Updating..." : "Update"}
+                      </Button>
+                    </div>
+                    <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-600/50 rounded-lg">
+                      <div className="flex items-center gap-2 text-yellow-400 font-semibold mb-2">
+                        <span>⚠️</span>
+                        Important Note
+                      </div>
+                      <p className="text-yellow-300 text-sm">
+                        Changing the booking amount will affect all new bookings. Existing bookings will retain their original amount.
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-white text-lg font-semibold mb-3 block">Current Configuration</Label>
+                    <div className="space-y-3">
+                      <div className="p-4 bg-medium-gray rounded-lg">
+                        <div className="text-sm text-gray-400">Current Booking Fee</div>
+                        <div className="text-2xl font-bold text-neon-green">₹{settings.bookingAmount}</div>
+                      </div>
+                      <div className="p-4 bg-medium-gray rounded-lg">
+                        <div className="text-sm text-gray-400">Payment Gateway</div>
+                        <div className="text-lg font-semibold text-white">Razorpay</div>
+                      </div>
+                      <div className="p-4 bg-medium-gray rounded-lg">
+                        <div className="text-sm text-gray-400">Currency</div>
+                        <div className="text-lg font-semibold text-white">Indian Rupees (₹)</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-effect border-medium-gray">
+              <CardHeader>
+                <CardTitle className="text-xl text-neon-green">Site Settings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {settingsLoading ? (
+                  <div className="text-center py-8">Loading settings...</div>
+                ) : (
+                  <div className="space-y-4">
+                    {siteSettings?.map((setting: any) => (
+                      <div key={setting.key} className="border border-gray-700 rounded-lg p-4" data-testid={`setting-${setting.key}`}>
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-white mb-1">{setting.key.replace(/_/g, ' ').toUpperCase()}</h3>
+                            <p className="text-gray-400 text-sm mb-2">{setting.description}</p>
+                            <div className="text-neon-green font-mono">{setting.value}</div>
+                          </div>
+                          <div className="flex items-center gap-2 ml-4">
+                            <Badge className={`${setting.category === 'booking' ? 'bg-blue-900 text-blue-300' : 'bg-gray-700 text-gray-300'}`}>
+                              {setting.category}
+                            </Badge>
+                            <Badge variant="outline" className="border-gray-600 text-gray-400">
+                              {setting.dataType}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {(!siteSettings || siteSettings.length === 0) && (
+                      <div className="text-center py-8 text-gray-400">
+                        No custom settings configured. Settings will appear here as you configure them.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
 

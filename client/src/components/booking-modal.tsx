@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,20 @@ interface BookingModalProps {
 
 export default function BookingModal({ service, isOpen, onClose }: BookingModalProps) {
   const [selectedDate, setSelectedDate] = useState("");
+  const [bookingAmount, setBookingAmount] = useState(299);
   const { toast } = useToast();
+
+  // Fetch booking amount from settings
+  const { data: bookingAmountSetting } = useQuery({
+    queryKey: ["/api/settings/booking_amount"],
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (bookingAmountSetting?.value) {
+      setBookingAmount(parseFloat(bookingAmountSetting.value));
+    }
+  }, [bookingAmountSetting]);
 
   const form = useForm({
     resolver: zodResolver(bookingFormSchema),
@@ -65,7 +78,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
       // Add booking fee amount (₹299) to the request
       const bookingData = {
         ...data,
-        amount: 299, // Fixed booking fee
+        amount: bookingAmount, // Fixed booking fee
         isBookingFee: true, // Flag to indicate this is a booking fee, not full payment
       };
       const response = await apiRequest("POST", "/api/bookings", bookingData);
@@ -393,8 +406,8 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                     disabled={bookingMutation.isPending}
                     data-testid="button-proceed-payment"
                   >
-                    <span className="block sm:hidden">Pay ₹299 + FREE Voucher</span>
-                    <span className="hidden sm:block">{bookingMutation.isPending ? "Processing..." : "Pay ₹299 Booking Fee + Get FREE Voucher"}</span>
+                    <span className="block sm:hidden">Pay ₹{bookingAmount} + FREE Voucher</span>
+                    <span className="hidden sm:block">{bookingMutation.isPending ? "Processing..." : `Pay ₹${bookingAmount} Booking Fee + Get FREE Voucher`}</span>
                   </Button>
                 </form>
               </Form>

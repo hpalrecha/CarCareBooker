@@ -22,6 +22,17 @@ export const admins = pgTable("admins", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Site settings table
+export const siteSettings = pgTable("site_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: varchar("key").notNull().unique(),
+  value: text("value").notNull(),
+  description: text("description"),
+  category: varchar("category").notNull(), // booking, payment, general
+  dataType: varchar("data_type").notNull(), // string, number, boolean, json
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // WhatsApp Business API configuration
 export const whatsappConfig = pgTable("whatsapp_config", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -142,6 +153,9 @@ export type InsertTimeSlot = typeof timeSlots.$inferInsert;
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = typeof bookings.$inferInsert;
 
+export type SiteSetting = typeof siteSettings.$inferSelect;
+export type InsertSiteSetting = typeof siteSettings.$inferInsert;
+
 export type WhatsappConfig = typeof whatsappConfig.$inferSelect;
 export type InsertWhatsappConfig = typeof whatsappConfig.$inferInsert;
 
@@ -183,6 +197,11 @@ export const bookingFormSchema = z.object({
   customerName: z.string().min(2),
   customerEmail: z.string().email(),
   customerPhone: z.string().regex(/^\+?[1-9]\d{9,14}$/),
+});
+
+export const insertSiteSettingSchema = createInsertSchema(siteSettings).omit({
+  id: true,
+  updatedAt: true,
 });
 
 export const whatsappConfigSchema = z.object({

@@ -3,6 +3,7 @@ import {
   services,
   timeSlots,
   bookings,
+  siteSettings,
   type Admin,
   type InsertAdmin,
   type Service,
@@ -11,6 +12,8 @@ import {
   type InsertTimeSlot,
   type Booking,
   type InsertBooking,
+  type SiteSetting,
+  type InsertSiteSetting,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, desc, asc } from "drizzle-orm";
@@ -42,6 +45,13 @@ export interface IStorage {
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBooking(id: string, booking: Partial<InsertBooking>): Promise<Booking>;
   getBookingsByStatus(status: string): Promise<Booking[]>;
+
+  // Settings operations
+  getSetting(key: string): Promise<SiteSetting | undefined>;
+  getSettingsByCategory(category: string): Promise<SiteSetting[]>;
+  getAllSettings(): Promise<SiteSetting[]>;
+  upsertSetting(setting: InsertSiteSetting): Promise<SiteSetting>;
+  deleteSetting(key: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -186,6 +196,40 @@ export class DatabaseStorage implements IStorage {
   async getBookingByPaymentOrderId(orderId: string): Promise<Booking | undefined> {
     const [booking] = await db.select().from(bookings).where(eq(bookings.razorpayOrderId, orderId));
     return booking;
+  }
+
+  // Settings operations
+  async getSetting(key: string): Promise<SiteSetting | undefined> {
+    const [setting] = await db.select().from(siteSettings).where(eq(siteSettings.key, key));
+    return setting;
+  }
+
+  async getSettingsByCategory(category: string): Promise<SiteSetting[]> {
+    return await db.select().from(siteSettings).where(eq(siteSettings.category, category));
+  }
+
+  async getAllSettings(): Promise<SiteSetting[]> {
+    return await db.select().from(siteSettings);
+  }
+
+  async upsertSetting(settingData: InsertSiteSetting): Promise<SiteSetting> {
+    const [setting] = await db
+      .insert(siteSettings)
+      .values(settingData)
+      .onConflictDoUpdate({
+        target: siteSettings.key,
+        set: {
+          value: settingData.value,
+          description: settingData.description,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return setting;
+  }
+
+  async deleteSetting(key: string): Promise<void> {
+    await db.delete(siteSettings).where(eq(siteSettings.key, key));
   }
 }
 
