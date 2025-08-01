@@ -12,16 +12,21 @@ declare global {
 
 export async function authenticateAdmin(req: Request, res: Response, next: NextFunction) {
   try {
+    console.log("Auth check - Session adminId:", req.session.adminId);
+    
     if (!req.session.adminId) {
+      console.log("No adminId in session");
       return res.status(401).json({ message: "Unauthorized" });
     }
 
     const admin = await storage.getAdmin(req.session.adminId);
     if (!admin) {
+      console.log("Admin not found in database:", req.session.adminId);
       req.session.adminId = undefined;
       return res.status(401).json({ message: "Unauthorized" });
     }
 
+    console.log("Admin authenticated successfully:", admin.email);
     (req as any).admin = admin;
     next();
   } catch (error) {

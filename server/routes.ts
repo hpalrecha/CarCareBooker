@@ -32,8 +32,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       saveUninitialized: false,
       cookie: {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: false, // Set to false to work with Replit deployments
         maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+        sameSite: 'lax'
       },
     })
   );
@@ -41,19 +42,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin Authentication Routes
   app.post("/api/admin/login", async (req, res) => {
     try {
+      console.log("Admin login attempt:", { email: req.body.email, timestamp: new Date().toISOString() });
+      
       const { email, password } = adminLoginSchema.parse(req.body);
       
       const admin = await storage.getAdminByEmail(email);
       if (!admin) {
+        console.log("Admin not found:", email);
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
       const isValidPassword = await comparePassword(password, admin.password);
       if (!isValidPassword) {
+        console.log("Invalid password for admin:", email);
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
       req.session.adminId = admin.id;
+      console.log("Admin login successful:", { adminId: admin.id, email: admin.email });
+      
       res.json({ message: "Login successful", admin: { id: admin.id, email: admin.email, name: admin.name } });
     } catch (error) {
       console.error("Admin login error:", error);
