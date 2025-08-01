@@ -14,6 +14,7 @@ import headlightAfter from "@assets/GVXjDlbWcAAoQD1_1754029992281.jpg";
 import glassCoating from "@assets/Before-and-After-Ceramic-Coating-on-Glass (1)_1754028454560.jpg";
 import exteriorDetailingBefore from "@assets/WhatsApp Image 2025-01-03 at 3.39.31 PM_1754032180088.jpeg";
 import exteriorDetailingAfter from "@assets/20241227_164016_1754031651194.jpg";
+import interiorDetailingComparison from "@assets/ff034468a03ea55ea0924270de1e42bd_1754032817032.jpg";
 
 interface Service {
   id: string;
@@ -236,7 +237,7 @@ export default function ServiceLanding() {
       </section>
 
       {/* Before & After Section - Moved to 2nd position */}
-      {(service.slug === 'headlight-restoration-both' || service.slug === 'windshield-glass-coating-new' || service.slug === 'exterior-detailing-hard-water-new' || (service.beforeAfter && service.beforeAfter.length > 0)) && (
+      {(service.slug === 'headlight-restoration-both' || service.slug === 'windshield-glass-coating-new' || service.slug === 'exterior-detailing-hard-water-new' || service.slug === 'interior-detailing-service' || (service.beforeAfter && service.beforeAfter.length > 0)) && (
         <section className="py-24 px-4 bg-gradient-to-b from-gray-900 to-black">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
@@ -438,6 +439,65 @@ export default function ServiceLanding() {
                         height="360"
                       >
                         <source src="/attached_assets/Exterior Detailing_1754031679196.mp4" type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Interior Detailing Before/After */}
+              {service.slug === 'interior-detailing-service' && (
+                <div className="group">
+                  <div className="max-w-4xl mx-auto">
+                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
+                      <img
+                        className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
+                        src={interiorDetailingComparison}
+                        alt="Interior detailing before and after comparison - dirty vs clean car interior"
+                        data-testid="image-interior-comparison"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      <div className="absolute top-6 left-6">
+                        <div className="bg-orange-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
+                          SEE THE DIFFERENCE
+                        </div>
+                      </div>
+                      <div className="absolute bottom-6 center-6">
+                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg mx-auto">
+                          <p className="text-sm opacity-90">Before vs After</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 text-center">
+                    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 max-w-4xl mx-auto">
+                      <p className="text-lg text-gray-300 leading-relaxed">
+                        Transform your car's interior from dirty and stained to fresh and spotless. 
+                        Our deep cleaning process removes dirt, stains, and odors, leaving your interior 
+                        looking and smelling like new.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Optimized Interior Video */}
+                  <div className="mt-12 max-w-4xl mx-auto">
+                    <div className="text-center mb-6">
+                      <h3 className="text-2xl font-bold text-white mb-2">Interior Detailing Process</h3>
+                      <p className="text-gray-400">See our comprehensive interior cleaning transformation</p>
+                    </div>
+                    <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800 shadow-2xl">
+                      <video
+                        className="w-full h-full object-cover"
+                        controls
+                        preload="none"
+                        poster={interiorDetailingComparison}
+                        width="480"
+                        height="270"
+                      >
+                        <source src="/attached_assets/Interior Detailing_1754032868240.mp4" type="video/mp4" />
                         Your browser does not support the video tag.
                       </video>
                     </div>
