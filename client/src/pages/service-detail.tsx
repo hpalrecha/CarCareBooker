@@ -9,8 +9,8 @@ import { Clock, Check, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 
 // Import images
-import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754028199655.webp";
-import headlightAfter from "@assets/GVXjDlbWcAAoQD1_1754028199653.jpg";
+import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029566793.webp";
+import headlightAfter from "@assets/GVXjDlbWcAAoQD1_1754029566792.jpg";
 import glassCoating from "@assets/Before-and-After-Ceramic-Coating-on-Glass (1)_1754028454560.jpg";
 
 export default function ServiceDetail() {
