@@ -189,14 +189,26 @@ export class WhatsAppService {
     appointmentTime: string,
     bookingAmount: string = "299"
   ): Promise<boolean> {
+    console.log("🔍 WhatsApp sendBookingConfirmation called");
+    console.log("🔍 Parameters:", { customerPhone, customerName, serviceName, appointmentDate, appointmentTime, bookingAmount });
+    
     const config = await this.getConfig();
     if (!config) {
-      console.log("WhatsApp not configured, skipping booking confirmation");
+      console.log("❌ WhatsApp not configured, skipping booking confirmation");
       return false;
     }
+    
+    console.log("✅ WhatsApp config found:", {
+      phoneNumberId: config.phoneNumberId,
+      businessAccountId: config.businessAccountId,
+      hasAccessToken: !!config.accessToken,
+      isActive: config.isActive
+    });
 
     // Use the configured booking confirmation template directly
     const templates = await this.getTemplates();
+    console.log("📋 Available templates:", templates.map(t => ({ name: t.templateName, status: t.status })));
+    
     let bookingTemplate = templates.find(t => 
       t.templateId === config.bookingConfirmationTemplateId && t.status === "APPROVED"
     );
@@ -209,11 +221,12 @@ export class WhatsAppService {
     }
 
     if (!bookingTemplate) {
-      console.log("No approved p91_booking_confirmation template found");
+      console.log("❌ No approved p91_booking_confirmation template found");
+      console.log("❌ Available templates:", templates.map(t => t.templateName));
       return false;
     }
 
-    console.log(`Using WhatsApp template: ${bookingTemplate.templateName}`);
+    console.log(`✅ Using WhatsApp template: ${bookingTemplate.templateName}`);
 
     const message: WhatsAppMessage = {
       messaging_product: "whatsapp",

@@ -343,9 +343,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Payment confirmation endpoint (called by frontend after successful payment)
   app.post("/api/confirm-payment", async (req, res) => {
     try {
-      console.log("🔄 Payment webhook called at", new Date().toISOString());
-      console.log("📦 Webhook payload:", req.body);
-      console.log("📋 Headers:", req.headers);
+      console.log("🔄 Payment confirmation called at", new Date().toISOString());
+      console.log("📦 Payment payload:", req.body);
       
       const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
@@ -397,15 +396,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (service) {
         // Send WhatsApp confirmation using the proper service
         console.log("📱 Sending WhatsApp confirmation...");
+        console.log("📱 Customer phone:", booking.customerPhone);
+        console.log("📱 Customer name:", booking.customerName);
+        console.log("📱 Service title:", service.title);
+        console.log("📱 Appointment date:", booking.appointmentDate);
+        console.log("📱 Appointment time:", booking.appointmentTime);
+        console.log("📱 Amount:", booking.amount);
+        
         whatsappSent = await whatsappService.sendBookingConfirmation(
           booking.customerPhone,
           booking.customerName,
           service.title,
           booking.appointmentDate || new Date().toLocaleDateString(),
           booking.appointmentTime || "10:00 AM",
-          booking.amount
+          booking.amount.toString()
         );
-        console.log("📱 WhatsApp sent:", whatsappSent);
+        console.log("📱 WhatsApp sent result:", whatsappSent);
 
         // Send email confirmation (if email service is configured)
         let emailSent = false;
@@ -560,6 +566,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Test payment error:", error);
       res.status(500).json({ message: "Test payment failed" });
+    }
+  });
+
+  // Test payment confirmation manually (for debugging)
+  app.post("/api/test-payment-confirmation", async (req, res) => {
+    try {
+      const { bookingId } = req.body;
+      
+      if (!bookingId) {
+        return res.status(400).json({ message: "Booking ID required" });
+      }
+      
+      console.log("🧪 Testing payment confirmation for booking:", bookingId);
+      
+      // Get the booking
+      const booking = await storage.getBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // Update to paid status
+      await storage.updateBooking(bookingId, {
+        paymentStatus: "paid",
+        paymentId: `test_${Date.now()}`
+      });
+      
+      // Get service for WhatsApp
+      const service = await storage.getService(booking.serviceId);
+      if (service) {
+        const whatsappSent = await whatsappService.sendBookingConfirmation(
+          booking.customerPhone,
+          booking.customerName,
+          service.title,
+          booking.appointmentDate || new Date().toLocaleDateString(),
+          booking.appointmentTime || "10:00 AM",
+          booking.amount.toString()
+        );
+        
+        console.log("🧪 Test WhatsApp result:", whatsappSent);
+        
+        res.json({ 
+          success: true, 
+          message: "Test payment confirmation complete",
+          whatsappSent,
+          booking: booking
+        });
+      } else {
+        res.json({ success: false, message: "Service not found" });
+      }
+    } catch (error) {
+      console.error("Test payment confirmation error:", error);
+      res.status(500).json({ message: "Test failed" });
     }
   });
 

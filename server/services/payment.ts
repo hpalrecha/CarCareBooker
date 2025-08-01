@@ -35,13 +35,14 @@ export async function createPaymentOrder(amount: number, receipt: string): Promi
       amount: Math.round(amount * 100), // Convert to paise
       currency: "INR",
       receipt,
+      payment_capture: true, // Auto-capture payments
     });
 
     return {
       id: order.id,
       amount: order.amount,
       currency: order.currency,
-      receipt: order.receipt,
+      receipt: order.receipt || receipt,
     };
   } catch (error) {
     console.error("Razorpay order creation error:", error);
