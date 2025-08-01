@@ -7,7 +7,7 @@ import Home from "@/pages/home";
 import AdminLogin from "@/pages/admin-login";
 import AdminDashboard from "@/pages/admin-dashboard";
 import AdminWhatsApp from "@/pages/admin-whatsapp";
-import ServiceDetail from "@/pages/service-detail";
+import ServiceLanding from "@/pages/service-landing";
 import BookingConfirmation from "@/pages/booking-confirmation";
 import NotFound from "@/pages/not-found";
 import PrivacyPolicy from "@/pages/privacy-policy";
@@ -22,7 +22,7 @@ function Router() {
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/whatsapp" component={AdminWhatsApp} />
-      <Route path="/service/:slug" component={ServiceDetail} />
+      <Route path="/service/:slug" component={ServiceLanding} />
       <Route path="/booking-confirmation/:id" component={BookingConfirmation} />
       <Route path="/contact" component={Contact} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />

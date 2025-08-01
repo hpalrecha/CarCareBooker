@@ -8,6 +8,11 @@ import { CheckCircle, Star, Clock, Shield, Phone, Mail, MapPin, Play, ArrowRight
 import { useState, useEffect } from "react";
 import BookingModal from "@/components/booking-modal";
 
+// Import before/after images
+import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029992282.webp";
+import headlightAfter from "@assets/GVXjDlbWcAAoQD1_1754029992281.jpg";
+import glassCoating from "@assets/Before-and-After-Ceramic-Coating-on-Glass (1)_1754028454560.jpg";
+
 interface Service {
   id: string;
   title: string;
@@ -312,8 +317,8 @@ export default function ServiceLanding() {
         </section>
       )}
 
-      {/* Before & After Section - Full Section Layout */}
-      {service.beforeAfter && service.beforeAfter.length > 0 && (
+      {/* Before & After Section - Always Show for Headlight Services */}
+      {(service.slug === 'headlight-restoration-both' || service.slug === 'windshield-glass-coating-new' || (service.beforeAfter && service.beforeAfter.length > 0)) && (
         <section className="py-24 px-4 bg-gradient-to-b from-gray-900 to-black">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
@@ -327,7 +332,120 @@ export default function ServiceLanding() {
             </div>
 
             <div className="space-y-16">
-              {service.beforeAfter.map((comparison, index) => (
+              {/* Headlight Restoration Before/After */}
+              {service.slug === 'headlight-restoration-both' && (
+                <div className="group">
+                  <div className="grid lg:grid-cols-2 gap-8 items-center">
+                    {/* Before Image */}
+                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
+                      <img
+                        className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
+                        src={headlightBefore}
+                        alt="Foggy headlight before restoration"
+                        data-testid="image-headlight-before"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      <div className="absolute top-6 left-6">
+                        <div className="bg-red-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
+                          BEFORE
+                        </div>
+                      </div>
+                      <div className="absolute bottom-6 left-6">
+                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
+                          <p className="text-sm opacity-90">Foggy & Yellowed</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* After Image */}
+                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
+                      <img
+                        className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
+                        src={headlightAfter}
+                        alt="Crystal clear headlight after restoration"
+                        data-testid="image-headlight-after"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      <div className="absolute top-6 right-6">
+                        <div className="bg-green-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
+                          AFTER
+                        </div>
+                      </div>
+                      <div className="absolute bottom-6 right-6">
+                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
+                          <p className="text-sm opacity-90">Crystal Clear</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* YouTube Video */}
+                  <div className="mt-12 max-w-4xl mx-auto">
+                    <div className="text-center mb-6">
+                      <h3 className="text-2xl font-bold text-white mb-2">Watch The Complete Process</h3>
+                      <p className="text-gray-400">See how we transform foggy headlights to crystal clear</p>
+                    </div>
+                    <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800 shadow-2xl">
+                      <iframe
+                        src="https://www.youtube.com/embed/XXb4J6cBze0"
+                        title="Headlight Restoration Process - P91 Car Care"
+                        className="w-full h-full"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Glass Coating Before/After */}
+              {service.slug === 'windshield-glass-coating-new' && (
+                <div className="group">
+                  <div className="max-w-4xl mx-auto">
+                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
+                      <img
+                        className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
+                        src={glassCoating}
+                        alt="Water beading on ceramic coated windshield"
+                        data-testid="image-glass-coating"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      <div className="absolute top-6 left-6">
+                        <div className="bg-blue-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
+                          COATED GLASS
+                        </div>
+                      </div>
+                      <div className="absolute bottom-6 center-6">
+                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg mx-auto">
+                          <p className="text-sm opacity-90">Water Beading Effect</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* YouTube Video */}
+                  <div className="mt-12 max-w-4xl mx-auto">
+                    <div className="text-center mb-6">
+                      <h3 className="text-2xl font-bold text-white mb-2">See The Water Repelling Effect</h3>
+                      <p className="text-gray-400">Watch how water slides off instantly after coating</p>
+                    </div>
+                    <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800 shadow-2xl">
+                      <iframe
+                        src="https://www.youtube.com/embed/Oak9CKJMz6E"
+                        title="Glass Coating Water Repelling Demo - P91 Car Care"
+                        className="w-full h-full"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Original beforeAfter data if exists */}
+              {service.beforeAfter && service.beforeAfter.map((comparison, index) => (
                 <div key={index} className="group">
                   <div className="grid lg:grid-cols-2 gap-8 items-center">
                     {/* Before Image */}
