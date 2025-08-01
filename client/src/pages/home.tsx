@@ -11,6 +11,14 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MapPin, Clock, Phone, Mail, Star, Shield, Users, Zap, CheckCircle, ArrowRight, Award } from "lucide-react";
 
+// Import before/after images for home page sections
+import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029992282.webp";
+import headlightAfter from "@assets/GVXjDlbWcAAoQD1_1754029992281.jpg";
+import glassCoating from "@assets/Before-and-After-Ceramic-Coating-on-Glass (1)_1754028454560.jpg";
+import exteriorDetailingBefore from "@assets/WhatsApp Image 2025-01-03 at 3.39.31 PM_1754032180088.jpeg";
+import exteriorDetailingAfter from "@assets/20241227_164016_1754031651194.jpg";
+import interiorDetailingComparison from "@assets/ff034468a03ea55ea0924270de1e42bd_1754032817032.jpg";
+
 export default function Home() {
   const { data: services, isLoading } = useQuery({
     queryKey: ["/api/services"],
@@ -242,41 +250,25 @@ export default function Home() {
           </div>
           
           <div className="relative">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-              {/* Before Image */}
+            <div className="max-w-4xl mx-auto">
+              {/* Single Comparison Image */}
               <div className="relative group overflow-hidden rounded-2xl">
                 <img
-                  className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
-                  src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1200"
-                  alt="Interior before deep cleaning"
+                  className="w-full object-contain transition-transform duration-500 group-hover:scale-105"
+                  src={interiorDetailingComparison}
+                  alt="Interior detailing before and after comparison - dirty vs clean car interior"
+                  data-testid="image-interior-home-comparison"
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-30"></div>
-                <div className="absolute top-6 left-6 bg-red-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
-                  BEFORE
-                </div>
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
-                    <h3 className="text-2xl font-bold text-white mb-2">Worn & Stained Interior</h3>
-                    <p className="text-gray-300">Coffee stains, dust buildup, fabric wear, and years of neglect</p>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div className="absolute top-6 left-6">
+                  <div className="bg-orange-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
+                    SEE THE DIFFERENCE
                   </div>
                 </div>
-              </div>
-              
-              {/* After Image */}
-              <div className="relative group overflow-hidden rounded-2xl">
-                <img
-                  className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
-                  src="https://images.unsplash.com/photo-1581235720704-06d3acfcb36f?w=1200"
-                  alt="Interior after deep cleaning"
-                />
-                <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-                <div className="absolute top-6 right-6 bg-green-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
-                  AFTER
-                </div>
                 <div className="absolute bottom-6 left-6 right-6">
                   <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
-                    <h3 className="text-2xl font-bold text-white mb-2">Pristine & Fresh Interior</h3>
-                    <p className="text-gray-300">Deep cleaned, conditioned, and protected like showroom new</p>
+                    <h3 className="text-2xl font-bold text-white mb-2">From Dirty to Spotless</h3>
+                    <p className="text-gray-300">Professional deep cleaning removes stains, dirt, and odors completely</p>
                   </div>
                 </div>
               </div>
@@ -322,36 +314,20 @@ export default function Home() {
           </div>
           
           <div className="relative">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-              {/* Before Image */}
+            <div className="max-w-4xl mx-auto">
+              {/* Glass Coating Image */}
               <div className="relative group overflow-hidden rounded-2xl">
                 <img
                   className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
-                  src="https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1200"
-                  alt="Glass before coating - water spotted and dirty"
+                  src={glassCoating}
+                  alt="Glass coating water beading effect demonstration"
+                  data-testid="image-glass-coating-home"
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-30"></div>
-                <div className="absolute top-6 left-6 bg-red-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
-                  BEFORE
-                </div>
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
-                    <h3 className="text-2xl font-bold text-white mb-2">Dirty & Water Spotted Glass</h3>
-                    <p className="text-gray-300">Poor visibility, water spots, grime buildup, and reduced safety</p>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div className="absolute top-6 left-6">
+                  <div className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
+                    COATED GLASS
                   </div>
-                </div>
-              </div>
-              
-              {/* After Image */}
-              <div className="relative group overflow-hidden rounded-2xl">
-                <img
-                  className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
-                  src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=1200"
-                  alt="Glass after coating - crystal clear"
-                />
-                <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-                <div className="absolute top-6 right-6 bg-green-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
-                  AFTER
                 </div>
                 <div className="absolute bottom-6 left-6 right-6">
                   <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
@@ -407,8 +383,9 @@ export default function Home() {
               <div className="relative group overflow-hidden rounded-2xl">
                 <img
                   className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
-                  src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1200"
+                  src={headlightBefore}
                   alt="Foggy yellowed headlights before restoration"
+                  data-testid="image-headlight-before-home"
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-30"></div>
                 <div className="absolute top-6 left-6 bg-red-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
@@ -426,8 +403,9 @@ export default function Home() {
               <div className="relative group overflow-hidden rounded-2xl">
                 <img
                   className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
-                  src="https://images.unsplash.com/photo-1627634777217-c864268db30c?w=1200"
+                  src={headlightAfter}
                   alt="Crystal clear restored headlights"
+                  data-testid="image-headlight-after-home"
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-20"></div>
                 <div className="absolute top-6 right-6 bg-green-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
@@ -487,8 +465,9 @@ export default function Home() {
               <div className="relative group overflow-hidden rounded-2xl">
                 <img
                   className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
-                  src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200"
+                  src={exteriorDetailingBefore}
                   alt="Car exterior before premium wash - dirty and dull"
+                  data-testid="image-exterior-before-home"
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-30"></div>
                 <div className="absolute top-6 left-6 bg-red-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
@@ -506,8 +485,9 @@ export default function Home() {
               <div className="relative group overflow-hidden rounded-2xl">
                 <img
                   className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
-                  src="https://images.unsplash.com/photo-1607860108855-64acf2078ed9?w=1200"
+                  src={exteriorDetailingAfter}
                   alt="Car exterior after premium wash - showroom shine"
+                  data-testid="image-exterior-after-home"
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-20"></div>
                 <div className="absolute top-6 right-6 bg-green-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
