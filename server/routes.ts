@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
+import express from "express";
 import { storage } from "./storage";
 import { authenticateAdmin, hashPassword, comparePassword } from "./middleware/auth";
 import { createPaymentOrder, verifyPaymentSignature } from "./services/payment";
@@ -453,6 +454,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Fetch WhatsApp templates error:", error);
       res.status(500).json({ message: "Failed to fetch templates from Meta API" });
+    }
+  });
+
+  // Razorpay Webhook for payment confirmations
+  app.post("/api/razorpay-webhook", express.raw({ type: 'application/json' }), async (req, res) => {
+    try {
+      const webhookSignature = req.headers['x-razorpay-signature'] as string;
+      const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+      
+      if (webhookSecret) {
+        const crypto = require("crypto");
+        const expectedSignature = crypto
+          .createHmac("sha256", webhookSecret)
+          .update(req.body)
+          .digest("hex");
+        
+        if (expectedSignature !== webhookSignature) {
+          console.error("Invalid webhook signature");
+          return res.status(400).json({ message: "Invalid signature" });
+        }
+      }
+
+      const event = JSON.parse(req.body.toString());
+      console.log("Razorpay webhook event:", event.event);
+
+      // Handle payment success events
+      if (event.event === "payment.captured" || event.event === "payment.authorized") {
+        const payment = event.payload.payment.entity;
+        const orderId = payment.order_id;
+        
+        // Find booking by payment order ID
+        const booking = await storage.getBookingByPaymentOrderId(orderId);
+        if (booking && booking.status === "pending") {
+          await storage.updateBooking(booking.id, {
+            status: "paid",
+            paymentId: payment.id,
+          });
+          
+          console.log(`Booking ${booking.id} marked as paid via webhook`);
+        }
+      }
+
+      res.status(200).json({ received: true });
+    } catch (error) {
+      console.error("Webhook processing error:", error);
+      res.status(500).json({ message: "Webhook processing failed" });
     }
   });
 
