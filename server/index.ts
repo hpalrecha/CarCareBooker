@@ -4,6 +4,29 @@ import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
 
 const app = express();
+
+// Add CORS headers and CSP for Razorpay and external requests
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-razorpay-signature, x-rtb-fingerprint-id');
+  
+  // Allow Razorpay resources in CSP
+  res.header('Content-Security-Policy', 
+    "default-src 'self' 'unsafe-inline' 'unsafe-eval' *; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://*.razorpay.com; " +
+    "connect-src 'self' https://checkout.razorpay.com https://*.razorpay.com https://api.razorpay.com; " +
+    "frame-src 'self' https://checkout.razorpay.com https://*.razorpay.com; " +
+    "img-src 'self' data: https: *;"
+  );
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
