@@ -186,6 +186,29 @@ export default function AdminDashboard() {
     },
   });
 
+  const markPaidMutation = useMutation({
+    mutationFn: async (bookingId: string) => {
+      const response = await apiRequest("POST", `/api/admin/bookings/${bookingId}/mark-paid`, {
+        paymentId: `manual_${Date.now()}`
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      toast({
+        title: "Payment Updated",
+        description: data.message,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to mark payment as paid",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleUpdateBookingAmount = (amount: string) => {
     updateSettingMutation.mutate({
       key: "booking_amount",
@@ -504,6 +527,18 @@ export default function AdminDashboard() {
                           >
                             <MessageCircle className="h-4 w-4" />
                           </Button>
+                          {booking.paymentStatus === "pending" && (
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="text-green-400 hover:text-green-300" 
+                              data-testid={`button-mark-paid-${booking.id}`}
+                              onClick={() => markPaidMutation.mutate(booking.id)}
+                              disabled={markPaidMutation.isPending}
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                          )}
                           <Button 
                             size="sm" 
                             variant="ghost" 

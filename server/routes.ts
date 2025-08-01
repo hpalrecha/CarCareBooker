@@ -342,7 +342,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/payment-webhook", async (req, res) => {
     try {
-      console.log("Payment webhook called with:", req.body);
+      console.log("🔄 Payment webhook called at", new Date().toISOString());
+      console.log("📦 Webhook payload:", req.body);
+      console.log("📋 Headers:", req.headers);
+      
       const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
       if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -363,18 +366,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Find booking by order ID
+      console.log("🔍 Looking for booking with order ID:", razorpay_order_id);
       const bookings = await storage.getBookingsByStatus("pending");
+      console.log("📊 Found", bookings.length, "pending bookings");
+      console.log("🎯 Pending booking order IDs:", bookings.map(b => b.razorpayOrderId));
+      
       const booking = bookings.find(b => b.razorpayOrderId === razorpay_order_id);
 
       if (!booking) {
+        console.error("❌ Booking not found for order ID:", razorpay_order_id);
         return res.status(404).json({ message: "Booking not found" });
       }
+      
+      console.log("✅ Found booking:", booking.id, "for customer:", booking.customerName);
 
       // Update booking status
+      console.log("💳 Updating booking status to paid...");
       const updatedBooking = await storage.updateBooking(booking.id, {
         paymentId: razorpay_payment_id,
         paymentStatus: "paid",
       });
+      console.log("✅ Booking status updated successfully");
 
       // Get service and time slot details for notifications
       const service = await storage.getService(booking.serviceId);
@@ -697,6 +709,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Error sending booking confirmation",
         error: error.message 
       });
+    }
+  });
+
+  // Manual payment status update for debugging (Admin only)
+  app.post("/api/admin/bookings/:id/mark-paid", authenticateAdmin, async (req, res) => {
+    try {
+      const bookingId = req.params.id;
+      const { paymentId } = req.body;
+      
+      console.log("🔧 Manual payment status update for booking:", bookingId);
+      
+      const booking = await storage.getBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // Update booking status manually
+      const updatedBooking = await storage.updateBooking(bookingId, {
+        paymentId: paymentId || `manual_${Date.now()}`,
+        paymentStatus: "paid",
+      });
+      
+      // Get service details for notifications
+      const service = await storage.getService(booking.serviceId);
+      
+      if (service) {
+        // Send WhatsApp confirmation
+        const whatsappSent = await whatsappService.sendBookingConfirmation(
+          booking.customerPhone,
+          booking.customerName,
+          service.title,
+          booking.appointmentDate || new Date().toLocaleDateString(),
+          booking.appointmentTime || "10:00 AM",
+          booking.amount
+        );
+        
+        // Update notification status
+        await storage.updateBooking(bookingId, {
+          whatsappSent,
+          emailSent: false,
+        });
+        
+        console.log("✅ Booking marked as paid and notification sent");
+        
+        res.json({ 
+          success: true, 
+          message: "Booking marked as paid and WhatsApp notification sent",
+          booking: updatedBooking,
+          whatsappSent 
+        });
+      } else {
+        res.json({ 
+          success: true, 
+          message: "Booking marked as paid",
+          booking: updatedBooking 
+        });
+      }
+    } catch (error) {
+      console.error("Manual payment update error:", error);
+      res.status(500).json({ message: "Failed to update payment status" });
     }
   });
 
