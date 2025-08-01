@@ -8,6 +8,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, Check, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 
+// Import images
+import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754028199655.webp";
+import headlightAfter from "@assets/GVXjDlbWcAAoQD1_1754028199653.jpg";
+import glassCoating from "@assets/Before-and-After-Ceramic-Coating-on-Glass (1)_1754028454560.jpg";
+
 export default function ServiceDetail() {
   const { slug } = useParams();
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -64,6 +69,11 @@ export default function ServiceDetail() {
   const durationText = durationInHours > 0 
     ? `${durationInHours}${durationMinutes > 0 ? `.${Math.round((durationMinutes / 60) * 10)}` : ''} hours`
     : `${durationMinutes} minutes`;
+
+  // DEBUG: Log service slug to see if conditional matches
+  console.log('Service slug:', service.slug);
+  console.log('Is headlight service:', service.slug === 'headlight-restoration-both');
+  console.log('Is glass coating service:', service.slug === 'windshield-glass-coating-new');
 
   return (
     <div className="min-h-screen bg-deep-black text-white">
@@ -132,7 +142,7 @@ export default function ServiceDetail() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <div className="relative">
                       <img 
-                        src="/attached_assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754028199655.webp" 
+                        src={headlightBefore} 
                         alt="Foggy headlight before restoration" 
                         className="w-full h-48 object-cover rounded-lg"
                       />
@@ -142,7 +152,7 @@ export default function ServiceDetail() {
                     </div>
                     <div className="relative">
                       <img 
-                        src="/attached_assets/GVXjDlbWcAAoQD1_1754028199653.jpg" 
+                        src={headlightAfter} 
                         alt="Crystal clear headlight after restoration" 
                         className="w-full h-48 object-cover rounded-lg"
                       />
@@ -191,7 +201,7 @@ export default function ServiceDetail() {
                   <div className="mb-8">
                     <div className="relative">
                       <img 
-                        src="/attached_assets/Before-and-After-Ceramic-Coating-on-Glass (1)_1754028454560.jpg" 
+                        src={glassCoating} 
                         alt="Water beading on ceramic coated windshield" 
                         className="w-full h-64 object-cover rounded-lg"
                       />
