@@ -12,6 +12,7 @@ import BookingModal from "@/components/booking-modal";
 import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029992282.webp";
 import headlightAfter from "@assets/GVXjDlbWcAAoQD1_1754029992281.jpg";
 import glassCoating from "@assets/Before-and-After-Ceramic-Coating-on-Glass (1)_1754028454560.jpg";
+import exteriorDetailingAfter from "@assets/20241227_164016_1754031651194.jpg";
 
 interface Service {
   id: string;
@@ -234,7 +235,7 @@ export default function ServiceLanding() {
       </section>
 
       {/* Before & After Section - Moved to 2nd position */}
-      {(service.slug === 'headlight-restoration-both' || service.slug === 'windshield-glass-coating-new' || (service.beforeAfter && service.beforeAfter.length > 0)) && (
+      {(service.slug === 'headlight-restoration-both' || service.slug === 'windshield-glass-coating-new' || service.slug === 'exterior-detailing-hard-water-new' || (service.beforeAfter && service.beforeAfter.length > 0)) && (
         <section className="py-24 px-4 bg-gradient-to-b from-gray-900 to-black">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
@@ -355,6 +356,43 @@ export default function ServiceLanding() {
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                       ></iframe>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Exterior Detailing Before/After */}
+              {service.slug === 'exterior-detailing-hard-water-new' && (
+                <div className="group">
+                  <div className="max-w-4xl mx-auto">
+                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
+                      <img
+                        className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
+                        src={exteriorDetailingAfter}
+                        alt="Professional exterior detailing result - glossy orange car"
+                        data-testid="image-exterior-detailing"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      <div className="absolute top-6 left-6">
+                        <div className="bg-green-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
+                          DETAILED
+                        </div>
+                      </div>
+                      <div className="absolute bottom-6 center-6">
+                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg mx-auto">
+                          <p className="text-sm opacity-90">Professional Finish</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 text-center">
+                    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 max-w-4xl mx-auto">
+                      <p className="text-lg text-gray-300 leading-relaxed">
+                        Our professional exterior detailing transforms your car's appearance with deep cleaning, 
+                        paint correction, and protective coating. See the mirror-like finish and showroom shine 
+                        that makes your car look brand new.
+                      </p>
                     </div>
                   </div>
                 </div>
