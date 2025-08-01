@@ -233,91 +233,7 @@ export default function ServiceLanding() {
         </div>
       </section>
 
-      {/* Booking Fee Explanation Section */}
-      <section className="py-16 px-4 bg-gradient-to-r from-green-900/20 to-blue-900/20">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-6 text-green-400">🎉 Special Booking Offer</h2>
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
-              <div className="text-4xl mb-4">💰</div>
-              <h3 className="text-xl font-bold mb-2">Just ₹299</h3>
-              <p className="text-gray-300">Secure your preferred time slot with a small booking fee</p>
-            </div>
-            <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
-              <div className="text-4xl mb-4">🎁</div>
-              <h3 className="text-xl font-bold mb-2">FREE ₹500 Voucher</h3>
-              <p className="text-gray-300">Get a complimentary car wash voucher as a bonus</p>
-            </div>
-            <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
-              <div className="text-4xl mb-4">✨</div>
-              <h3 className="text-xl font-bold mb-2">Transparent</h3>
-              <p className="text-gray-300">No hidden charges, pay remainder at service time</p>
-            </div>
-          </div>
-          <p className="text-lg text-gray-300 mb-4">
-            Pay just ₹299 now to reserve your slot and receive a FREE car wash voucher worth ₹500. 
-            Show your booking confirmation at our store to claim your bonus!
-          </p>
-          <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 inline-block">
-            <p className="text-yellow-300 text-sm">
-              💡 <strong>Smart booking system:</strong> No wasted slots, guaranteed service, plus amazing bonus value!
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* What's Included Section */}
-      {service.whatIncluded && service.whatIncluded.length > 0 && (
-        <section className="py-20 px-4">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl font-bold text-center mb-12">What's Included</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {service.whatIncluded.map((item, index) => (
-                <Card key={index} className="bg-gray-900 border-gray-800">
-                  <CardContent className="p-6 flex items-center gap-4">
-                    <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
-                    <span className="text-lg">{item}</span>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Why Choose Us Section */}
-      {service.whyChoose && (
-        <section className="py-20 px-4 bg-gray-900">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-bold mb-8">Why Choose P91 Car Care?</h2>
-            <p className="text-xl text-gray-300 leading-relaxed">{service.whyChoose}</p>
-          </div>
-        </section>
-      )}
-
-      {/* Process Section */}
-      {service.process && service.process.length > 0 && (
-        <section className="py-20 px-4">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl font-bold text-center mb-12">Our Process</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {service.process.map((step, index) => (
-                <Card key={index} className="bg-gray-900 border-gray-800 text-center">
-                  <CardContent className="p-8">
-                    <div className="w-16 h-16 bg-green-400 text-black rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-                      {step.step}
-                    </div>
-                    <h3 className="text-xl font-bold mb-4">{step.title}</h3>
-                    <p className="text-gray-300">{step.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Before & After Section - Always Show for Headlight Services */}
+      {/* Before & After Section - Moved to 2nd position */}
       {(service.slug === 'headlight-restoration-both' || service.slug === 'windshield-glass-coating-new' || (service.beforeAfter && service.beforeAfter.length > 0)) && (
         <section className="py-24 px-4 bg-gradient-to-b from-gray-900 to-black">
           <div className="max-w-7xl mx-auto">
@@ -535,6 +451,92 @@ export default function ServiceLanding() {
           </div>
         </section>
       )}
+
+      {/* Booking Fee Explanation Section */}
+      <section className="py-16 px-4 bg-gradient-to-r from-green-900/20 to-blue-900/20">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-6 text-green-400">🎉 Special Booking Offer</h2>
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
+              <div className="text-4xl mb-4">💰</div>
+              <h3 className="text-xl font-bold mb-2">Just ₹299</h3>
+              <p className="text-gray-300">Secure your preferred time slot with a small booking fee</p>
+            </div>
+            <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
+              <div className="text-4xl mb-4">🎁</div>
+              <h3 className="text-xl font-bold mb-2">FREE ₹500 Voucher</h3>
+              <p className="text-gray-300">Get a complimentary car wash voucher as a bonus</p>
+            </div>
+            <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
+              <div className="text-4xl mb-4">✨</div>
+              <h3 className="text-xl font-bold mb-2">Transparent</h3>
+              <p className="text-gray-300">No hidden charges, pay remainder at service time</p>
+            </div>
+          </div>
+          <p className="text-lg text-gray-300 mb-4">
+            Pay just ₹299 now to reserve your slot and receive a FREE car wash voucher worth ₹500. 
+            Show your booking confirmation at our store to claim your bonus!
+          </p>
+          <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 inline-block">
+            <p className="text-yellow-300 text-sm">
+              💡 <strong>Smart booking system:</strong> No wasted slots, guaranteed service, plus amazing bonus value!
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What's Included Section */}
+      {service.whatIncluded && service.whatIncluded.length > 0 && (
+        <section className="py-20 px-4">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-4xl font-bold text-center mb-12">What's Included</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {service.whatIncluded.map((item, index) => (
+                <Card key={index} className="bg-gray-900 border-gray-800">
+                  <CardContent className="p-6 flex items-center gap-4">
+                    <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
+                    <span className="text-lg">{item}</span>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Why Choose Us Section */}
+      {service.whyChoose && (
+        <section className="py-20 px-4 bg-gray-900">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-4xl font-bold mb-8">Why Choose P91 Car Care?</h2>
+            <p className="text-xl text-gray-300 leading-relaxed">{service.whyChoose}</p>
+          </div>
+        </section>
+      )}
+
+      {/* Process Section */}
+      {service.process && service.process.length > 0 && (
+        <section className="py-20 px-4">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-4xl font-bold text-center mb-12">Our Process</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {service.process.map((step, index) => (
+                <Card key={index} className="bg-gray-900 border-gray-800 text-center">
+                  <CardContent className="p-8">
+                    <div className="w-16 h-16 bg-green-400 text-black rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                      {step.step}
+                    </div>
+                    <h3 className="text-xl font-bold mb-4">{step.title}</h3>
+                    <p className="text-gray-300">{step.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+
 
       {/* Gallery Section - Single Video in 16:9 Format */}
       {service.gallery && service.gallery.length > 0 && (
