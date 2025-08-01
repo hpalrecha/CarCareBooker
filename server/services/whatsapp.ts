@@ -228,9 +228,17 @@ export class WhatsAppService {
 
     console.log(`✅ Using WhatsApp template: ${bookingTemplate.templateName}`);
 
+    // Ensure phone number is in correct format (country code without +)
+    let formattedPhone = customerPhone.replace(/^\+/, "").replace(/\s/g, "");
+    if (!formattedPhone.startsWith("91") && formattedPhone.length === 10) {
+      formattedPhone = "91" + formattedPhone;
+    }
+    
+    console.log(`📞 Formatted phone: ${customerPhone} -> ${formattedPhone}`);
+
     const message: WhatsAppMessage = {
       messaging_product: "whatsapp",
-      to: customerPhone.replace(/^\+/, ""), // Remove + prefix
+      to: formattedPhone,
       type: "template",
       template: {
         name: bookingTemplate.templateName,
@@ -244,7 +252,7 @@ export class WhatsAppService {
               { type: "text", text: customerName },
               { type: "text", text: serviceName },
               { type: "text", text: `${appointmentDate} at ${appointmentTime}` },
-              { type: "text", text: bookingAmount },
+              { type: "text", text: `₹${bookingAmount}` },
               { type: "text", text: `BOOK-${Date.now()}` }
             ],
           },
