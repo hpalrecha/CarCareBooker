@@ -73,10 +73,7 @@ export default function ServiceDetail() {
     ? `${durationInHours}${durationMinutes > 0 ? `.${Math.round((durationMinutes / 60) * 10)}` : ''} hours`
     : `${durationMinutes} minutes`;
 
-  // DEBUG: Log service slug to see if conditional matches
-  console.log('Service slug:', service.slug);
-  console.log('Is headlight service:', service.slug === 'headlight-restoration-both');
-  console.log('Is glass coating service:', service.slug === 'windshield-glass-coating-new');
+
 
   return (
     <div className="min-h-screen bg-deep-black text-white">
@@ -137,14 +134,7 @@ export default function ServiceDetail() {
               </div>
             )}
 
-            {/* DEBUG: Show service slug */}
-            <div className="bg-yellow-900 text-yellow-100 p-4 rounded mb-4">
-              DEBUG: Service slug = "{service?.slug}"
-              <br />
-              Is headlight: {service?.slug === 'headlight-restoration-both' ? 'YES' : 'NO'}
-              <br />
-              Is glass coating: {service?.slug === 'windshield-glass-coating-new' ? 'YES' : 'NO'}
-            </div>
+
 
             {/* Before & After Results - Headlight Restoration */}
             {service?.slug === 'headlight-restoration-both' && (
