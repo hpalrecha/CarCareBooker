@@ -137,6 +137,13 @@ export default function ServiceDetail() {
               </div>
             )}
 
+            {/* DEBUG: Add temporary logging */}
+            <div className="bg-red-900 text-white p-4 rounded mb-4">
+              DEBUG: Service slug = "{serviceData.slug}"<br/>
+              Should show headlight section: {serviceData.slug === 'headlight-restoration-both' ? 'YES' : 'NO'}<br/>
+              Should show glass section: {serviceData.slug === 'windshield-glass-coating-new' ? 'YES' : 'NO'}
+            </div>
+
             {/* Before & After Results - Headlight Restoration */}
             {serviceData.slug === 'headlight-restoration-both' && (
               <div>
