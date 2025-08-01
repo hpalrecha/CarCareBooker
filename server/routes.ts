@@ -620,32 +620,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Test WhatsApp endpoint
+  // Test WhatsApp endpoint - send actual booking confirmation
   app.post("/api/test-whatsapp", async (req, res) => {
     try {
-      const { to } = req.body;
+      const { to, customerName, serviceName, appointmentDate, appointmentTime, bookingAmount } = req.body;
       
-      console.log("Sending test WhatsApp message to:", to);
+      console.log("Sending booking confirmation WhatsApp message to:", to);
       
-      // Send a simple hello_world template message first to test connectivity
       const config = await whatsappService.getConfig();
       if (!config) {
         return res.status(500).json({ success: false, message: "WhatsApp not configured" });
       }
 
-      const simpleMessage = {
+      // Use the mapped booking confirmation template directly
+      const bookingMessage = {
         messaging_product: "whatsapp",
         to: to.replace(/^\+/, ""),
         type: "template",
         template: {
-          name: "hello_world",
+          name: "p91_booking_confirmation",
           language: {
-            code: "en_US"
-          }
+            code: "en"
+          },
+          components: [
+            {
+              type: "body",
+              parameters: [
+                { type: "text", text: customerName || "Jagpreet" },
+                { type: "text", text: serviceName || "Headlight Restoration - Both Lights" },
+                { type: "text", text: `${appointmentDate || "August 2, 2025"} at ${appointmentTime || "11:00 AM"}` },
+                { type: "text", text: bookingAmount || "299" },
+                { type: "text", text: `BOOK-${Date.now()}` }
+              ]
+            }
+          ]
         }
       };
 
-      console.log("Sending message:", JSON.stringify(simpleMessage, null, 2));
+      console.log("Sending booking confirmation:", JSON.stringify(bookingMessage, null, 2));
 
       const response = await fetch(
         `https://graph.facebook.com/v18.0/${config.phoneNumberId}/messages`,
@@ -655,7 +667,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             Authorization: `Bearer ${config.accessToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(simpleMessage),
+          body: JSON.stringify(bookingMessage),
         }
       );
 
@@ -663,25 +675,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("WhatsApp API response:", result);
 
       if (response.ok) {
-        console.log("Test WhatsApp message sent successfully to:", to);
+        console.log("Booking confirmation sent successfully to:", to);
         res.json({ 
           success: true, 
-          message: `WhatsApp test message sent to ${to}`,
+          message: `Booking confirmation sent to ${to}`,
+          details: {
+            customerName: customerName || "Jagpreet",
+            serviceName: serviceName || "Headlight Restoration - Both Lights",
+            appointmentDate: appointmentDate || "August 2, 2025",
+            appointmentTime: appointmentTime || "11:00 AM",
+            bookingAmount: `₹${bookingAmount || "299"}`
+          },
           whatsappResponse: result
         });
       } else {
-        console.log("Failed to send test WhatsApp message:", result);
+        console.log("Failed to send booking confirmation:", result);
         res.status(500).json({ 
           success: false, 
-          message: "Failed to send WhatsApp message",
+          message: "Failed to send booking confirmation",
           error: result
         });
       }
     } catch (error) {
-      console.error("Test WhatsApp error:", error);
+      console.error("Booking confirmation error:", error);
       res.status(500).json({ 
         success: false, 
-        message: "Error sending test WhatsApp message",
+        message: "Error sending booking confirmation",
         error: error.message 
       });
     }
