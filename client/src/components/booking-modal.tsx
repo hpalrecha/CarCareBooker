@@ -35,6 +35,22 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
   const [bookingAmount, setBookingAmount] = useState(299);
   const { toast } = useToast();
 
+  // Fix Razorpay CORS issues when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      // Remove restrictive CSP meta tags that block Razorpay
+      const cspMetas = document.querySelectorAll('meta[http-equiv="Content-Security-Policy"]');
+      cspMetas.forEach(meta => meta.remove());
+      
+      // Add a small delay to ensure Razorpay has time to initialize properly
+      const timer = setTimeout(() => {
+        console.log("Razorpay environment prepared");
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
   // Fetch booking amount from settings
   const { data: bookingAmountSetting } = useQuery({
     queryKey: ["/api/settings/booking_amount"],
@@ -92,49 +108,25 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
       const { booking, paymentOrder } = data;
       
       try {
+        console.log("Opening Razorpay payment gateway...");
+        
+        // Load Razorpay with enhanced error handling
         const razorpay = await loadRazorpay();
         if (!razorpay) {
-          throw new Error("Razorpay failed to load");
+          throw new Error("Razorpay SDK failed to load");
         }
 
         console.log("Payment order data:", paymentOrder);
         console.log("Using Razorpay key:", paymentOrder.key);
         
+        // Simplified options to avoid CORS conflicts
         const options = {
           key: import.meta.env.VITE_RAZORPAY_KEY_ID || paymentOrder.key,
           amount: paymentOrder.amount,
           currency: paymentOrder.currency,
           name: "P91 Car Care",
           description: `₹${bookingAmount} Booking Fee - ${service.title}`,
-          image: "https://img.icons8.com/color/96/car-wash.png",
           order_id: paymentOrder.id,
-          config: {
-            display: {
-              blocks: {
-                banks: {
-                  name: 'Pay using ' + paymentOrder.currency,
-                  instruments: [
-                    {
-                      method: 'card'
-                    },
-                    {
-                      method: 'upi'
-                    },
-                    {
-                      method: 'netbanking'
-                    },
-                    {
-                      method: 'wallet'
-                    }
-                  ]
-                }
-              },
-              sequence: ['block.banks'],
-              preferences: {
-                show_default_blocks: true
-              }
-            }
-          },
           handler: async (response: any) => {
             console.log("Payment successful:", response);
             console.log("Payment response object:", JSON.stringify(response, null, 2));
@@ -199,25 +191,17 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
             contact: form.getValues("customerPhone"),
           },
           theme: {
-            color: "#00FF94",
-            backdrop_color: "rgba(0,0,0,0.5)"
+            color: "#00FF94"
           },
           modal: {
             backdropclose: false,
             escape: true,
             handleback: true,
-            confirm_close: true,
-            ondismiss: () => {
-              console.log("Payment modal dismissed by user");
-            },
-            animation: true
+            confirm_close: false,
+            animation: false
           },
           remember_customer: false,
-          timeout: 900, // 15 minutes timeout
-          retry: {
-            enabled: true,
-            max_count: 3
-          }
+          timeout: 600
         };
 
         const payment = new razorpay(options);

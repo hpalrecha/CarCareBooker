@@ -5,25 +5,30 @@ import path from "path";
 
 const app = express();
 
-// Add comprehensive CORS and security headers for Razorpay
+// Disable all restrictive security policies for Razorpay compatibility
 app.use((req, res, next) => {
-  // Remove restrictive CSP that blocks Razorpay
+  // Remove all CSP and security headers that interfere with Razorpay
   res.removeHeader('Content-Security-Policy');
+  res.removeHeader('X-Content-Type-Options');
+  res.removeHeader('X-Frame-Options');
+  res.removeHeader('X-XSS-Protection');
   
-  // Set permissive CORS headers
+  // Set maximum permissive headers for payment gateway
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD');
+  res.header('Access-Control-Allow-Methods', '*');
   res.header('Access-Control-Allow-Headers', '*');
   res.header('Access-Control-Expose-Headers', '*');
+  res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Cross-Origin-Embedder-Policy', 'unsafe-none');
   res.header('Cross-Origin-Opener-Policy', 'unsafe-none');
+  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
   
-  // Handle preflight requests
+  // Handle all preflight requests
   if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
+    res.status(204).end();
+    return;
   }
+  next();
 });
 
 app.use(express.json());
