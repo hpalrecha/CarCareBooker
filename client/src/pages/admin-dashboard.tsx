@@ -18,6 +18,8 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState("all");
   const [showServiceForm, setShowServiceForm] = useState(false);
+  const [activeTab, setActiveTab] = useState("bookings");
+  const [editingService, setEditingService] = useState<any>(null);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -92,6 +94,30 @@ export default function AdminDashboard() {
       title: "Edit Booking",
       description: "Booking edit functionality coming soon!",
     });
+  };
+
+  const handleEditService = (service: any) => {
+    setEditingService(service);
+    setShowServiceForm(true);
+  };
+
+  const handleDeleteService = async (serviceId: string) => {
+    if (confirm("Are you sure you want to delete this service?")) {
+      try {
+        await apiRequest("DELETE", `/api/services/${serviceId}`);
+        queryClient.invalidateQueries({ queryKey: ["/api/services"] });
+        toast({
+          title: "Service Deleted",
+          description: "Service has been deleted successfully.",
+        });
+      } catch (error: any) {
+        toast({
+          title: "Delete Failed",
+          description: error.message || "Failed to delete service",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   if (authLoading) {
@@ -203,8 +229,32 @@ export default function AdminDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        {/* Navigation Tabs */}
+        <div className="mb-8">
+          <div className="flex space-x-1 bg-medium-gray/50 p-1 rounded-lg w-fit">
+            <Button
+              variant={activeTab === "bookings" ? "default" : "ghost"}
+              onClick={() => setActiveTab("bookings")}
+              className={activeTab === "bookings" ? "bg-neon-green text-deep-black" : "text-gray-400 hover:text-white"}
+              data-testid="tab-bookings"
+            >
+              Bookings
+            </Button>
+            <Button
+              variant={activeTab === "services" ? "default" : "ghost"}
+              onClick={() => setActiveTab("services")}
+              className={activeTab === "services" ? "bg-neon-green text-deep-black" : "text-gray-400 hover:text-white"}
+              data-testid="tab-services"
+            >
+              Services
+            </Button>
+          </div>
+        </div>
+
+        {activeTab === "bookings" && (
+          <>
+            {/* Stats Cards */}
+            <div className="grid md:grid-cols-4 gap-6 mb-8">
           <Card className="glass-effect border-medium-gray">
             <CardContent className="p-6 text-center">
               <Users className="h-8 w-8 mx-auto mb-2 text-neon-green" />
@@ -246,8 +296,8 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Bookings Table */}
-        <Card className="glass-effect border-medium-gray">
+            {/* Bookings Table */}
+            <Card className="glass-effect border-medium-gray">
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle className="text-xl text-neon-green">Recent Bookings</CardTitle>
@@ -379,11 +429,108 @@ export default function AdminDashboard() {
             )}
           </CardContent>
         </Card>
+          </>
+        )}
+
+        {activeTab === "services" && (
+          <Card className="glass-effect border-medium-gray">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-xl text-neon-green">Manage Services</CardTitle>
+                <Button
+                  onClick={() => {
+                    setEditingService(null);
+                    setShowServiceForm(true);
+                  }}
+                  className="bg-neon-green text-deep-black hover:bg-neon-green/90"
+                  data-testid="button-add-service"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Service
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {servicesLoading ? (
+                <div className="text-center py-8">Loading services...</div>
+              ) : (
+                <div className="grid gap-4">
+                  {services?.map((service: any) => (
+                    <div key={service.id} className="border border-gray-700 rounded-lg p-4 hover:bg-medium-gray/20" data-testid={`service-card-${service.id}`}>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-4 mb-3">
+                            {service.imageUrl && (
+                              <img 
+                                src={service.imageUrl} 
+                                alt={service.title}
+                                className="w-16 h-16 object-cover rounded-lg"
+                                data-testid={`img-service-${service.id}`}
+                              />
+                            )}
+                            <div>
+                              <h3 className="text-lg font-semibold text-white" data-testid={`text-service-title-${service.id}`}>
+                                {service.title}
+                              </h3>
+                              <p className="text-gray-400 text-sm" data-testid={`text-service-slug-${service.id}`}>
+                                /{service.slug}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="text-gray-300 mb-3 line-clamp-2" data-testid={`text-service-description-${service.id}`}>
+                            {service.description}
+                          </p>
+                          <div className="flex items-center gap-4 text-sm">
+                            <span className="text-neon-green font-semibold" data-testid={`text-service-price-${service.id}`}>
+                              ₹{service.price}
+                            </span>
+                            <span className={`px-2 py-1 rounded text-xs ${service.isActive ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}`} data-testid={`badge-service-status-${service.id}`}>
+                              {service.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex space-x-2 ml-4">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEditService(service)}
+                            className="text-blue-400 hover:text-blue-300"
+                            data-testid={`button-edit-service-${service.id}`}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeleteService(service.id)}
+                            className="text-red-400 hover:text-red-300"
+                            data-testid={`button-delete-service-${service.id}`}
+                          >
+                            ✕
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {(!services || services.length === 0) && (
+                    <div className="text-center py-8 text-gray-400">
+                      No services found. Click "Add Service" to create your first service.
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <AdminServiceForm 
         isOpen={showServiceForm} 
-        onClose={() => setShowServiceForm(false)} 
+        onClose={() => {
+          setShowServiceForm(false);
+          setEditingService(null);
+        }}
+        editingService={editingService}
       />
     </div>
   );

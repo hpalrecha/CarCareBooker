@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -19,6 +19,7 @@ import { X, Plus, Minus, Upload, Play, Image as ImageIcon, Star, HelpCircle } fr
 interface AdminServiceFormProps {
   isOpen: boolean;
   onClose: () => void;
+  editingService?: any;
 }
 
 interface ProcessStep {
@@ -51,7 +52,7 @@ interface FAQ {
   answer: string;
 }
 
-export default function AdminServiceForm({ isOpen, onClose }: AdminServiceFormProps) {
+export default function AdminServiceForm({ isOpen, onClose, editingService }: AdminServiceFormProps) {
   const { toast } = useToast();
   
   // State for dynamic arrays
@@ -92,7 +93,40 @@ export default function AdminServiceForm({ isOpen, onClose }: AdminServiceFormPr
     },
   });
 
-  const createServiceMutation = useMutation({
+  // Effect to populate form when editing
+  useEffect(() => {
+    if (editingService && isOpen) {
+      form.reset({
+        title: editingService.title || "",
+        description: editingService.description || "",
+        heroTitle: editingService.heroTitle || "",
+        heroSubtitle: editingService.heroSubtitle || "",
+        heroVideo: editingService.heroVideo || "",
+        whyChoose: editingService.whyChoose || "",
+        price: editingService.price?.toString() || "",
+        originalPrice: editingService.originalPrice?.toString() || "",
+        discountText: editingService.discountText || "",
+        duration: editingService.duration || 60,
+        metaTitle: editingService.metaTitle || "",
+        metaDescription: editingService.metaDescription || "",
+        ctaText: editingService.ctaText || "Book Now",
+        urgencyText: editingService.urgencyText || "",
+        guaranteeText: editingService.guaranteeText || "",
+        isActive: editingService.isActive !== false,
+      });
+      
+      // Set dynamic arrays
+      setIncludedItems(editingService.whatIncluded?.length ? editingService.whatIncluded : [""]);
+      setProcessSteps(editingService.process?.length ? editingService.process : [{ step: 1, title: "", description: "" }]);
+      setBeforeAfterItems(editingService.beforeAfter?.length ? editingService.beforeAfter : [{ before: "", after: "", description: "" }]);
+      setGalleryItems(editingService.gallery?.length ? editingService.gallery : [{ url: "", type: "video", caption: "" }]);
+      setTestimonials(editingService.testimonials?.length ? editingService.testimonials : [{ name: "", rating: 5, comment: "", image: "" }]);
+      setFaqItems(editingService.faq?.length ? editingService.faq : [{ question: "", answer: "" }]);
+      setImages(editingService.images?.length ? editingService.images : [""]);
+    }
+  }, [editingService, isOpen, form]);
+
+  const serviceActionMutation = useMutation({
     mutationFn: async (data: any) => {
       const serviceData = {
         ...data,
@@ -107,14 +141,20 @@ export default function AdminServiceForm({ isOpen, onClose }: AdminServiceFormPr
         price: parseFloat(data.price),
         originalPrice: data.originalPrice ? parseFloat(data.originalPrice) : null,
       };
-      const response = await apiRequest("POST", "/api/services", serviceData);
-      return response.json();
+      
+      if (editingService) {
+        const response = await apiRequest("PUT", `/api/services/${editingService.id}`, serviceData);
+        return response.json();
+      } else {
+        const response = await apiRequest("POST", "/api/services", serviceData);
+        return response.json();
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/services"] });
       toast({
-        title: "Service Created",
-        description: "The service has been successfully created with full content.",
+        title: editingService ? "Service Updated" : "Service Created",
+        description: `The service has been successfully ${editingService ? "updated" : "created"} with full content.`,
       });
       onClose();
       resetForm();
@@ -140,7 +180,7 @@ export default function AdminServiceForm({ isOpen, onClose }: AdminServiceFormPr
   };
 
   const onSubmit = (data: any) => {
-    createServiceMutation.mutate(data);
+    serviceActionMutation.mutate(data);
   };
 
   // Helper functions for managing dynamic arrays
@@ -235,7 +275,7 @@ export default function AdminServiceForm({ isOpen, onClose }: AdminServiceFormPr
       <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto bg-dark-gray text-white border-medium-gray">
         <DialogHeader>
           <DialogTitle className="text-3xl font-bold gradient-text" data-testid="text-service-form-title">
-            Create New Service - Complete Content Management
+            {editingService ? `Edit Service: ${editingService.title}` : "Create New Service - Complete Content Management"}
           </DialogTitle>
           <Button 
             variant="ghost" 
@@ -1068,10 +1108,13 @@ export default function AdminServiceForm({ isOpen, onClose }: AdminServiceFormPr
               <Button
                 type="submit"
                 className="bg-neon-green text-deep-black hover:bg-neon-green/90 neon-glow px-8"
-                disabled={createServiceMutation.isPending}
-                data-testid="button-create-service"
+                disabled={serviceActionMutation.isPending}
+                data-testid="button-service-action"
               >
-                {createServiceMutation.isPending ? "Creating Service..." : "Create Complete Service"}
+                {serviceActionMutation.isPending 
+                  ? (editingService ? "Updating Service..." : "Creating Service...") 
+                  : (editingService ? "Update Service" : "Create Complete Service")
+                }
               </Button>
             </div>
           </form>
