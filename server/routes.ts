@@ -357,6 +357,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/bookings/:id/send-whatsapp", authenticateAdmin, async (req, res) => {
+    try {
+      const booking = await storage.getBooking(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      const service = await storage.getService(booking.serviceId);
+      if (!service) {
+        return res.status(404).json({ message: "Service not found" });
+      }
+
+      // Send WhatsApp notification
+      const whatsappSent = await whatsappService.sendBookingConfirmation({
+        customerName: booking.customerName,
+        customerPhone: booking.customerPhone,
+        serviceName: service.title,
+        date: new Date().toLocaleDateString(),
+        time: booking.timeSlotId,
+        amount: booking.amount,
+        bookingId: booking.id,
+      });
+
+      if (whatsappSent) {
+        await storage.updateBooking(booking.id, { whatsappSent: true });
+        res.json({ message: "WhatsApp notification sent successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to send WhatsApp notification" });
+      }
+    } catch (error) {
+      console.error("Send WhatsApp error:", error);
+      res.status(500).json({ message: "Failed to send WhatsApp notification" });
+    }
+  });
+
   // WhatsApp Business API Routes
   app.get("/api/whatsapp/config", authenticateAdmin, async (req, res) => {
     try {

@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import AdminServiceForm from "@/components/admin-service-form";
-import { Plus, Eye, MessageCircle, Edit, Users, Clock, CheckCircle, DollarSign, Settings } from "lucide-react";
+import { Plus, Eye, MessageCircle, Edit, Users, Clock, CheckCircle, DollarSign, Settings, Phone } from "lucide-react";
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
@@ -55,6 +55,45 @@ export default function AdminDashboard() {
     },
   });
 
+  const sendWhatsAppMutation = useMutation({
+    mutationFn: async (bookingId: string) => {
+      const response = await apiRequest("POST", `/api/bookings/${bookingId}/send-whatsapp`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      toast({
+        title: "WhatsApp Sent",
+        description: "WhatsApp notification sent successfully!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "WhatsApp Failed",
+        description: error.message || "Failed to send WhatsApp notification",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleViewBooking = (booking: any) => {
+    toast({
+      title: "Booking Details",
+      description: `Customer: ${booking.customerName}\nPhone: ${booking.customerPhone}\nEmail: ${booking.customerEmail}\nService: ${booking.service?.title}\nAmount: ₹${booking.amount}`,
+    });
+  };
+
+  const handleSendWhatsApp = (booking: any) => {
+    sendWhatsAppMutation.mutate(booking.id);
+  };
+
+  const handleEditBooking = (booking: any) => {
+    toast({
+      title: "Edit Booking",
+      description: "Booking edit functionality coming soon!",
+    });
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-deep-black flex items-center justify-center">
@@ -67,17 +106,17 @@ export default function AdminDashboard() {
     return null;
   }
 
-  const filteredBookings = bookings?.filter((booking: any) => 
+  const filteredBookings = Array.isArray(bookings) ? bookings.filter((booking: any) => 
     statusFilter === "all" || booking.paymentStatus === statusFilter
-  ) || [];
+  ) : [];
 
   const stats = {
-    totalBookings: bookings?.length || 0,
-    pendingBookings: bookings?.filter((b: any) => b.paymentStatus === "pending").length || 0,
-    paidBookings: bookings?.filter((b: any) => b.paymentStatus === "paid").length || 0,
-    completedBookings: bookings?.filter((b: any) => b.paymentStatus === "completed").length || 0,
-    totalRevenue: bookings?.filter((b: any) => b.paymentStatus === "paid" || b.paymentStatus === "completed")
-      .reduce((sum: number, b: any) => sum + parseFloat(b.amount), 0) || 0,
+    totalBookings: Array.isArray(bookings) ? bookings.length : 0,
+    pendingBookings: Array.isArray(bookings) ? bookings.filter((b: any) => b.paymentStatus === "pending").length : 0,
+    paidBookings: Array.isArray(bookings) ? bookings.filter((b: any) => b.paymentStatus === "paid").length : 0,
+    completedBookings: Array.isArray(bookings) ? bookings.filter((b: any) => b.paymentStatus === "completed").length : 0,
+    totalRevenue: Array.isArray(bookings) ? bookings.filter((b: any) => b.paymentStatus === "paid" || b.paymentStatus === "completed")
+      .reduce((sum: number, b: any) => sum + parseFloat(b.amount), 0) : 0,
   };
 
   const getStatusBadge = (status: string) => {
@@ -85,13 +124,24 @@ export default function AdminDashboard() {
       case "paid":
         return <Badge className="bg-green-900 text-green-300 font-semibold">✓ Paid</Badge>;
       case "pending":
-        return <Badge className="bg-yellow-900 text-yellow-300 font-semibold">⏳ Payment Pending</Badge>;
-      case "completed":
-        return <Badge className="bg-blue-900 text-blue-300 font-semibold">🏁 Service Completed</Badge>;
+        return <Badge className="bg-yellow-900 text-yellow-300 font-semibold">⏳ Pending</Badge>;
       case "failed":
-        return <Badge className="bg-red-900 text-red-300 font-semibold">✗ Payment Failed</Badge>;
+        return <Badge className="bg-red-900 text-red-300 font-semibold">✗ Failed</Badge>;
+      default:
+        return <Badge variant="secondary" className="font-semibold">{status}</Badge>;
+    }
+  };
+
+  const getBookingStatusBadge = (status: string) => {
+    switch (status) {
+      case "confirmed":
+        return <Badge className="bg-blue-900 text-blue-300 font-semibold">📋 Confirmed</Badge>;
+      case "completed":
+        return <Badge className="bg-green-900 text-green-300 font-semibold">🏁 Completed</Badge>;
       case "cancelled":
         return <Badge className="bg-gray-900 text-gray-300 font-semibold">⊘ Cancelled</Badge>;
+      case "in-progress":
+        return <Badge className="bg-purple-900 text-purple-300 font-semibold">🔧 In Progress</Badge>;
       default:
         return <Badge variant="secondary" className="font-semibold">{status}</Badge>;
     }
@@ -227,7 +277,8 @@ export default function AdminDashboard() {
                     <TableHead className="text-gray-400">Service</TableHead>
                     <TableHead className="text-gray-400">Date & Time</TableHead>
                     <TableHead className="text-gray-400">Amount</TableHead>
-                    <TableHead className="text-gray-400">Status</TableHead>
+                    <TableHead className="text-gray-400">Payment Status</TableHead>
+                    <TableHead className="text-gray-400">Service Status</TableHead>
                     <TableHead className="text-gray-400">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -258,23 +309,42 @@ export default function AdminDashboard() {
                       <TableCell data-testid={`text-booking-amount-${booking.id}`}>
                         <div className="font-semibold text-neon-green">₹{booking.amount}</div>
                         <div className="text-xs text-gray-500">
-                          {booking.paymentStatus === "completed" ? "Dev Mode" : 
-                           booking.paymentStatus === "paid" ? "Payment Received" : 
-                           booking.paymentStatus === "pending" ? "Awaiting Payment" : ""}
+                          {booking.paymentId ? `ID: ${booking.paymentId.slice(-6)}` : "No Payment ID"}
                         </div>
                       </TableCell>
-                      <TableCell data-testid={`status-${booking.id}`}>
+                      <TableCell data-testid={`payment-status-${booking.id}`}>
                         {getStatusBadge(booking.paymentStatus)}
+                      </TableCell>
+                      <TableCell data-testid={`booking-status-${booking.id}`}>
+                        {getBookingStatusBadge(booking.bookingStatus)}
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Button size="sm" variant="ghost" className="text-blue-400 hover:text-blue-300" data-testid={`button-view-${booking.id}`}>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="text-blue-400 hover:text-blue-300" 
+                            data-testid={`button-view-${booking.id}`}
+                            onClick={() => handleViewBooking(booking)}
+                          >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="text-neon-green hover:text-green-300" data-testid={`button-whatsapp-${booking.id}`}>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="text-neon-green hover:text-green-300" 
+                            data-testid={`button-whatsapp-${booking.id}`}
+                            onClick={() => handleSendWhatsApp(booking)}
+                          >
                             <MessageCircle className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="text-yellow-400 hover:text-yellow-300" data-testid={`button-edit-${booking.id}`}>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="text-yellow-400 hover:text-yellow-300" 
+                            data-testid={`button-edit-${booking.id}`}
+                            onClick={() => handleEditBooking(booking)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                         </div>
