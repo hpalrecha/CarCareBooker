@@ -42,8 +42,11 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
   });
 
   useEffect(() => {
+    console.log("Booking amount setting changed:", bookingAmountSetting);
     if (bookingAmountSetting && typeof bookingAmountSetting === 'object' && 'value' in bookingAmountSetting) {
-      setBookingAmount(parseFloat(String(bookingAmountSetting.value)));
+      const amount = parseFloat(String(bookingAmountSetting.value));
+      console.log("Setting booking amount to:", amount);
+      setBookingAmount(amount);
     }
   }, [bookingAmountSetting]);
 
@@ -76,6 +79,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
   const bookingMutation = useMutation({
     mutationFn: async (data: any) => {
       // Add booking fee amount (₹299) to the request
+      console.log("Sending booking amount:", bookingAmount);
       const bookingData = {
         ...data,
         amount: bookingAmount, // Fixed booking fee
@@ -101,9 +105,9 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
           amount: paymentOrder.amount,
           currency: paymentOrder.currency,
           name: "P91 Car Care",
-          description: `Booking Fee - ${service.title}`,
+          description: `₹${bookingAmount} Booking Fee - ${service.title}`,
           notes: {
-            booking_fee: "₹299 booking fee to secure your slot",
+            booking_fee: `₹${bookingAmount} booking fee to secure your slot`,
             free_voucher: "Includes FREE car wash voucher worth ₹500",
             service_title: service.title,
           },
@@ -248,12 +252,12 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
           <div className="bg-gradient-to-r from-green-900/30 to-blue-900/30 rounded-xl p-6 border border-green-500/30">
             <div className="text-center mb-4">
               <h3 className="text-2xl font-bold text-neon-green mb-2">🎉 Special Booking Offer!</h3>
-              <p className="text-gray-300">Secure your slot with just ₹299 booking fee</p>
+              <p className="text-gray-300">Secure your slot with just ₹{bookingAmount} booking fee</p>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
               <div className="text-center p-4 bg-dark-gray rounded-lg">
-                <div className="text-3xl font-bold text-white mb-2">₹299</div>
+                <div className="text-3xl font-bold text-white mb-2">₹{bookingAmount}</div>
                 <div className="text-sm text-gray-400 mb-2">Booking Fee Only</div>
                 <div className="text-xs text-green-400">✓ Secures your preferred slot</div>
               </div>
