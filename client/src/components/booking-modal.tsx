@@ -136,18 +136,18 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
           description: `₹${bookingAmount} Booking Fee - ${service.title}`,
           order_id: paymentOrder.id,
           handler: async (response: any) => {
-            console.log("Payment successful:", response);
-            console.log("Payment response object:", JSON.stringify(response, null, 2));
+            console.log("💰 Payment successful:", response);
+            console.log("📄 Payment response:", JSON.stringify(response, null, 2));
             
             try {
-              console.log("Payment successful, processing...");
+              console.log("🔄 Processing payment confirmation...");
               
-              // Call the payment webhook with retry logic
-              let webhookResponse;
-              for (let attempt = 1; attempt <= 3; attempt++) {
+              // Call payment confirmation endpoint with retry logic
+              let confirmResponse;
+              for (let attempt = 1; attempt <= 5; attempt++) {
                 try {
-                  console.log(`Payment webhook attempt ${attempt}/3`);
-                  webhookResponse = await fetch("/api/payment-webhook", {
+                  console.log(`🔄 Payment confirmation attempt ${attempt}/5`);
+                  confirmResponse = await fetch("/api/confirm-payment", {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
@@ -159,35 +159,48 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                     }),
                   });
                   
-                  if (webhookResponse.ok) {
-                    console.log("Payment webhook successful");
+                  if (confirmResponse.ok) {
+                    console.log("✅ Payment confirmation successful");
+                    const confirmData = await confirmResponse.json();
+                    
+                    toast({
+                      title: "Booking Confirmed!",
+                      description: confirmData.whatsappSent 
+                        ? "Your booking is confirmed! WhatsApp confirmation sent."
+                        : "Your booking is confirmed! You'll receive confirmation shortly.",
+                    });
                     break;
                   } else {
-                    throw new Error(`HTTP ${webhookResponse.status}`);
+                    const errorText = await confirmResponse.text();
+                    throw new Error(`HTTP ${confirmResponse.status}: ${errorText}`);
                   }
                 } catch (err) {
-                  console.error(`Webhook attempt ${attempt} failed:`, err);
-                  if (attempt === 3) throw err;
-                  await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                  console.error(`⚠️ Confirmation attempt ${attempt} failed:`, err);
+                  if (attempt === 5) {
+                    // Still show success since payment went through
+                    toast({
+                      title: "Payment Successful!", 
+                      description: "Payment completed! Your booking will be processed. Contact us if you don't receive confirmation within 10 minutes.",
+                      variant: "default",
+                    });
+                  } else {
+                    // Wait before retry
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                  }
                 }
               }
-              
-              toast({
-                title: "Booking Confirmed!",
-                description: "Your booking has been confirmed. You will receive WhatsApp and email confirmations shortly.",
-              });
               
               onClose();
               form.reset();
             } catch (error) {
-              console.error("Payment confirmation error:", error);
+              console.error("💥 Payment confirmation error:", error);
+              // Payment was successful, just confirmation failed
               toast({
-                title: "Payment Successful", 
-                description: "Payment completed successfully. Your booking will be processed. Please contact us if you don't receive confirmation.",
+                title: "Payment Successful!", 
+                description: "Payment completed successfully! Your booking will be processed. Please contact us if you don't receive confirmation.",
                 variant: "default",
               });
               
-              // Still close the modal and reset form since payment was successful
               onClose();
               form.reset();
             }

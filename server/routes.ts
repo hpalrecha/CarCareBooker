@@ -340,7 +340,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/payment-webhook", async (req, res) => {
+  // Payment confirmation endpoint (called by frontend after successful payment)
+  app.post("/api/confirm-payment", async (req, res) => {
     try {
       console.log("🔄 Payment webhook called at", new Date().toISOString());
       console.log("📦 Webhook payload:", req.body);
@@ -392,9 +393,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const service = await storage.getService(booking.serviceId);
       const timeSlot = await storage.getTimeSlot(booking.timeSlotId);
 
+      let whatsappSent = false;
       if (service) {
         // Send WhatsApp confirmation using the proper service
-        const whatsappSent = await whatsappService.sendBookingConfirmation(
+        console.log("📱 Sending WhatsApp confirmation...");
+        whatsappSent = await whatsappService.sendBookingConfirmation(
           booking.customerPhone,
           booking.customerName,
           service.title,
@@ -402,14 +405,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           booking.appointmentTime || "10:00 AM",
           booking.amount
         );
+        console.log("📱 WhatsApp sent:", whatsappSent);
 
         // Send email confirmation (if email service is configured)
         let emailSent = false;
         try {
           // Email service would go here if configured
-          console.log("Email service not configured, skipping email notification");
+          console.log("📧 Email service not configured, skipping email notification");
         } catch (error) {
-          console.log("Email service error:", error);
+          console.log("📧 Email service error:", error);
         }
 
         // Update notification status
@@ -419,7 +423,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      res.json({ message: "Payment confirmed" });
+      console.log("🎉 Payment confirmation complete!");
+      res.json({ 
+        message: "Payment confirmed",
+        booking: updatedBooking,
+        whatsappSent,
+        success: true
+      });
     } catch (error) {
       console.error("Payment webhook error:", error);
       res.status(500).json({ message: "Payment processing failed" });
