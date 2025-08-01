@@ -5,21 +5,20 @@ import path from "path";
 
 const app = express();
 
-// Add CORS headers and CSP for Razorpay and external requests
+// Add comprehensive CORS and security headers for Razorpay
 app.use((req, res, next) => {
+  // Remove restrictive CSP that blocks Razorpay
+  res.removeHeader('Content-Security-Policy');
+  
+  // Set permissive CORS headers
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-razorpay-signature, x-rtb-fingerprint-id');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD');
+  res.header('Access-Control-Allow-Headers', '*');
+  res.header('Access-Control-Expose-Headers', '*');
+  res.header('Cross-Origin-Embedder-Policy', 'unsafe-none');
+  res.header('Cross-Origin-Opener-Policy', 'unsafe-none');
   
-  // Allow Razorpay resources in CSP
-  res.header('Content-Security-Policy', 
-    "default-src 'self' 'unsafe-inline' 'unsafe-eval' *; " +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://*.razorpay.com; " +
-    "connect-src 'self' https://checkout.razorpay.com https://*.razorpay.com https://api.razorpay.com; " +
-    "frame-src 'self' https://checkout.razorpay.com https://*.razorpay.com; " +
-    "img-src 'self' data: https: *;"
-  );
-  
+  // Handle preflight requests
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
   } else {

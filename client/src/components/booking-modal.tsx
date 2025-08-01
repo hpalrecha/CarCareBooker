@@ -106,13 +106,35 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
           currency: paymentOrder.currency,
           name: "P91 Car Care",
           description: `₹${bookingAmount} Booking Fee - ${service.title}`,
-          image: "https://img.icons8.com/color/96/car-wash.png", // Add logo
-          notes: {
-            booking_fee: `₹${bookingAmount} booking fee to secure your slot`,
-            free_voucher: "Includes FREE car wash voucher worth ₹500",
-            service_title: service.title,
-          },
+          image: "https://img.icons8.com/color/96/car-wash.png",
           order_id: paymentOrder.id,
+          config: {
+            display: {
+              blocks: {
+                banks: {
+                  name: 'Pay using ' + paymentOrder.currency,
+                  instruments: [
+                    {
+                      method: 'card'
+                    },
+                    {
+                      method: 'upi'
+                    },
+                    {
+                      method: 'netbanking'
+                    },
+                    {
+                      method: 'wallet'
+                    }
+                  ]
+                }
+              },
+              sequence: ['block.banks'],
+              preferences: {
+                show_default_blocks: true
+              }
+            }
+          },
           handler: async (response: any) => {
             console.log("Payment successful:", response);
             console.log("Payment response object:", JSON.stringify(response, null, 2));
@@ -184,15 +206,24 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
           },
           theme: {
             color: "#00FF94",
+            backdrop_color: "rgba(0,0,0,0.5)"
           },
-          method: {
-            upi: true,
-            card: true, 
-            netbanking: true,
-            wallet: true,
+          modal: {
+            backdropclose: false,
+            escape: true,
+            handleback: true,
+            confirm_close: true,
+            ondismiss: () => {
+              console.log("Payment modal dismissed by user");
+            },
+            animation: true
           },
           remember_customer: false,
-          timeout: 300, // 5 minutes timeout
+          timeout: 900, // 15 minutes timeout
+          retry: {
+            enabled: true,
+            max_count: 3
+          }
         };
 
         const payment = new razorpay(options);
