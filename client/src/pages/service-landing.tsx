@@ -12,6 +12,7 @@ import BookingModal from "@/components/booking-modal";
 import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029992282.webp";
 import headlightAfter from "@assets/GVXjDlbWcAAoQD1_1754029992281.jpg";
 import glassCoating from "@assets/Before-and-After-Ceramic-Coating-on-Glass (1)_1754028454560.jpg";
+import exteriorDetailingBefore from "@assets/exterior-detailing-service.jpg";
 import exteriorDetailingAfter from "@assets/20241227_164016_1754031651194.jpg";
 
 interface Service {
@@ -364,28 +365,53 @@ export default function ServiceLanding() {
               {/* Exterior Detailing Before/After */}
               {service.slug === 'exterior-detailing-hard-water-new' && (
                 <div className="group">
-                  <div className="max-w-4xl mx-auto">
+                  <div className="grid lg:grid-cols-2 gap-8 items-center">
+                    {/* Before Image */}
                     <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
                       <img
-                        className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
-                        src={exteriorDetailingAfter}
-                        alt="Professional exterior detailing result - glossy orange car"
-                        data-testid="image-exterior-detailing"
+                        className="w-full h-[350px] md:h-[400px] object-cover transition-transform duration-700 group-hover:scale-105"
+                        src={exteriorDetailingBefore}
+                        alt="Car before exterior detailing - dull and dirty"
+                        data-testid="image-exterior-before"
+                        loading="lazy"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                       <div className="absolute top-6 left-6">
-                        <div className="bg-green-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
-                          DETAILED
+                        <div className="bg-red-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
+                          BEFORE
                         </div>
                       </div>
-                      <div className="absolute bottom-6 center-6">
-                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg mx-auto">
-                          <p className="text-sm opacity-90">Professional Finish</p>
+                      <div className="absolute bottom-6 left-6">
+                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
+                          <p className="text-sm opacity-90">Dull & Dirty</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* After Image */}
+                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
+                      <img
+                        className="w-full h-[350px] md:h-[400px] object-cover transition-transform duration-700 group-hover:scale-105"
+                        src={exteriorDetailingAfter}
+                        alt="Car after exterior detailing - glossy orange finish"
+                        data-testid="image-exterior-after"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      <div className="absolute top-6 right-6">
+                        <div className="bg-green-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
+                          AFTER
+                        </div>
+                      </div>
+                      <div className="absolute bottom-6 right-6">
+                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
+                          <p className="text-sm opacity-90">Showroom Shine</p>
                         </div>
                       </div>
                     </div>
                   </div>
 
+                  {/* Description */}
                   <div className="mt-8 text-center">
                     <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 max-w-4xl mx-auto">
                       <p className="text-lg text-gray-300 leading-relaxed">
@@ -393,6 +419,25 @@ export default function ServiceLanding() {
                         paint correction, and protective coating. See the mirror-like finish and showroom shine 
                         that makes your car look brand new.
                       </p>
+                    </div>
+                  </div>
+
+                  {/* YouTube Video */}
+                  <div className="mt-12 max-w-4xl mx-auto">
+                    <div className="text-center mb-6">
+                      <h3 className="text-2xl font-bold text-white mb-2">Watch The Detailing Process</h3>
+                      <p className="text-gray-400">See how we transform dull cars into showroom perfection</p>
+                    </div>
+                    <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800 shadow-2xl">
+                      <video
+                        className="w-full h-full object-cover"
+                        controls
+                        preload="metadata"
+                        poster={exteriorDetailingAfter}
+                      >
+                        <source src="/attached_assets/Exterior Detailing_1754031679196.mp4" type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
                     </div>
                   </div>
                 </div>
