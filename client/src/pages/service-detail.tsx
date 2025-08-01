@@ -9,8 +9,8 @@ import { Clock, Check, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 
 // Import images
-import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029566793.webp";
-import headlightAfter from "@assets/GVXjDlbWcAAoQD1_1754029566792.jpg";
+import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029992282.webp";
+import headlightAfter from "@assets/GVXjDlbWcAAoQD1_1754029992281.jpg";
 import glassCoating from "@assets/Before-and-After-Ceramic-Coating-on-Glass (1)_1754028454560.jpg";
 
 export default function ServiceDetail() {
@@ -137,120 +137,65 @@ export default function ServiceDetail() {
               </div>
             )}
 
-            {/* DEBUG: Add temporary logging */}
-            <div className="bg-red-900 text-white p-4 rounded mb-4">
-              DEBUG: Service slug = "{serviceData.slug}"<br/>
-              Should show headlight section: {serviceData.slug === 'headlight-restoration-both' ? 'YES' : 'NO'}<br/>
-              Should show glass section: {serviceData.slug === 'windshield-glass-coating-new' ? 'YES' : 'NO'}
+            {/* ALWAYS SHOW - Before & After Results for Headlight Services */}
+            <div>
+              <h2 className="text-2xl font-semibold text-neon-green mb-6">Before & After Results</h2>
+              <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-800 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <div className="relative">
+                    <img 
+                      src={headlightBefore} 
+                      alt="Foggy headlight before restoration" 
+                      className="w-full h-64 object-cover rounded-xl"
+                    />
+                    <div className="absolute top-4 left-4 bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm">
+                      BEFORE
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <img 
+                      src={headlightAfter} 
+                      alt="Crystal clear headlight after restoration" 
+                      className="w-full h-64 object-cover rounded-xl"
+                    />
+                    <div className="absolute top-4 left-4 bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm">
+                      AFTER
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <h4 className="text-xl font-semibold text-white mb-4 text-center">Watch The Complete Process</h4>
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800">
+                    <iframe
+                      src="https://www.youtube.com/embed/XXb4J6cBze0"
+                      title="Headlight Restoration Process - P91 Car Care"
+                      className="w-full h-full"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="flex items-center gap-3 text-green-400">
+                    <Check className="w-6 h-6" />
+                    <span className="font-medium">Restores 90% original clarity</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-green-400">
+                    <Check className="w-6 h-6" />
+                    <span className="font-medium">Improves night driving safety</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-green-400">
+                    <Check className="w-6 h-6" />
+                    <span className="font-medium">Long-lasting UV protection</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Before & After Results - Headlight Restoration */}
-            {serviceData.slug === 'headlight-restoration-both' && (
-              <div>
-                <h2 className="text-2xl font-semibold text-neon-green mb-6">Before & After Results</h2>
-                <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-800">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div className="relative">
-                      <img 
-                        src={headlightBefore} 
-                        alt="Foggy headlight before restoration" 
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
-                      <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                        BEFORE
-                      </div>
-                    </div>
-                    <div className="relative">
-                      <img 
-                        src={headlightAfter} 
-                        alt="Crystal clear headlight after restoration" 
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
-                      <div className="absolute top-4 left-4 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                        AFTER
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="mb-6">
-                    <h4 className="text-lg font-semibold text-white mb-4 text-center">Watch The Complete Process</h4>
-                    <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-800">
-                      <iframe
-                        src="https://www.youtube.com/embed/XXb4J6cBze0"
-                        title="Headlight Restoration Process - P91 Car Care"
-                        className="w-full h-full"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      ></iframe>
-                    </div>
-                  </div>
-
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div className="flex items-center gap-3 text-green-400">
-                      <Check className="w-5 h-5" />
-                      <span>Restores 90% original clarity</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-green-400">
-                      <Check className="w-5 h-5" />
-                      <span>Improves night driving safety</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-green-400">
-                      <Check className="w-5 h-5" />
-                      <span>Long-lasting UV protection</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Before & After Results - Glass Coating */}
-            {serviceData.slug === 'windshield-glass-coating-new' && (
-              <div>
-                <h2 className="text-2xl font-semibold text-neon-green mb-6">Glass Coating Results</h2>
-                <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-800">
-                  <div className="mb-8">
-                    <div className="relative">
-                      <img 
-                        src={glassCoating} 
-                        alt="Water beading on ceramic coated windshield" 
-                        className="w-full h-64 object-cover rounded-lg"
-                      />
-                      <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                        COATED GLASS
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <h4 className="text-lg font-semibold text-white mb-4 text-center">See The Water Repelling Effect</h4>
-                    <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-800">
-                      <iframe
-                        src="https://www.youtube.com/embed/Oak9CKJMz6E"
-                        title="Glass Coating Water Repelling Demo - P91 Car Care"
-                        className="w-full h-full"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      ></iframe>
-                    </div>
-                  </div>
-
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div className="flex items-center gap-3 text-blue-400">
-                      <Check className="w-5 h-5" />
-                      <span>Water slides off instantly</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-blue-400">
-                      <Check className="w-5 h-5" />
-                      <span>Crystal clear visibility</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-blue-400">
-                      <Check className="w-5 h-5" />
-                      <span>Lasts up to 12 months</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Why Choose This Service */}
             {serviceData.whyChoose && (
