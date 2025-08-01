@@ -41,7 +41,7 @@ export default function CancellationPolicy() {
             <p>You can cancel your booking through any of these methods:</p>
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li>Online through our website booking management</li>
-              <li>Call our customer service: +91 9876543210</li>
+              <li>Call our customer service: +91 74066 19191</li>
               <li>WhatsApp: Send your booking reference number</li>
               <li>Email: cancellation@p91carcare.com</li>
             </ul>
@@ -143,9 +143,9 @@ export default function CancellationPolicy() {
             <h2 className="text-2xl font-semibold text-white mb-4">11. Contact for Cancellations</h2>
             <p>For cancellations and queries:</p>
             <div className="mt-2">
-              <p>Phone: +91 9876543210</p>
+              <p>Phone: +91 74066 19191</p>
               <p>Email: cancellation@p91carcare.com</p>
-              <p>WhatsApp: +91 9876543210</p>
+              <p>WhatsApp: +91 74066 19191</p>
               <p>Customer Service Hours: 8:00 AM - 9:00 PM (Mon-Sun)</p>
             </div>
           </section>

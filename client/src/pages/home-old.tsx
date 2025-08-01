@@ -362,7 +362,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center gap-2 justify-center md:justify-start">
                   <Phone className="w-4 h-4 text-green-400" />
-                  <span>+91 98765 43210</span>
+                  <span>+91 74066 19191</span>
                 </div>
                 <div className="flex items-center gap-2 justify-center md:justify-start">
                   <Mail className="w-4 h-4 text-green-400" />
@@ -420,8 +420,8 @@ export default function Home() {
                     <div>
                       <h4 className="font-semibold mb-1">Contact</h4>
                       <p className="text-gray-300" data-testid="text-contact-info">
-                        Phone: +91 98765 43210<br />
-                        WhatsApp: +91 98765 43210
+                        Phone: +91 74066 19191<br />
+                        WhatsApp: +91 74066 19191
                       </p>
                     </div>
                   </div>

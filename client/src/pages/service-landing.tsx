@@ -890,7 +890,7 @@ export default function ServiceLanding() {
           <div className="mt-12 flex flex-wrap justify-center gap-8 text-sm opacity-90">
             <div className="flex items-center gap-2">
               <Phone className="w-4 h-4" />
-              +91 98765 43210
+              +91 74066 19191
             </div>
             <div className="flex items-center gap-2">
               <Mail className="w-4 h-4" />

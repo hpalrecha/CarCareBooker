@@ -104,8 +104,8 @@ export async function sendBookingConfirmationEmail(data: BookingEmailData): Prom
             <p>Please arrive 10 minutes before your scheduled time. If you need to reschedule or cancel, please contact us at least 2 hours in advance.</p>
             
             <p><strong>Contact Information:</strong><br>
-            Phone: +91 98765 43210<br>
-            WhatsApp: +91 98765 43210<br>
+            Phone: +91 74066 19191<br>
+            WhatsApp: +91 74066 19191<br>
             Email: support@p91carcare.com</p>
           </div>
           <div class="footer">

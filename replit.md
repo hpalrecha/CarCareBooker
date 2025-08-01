@@ -144,6 +144,7 @@ Preferred communication style: Simple, everyday language.
 - **February 1, 2025**: Implemented automatic WhatsApp reminder scheduler that sends reminders daily at 8:00 PM IST for next day appointments
 - **February 1, 2025**: Added Scheduler tab to admin dashboard with status monitoring and manual reminder testing
 - **February 1, 2025**: Fixed booking payment confirmation flow to properly trigger WhatsApp notifications using approved templates
+- **February 1, 2025**: Updated all contact numbers across the site to +91 74066 19191
 - **January 31, 2025**: Updated WhatsApp contact number to +91 74066 19191
 - **January 31, 2025**: Created professional Contact Us page with form validation and backend integration
 - **January 31, 2025**: Added Contact Us link to footer navigation under "Quick Links" section

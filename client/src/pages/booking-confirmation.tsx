@@ -231,7 +231,7 @@ export default function BookingConfirmation() {
                   <div>
                     <h4 className="font-semibold text-white mb-1">Contact</h4>
                     <p className="text-gray-300" data-testid="text-contact-phone">
-                      +91 98765 43210
+                      +91 74066 19191
                     </p>
                   </div>
                 </div>
@@ -241,7 +241,7 @@ export default function BookingConfirmation() {
                   <div>
                     <h4 className="font-semibold text-white mb-1">WhatsApp</h4>
                     <p className="text-gray-300" data-testid="text-whatsapp-number">
-                      +91 98765 43210
+                      +91 74066 19191
                     </p>
                   </div>
                 </div>
@@ -317,7 +317,7 @@ export default function BookingConfirmation() {
             <Button 
               variant="ghost" 
               className="text-neon-green hover:bg-neon-green/10"
-              onClick={() => window.open(`tel:+919876543210`)}
+              onClick={() => window.open(`tel:+917406619191`)}
               data-testid="button-call-support"
             >
               <Phone className="w-4 h-4 mr-2" />
@@ -326,7 +326,7 @@ export default function BookingConfirmation() {
             <Button 
               variant="ghost" 
               className="text-neon-green hover:bg-neon-green/10"
-              onClick={() => window.open(`https://wa.me/919876543210?text=Hi, I need help with my booking ${booking.id}`)}
+              onClick={() => window.open(`https://wa.me/917406619191?text=Hi, I need help with my booking ${booking.id}`)}
               data-testid="button-whatsapp-support"
             >
               <MessageCircle className="w-4 h-4 mr-2" />

@@ -113,7 +113,7 @@ export default function TermsOfService() {
             <p>For questions about these Terms of Service, please contact us:</p>
             <div className="mt-2">
               <p>Email: support@p91carcare.com</p>
-              <p>Phone: +91 9876543210</p>
+              <p>Phone: +91 74066 19191</p>
               <p>Address: Bangalore, Karnataka, India</p>
             </div>
           </section>
