@@ -228,10 +228,17 @@ export class WhatsAppService {
 
     console.log(`✅ Using WhatsApp template: ${bookingTemplate.templateName}`);
 
-    // Ensure phone number is in correct format (country code without +)
-    let formattedPhone = customerPhone.replace(/^\+/, "").replace(/\s/g, "");
+    // Ensure phone number is in correct format with country code (91 for India)
+    let formattedPhone = customerPhone.replace(/^\+/, "").replace(/\s/g, "").replace(/-/g, "");
+    
+    // If phone number doesn't start with 91 and is 10 digits, add country code
     if (!formattedPhone.startsWith("91") && formattedPhone.length === 10) {
       formattedPhone = "91" + formattedPhone;
+    }
+    
+    // If it starts with 0, remove 0 and add 91 (common Indian format)
+    if (formattedPhone.startsWith("0") && formattedPhone.length === 11) {
+      formattedPhone = "91" + formattedPhone.substring(1);
     }
     
     console.log(`📞 Formatted phone: ${customerPhone} -> ${formattedPhone}`);
@@ -252,7 +259,7 @@ export class WhatsAppService {
               { type: "text", text: customerName },
               { type: "text", text: serviceName },
               { type: "text", text: `${appointmentDate} at ${appointmentTime}` },
-              { type: "text", text: `₹${bookingAmount}` },
+              { type: "text", text: bookingAmount },
               { type: "text", text: `BOOK-${Date.now()}` }
             ],
           },
@@ -296,9 +303,18 @@ export class WhatsAppService {
 
     console.log(`Using reminder template: ${reminderTemplate.templateName}`);
 
+    // Format phone number with country code
+    let formattedPhone = customerPhone.replace(/^\+/, "").replace(/\s/g, "").replace(/-/g, "");
+    if (!formattedPhone.startsWith("91") && formattedPhone.length === 10) {
+      formattedPhone = "91" + formattedPhone;
+    }
+    if (formattedPhone.startsWith("0") && formattedPhone.length === 11) {
+      formattedPhone = "91" + formattedPhone.substring(1);
+    }
+
     const message: WhatsAppMessage = {
       messaging_product: "whatsapp",
-      to: customerPhone.replace(/^\+/, ""),
+      to: formattedPhone,
       type: "template",
       template: {
         name: reminderTemplate.templateName,
