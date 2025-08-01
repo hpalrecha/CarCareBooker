@@ -534,6 +534,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test route for debugging payment flow
+  app.post("/api/test-payment", async (req, res) => {
+    try {
+      console.log("Test payment called with:", req.body);
+      res.json({ status: "success", message: "Test payment endpoint working" });
+    } catch (error) {
+      console.error("Test payment error:", error);
+      res.status(500).json({ message: "Test payment failed" });
+    }
+  });
+
   // Razorpay Webhook for payment confirmations
   app.post("/api/razorpay-webhook", express.raw({ type: 'application/json' }), async (req, res) => {
     try {

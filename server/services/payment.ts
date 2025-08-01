@@ -57,10 +57,24 @@ export async function verifyPaymentSignature(
   try {
     const crypto = require("crypto");
     const body = orderId + "|" + paymentId;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    
+    console.log("Verifying payment signature with order:", orderId, "payment:", paymentId);
+    console.log("Using key secret:", keySecret ? "Present" : "Missing");
+    
+    if (!keySecret) {
+      console.error("RAZORPAY_KEY_SECRET not found");
+      return false;
+    }
+    
     const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_TEST_KEY_SECRET)
+      .createHmac("sha256", keySecret)
       .update(body.toString())
       .digest("hex");
+
+    console.log("Expected signature:", expectedSignature);
+    console.log("Received signature:", signature);
+    console.log("Signature match:", expectedSignature === signature);
 
     return expectedSignature === signature;
   } catch (error) {

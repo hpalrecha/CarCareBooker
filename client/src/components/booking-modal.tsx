@@ -118,6 +118,14 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
             console.log("Payment response object:", JSON.stringify(response, null, 2));
             
             try {
+              // First test the endpoint
+              console.log("Testing payment endpoint...");
+              const testResponse = await apiRequest("POST", "/api/test-payment", {
+                test: true
+              });
+              console.log("Test response:", testResponse);
+              
+              // Now call the actual webhook
               const webhookResponse = await apiRequest("POST", "/api/payment-webhook", {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
