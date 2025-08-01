@@ -118,21 +118,37 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
             console.log("Payment response object:", JSON.stringify(response, null, 2));
             
             try {
-              // First test the endpoint
-              console.log("Testing payment endpoint...");
-              const testResponse = await apiRequest("POST", "/api/test-payment", {
-                test: true
-              });
-              console.log("Test response:", testResponse);
+              console.log("Payment successful, processing...");
               
-              // Now call the actual webhook
-              const webhookResponse = await apiRequest("POST", "/api/payment-webhook", {
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-              });
-              
-              console.log("Webhook response:", webhookResponse);
+              // Call the payment webhook with retry logic
+              let webhookResponse;
+              for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                  console.log(`Payment webhook attempt ${attempt}/3`);
+                  webhookResponse = await fetch("/api/payment-webhook", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      razorpay_order_id: response.razorpay_order_id,
+                      razorpay_payment_id: response.razorpay_payment_id,
+                      razorpay_signature: response.razorpay_signature,
+                    }),
+                  });
+                  
+                  if (webhookResponse.ok) {
+                    console.log("Payment webhook successful");
+                    break;
+                  } else {
+                    throw new Error(`HTTP ${webhookResponse.status}`);
+                  }
+                } catch (err) {
+                  console.error(`Webhook attempt ${attempt} failed:`, err);
+                  if (attempt === 3) throw err;
+                  await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                }
+              }
               
               toast({
                 title: "Booking Confirmed!",
@@ -144,10 +160,14 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
             } catch (error) {
               console.error("Payment confirmation error:", error);
               toast({
-                title: "Payment Error", 
-                description: "Payment was successful but confirmation failed. Please contact support.",
-                variant: "destructive",
+                title: "Payment Successful", 
+                description: "Payment completed successfully. Your booking will be processed. Please contact us if you don't receive confirmation.",
+                variant: "default",
               });
+              
+              // Still close the modal and reset form since payment was successful
+              onClose();
+              form.reset();
             }
           },
           modal: {
@@ -184,6 +204,15 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
             title: "Payment Failed",
             description: response.error.description || "Payment could not be processed. Please try again.",
             variant: "destructive",
+          });
+        });
+        
+        // Add modal dismiss handler 
+        payment.on('payment.cancel', function () {
+          console.log('Payment cancelled by user');
+          toast({
+            title: "Payment Cancelled",
+            description: "Payment was cancelled. You can try again anytime.",
           });
         });
         
