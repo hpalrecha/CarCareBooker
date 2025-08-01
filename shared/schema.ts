@@ -102,6 +102,8 @@ export const bookings = pgTable("bookings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   serviceId: varchar("service_id").notNull().references(() => services.id),
   timeSlotId: varchar("time_slot_id").notNull(), // Changed: removed foreign key constraint for static time slots
+  appointmentDate: varchar("appointment_date"), // Store the selected date (YYYY-MM-DD format)
+  appointmentTime: varchar("appointment_time"), // Store the selected time (HH:MM format)
   customerName: varchar("customer_name").notNull(),
   customerEmail: varchar("customer_email").notNull(),
   customerPhone: varchar("customer_phone").notNull(),

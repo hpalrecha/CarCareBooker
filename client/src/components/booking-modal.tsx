@@ -145,7 +145,13 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
   });
 
   const onSubmit = (data: any) => {
-    bookingMutation.mutate(data);
+    // Include the selected date and time in the booking data
+    const bookingData = {
+      ...data,
+      appointmentDate: selectedDate,
+      appointmentTime: data.timeSlotId, // The timeSlotId is actually the time (e.g., "16:00")
+    };
+    bookingMutation.mutate(bookingData);
   };
 
   const today = new Date().toISOString().split('T')[0];

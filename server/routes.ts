@@ -199,6 +199,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const booking = await storage.createBooking({
           serviceId: bookingData.serviceId,
           timeSlotId: bookingData.timeSlotId,
+          appointmentDate: bookingData.appointmentDate,
+          appointmentTime: bookingData.appointmentTime,
           customerName: bookingData.customerName,
           customerEmail: bookingData.customerEmail,
           customerPhone: bookingData.customerPhone,
@@ -231,6 +233,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const booking = await storage.createBooking({
         serviceId: bookingData.serviceId,
         timeSlotId: bookingData.timeSlotId,
+        appointmentDate: bookingData.appointmentDate,
+        appointmentTime: bookingData.appointmentTime,
         customerName: bookingData.customerName,
         customerEmail: bookingData.customerEmail,
         customerPhone: bookingData.customerPhone,

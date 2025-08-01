@@ -301,7 +301,13 @@ export default function AdminDashboard() {
                       </TableCell>
                       <TableCell className="text-gray-300">
                         <div data-testid={`text-booking-date-${booking.id}`}>
-                          {booking.timeSlotId && booking.timeSlotId.includes(':') ? 
+                          {booking.appointmentDate ? 
+                            new Date(booking.appointmentDate).toLocaleDateString('en-IN', { 
+                              day: '2-digit', 
+                              month: 'short', 
+                              year: 'numeric' 
+                            }) : 
+                            booking.timeSlotId && booking.timeSlotId.includes(':') ? 
                             `Today at ${booking.timeSlotId}` : 
                             booking.timeSlotId && booking.timeSlotId.length > 10 ?
                             'Legacy booking' :
@@ -309,7 +315,10 @@ export default function AdminDashboard() {
                           }
                         </div>
                         <div className="text-sm text-gray-400" data-testid={`text-booking-time-${booking.id}`}>
-                          {booking.timeSlotId && booking.timeSlotId.includes(':') ? 'Time slot confirmed' : 'Appointment pending'}
+                          {booking.appointmentTime ? 
+                            `${booking.appointmentTime}:00 - ${(parseInt(booking.appointmentTime) + 1).toString().padStart(2, '0')}:00` :
+                            booking.timeSlotId && booking.timeSlotId.includes(':') ? 'Time slot confirmed' : 'Appointment pending'
+                          }
                         </div>
                       </TableCell>
                       <TableCell className="text-gray-300">
