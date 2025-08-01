@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { schedulerService } from "./services/scheduler";
 import path from "path";
 
 const app = express();
@@ -98,5 +99,8 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    
+    // Start the automatic reminder scheduler - sends reminders daily at 8:00 PM IST
+    schedulerService.startReminderScheduler();
   });
 })();

@@ -41,6 +41,8 @@ Preferred communication style: Simple, everyday language.
 - Time slot management for each service
 - Booking dashboard with status filters (Paid, Pending)
 - Pricing configuration with discount support
+- WhatsApp configuration and template management
+- Automatic reminder scheduler with status monitoring and manual testing
 
 ### Customer Booking Flow
 - Service discovery with detailed service pages
@@ -50,9 +52,11 @@ Preferred communication style: Simple, everyday language.
 - Booking confirmation with automatic notifications
 
 ### Notification System
-- WhatsApp integration using Meta WhatsApp Cloud API
+- WhatsApp integration using Meta WhatsApp Cloud API with approved templates
+- Automated booking confirmations sent immediately after payment
+- Automatic reminder notifications sent daily at 8:00 PM IST for next day appointments
 - Email confirmations using Nodemailer with SMTP
-- Automated booking confirmations with service details and location
+- Rate limiting and error handling for notification delivery
 
 ## Data Flow
 
@@ -137,6 +141,9 @@ Preferred communication style: Simple, everyday language.
 - Performance monitoring through query optimization
 
 ## Recent Changes
+- **February 1, 2025**: Implemented automatic WhatsApp reminder scheduler that sends reminders daily at 8:00 PM IST for next day appointments
+- **February 1, 2025**: Added Scheduler tab to admin dashboard with status monitoring and manual reminder testing
+- **February 1, 2025**: Fixed booking payment confirmation flow to properly trigger WhatsApp notifications using approved templates
 - **January 31, 2025**: Updated WhatsApp contact number to +91 74066 19191
 - **January 31, 2025**: Created professional Contact Us page with form validation and backend integration
 - **January 31, 2025**: Added Contact Us link to footer navigation under "Quick Links" section

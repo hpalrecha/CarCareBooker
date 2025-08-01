@@ -255,29 +255,28 @@ export class WhatsAppService {
       return false;
     }
 
-    // Use mapped template if available, otherwise fall back to category search
-    let reminderTemplate;
-    if (config.appointmentReminderTemplateId && config.appointmentReminderTemplateId !== "none") {
-      const templates = await this.getTemplates();
-      reminderTemplate = templates.find(t => 
-        t.templateId === config.appointmentReminderTemplateId && t.status === "APPROVED"
-      );
-    }
+    // Use the configured reminder template or fall back to p91_booking_reminder
+    const templates = await this.getTemplates();
+    let reminderTemplate = templates.find(t => 
+      t.templateId === config.appointmentReminderTemplateId && t.status === "APPROVED"
+    );
     
-    // Fallback to category search
+    // If no mapped template, use p91_booking_reminder directly
     if (!reminderTemplate) {
-      const templates = await this.getTemplates();
       reminderTemplate = templates.find(t => 
-        t.category === "appointment_reminder" && t.status === "APPROVED"
+        t.templateName === "p91_booking_reminder" && t.status === "APPROVED"
       );
     }
 
     if (!reminderTemplate) {
-      console.log("No approved appointment reminder template found");
+      console.log("No approved p91_booking_reminder template found");
       return false;
     }
 
+    console.log(`Using reminder template: ${reminderTemplate.templateName}`);
+
     const message: WhatsAppMessage = {
+      messaging_product: "whatsapp",
       to: customerPhone.replace(/^\+/, ""),
       type: "template",
       template: {
@@ -291,8 +290,7 @@ export class WhatsAppService {
             parameters: [
               { type: "text", text: customerName },
               { type: "text", text: serviceName },
-              { type: "text", text: appointmentDate },
-              { type: "text", text: appointmentTime },
+              { type: "text", text: `${appointmentDate} at ${appointmentTime}` }
             ],
           },
         ],

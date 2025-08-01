@@ -56,6 +56,12 @@ export default function AdminDashboard() {
     enabled: isAuthenticated,
   });
 
+  const { data: schedulerStatus, isLoading: schedulerLoading } = useQuery({
+    queryKey: ["/api/admin/scheduler/status"],
+    enabled: isAuthenticated,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
   const logoutMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("POST", "/api/admin/logout");
@@ -155,6 +161,26 @@ export default function AdminDashboard() {
       toast({
         title: "Update Failed",
         description: error.message || "Failed to update setting",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const testRemindersMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/admin/scheduler/test-reminders");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Reminder Test Complete",
+        description: data.message,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Reminder Test Failed",
+        description: error.message || "Failed to run reminder test",
         variant: "destructive",
       });
     },
@@ -305,6 +331,15 @@ export default function AdminDashboard() {
               data-testid="tab-settings"
             >
               Settings
+            </Button>
+            <Button
+              variant={activeTab === "scheduler" ? "default" : "ghost"}
+              onClick={() => setActiveTab("scheduler")}
+              className={activeTab === "scheduler" ? "bg-neon-green text-deep-black" : "text-gray-400 hover:text-white"}
+              data-testid="tab-scheduler"
+            >
+              <Clock className="mr-2 h-4 w-4" />
+              Scheduler
             </Button>
           </div>
         </div>
@@ -676,6 +711,121 @@ export default function AdminDashboard() {
                         No custom settings configured. Settings will appear here as you configure them.
                       </div>
                     )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {activeTab === "scheduler" && (
+          <div className="space-y-6">
+            <Card className="glass-effect border-medium-gray">
+              <CardHeader>
+                <CardTitle className="text-xl text-neon-green flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Reminder Scheduler
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {schedulerLoading ? (
+                  <div className="text-center py-8">Loading scheduler status...</div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Scheduler Status */}
+                    <div className="bg-deep-black/50 border border-gray-700 rounded-lg p-6">
+                      <h3 className="text-lg font-semibold text-white mb-4">📅 Automatic Reminder Status</h3>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-gray-300">Scheduler Status</Label>
+                          <div className="mt-1">
+                            <Badge className={schedulerStatus?.reminderJobActive ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"}>
+                              {schedulerStatus?.reminderJobActive ? "🟢 Active" : "🔴 Inactive"}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-gray-300">Next Reminder Time</Label>
+                          <div className="mt-1 text-neon-green font-mono">
+                            {schedulerStatus?.nextReminderTime || "Not scheduled"}
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-gray-300">Timezone</Label>
+                          <div className="mt-1 text-gray-400">
+                            {schedulerStatus?.timezone || "Asia/Kolkata (IST)"}
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-gray-300">Reminder Schedule</Label>
+                          <div className="mt-1 text-gray-400">
+                            Daily at 8:00 PM IST for next day appointments
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Test Reminders */}
+                    <div className="bg-deep-black/50 border border-gray-700 rounded-lg p-6">
+                      <h3 className="text-lg font-semibold text-white mb-4">🧪 Test Reminder System</h3>
+                      <p className="text-gray-400 mb-4">
+                        Test the reminder system manually. This will check for appointments tomorrow and send WhatsApp reminders to customers.
+                      </p>
+                      <Button
+                        onClick={() => testRemindersMutation.mutate()}
+                        disabled={testRemindersMutation.isPending}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                        data-testid="button-test-reminders"
+                      >
+                        <Play className="mr-2 h-4 w-4" />
+                        {testRemindersMutation.isPending ? "Testing..." : "Test Reminders Now"}
+                      </Button>
+                    </div>
+
+                    {/* How It Works */}
+                    <div className="bg-deep-black/50 border border-gray-700 rounded-lg p-6">
+                      <h3 className="text-lg font-semibold text-white mb-4">ℹ️ How Automatic Reminders Work</h3>
+                      <div className="space-y-3 text-gray-300">
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 bg-neon-green rounded-full mt-2 flex-shrink-0"></div>
+                          <div>
+                            <strong>Daily Schedule:</strong> System runs every day at 8:00 PM IST
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 bg-neon-green rounded-full mt-2 flex-shrink-0"></div>
+                          <div>
+                            <strong>Target Customers:</strong> Finds customers with confirmed appointments tomorrow
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 bg-neon-green rounded-full mt-2 flex-shrink-0"></div>
+                          <div>
+                            <strong>WhatsApp Reminder:</strong> Sends approved p91_booking_reminder template message
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 bg-neon-green rounded-full mt-2 flex-shrink-0"></div>
+                          <div>
+                            <strong>Template Content:</strong> Customer name, service details, appointment time
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 bg-neon-green rounded-full mt-2 flex-shrink-0"></div>
+                          <div>
+                            <strong>Rate Limiting:</strong> 1-second delay between messages to avoid spam
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Recent Activity */}
+                    <div className="bg-deep-black/50 border border-gray-700 rounded-lg p-6">
+                      <h3 className="text-lg font-semibold text-white mb-4">📊 Today's Reminders Summary</h3>
+                      <p className="text-gray-400">
+                        Reminder activity logs will appear here after the scheduler runs. Check the server console for detailed logs.
+                      </p>
+                    </div>
                   </div>
                 )}
               </CardContent>

@@ -7,6 +7,7 @@ import { storage } from "./storage";
 import { authenticateAdmin, hashPassword, comparePassword } from "./middleware/auth";
 import { createPaymentOrder, verifyPaymentSignature } from "./services/payment";
 import { whatsappService } from "./services/whatsapp";
+import { schedulerService } from "./services/scheduler";
 import { sendBookingConfirmationEmail } from "./services/email";
 import { z } from "zod";
 import {
@@ -694,6 +695,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: "Error sending booking confirmation",
+        error: error.message 
+      });
+    }
+  });
+
+  // Scheduler management endpoints (Admin only)
+  app.get("/api/admin/scheduler/status", authenticateAdmin, async (req, res) => {
+    try {
+      const status = schedulerService.getSchedulerStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("Scheduler status error:", error);
+      res.status(500).json({ message: "Failed to get scheduler status" });
+    }
+  });
+
+  app.post("/api/admin/scheduler/test-reminders", authenticateAdmin, async (req, res) => {
+    try {
+      console.log("Manual reminder test triggered by admin");
+      await schedulerService.triggerReminderCheck();
+      res.json({ 
+        success: true, 
+        message: "Reminder check completed successfully" 
+      });
+    } catch (error) {
+      console.error("Manual reminder test error:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to run reminder check",
         error: error.message 
       });
     }
