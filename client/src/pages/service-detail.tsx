@@ -125,7 +125,7 @@ export default function ServiceDetail() {
             )}
 
             {/* Before & After Results - Headlight Restoration */}
-            {(service.slug === 'headlight-restoration-both' || service.title?.toLowerCase().includes('headlight')) && (
+            {service.slug === 'headlight-restoration-both' && (
               <div>
                 <h2 className="text-2xl font-semibold text-neon-green mb-6">Before & After Results</h2>
                 <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-800">
@@ -184,7 +184,7 @@ export default function ServiceDetail() {
             )}
 
             {/* Before & After Results - Glass Coating */}
-            {(service.slug === 'windshield-glass-coating' || service.title?.toLowerCase().includes('glass') || service.title?.toLowerCase().includes('coating')) && (
+            {service.slug === 'windshield-glass-coating-new' && (
               <div>
                 <h2 className="text-2xl font-semibold text-neon-green mb-6">Glass Coating Results</h2>
                 <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-800">
