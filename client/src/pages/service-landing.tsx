@@ -452,7 +452,7 @@ export default function ServiceLanding() {
                   <div className="max-w-4xl mx-auto">
                     <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
                       <img
-                        className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
+                        className="w-full object-contain transition-transform duration-700 group-hover:scale-105"
                         src={interiorDetailingComparison}
                         alt="Interior detailing before and after comparison - dirty vs clean car interior"
                         data-testid="image-interior-comparison"
