@@ -3,6 +3,7 @@ import { whatsappConfig, whatsappTemplates, type WhatsappConfig, type WhatsappTe
 import { eq } from "drizzle-orm";
 
 interface WhatsAppMessage {
+  messaging_product: "whatsapp";
   to: string;
   type: "template";
   template: {
@@ -203,20 +204,36 @@ export class WhatsAppService {
       );
     }
     
-    // Fallback to category search
+    // Fallback to category search or use any available utility template
     if (!bookingTemplate) {
       const templates = await this.getTemplates();
       bookingTemplate = templates.find(t => 
         t.category === "booking_confirmation" && t.status === "APPROVED"
       );
+      
+      // If no booking confirmation template, try booking reminder
+      if (!bookingTemplate) {
+        bookingTemplate = templates.find(t => 
+          t.templateName === "p91_booking_reminder" && t.status === "APPROVED"
+        );
+      }
+      
+      // Last fallback - use hello_world for testing
+      if (!bookingTemplate) {
+        bookingTemplate = templates.find(t => 
+          t.templateName === "hello_world" && t.status === "APPROVED"
+        );
+        console.log("Using hello_world template as fallback for booking confirmation");
+      }
     }
 
     if (!bookingTemplate) {
-      console.log("No approved booking confirmation template found");
+      console.log("No approved templates found at all");
       return false;
     }
 
     const message: WhatsAppMessage = {
+      messaging_product: "whatsapp",
       to: customerPhone.replace(/^\+/, ""), // Remove + prefix
       type: "template",
       template: {

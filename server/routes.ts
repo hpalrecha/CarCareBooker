@@ -620,6 +620,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test WhatsApp endpoint
+  app.post("/api/test-whatsapp", async (req, res) => {
+    try {
+      const { to } = req.body;
+      
+      console.log("Sending test WhatsApp message to:", to);
+      
+      // Send a simple hello_world template message first to test connectivity
+      const config = await whatsappService.getConfig();
+      if (!config) {
+        return res.status(500).json({ success: false, message: "WhatsApp not configured" });
+      }
+
+      const simpleMessage = {
+        messaging_product: "whatsapp",
+        to: to.replace(/^\+/, ""),
+        type: "template",
+        template: {
+          name: "hello_world",
+          language: {
+            code: "en_US"
+          }
+        }
+      };
+
+      console.log("Sending message:", JSON.stringify(simpleMessage, null, 2));
+
+      const response = await fetch(
+        `https://graph.facebook.com/v18.0/${config.phoneNumberId}/messages`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${config.accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(simpleMessage),
+        }
+      );
+
+      const result = await response.json();
+      console.log("WhatsApp API response:", result);
+
+      if (response.ok) {
+        console.log("Test WhatsApp message sent successfully to:", to);
+        res.json({ 
+          success: true, 
+          message: `WhatsApp test message sent to ${to}`,
+          whatsappResponse: result
+        });
+      } else {
+        console.log("Failed to send test WhatsApp message:", result);
+        res.status(500).json({ 
+          success: false, 
+          message: "Failed to send WhatsApp message",
+          error: result
+        });
+      }
+    } catch (error) {
+      console.error("Test WhatsApp error:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Error sending test WhatsApp message",
+        error: error.message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
