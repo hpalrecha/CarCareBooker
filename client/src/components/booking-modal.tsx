@@ -119,7 +119,15 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
         console.log("Payment order data:", paymentOrder);
         console.log("Using Razorpay key:", paymentOrder.key);
         
-        // Simplified options to avoid CORS conflicts
+        // Force focus management before opening Razorpay
+        const activeElement = document.activeElement as HTMLElement;
+        if (activeElement) {
+          activeElement.blur();
+        }
+        
+        // Add small delay to ensure DOM is ready
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
         const options = {
           key: import.meta.env.VITE_RAZORPAY_KEY_ID || paymentOrder.key,
           amount: paymentOrder.amount,
@@ -198,10 +206,13 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
             escape: true,
             handleback: true,
             confirm_close: false,
-            animation: false
+            animation: true,
+            ondismiss: function() {
+              console.log("Payment modal dismissed");
+            }
           },
           remember_customer: false,
-          timeout: 600
+          timeout: 900
         };
 
         const payment = new razorpay(options);
@@ -227,6 +238,35 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
         
         console.log("Opening Razorpay payment gateway...");
         payment.open();
+        
+        // Fix the clicking issue by ensuring proper iframe interaction
+        setTimeout(() => {
+          // Find the Razorpay iframe and ensure it's interactive
+          const razorpayIframe = document.querySelector('iframe[src*="razorpay"]') as HTMLIFrameElement;
+          if (razorpayIframe) {
+            console.log("Found Razorpay iframe, enabling interactions");
+            
+            // Force focus and enable interactions
+            razorpayIframe.focus();
+            razorpayIframe.style.pointerEvents = 'auto';
+            
+            // Simulate a user interaction to "wake up" the iframe
+            const clickEvent = new MouseEvent('click', {
+              view: window,
+              bubbles: true,
+              cancelable: true,
+              clientX: razorpayIframe.offsetLeft + 50,
+              clientY: razorpayIframe.offsetTop + 50
+            });
+            razorpayIframe.dispatchEvent(clickEvent);
+            
+            // Also try focusing on parent container
+            const parentContainer = razorpayIframe.parentElement;
+            if (parentContainer) {
+              parentContainer.focus();
+            }
+          }
+        }, 800); // Increased delay to ensure iframe is fully loaded
       } catch (error) {
         toast({
           title: "Payment Error",
