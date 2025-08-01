@@ -99,6 +99,158 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Before & After Results Section */}
+      <section className="py-20 bg-gradient-to-b from-black to-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-green-600 text-white text-lg px-4 py-2">
+              <Award className="w-4 h-4 mr-2" />
+              PROVEN RESULTS
+            </Badge>
+            
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              <span className="text-white">See The </span>
+              <span className="bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
+                Amazing Transformation
+              </span>
+            </h2>
+            
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              Real results from our professional car detailing services - your car deserves this level of care
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12 mb-16">
+            {/* Headlight Restoration Results */}
+            <div className="bg-gray-900/50 rounded-2xl p-8 border border-gray-800">
+              <h3 className="text-2xl font-bold text-white mb-6 text-center">
+                Headlight Restoration - Before & After
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="relative">
+                  <img 
+                    src="/attached_assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754028199655.webp" 
+                    alt="Foggy headlight before restoration" 
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                  <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                    BEFORE
+                  </div>
+                </div>
+                <div className="relative">
+                  <img 
+                    src="/attached_assets/GVXjDlbWcAAoQD1_1754028199653.jpg" 
+                    alt="Crystal clear headlight after restoration" 
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                  <div className="absolute top-4 left-4 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                    AFTER
+                  </div>
+                </div>
+              </div>
+
+              {/* Video Section */}
+              <div className="mb-6">
+                <h4 className="text-lg font-semibold text-white mb-4 text-center">Watch The Complete Process</h4>
+                <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-800">
+                  <iframe
+                    src="https://www.youtube.com/embed/XXb4J6cBze0"
+                    title="Headlight Restoration Process - P91 Car Care"
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-green-400">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Restores 90% original clarity</span>
+                </div>
+                <div className="flex items-center gap-3 text-green-400">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Improves night driving safety</span>
+                </div>
+                <div className="flex items-center gap-3 text-green-400">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Long-lasting UV protection</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Glass Coating Results */}
+            <div className="bg-gray-900/50 rounded-2xl p-8 border border-gray-800">
+              <h3 className="text-2xl font-bold text-white mb-6 text-center">
+                Windshield Glass Coating Results
+              </h3>
+              
+              <div className="mb-8">
+                <div className="relative">
+                  <img 
+                    src="/attached_assets/Before-and-After-Ceramic-Coating-on-Glass (1)_1754028454560.jpg" 
+                    alt="Water beading on ceramic coated windshield" 
+                    className="w-full h-64 object-cover rounded-lg"
+                  />
+                  <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                    COATED GLASS
+                  </div>
+                </div>
+              </div>
+
+              {/* Video Section */}
+              <div className="mb-6">
+                <h4 className="text-lg font-semibold text-white mb-4 text-center">See The Water Repelling Effect</h4>
+                <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-800">
+                  <iframe
+                    src="https://www.youtube.com/embed/Oak9CKJMz6E"
+                    title="Glass Coating Water Repelling Demo - P91 Car Care"
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-blue-400">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Water slides off instantly</span>
+                </div>
+                <div className="flex items-center gap-3 text-blue-400">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Crystal clear visibility in rain</span>
+                </div>
+                <div className="flex items-center gap-3 text-blue-400">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Lasts up to 12 months</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Call to Action */}
+          <div className="text-center bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl p-8">
+            <h3 className="text-3xl font-bold text-white mb-4">
+              Ready To Transform Your Car?
+            </h3>
+            <p className="text-lg text-white/90 mb-6">
+              Get the same professional results for your vehicle - book your service today!
+            </p>
+            <Button 
+              size="lg"
+              className="bg-white hover:bg-gray-100 text-black font-bold text-xl px-12 py-4"
+              onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
+              data-testid="button-book-after-results"
+            >
+              Book My Service Now
+              <ArrowRight className="ml-2 w-6 h-6" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* Urgency Banner */}
       <section className="py-6 bg-gradient-to-r from-red-600 to-red-700">
         <div className="max-w-7xl mx-auto px-4 text-center">
