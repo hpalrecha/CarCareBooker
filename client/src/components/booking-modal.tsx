@@ -192,13 +192,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
               form.reset();
             }
           },
-          modal: {
-            ondismiss: () => {
-              console.log("Payment modal dismissed by user");
-            },
-            escape: true,
-            backdrop_close: false
-          },
+
           prefill: {
             name: form.getValues("customerName"),
             email: form.getValues("customerEmail"),
