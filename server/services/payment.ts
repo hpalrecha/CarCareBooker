@@ -1,4 +1,5 @@
 import Razorpay from "razorpay";
+import crypto from "crypto";
 
 let razorpay: Razorpay | null = null;
 
@@ -32,7 +33,7 @@ export async function createPaymentOrder(amount: number, receipt: string): Promi
 
   try {
     const order = await razorpay.orders.create({
-      amount: Math.round(amount * 100), // Convert to paise
+      amount: Math.round(Number(amount) * 100), // Convert to paise
       currency: "INR",
       receipt,
       payment_capture: true, // Auto-capture payments
@@ -56,7 +57,6 @@ export async function verifyPaymentSignature(
   signature: string
 ): Promise<boolean> {
   try {
-    const crypto = require("crypto");
     const body = orderId + "|" + paymentId;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
     
