@@ -18,7 +18,7 @@ export default function ServiceDetail() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   const { data: service, isLoading, error } = useQuery({
-    queryKey: ["/api/services/slug", slug],
+    queryKey: ["/api/services", slug],
     enabled: !!slug,
   });
 
@@ -67,8 +67,11 @@ export default function ServiceDetail() {
   // Type guard to ensure service is defined
   if (!service) return null;
 
-  const durationInHours = Math.floor(service.duration / 60);
-  const durationMinutes = service.duration % 60;
+  // Cast service to any to avoid TypeScript issues
+  const serviceData = service as any;
+
+  const durationInHours = Math.floor(serviceData.duration / 60);
+  const durationMinutes = serviceData.duration % 60;
   const durationText = durationInHours > 0 
     ? `${durationInHours}${durationMinutes > 0 ? `.${Math.round((durationMinutes / 60) * 10)}` : ''} hours`
     : `${durationMinutes} minutes`;
@@ -91,7 +94,7 @@ export default function ServiceDetail() {
         {/* Service Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold gradient-text mb-4" data-testid="text-service-title">
-            {service.title}
+            {serviceData.title}
           </h1>
           <div className="flex items-center space-x-6 text-gray-400">
             <div className="flex items-center space-x-2">
@@ -99,13 +102,13 @@ export default function ServiceDetail() {
               <span data-testid="text-service-duration">{durationText}</span>
             </div>
             <div className="flex items-center space-x-2">
-              {service.originalPrice && (
+              {serviceData.originalPrice && (
                 <span className="line-through text-gray-500" data-testid="text-original-price">
-                  ₹{service.originalPrice}
+                  ₹{serviceData.originalPrice}
                 </span>
               )}
               <span className="text-neon-green font-bold text-xl" data-testid="text-current-price">
-                ₹{service.price}
+                ₹{serviceData.price}
               </span>
             </div>
           </div>
@@ -114,8 +117,8 @@ export default function ServiceDetail() {
         {/* Service Image */}
         <div className="mb-8">
           <img 
-            src={service.images?.[0] || "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=600"} 
-            alt={service.title}
+            src={serviceData.images?.[0] || "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=600"} 
+            alt={serviceData.title}
             className="w-full h-64 lg:h-96 object-cover rounded-xl" 
             data-testid="img-service-hero"
           />
@@ -125,19 +128,17 @@ export default function ServiceDetail() {
           {/* Service Details */}
           <div className="lg:col-span-2 space-y-8">
             {/* Description */}
-            {service.description && (
+            {serviceData.description && (
               <div>
                 <h2 className="text-2xl font-semibold text-neon-green mb-4">Service Overview</h2>
                 <p className="text-gray-300 leading-relaxed" data-testid="text-service-description">
-                  {service.description}
+                  {serviceData.description}
                 </p>
               </div>
             )}
 
-
-
             {/* Before & After Results - Headlight Restoration */}
-            {service?.slug === 'headlight-restoration-both' && (
+            {serviceData.slug === 'headlight-restoration-both' && (
               <div>
                 <h2 className="text-2xl font-semibold text-neon-green mb-6">Before & After Results</h2>
                 <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-800">
@@ -196,7 +197,7 @@ export default function ServiceDetail() {
             )}
 
             {/* Before & After Results - Glass Coating */}
-            {service?.slug === 'windshield-glass-coating-new' && (
+            {serviceData.slug === 'windshield-glass-coating-new' && (
               <div>
                 <h2 className="text-2xl font-semibold text-neon-green mb-6">Glass Coating Results</h2>
                 <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-800">
@@ -245,22 +246,22 @@ export default function ServiceDetail() {
             )}
 
             {/* Why Choose This Service */}
-            {service.whyChoose && (
+            {serviceData.whyChoose && (
               <div>
                 <h2 className="text-2xl font-semibold text-neon-green mb-4">Why Choose This Service?</h2>
                 <p className="text-gray-300 leading-relaxed" data-testid="text-why-choose">
-                  {service.whyChoose}
+                  {serviceData.whyChoose}
                 </p>
               </div>
             )}
 
             {/* What's Included */}
-            {service.whatIncluded && service.whatIncluded.length > 0 && (
+            {serviceData.whatIncluded && serviceData.whatIncluded.length > 0 && (
               <div>
                 <h2 className="text-2xl font-semibold text-neon-green mb-4">What You Get</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   <ul className="space-y-3 text-gray-300">
-                    {service.whatIncluded.slice(0, Math.ceil(service.whatIncluded.length / 2)).map((item: string, index: number) => (
+                    {serviceData.whatIncluded.slice(0, Math.ceil(serviceData.whatIncluded.length / 2)).map((item: string, index: number) => (
                       <li key={index} className="flex items-center" data-testid={`text-included-${index}`}>
                         <Check className="w-5 h-5 text-neon-green mr-3 flex-shrink-0" />
                         {item}
@@ -268,8 +269,8 @@ export default function ServiceDetail() {
                     ))}
                   </ul>
                   <ul className="space-y-3 text-gray-300">
-                    {service.whatIncluded.slice(Math.ceil(service.whatIncluded.length / 2)).map((item: string, index: number) => (
-                      <li key={index} className="flex items-center" data-testid={`text-included-${index + Math.ceil(service.whatIncluded.length / 2)}`}>
+                    {serviceData.whatIncluded.slice(Math.ceil(serviceData.whatIncluded.length / 2)).map((item: string, index: number) => (
+                      <li key={index} className="flex items-center" data-testid={`text-included-${index + Math.ceil(serviceData.whatIncluded.length / 2)}`}>
                         <Check className="w-5 h-5 text-neon-green mr-3 flex-shrink-0" />
                         {item}
                       </li>
@@ -293,11 +294,11 @@ export default function ServiceDetail() {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Price:</span>
                   <div className="text-right">
-                    {service.originalPrice && (
-                      <div className="text-gray-500 line-through text-sm">₹{service.originalPrice}</div>
+                    {serviceData.originalPrice && (
+                      <div className="text-gray-500 line-through text-sm">₹{serviceData.originalPrice}</div>
                     )}
                     <div className="text-neon-green font-bold text-xl" data-testid="text-sidebar-price">
-                      ₹{service.price}
+                      ₹{serviceData.price}
                     </div>
                   </div>
                 </div>
