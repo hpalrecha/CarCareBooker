@@ -23,7 +23,7 @@ export default function ServiceDetail() {
   });
 
   // Early return for loading state to prevent type errors
-  if (isLoading || !service) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-deep-black text-white">
         <Navbar />
@@ -63,6 +63,9 @@ export default function ServiceDetail() {
       </div>
     );
   }
+
+  // Type guard to ensure service is defined
+  if (!service) return null;
 
   const durationInHours = Math.floor(service.duration / 60);
   const durationMinutes = service.duration % 60;
@@ -134,8 +137,17 @@ export default function ServiceDetail() {
               </div>
             )}
 
+            {/* DEBUG: Show service slug */}
+            <div className="bg-yellow-900 text-yellow-100 p-4 rounded mb-4">
+              DEBUG: Service slug = "{service?.slug}"
+              <br />
+              Is headlight: {service?.slug === 'headlight-restoration-both' ? 'YES' : 'NO'}
+              <br />
+              Is glass coating: {service?.slug === 'windshield-glass-coating-new' ? 'YES' : 'NO'}
+            </div>
+
             {/* Before & After Results - Headlight Restoration */}
-            {service.slug === 'headlight-restoration-both' && (
+            {service?.slug === 'headlight-restoration-both' && (
               <div>
                 <h2 className="text-2xl font-semibold text-neon-green mb-6">Before & After Results</h2>
                 <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-800">
@@ -194,7 +206,7 @@ export default function ServiceDetail() {
             )}
 
             {/* Before & After Results - Glass Coating */}
-            {service.slug === 'windshield-glass-coating-new' && (
+            {service?.slug === 'windshield-glass-coating-new' && (
               <div>
                 <h2 className="text-2xl font-semibold text-neon-green mb-6">Glass Coating Results</h2>
                 <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-800">
