@@ -632,13 +632,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ success: false, message: "WhatsApp not configured" });
       }
 
-      // Use the mapped booking confirmation template directly
+      // Use the booking reminder template
       const bookingMessage = {
         messaging_product: "whatsapp",
         to: to.replace(/^\+/, ""),
         type: "template",
         template: {
-          name: "p91_booking_confirmation",
+          name: "p91_booking_reminder",
           language: {
             code: "en"
           },
@@ -648,9 +648,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               parameters: [
                 { type: "text", text: customerName || "Jagpreet" },
                 { type: "text", text: serviceName || "Headlight Restoration - Both Lights" },
-                { type: "text", text: `${appointmentDate || "August 2, 2025"} at ${appointmentTime || "11:00 AM"}` },
-                { type: "text", text: bookingAmount || "299" },
-                { type: "text", text: `BOOK-${Date.now()}` }
+                { type: "text", text: `${appointmentDate || "August 2, 2025"} at ${appointmentTime || "11:00 AM"}` }
               ]
             }
           ]
