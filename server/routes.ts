@@ -9,6 +9,7 @@ import { createPaymentOrder, verifyPaymentSignature } from "./services/payment";
 import { whatsappService } from "./services/whatsapp";
 import { schedulerService } from "./services/scheduler";
 import { sendBookingConfirmationEmail } from "./services/email";
+import { sendBookingWebhook } from "./services/webhook";
 import { z } from "zod";
 import {
   adminLoginSchema,
@@ -292,6 +293,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Skip marking time slot as unavailable - using static time slots
         
+        // Send webhook for booking creation (development mode)
+        try {
+          await sendBookingWebhook(booking, service, 'booking_created');
+        } catch (webhookError) {
+          console.error("Failed to send booking webhook (development):", webhookError);
+          // Don't fail the booking if webhook fails
+        }
+        
         return res.json({
           booking,
           paymentOrder: {
@@ -325,6 +334,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Skip marking time slot as unavailable - using static time slots
+      
+      // Send webhook for booking creation (production mode)
+      try {
+        await sendBookingWebhook(booking, service, 'booking_created');
+      } catch (webhookError) {
+        console.error("Failed to send booking webhook (production):", webhookError);
+        // Don't fail the booking if webhook fails
+      }
       
       res.json({
         booking,
@@ -434,6 +451,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatsappSent,
           emailSent,
         });
+      }
+
+      // Send webhook for booking payment confirmation
+      try {
+        await sendBookingWebhook(updatedBooking, service || null, 'booking_payment_confirmed');
+      } catch (webhookError) {
+        console.error("Failed to send payment confirmation webhook:", webhookError);
+        // Don't fail the payment confirmation if webhook fails
       }
 
       console.log("🎉 Payment confirmation complete!");
