@@ -168,26 +168,53 @@ export default function ServiceLanding() {
           <div className="mb-10">
             <div className="bg-gradient-to-r from-green-900/40 to-blue-900/40 rounded-2xl p-8 border border-green-500/30 max-w-2xl mx-auto">
               <div className="text-center">
-                <div className="mb-4">
-                  <span className="text-sm text-gray-400 uppercase tracking-wider">Secure Your Slot For Just</span>
-                </div>
-                <div className="flex items-center justify-center gap-6 mb-6">
-                  <span className="text-6xl font-bold text-green-400">₹299</span>
-                  <div className="text-left">
-                    <div className="text-sm text-gray-400">Booking Fee</div>
-                    <div className="text-sm text-green-400 font-semibold">+ FREE ₹500 Voucher</div>
-                  </div>
-                </div>
-                <div className="text-base text-gray-300 mb-4">
-                  Full Service Value: 
-                  {service.originalPrice && (
-                    <span className="text-gray-500 line-through ml-2 text-lg">₹{service.originalPrice}</span>
-                  )}
-                  <span className="text-green-400 font-bold ml-2 text-xl">₹{service.price}</span>
-                </div>
-                <div className="text-sm text-yellow-400 bg-yellow-500/20 rounded-lg px-4 py-2 inline-block">
-                  🎁 Get FREE Car Wash Voucher Worth ₹500
-                </div>
+                {service.title === 'Annual Maintenance Package' ? (
+                  <>
+                    <div className="mb-4">
+                      <span className="text-sm text-gray-400 uppercase tracking-wider">Complete Package Price</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-6 mb-6">
+                      <span className="text-6xl font-bold text-green-400">₹8999</span>
+                      <div className="text-left">
+                        <div className="text-sm text-gray-400">Full Payment</div>
+                        <div className="text-sm text-green-400 font-semibold">All Services Included</div>
+                      </div>
+                    </div>
+                    <div className="text-base text-gray-300 mb-4">
+                      Package Value: 
+                      {service.originalPrice && (
+                        <span className="text-gray-500 line-through ml-2 text-lg">₹{service.originalPrice}</span>
+                      )}
+                      <span className="text-green-400 font-bold ml-2 text-xl">₹{service.price}</span>
+                    </div>
+                    <div className="text-sm text-yellow-400 bg-yellow-500/20 rounded-lg px-4 py-2 inline-block">
+                      💎 Save ₹9,001 with Complete Package
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="mb-4">
+                      <span className="text-sm text-gray-400 uppercase tracking-wider">Secure Your Slot For Just</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-6 mb-6">
+                      <span className="text-6xl font-bold text-green-400">₹299</span>
+                      <div className="text-left">
+                        <div className="text-sm text-gray-400">Booking Fee</div>
+                        <div className="text-sm text-green-400 font-semibold">+ FREE ₹500 Voucher</div>
+                      </div>
+                    </div>
+                    <div className="text-base text-gray-300 mb-4">
+                      Full Service Value: 
+                      {service.originalPrice && (
+                        <span className="text-gray-500 line-through ml-2 text-lg">₹{service.originalPrice}</span>
+                      )}
+                      <span className="text-green-400 font-bold ml-2 text-xl">₹{service.price}</span>
+                    </div>
+                    <div className="text-sm text-yellow-400 bg-yellow-500/20 rounded-lg px-4 py-2 inline-block">
+                      🎁 Get FREE Car Wash Voucher Worth ₹500
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -200,7 +227,10 @@ export default function ServiceLanding() {
               className="bg-green-400 hover:bg-green-500 text-black font-bold px-10 py-4 text-lg rounded-full transform hover:scale-105 transition-all duration-200"
               data-testid="button-book-now-hero"
             >
-              Pay ₹299 & Get FREE Voucher
+              {service.title === 'Annual Maintenance Package' 
+                ? 'Pay ₹8999 Complete Package' 
+                : 'Pay ₹299 & Get FREE Voucher'
+              }
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             
