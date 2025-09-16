@@ -934,9 +934,7 @@ export default function ServiceLanding() {
                     Limited Slots
                   </span>
                 </div>
-                <div className="text-white text-sm font-semibold">
-                  Book now for ₹299
-                </div>
+                <div className="text-white text-sm font-semibold">Book now for ₹8999</div>
               </div>
               <Button
                 onClick={(e) => {
