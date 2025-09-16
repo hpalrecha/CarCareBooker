@@ -258,13 +258,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get booking fee amount from settings or use default
       let bookingFeeAmount = bookingData.amount || 299; // Default ₹299 booking fee
-      try {
-        const bookingAmountSetting = await storage.getSetting("booking_amount");
-        if (bookingAmountSetting && bookingAmountSetting.value) {
-          bookingFeeAmount = parseFloat(bookingAmountSetting.value);
+      
+      // Check if this is the Annual Maintenance Package - charge full price
+      if (service.slug === 'annual-maintenance-package') {
+        bookingFeeAmount = parseFloat(service.price);
+        console.log("Annual Maintenance Package - charging full price:", bookingFeeAmount);
+      } else {
+        try {
+          const bookingAmountSetting = await storage.getSetting("booking_amount");
+          if (bookingAmountSetting && bookingAmountSetting.value) {
+            bookingFeeAmount = parseFloat(bookingAmountSetting.value);
+          }
+        } catch (error) {
+          console.log("Using default booking amount due to setting fetch error:", error);
         }
-      } catch (error) {
-        console.log("Using default booking amount due to setting fetch error:", error);
       }
       
       // Check if payment service is configured

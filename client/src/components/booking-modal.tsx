@@ -59,12 +59,17 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
 
   useEffect(() => {
     console.log("Booking amount setting changed:", bookingAmountSetting);
-    if (bookingAmountSetting && typeof bookingAmountSetting === 'object' && 'value' in bookingAmountSetting) {
+    // Check if this is the Annual Maintenance Package - charge full price
+    if (service.title === 'Annual Maintenance Package') {
+      const fullPrice = parseFloat(service.price);
+      console.log("Annual Maintenance Package - setting full price:", fullPrice);
+      setBookingAmount(fullPrice);
+    } else if (bookingAmountSetting && typeof bookingAmountSetting === 'object' && 'value' in bookingAmountSetting) {
       const amount = parseFloat(String(bookingAmountSetting.value));
       console.log("Setting booking amount to:", amount);
       setBookingAmount(amount);
     }
-  }, [bookingAmountSetting]);
+  }, [bookingAmountSetting, service.title, service.price]);
 
   const form = useForm({
     resolver: zodResolver(bookingFormSchema),
@@ -536,8 +541,14 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                     disabled={bookingMutation.isPending}
                     data-testid="button-proceed-payment"
                   >
-                    <span className="block sm:hidden">Pay ₹{bookingAmount} + FREE Voucher</span>
-                    <span className="hidden sm:block">{bookingMutation.isPending ? "Processing..." : `Pay ₹${bookingAmount} Booking Fee + Get FREE Voucher`}</span>
+                    {service.title === 'Annual Maintenance Package' ? (
+                      <span>{bookingMutation.isPending ? "Processing..." : `Pay ₹${bookingAmount} Complete Package`}</span>
+                    ) : (
+                      <>
+                        <span className="block sm:hidden">Pay ₹{bookingAmount} + FREE Voucher</span>
+                        <span className="hidden sm:block">{bookingMutation.isPending ? "Processing..." : `Pay ₹${bookingAmount} Booking Fee + Get FREE Voucher`}</span>
+                      </>
+                    )}
                   </Button>
                 </form>
               </Form>
