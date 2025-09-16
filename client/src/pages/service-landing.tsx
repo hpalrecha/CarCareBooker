@@ -630,7 +630,7 @@ export default function ServiceLanding() {
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
               <div className="text-4xl mb-4">💰</div>
-              <h3 className="text-xl font-bold mb-2">Just ₹299</h3>
+              <h3 className="text-xl font-bold mb-2">Just ₹8999</h3>
               <p className="text-gray-300">Secure your preferred time slot with a small booking fee</p>
             </div>
             <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
