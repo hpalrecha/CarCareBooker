@@ -101,7 +101,6 @@ export default function ServiceLanding() {
       {/* SEO Meta Tags */}
       <title>{service.metaTitle || `${service.title} - P91 Car Care`}</title>
       <meta name="description" content={service.metaDescription || service.description} />
-      
       {/* Header with Logo */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-gray-800">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -123,7 +122,6 @@ export default function ServiceLanding() {
           </Button>
         </div>
       </header>
-      
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
         {/* Background Image/Video */}
@@ -265,7 +263,6 @@ export default function ServiceLanding() {
           </div>
         </div>
       </section>
-
       {/* Before & After Section - Moved to 2nd position */}
       {(service.slug === 'headlight-restoration-both' || service.slug === 'windshield-glass-coating-new' || service.slug === 'exterior-detailing-hard-water-new' || service.slug === 'interior-detailing-service' || (service.beforeAfter && service.beforeAfter.length > 0)) && (
         <section className="py-24 px-4 bg-gradient-to-b from-gray-900 to-black">
@@ -626,7 +623,6 @@ export default function ServiceLanding() {
           </div>
         </section>
       )}
-
       {/* Booking Fee Explanation Section */}
       <section className="py-16 px-4 bg-gradient-to-r from-green-900/20 to-blue-900/20">
         <div className="max-w-4xl mx-auto text-center">
@@ -648,10 +644,7 @@ export default function ServiceLanding() {
               <p className="text-gray-300">No hidden charges, pay remainder at service time</p>
             </div>
           </div>
-          <p className="text-lg text-gray-300 mb-4">
-            Pay just ₹299 now to reserve your slot and receive a FREE car wash voucher worth ₹500. 
-            Show your booking confirmation at our store to claim your bonus!
-          </p>
+          <p className="text-lg text-gray-300 mb-4">Pay just ₹8999 now to reserve your slot and receive a FREE car wash voucher worth ₹500. Show your booking confirmation at our store to claim your bonus!</p>
           <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 inline-block">
             <p className="text-yellow-300 text-sm">
               💡 <strong>Smart booking system:</strong> No wasted slots, guaranteed service, plus amazing bonus value!
@@ -659,7 +652,6 @@ export default function ServiceLanding() {
           </div>
         </div>
       </section>
-
       {/* What's Included Section */}
       {service.whatIncluded && service.whatIncluded.length > 0 && (
         <section className="py-20 px-4">
@@ -678,7 +670,6 @@ export default function ServiceLanding() {
           </div>
         </section>
       )}
-
       {/* Why Choose Us Section */}
       {service.whyChoose && (
         <section className="py-20 px-4 bg-gray-900">
@@ -688,7 +679,6 @@ export default function ServiceLanding() {
           </div>
         </section>
       )}
-
       {/* Process Section */}
       {service.process && service.process.length > 0 && (
         <section className="py-20 px-4">
@@ -710,9 +700,6 @@ export default function ServiceLanding() {
           </div>
         </section>
       )}
-
-
-
       {/* Gallery Section - Single Video in 16:9 Format */}
       {service.gallery && service.gallery.length > 0 && (
         <section className="py-24 px-4 bg-gray-900">
@@ -811,7 +798,6 @@ export default function ServiceLanding() {
           </div>
         </section>
       )}
-
       {/* Testimonials Section */}
       {service.testimonials && service.testimonials.length > 0 && (
         <section className="py-20 px-4">
@@ -850,7 +836,6 @@ export default function ServiceLanding() {
           </div>
         </section>
       )}
-
       {/* FAQ Section */}
       {service.faq && service.faq.length > 0 && (
         <section className="py-20 px-4 bg-gray-900">
@@ -871,7 +856,6 @@ export default function ServiceLanding() {
           </div>
         </section>
       )}
-
       {/* Guarantee Section */}
       {service.guaranteeText && (
         <section className="py-20 px-4">
@@ -882,7 +866,6 @@ export default function ServiceLanding() {
           </div>
         </section>
       )}
-
       {/* Final CTA Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-green-600 to-green-800">
         <div className="max-w-4xl mx-auto text-center">
@@ -933,7 +916,6 @@ export default function ServiceLanding() {
           </div>
         </div>
       </section>
-
       {/* Floating FOMO CTA Button */}
       {showFloatingCTA && !bookingModalOpen && (
         <div 
@@ -982,7 +964,6 @@ export default function ServiceLanding() {
           )}
         </div>
       )}
-
       {/* Booking Modal */}
       <BookingModal
         isOpen={bookingModalOpen}
