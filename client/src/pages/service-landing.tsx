@@ -417,6 +417,51 @@ export default function ServiceLanding() {
                 </div>
               )}
 
+              {/* Glass Polishing Before/After */}
+              {service.slug === 'windshield-glass-polishing' && (
+                <div className="group">
+                  <div className="max-w-4xl mx-auto">
+                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
+                      <img
+                        className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
+                        src={glassCoating}
+                        alt="Crystal clear polished windshield"
+                        data-testid="image-glass-polishing"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      <div className="absolute top-6 left-6">
+                        <div className="bg-emerald-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
+                          POLISHED GLASS
+                        </div>
+                      </div>
+                      <div className="absolute bottom-6 center-6">
+                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg mx-auto">
+                          <p className="text-sm opacity-90">Crystal Clear Clarity</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* YouTube Video */}
+                  <div className="mt-12 max-w-4xl mx-auto">
+                    <div className="text-center mb-6">
+                      <h3 className="text-2xl font-bold text-white mb-2">See The Polishing Process</h3>
+                      <p className="text-gray-400">Watch how we restore crystal-clear visibility by removing water spots and scratches</p>
+                    </div>
+                    <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800 shadow-2xl">
+                      <iframe
+                        src="https://www.youtube.com/embed/Oak9CKJMz6E"
+                        title="Glass Polishing Process - P91 Car Care"
+                        className="w-full h-full"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Exterior Detailing Before/After */}
               {service.slug === 'exterior-detailing-hard-water-new' && (
                 <div className="group">
