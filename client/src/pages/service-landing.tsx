@@ -281,7 +281,7 @@ export default function ServiceLanding() {
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-green-400" />
-              {service.duration} Minutes Service
+              {service.slug === 'windshield-glass-coating-new' ? '24 Hours Service' : `${service.duration} Minutes Service`}
             </div>
             <div className="flex items-center gap-2">
               <Star className="w-4 h-4 text-green-400" />
