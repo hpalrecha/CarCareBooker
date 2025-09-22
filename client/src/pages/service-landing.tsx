@@ -703,8 +703,15 @@ export default function ServiceLanding() {
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
               <div className="text-4xl mb-4">💰</div>
-              <h3 className="text-xl font-bold mb-2">Just ₹8999</h3>
-              <p className="text-gray-300">Secure your preferred time slot with a small booking fee</p>
+              <h3 className="text-xl font-bold mb-2">
+                {service.title === 'Annual Maintenance Package' ? 'Just ₹8999' : 'Just ₹299'}
+              </h3>
+              <p className="text-gray-300">
+                {service.title === 'Annual Maintenance Package' 
+                  ? 'Complete package payment - no additional charges' 
+                  : 'Secure your preferred time slot with a small booking fee'
+                }
+              </p>
             </div>
             <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
               <div className="text-4xl mb-4">🎁</div>
@@ -717,7 +724,12 @@ export default function ServiceLanding() {
               <p className="text-gray-300">No hidden charges, pay remainder at service time</p>
             </div>
           </div>
-          <p className="text-lg text-gray-300 mb-4">Pay just ₹8999 now to reserve your slot and receive a FREE car wash voucher worth ₹500. Show your booking confirmation at our store to claim your bonus!</p>
+          <p className="text-lg text-gray-300 mb-4">
+            {service.title === 'Annual Maintenance Package' 
+              ? 'Pay just ₹8999 now for the complete package and receive a FREE car wash voucher worth ₹500. Show your booking confirmation at our store to claim your bonus!'
+              : 'Pay just ₹299 now to reserve your slot and receive a FREE car wash voucher worth ₹500. Show your booking confirmation at our store to claim your bonus!'
+            }
+          </p>
           <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 inline-block">
             <p className="text-yellow-300 text-sm">
               💡 <strong>Smart booking system:</strong> No wasted slots, guaranteed service, plus amazing bonus value!
