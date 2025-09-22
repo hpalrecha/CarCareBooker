@@ -217,6 +217,33 @@ export default function ServiceLanding() {
             </div>
           </div>
 
+          {/* 24-Hour Studio Requirement Warning - Only for Glass Coating */}
+          {service.slug === 'windshield-glass-coating-new' && (
+            <div className="mb-10">
+              <div className="bg-gradient-to-r from-amber-900/40 to-orange-900/40 rounded-2xl p-6 border border-amber-500/50 max-w-3xl mx-auto">
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-4">
+                    <Clock className="w-8 h-8 text-amber-400 mr-3" />
+                    <h3 className="text-2xl font-bold text-amber-400">IMPORTANT NOTICE</h3>
+                  </div>
+                  <div className="bg-amber-500/20 rounded-xl p-4 mb-4">
+                    <p className="text-lg font-semibold text-white mb-2">
+                      🚗 Vehicle Must Stay at Studio for 24 Hours
+                    </p>
+                    <p className="text-amber-100 text-sm leading-relaxed">
+                      The ceramic coating requires a full 24-hour curing period in our controlled environment 
+                      to achieve maximum durability and water repellency. This ensures proper bonding and 
+                      long-lasting protection.
+                    </p>
+                  </div>
+                  <div className="text-amber-300 text-sm font-medium">
+                    ⚠️ Please plan accordingly - Early pickup will compromise coating quality
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
             <Button
