@@ -12,6 +12,7 @@ import BookingModal from "@/components/booking-modal";
 import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029992282.webp";
 import headlightAfter from "@assets/GVXjDlbWcAAoQD1_1754029992281.jpg";
 import glassCoating from "@assets/Before-and-After-Ceramic-Coating-on-Glass (1)_1754028454560.jpg";
+import glassPolishing from "@assets/67437605d9533141c047dea3_1758534676222.avif";
 import exteriorDetailingBefore from "@assets/WhatsApp Image 2025-01-03 at 3.39.31 PM_1754032180088.jpeg";
 import exteriorDetailingAfter from "@assets/20241227_164016_1754031651194.jpg";
 import interiorDetailingComparison from "@assets/ff034468a03ea55ea0924270de1e42bd_1754032817032.jpg";
@@ -424,7 +425,7 @@ export default function ServiceLanding() {
                     <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
                       <img
                         className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
-                        src={glassCoating}
+                        src={glassPolishing}
                         alt="Crystal clear polished windshield"
                         data-testid="image-glass-polishing"
                       />
