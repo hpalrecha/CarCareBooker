@@ -303,6 +303,16 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
   });
 
   const onSubmit = (data: any) => {
+    // Double-check closure dates before submission
+    if (isClosureDate(selectedDate)) {
+      toast({
+        title: "Store Closed",
+        description: "Our store is closed on October 1st and 2nd, 2025. Please select a different date.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Include the selected date and time in the booking data
     const bookingData = {
       ...data,
@@ -313,6 +323,30 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
   };
 
   const today = new Date().toISOString().split('T')[0];
+
+  // Store closure dates (October 1-2, 2025)
+  const closureDates = ['2025-10-01', '2025-10-02'];
+  
+  // Function to check if a date is a closure date
+  const isClosureDate = (dateString: string) => {
+    return closureDates.includes(dateString);
+  };
+
+  // Handle date selection with closure date validation
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+    
+    if (isClosureDate(selectedDate)) {
+      toast({
+        title: "Store Closed",
+        description: "Our store is closed on October 1st and 2nd, 2025. Please select a different date.",
+        variant: "destructive",
+      });
+      return; // Don't update the date if it's a closure date
+    }
+    
+    setSelectedDate(selectedDate);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -463,6 +497,16 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
           {/* Booking Form */}
           <div className="bg-medium-gray rounded-xl p-6">
             
+            {/* Store Closure Notice */}
+            <div className="bg-orange-900/30 border border-orange-500/50 rounded-lg p-3 mb-4">
+              <div className="flex items-center gap-2 text-orange-300">
+                <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                <p className="text-sm">
+                  <strong>Notice:</strong> Our store is closed on October 1st & 2nd, 2025. Please select other dates for booking.
+                </p>
+              </div>
+            </div>
+            
             <div className="border-t border-gray-600 pt-4">
               <h4 className="font-semibold mb-4">Book Your Appointment</h4>
               
@@ -476,7 +520,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                         type="date"
                         min={today}
                         value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
+                        onChange={handleDateChange}
                         className="bg-dark-gray border-gray-600 text-white"
                         data-testid="input-date"
                       />
