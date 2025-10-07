@@ -497,16 +497,6 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
           {/* Booking Form */}
           <div className="bg-medium-gray rounded-xl p-6">
             
-            {/* Store Closure Notice */}
-            <div className="bg-orange-900/30 border border-orange-500/50 rounded-lg p-3 mb-4">
-              <div className="flex items-center gap-2 text-orange-300">
-                <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
-                <p className="text-sm">
-                  <strong>Notice:</strong> Our store is closed on October 1st & 2nd, 2025. Please select other dates for booking.
-                </p>
-              </div>
-            </div>
-            
             <div className="border-t border-gray-600 pt-4">
               <h4 className="font-semibold mb-4">Book Your Appointment</h4>
               
