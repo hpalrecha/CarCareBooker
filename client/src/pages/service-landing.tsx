@@ -608,64 +608,47 @@ export default function ServiceLanding() {
               {/* Original beforeAfter data if exists */}
               {service.beforeAfter && service.beforeAfter.map((comparison, index) => (
                 <div key={index} className="group">
-                  <div className="grid lg:grid-cols-2 gap-8 items-center">
-                    {/* Before Image */}
+                  {/* Single Full-Width Comparison Image */}
+                  <div className="max-w-5xl mx-auto">
                     <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
                       <img
-                        className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
+                        className="w-full object-contain transition-transform duration-700 group-hover:scale-105"
                         src={comparison.before}
-                        alt={`Before ${service.title}`}
-                        data-testid={`image-before-${index}`}
+                        alt={`${service.title} transformation ${index + 1}`}
+                        data-testid={`image-comparison-${index}`}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      
+                      {/* Before label on left side */}
                       <div className="absolute top-6 left-6">
-                        <div className="bg-red-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
+                        <div className="bg-red-600 text-white px-4 py-2 rounded-full text-sm md:text-lg font-bold shadow-lg">
                           BEFORE
                         </div>
                       </div>
-                      <div className="absolute bottom-6 left-6">
-                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
-                          <p className="text-sm opacity-90">Original Condition</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* After Image */}
-                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
-                      <img
-                        className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
-                        src={comparison.after}
-                        alt={`After ${service.title}`}
-                        data-testid={`image-after-${index}`}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      
+                      {/* After label on right side */}
                       <div className="absolute top-6 right-6">
-                        <div className="bg-green-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
+                        <div className="bg-green-600 text-white px-4 py-2 rounded-full text-sm md:text-lg font-bold shadow-lg">
                           AFTER
                         </div>
                       </div>
-                      <div className="absolute bottom-6 right-6">
-                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
-                          <p className="text-sm opacity-90">P91 Transformation</p>
+                    </div>
+
+                    {/* Description */}
+                    {comparison.description && (
+                      <div className="mt-6 text-center">
+                        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 md:p-6">
+                          <p className="text-base md:text-lg text-gray-300 leading-relaxed">
+                            {comparison.description}
+                          </p>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>
-
-                  {/* Description */}
-                  {comparison.description && (
-                    <div className="mt-8 text-center">
-                      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 max-w-4xl mx-auto">
-                        <p className="text-lg text-gray-300 leading-relaxed">
-                          {comparison.description}
-                        </p>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Separator */}
                   {index < service.beforeAfter.length - 1 && (
-                    <div className="flex justify-center mt-16">
+                    <div className="flex justify-center mt-12 mb-12">
                       <div className="w-32 h-1 bg-gradient-to-r from-transparent via-green-400 to-transparent"></div>
                     </div>
                   )}
