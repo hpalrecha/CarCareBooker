@@ -35,8 +35,16 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Serve attached assets statically
-app.use('/attached_assets', express.static(path.resolve(process.cwd(), 'attached_assets')));
+// Serve attached assets statically - use dirname for reliable path resolution in production
+const attachedAssetsPath = path.resolve(import.meta.dirname, '..', 'attached_assets');
+console.log('Serving attached assets from:', attachedAssetsPath);
+app.use('/attached_assets', express.static(attachedAssetsPath, {
+  maxAge: '1d', // Cache images for 1 day
+  setHeaders: (res) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+}));
 
 app.use((req, res, next) => {
   const start = Date.now();
