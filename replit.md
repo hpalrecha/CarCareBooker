@@ -141,6 +141,9 @@ Preferred communication style: Simple, everyday language.
 - Performance monitoring through query optimization
 
 ## Recent Changes
+- **October 7, 2025**: Added store closure dates (Oct 1-2, 2025) - booking system now prevents appointments on these dates with validation and user notifications
+- **October 7, 2025**: Implemented conditional pricing display throughout the app - shows ₹299 for regular services and ₹8,999 for annual package
+- **October 7, 2025**: Created new "1 Year Ceramic Coating" service at ₹5,999 (discounted from ₹12,000) with comprehensive details including 6-step process, before/after gallery, testimonials, and 8 FAQs
 - **February 1, 2025**: Implemented automatic WhatsApp reminder scheduler that sends reminders daily at 8:00 PM IST for next day appointments
 - **February 1, 2025**: Added Scheduler tab to admin dashboard with status monitoring and manual reminder testing
 - **February 1, 2025**: Fixed booking payment confirmation flow to properly trigger WhatsApp notifications using approved templates
