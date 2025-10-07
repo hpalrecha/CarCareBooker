@@ -74,7 +74,7 @@ export const services = pgTable("services", {
   heroVideo: varchar("hero_video"), // YouTube/Vimeo URL or video file URL
   whyChoose: text("why_choose"),
   whatIncluded: jsonb("what_included").$type<string[]>(),
-  process: jsonb("process").$type<{step: number, title: string, description: string}[]>(),
+  process: jsonb("process").$type<{step: number, title: string, description: string, image?: string}[]>(),
   beforeAfter: jsonb("before_after").$type<{before: string, after: string, description?: string}[]>(),
   testimonials: jsonb("testimonials").$type<{name: string, rating: number, comment: string, image?: string}[]>(),
   faq: jsonb("faq").$type<{question: string, answer: string}[]>(),

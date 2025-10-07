@@ -27,7 +27,7 @@ interface Service {
   heroVideo: string;
   whyChoose: string;
   whatIncluded: string[];
-  process: Array<{ step: number; title: string; description: string }>;
+  process: Array<{ step: number; title: string; description: string; image?: string }>;
   beforeAfter: Array<{ before: string; after: string; description?: string }>;
   testimonials: Array<{ name: string; rating: number; comment: string; image?: string }>;
   faq: Array<{ question: string; answer: string }>;
@@ -771,13 +771,29 @@ export default function ServiceLanding() {
             <h2 className="text-4xl font-bold text-center mb-12">Our Process</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {service.process.map((step, index) => (
-                <Card key={index} className="bg-gray-900 border-gray-800 text-center">
-                  <CardContent className="p-8">
-                    <div className="w-16 h-16 bg-green-400 text-black rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-                      {step.step}
+                <Card key={index} className="bg-gray-900 border-gray-800 text-center overflow-hidden">
+                  <CardContent className="p-0">
+                    {step.image && (
+                      <div className="relative h-48 w-full overflow-hidden">
+                        <img 
+                          src={step.image} 
+                          alt={step.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-4 left-4 w-12 h-12 bg-green-400 text-black rounded-full flex items-center justify-center text-xl font-bold shadow-lg">
+                          {step.step}
+                        </div>
+                      </div>
+                    )}
+                    <div className={step.image ? "p-6" : "p-8"}>
+                      {!step.image && (
+                        <div className="w-16 h-16 bg-green-400 text-black rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                          {step.step}
+                        </div>
+                      )}
+                      <h3 className="text-xl font-bold mb-4">{step.title}</h3>
+                      <p className="text-gray-300">{step.description}</p>
                     </div>
-                    <h3 className="text-xl font-bold mb-4">{step.title}</h3>
-                    <p className="text-gray-300">{step.description}</p>
                   </CardContent>
                 </Card>
               ))}
