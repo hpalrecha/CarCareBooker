@@ -12,7 +12,181 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import AdminServiceForm from "@/components/admin-service-form";
-import { Plus, Eye, MessageCircle, Edit, Users, Clock, CheckCircle, DollarSign, Settings, Phone } from "lucide-react";
+import { Plus, Eye, MessageCircle, Edit, Users, Clock, CheckCircle, DollarSign, Settings, Phone, Calendar, Trash2, AlertCircle } from "lucide-react";
+import { format } from "date-fns";
+
+function BlackoutDatesTab() {
+  const { toast } = useToast();
+  const [selectedDate, setSelectedDate] = useState("");
+  const [reason, setReason] = useState("");
+
+  const { data: blackoutDates = [], isLoading } = useQuery({
+    queryKey: ["/api/blackout-dates"],
+  });
+
+  const createBlackoutMutation = useMutation({
+    mutationFn: async (data: { date: string; reason: string }) => {
+      const response = await apiRequest("POST", "/api/blackout-dates", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/blackout-dates"] });
+      setSelectedDate("");
+      setReason("");
+      toast({
+        title: "Blackout Date Added",
+        description: "The date has been blocked successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Add",
+        description: error.message || "Failed to add blackout date",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteBlackoutMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/blackout-dates/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/blackout-dates"] });
+      toast({
+        title: "Blackout Date Removed",
+        description: "The date has been unblocked successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Remove",
+        description: error.message || "Failed to remove blackout date",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddBlackout = () => {
+    if (!selectedDate || !reason.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please select a date and enter a reason.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createBlackoutMutation.mutate({ date: selectedDate, reason: reason.trim() });
+  };
+
+  const handleDeleteBlackout = (id: string) => {
+    if (confirm("Are you sure you want to remove this blackout date?")) {
+      deleteBlackoutMutation.mutate(id);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="glass-effect border-medium-gray">
+        <CardHeader>
+          <CardTitle className="text-xl text-neon-green flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Add Blackout Date
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="blackout-date" className="text-gray-300">Select Date</Label>
+              <Input
+                id="blackout-date"
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="bg-dark-gray border-gray-600 text-white"
+                data-testid="input-blackout-date"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="blackout-reason" className="text-gray-300">Reason (Required)</Label>
+              <Input
+                id="blackout-reason"
+                type="text"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="e.g., Public Holiday, Store Closed"
+                className="bg-dark-gray border-gray-600 text-white"
+                data-testid="input-blackout-reason"
+              />
+            </div>
+          </div>
+          <Button
+            onClick={handleAddBlackout}
+            disabled={createBlackoutMutation.isPending}
+            className="mt-4 bg-neon-green text-deep-black hover:bg-neon-green/80"
+            data-testid="button-add-blackout"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            {createBlackoutMutation.isPending ? "Adding..." : "Add Blackout Date"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="glass-effect border-medium-gray">
+        <CardHeader>
+          <CardTitle className="text-xl text-neon-green">Blocked Dates</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8 text-gray-400">Loading blackout dates...</div>
+          ) : blackoutDates.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              <AlertCircle className="h-12 w-12 mx-auto mb-3 text-gray-600" />
+              <p>No blackout dates configured.</p>
+              <p className="text-sm mt-2">Add dates above to block customer bookings.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {blackoutDates.map((blackout: any) => (
+                <div
+                  key={blackout.id}
+                  className="flex items-center justify-between bg-deep-black/50 border border-gray-700 rounded-lg p-4"
+                  data-testid={`blackout-${blackout.id}`}
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-5 w-5 text-neon-green" />
+                      <div>
+                        <div className="font-semibold text-white" data-testid={`blackout-date-${blackout.id}`}>
+                          {format(new Date(blackout.date + 'T00:00:00'), 'MMMM d, yyyy')}
+                        </div>
+                        <div className="text-sm text-gray-400" data-testid={`blackout-reason-${blackout.id}`}>
+                          {blackout.reason}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteBlackout(blackout.id)}
+                    disabled={deleteBlackoutMutation.isPending}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                    data-testid={`button-delete-${blackout.id}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
@@ -363,6 +537,14 @@ export default function AdminDashboard() {
             >
               <Clock className="mr-2 h-4 w-4" />
               Scheduler
+            </Button>
+            <Button
+              variant={activeTab === "blackout" ? "default" : "ghost"}
+              onClick={() => setActiveTab("blackout")}
+              className={activeTab === "blackout" ? "bg-neon-green text-deep-black" : "text-gray-400 hover:text-white"}
+              data-testid="tab-blackout"
+            >
+              Blackout Dates
             </Button>
           </div>
         </div>
@@ -866,6 +1048,10 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {activeTab === "blackout" && (
+          <BlackoutDatesTab />
         )}
       </div>
 
