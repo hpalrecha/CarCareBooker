@@ -140,6 +140,14 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)]
 );
 
+// Blackout dates table - dates when booking is not allowed
+export const blackoutDates = pgTable("blackout_dates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  date: varchar("date").notNull().unique(), // YYYY-MM-DD format
+  reason: text("reason").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Schema types
 export type Admin = typeof admins.$inferSelect;
 export type InsertAdmin = typeof admins.$inferInsert;
@@ -161,6 +169,9 @@ export type InsertWhatsappConfig = typeof whatsappConfig.$inferInsert;
 
 export type WhatsappTemplate = typeof whatsappTemplates.$inferSelect;
 export type InsertWhatsappTemplate = typeof whatsappTemplates.$inferInsert;
+
+export type BlackoutDate = typeof blackoutDates.$inferSelect;
+export type InsertBlackoutDate = typeof blackoutDates.$inferInsert;
 
 // Zod schemas
 export const insertAdminSchema = createInsertSchema(admins).omit({
@@ -220,4 +231,9 @@ export const whatsappTemplateSchema = z.object({
   language: z.string().default("en"),
   status: z.string(),
   components: z.any(),
+});
+
+export const insertBlackoutDateSchema = createInsertSchema(blackoutDates).omit({
+  id: true,
+  createdAt: true,
 });
