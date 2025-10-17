@@ -35,6 +35,11 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
   const [bookingAmount, setBookingAmount] = useState(299);
   const { toast } = useToast();
 
+  // Fetch blackout dates
+  const { data: blackoutDates = [] } = useQuery({
+    queryKey: ["/api/blackout-dates"],
+  });
+
   // Fix Razorpay CORS issues when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -303,11 +308,12 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
   });
 
   const onSubmit = (data: any) => {
-    // Double-check closure dates before submission
-    if (isClosureDate(selectedDate)) {
+    // Check if the selected date is a blackout date
+    const blackoutDate = blackoutDates.find((bd: any) => bd.date === selectedDate);
+    if (blackoutDate) {
       toast({
-        title: "Store Closed",
-        description: "Our store is closed on October 1st and 2nd, 2025. Please select a different date.",
+        title: "Booking Not Available",
+        description: `Booking not available for this day – ${blackoutDate.reason}. Please choose another date before or after.`,
         variant: "destructive",
       });
       return;
@@ -324,25 +330,29 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
 
   const today = new Date().toISOString().split('T')[0];
 
-  // Store closure dates (October 1-2, 2025)
-  const closureDates = ['2025-10-01', '2025-10-02'];
-  
-  // Function to check if a date is a closure date
-  const isClosureDate = (dateString: string) => {
-    return closureDates.includes(dateString);
+  // Check if a date is a blackout date
+  const isBlackoutDate = (dateString: string) => {
+    return blackoutDates.some((bd: any) => bd.date === dateString);
   };
 
-  // Handle date selection with closure date validation
+  // Get blackout date reason
+  const getBlackoutReason = (dateString: string) => {
+    const blackoutDate = blackoutDates.find((bd: any) => bd.date === dateString);
+    return blackoutDate?.reason || "";
+  };
+
+  // Handle date selection with blackout date validation
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
     
-    if (isClosureDate(selectedDate)) {
+    if (isBlackoutDate(selectedDate)) {
+      const reason = getBlackoutReason(selectedDate);
       toast({
-        title: "Store Closed",
-        description: "Our store is closed on October 1st and 2nd, 2025. Please select a different date.",
+        title: "Booking Not Available",
+        description: `Booking not available for this day – ${reason}. Please choose another date before or after.`,
         variant: "destructive",
       });
-      return; // Don't update the date if it's a closure date
+      return; // Don't update the date if it's a blackout date
     }
     
     setSelectedDate(selectedDate);
