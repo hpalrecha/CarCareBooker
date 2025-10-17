@@ -290,6 +290,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const bookingData = extendedBookingSchema.parse(req.body);
       
+      // Check if appointment date is a blackout date
+      if (bookingData.appointmentDate) {
+        const blackoutDates = await storage.getBlackoutDates();
+        const isBlackout = blackoutDates.some(bd => bd.date === bookingData.appointmentDate);
+        
+        if (isBlackout) {
+          const blackoutDate = blackoutDates.find(bd => bd.date === bookingData.appointmentDate);
+          return res.status(400).json({ 
+            message: `Booking not available for this day – ${blackoutDate?.reason}. Please choose another date before or after.` 
+          });
+        }
+      }
+      
       // Skip time slot validation - using static time slots
       // No need to check database for time slot availability
       
