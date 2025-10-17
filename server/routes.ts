@@ -206,6 +206,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Blackout Dates Routes
+  app.get("/api/blackout-dates", async (req, res) => {
+    try {
+      const blackoutDates = await storage.getAllBlackoutDates();
+      res.json(blackoutDates);
+    } catch (error) {
+      console.error("Get blackout dates error:", error);
+      res.status(500).json({ message: "Failed to fetch blackout dates" });
+    }
+  });
+
+  app.post("/api/blackout-dates", authenticateAdmin, async (req, res) => {
+    try {
+      const { date, reason } = req.body;
+      
+      if (!date || !reason) {
+        return res.status(400).json({ message: "Date and reason are required" });
+      }
+
+      const existingBlackout = await storage.getBlackoutDate(date);
+      if (existingBlackout) {
+        return res.status(400).json({ message: "This date is already blocked" });
+      }
+
+      const blackoutDate = await storage.createBlackoutDate({ date, reason });
+      res.json(blackoutDate);
+    } catch (error) {
+      console.error("Create blackout date error:", error);
+      res.status(400).json({ message: "Failed to create blackout date" });
+    }
+  });
+
+  app.delete("/api/blackout-dates/:id", authenticateAdmin, async (req, res) => {
+    try {
+      await storage.deleteBlackoutDate(req.params.id);
+      res.json({ message: "Blackout date deleted successfully" });
+    } catch (error) {
+      console.error("Delete blackout date error:", error);
+      res.status(500).json({ message: "Failed to delete blackout date" });
+    }
+  });
+
   // Time Slot Routes
   app.get("/api/services/:serviceId/slots/:date", async (req, res) => {
     try {

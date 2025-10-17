@@ -4,6 +4,7 @@ import {
   timeSlots,
   bookings,
   siteSettings,
+  blackoutDates,
   type Admin,
   type InsertAdmin,
   type Service,
@@ -14,9 +15,11 @@ import {
   type InsertBooking,
   type SiteSetting,
   type InsertSiteSetting,
+  type BlackoutDate,
+  type InsertBlackoutDate,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gte, desc, asc } from "drizzle-orm";
+import { eq, and, gte, desc, asc, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Admin operations
@@ -52,6 +55,12 @@ export interface IStorage {
   getAllSettings(): Promise<SiteSetting[]>;
   upsertSetting(setting: InsertSiteSetting): Promise<SiteSetting>;
   deleteSetting(key: string): Promise<void>;
+
+  // Blackout date operations
+  getAllBlackoutDates(): Promise<BlackoutDate[]>;
+  getBlackoutDate(date: string): Promise<BlackoutDate | undefined>;
+  createBlackoutDate(blackoutDate: InsertBlackoutDate): Promise<BlackoutDate>;
+  deleteBlackoutDate(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -230,6 +239,25 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSetting(key: string): Promise<void> {
     await db.delete(siteSettings).where(eq(siteSettings.key, key));
+  }
+
+  // Blackout date operations
+  async getAllBlackoutDates(): Promise<BlackoutDate[]> {
+    return await db.select().from(blackoutDates).orderBy(asc(blackoutDates.date));
+  }
+
+  async getBlackoutDate(date: string): Promise<BlackoutDate | undefined> {
+    const [blackoutDate] = await db.select().from(blackoutDates).where(eq(blackoutDates.date, date));
+    return blackoutDate;
+  }
+
+  async createBlackoutDate(blackoutDate: InsertBlackoutDate): Promise<BlackoutDate> {
+    const [newBlackoutDate] = await db.insert(blackoutDates).values(blackoutDate).returning();
+    return newBlackoutDate;
+  }
+
+  async deleteBlackoutDate(id: string): Promise<void> {
+    await db.delete(blackoutDates).where(eq(blackoutDates.id, id));
   }
 }
 
