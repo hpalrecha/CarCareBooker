@@ -41,6 +41,13 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
     retry: 1,
   });
 
+  // Log error if blackout dates fail to fetch (but don't block booking - safer to allow than block incorrectly)
+  useEffect(() => {
+    if (blackoutDatesError) {
+      console.warn("Failed to fetch blackout dates - all dates will be available for booking");
+    }
+  }, [blackoutDatesError]);
+
   // Fix Razorpay CORS issues when modal opens
   useEffect(() => {
     if (isOpen) {
