@@ -292,7 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if appointment date is a blackout date
       if (bookingData.appointmentDate) {
-        const blackoutDates = await storage.getBlackoutDates();
+        const blackoutDates = await storage.getAllBlackoutDates();
         const isBlackout = blackoutDates.some(bd => bd.date === bookingData.appointmentDate);
         
         if (isBlackout) {
