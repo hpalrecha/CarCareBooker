@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { loadRazorpay } from "@/lib/razorpay";
-import { bookingFormSchema } from "@shared/schema";
+import { bookingFormSchema, type BlackoutDate } from "@shared/schema";
 import { Check, X } from "lucide-react";
 
 interface BookingModalProps {
@@ -36,8 +36,9 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
   const { toast } = useToast();
 
   // Fetch blackout dates
-  const { data: blackoutDates = [] } = useQuery({
+  const { data: blackoutDates = [], isError: blackoutDatesError } = useQuery<BlackoutDate[]>({
     queryKey: ["/api/blackout-dates"],
+    retry: 1,
   });
 
   // Fix Razorpay CORS issues when modal opens
