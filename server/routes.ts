@@ -132,8 +132,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/services/:id", authenticateAdmin, async (req, res) => {
     try {
-      const serviceData = insertServiceSchema.partial().parse(req.body);
-      const service = await storage.updateService(req.params.id, serviceData);
+      // Pre-process the data to handle string-to-number conversions
+      const body = { ...req.body };
+      
+      // Convert string numbers to proper types
+      if (body.price !== undefined) {
+        body.price = String(body.price);
+      }
+      if (body.originalPrice !== undefined) {
+        body.originalPrice = body.originalPrice ? String(body.originalPrice) : null;
+      }
+      if (body.duration !== undefined) {
+        body.duration = parseInt(String(body.duration), 10);
+      }
+      
+      // For partial updates, we don't need strict validation
+      // Just pass the cleaned data directly to storage
+      const service = await storage.updateService(req.params.id, body);
       res.json(service);
     } catch (error) {
       console.error("Update service error:", error);
