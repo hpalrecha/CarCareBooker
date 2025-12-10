@@ -610,9 +610,10 @@ export default function ServiceLanding() {
                 <div key={index} className="group">
                   {/* Single Full-Width Comparison Image */}
                   <div className="max-w-5xl mx-auto">
-                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
+                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl" style={{ maxHeight: '500px' }}>
                       <img
-                        className="w-full object-contain transition-transform duration-700 group-hover:scale-105"
+                        className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
+                        style={{ objectPosition: 'center bottom', marginTop: '-20%' }}
                         src={comparison.before}
                         alt={`${service.title} transformation ${index + 1}`}
                         data-testid={`image-comparison-${index}`}
