@@ -300,12 +300,18 @@ export default function PpfCeramicLanding() {
   ];
 
   const completedWorks = [
-    { vehicle: "Mercedes GLC 300", service: "Full Body PPF", image: "/attached_assets/Why-Ceramic-Coating_1765343151812.jpg" },
-    { vehicle: "BMW 5 Series", service: "Ceramic Coating", image: "/attached_assets/ceramic-coating-in-Attention-2-Detail-Griffith-In_1759817529138.webp" },
-    { vehicle: "Audi Q7", service: "PPF + Ceramic", image: "/attached_assets/Before-and-After-Ceramic-Coating-on-Glass (1)_1754028454560.jpg" },
-    { vehicle: "Range Rover", service: "Premium PPF", image: "/attached_assets/download_1753962041724.jpg" },
-    { vehicle: "Porsche Cayenne", service: "Stek PPF", image: "/attached_assets/images (8)_1753962041723.jpg" },
-    { vehicle: "Toyota Fortuner", service: "Full Protection", image: "/attached_assets/ff034468a03ea55ea0924270de1e42bd_1754032817032.jpg" },
+    { vehicle: "Range Rover Evoque", service: "P91 Premium PPF", image: "/attached_assets/Screenshot_2025-12-12_at_4.28.00_PM_1765537183721.png" },
+    { vehicle: "MG Comet EV", service: "Full Body PPF", image: "/attached_assets/Screenshot_2025-12-12_at_4.28.06_PM_1765537183722.png" },
+    { vehicle: "Maruti Swift", service: "P91 PPF", image: "/attached_assets/Screenshot_2025-12-12_at_4.28.14_PM_1765537183722.png" },
+    { vehicle: "Mercedes GLE", service: "Nasiol Ceramic", image: "/attached_assets/Screenshot_2025-12-12_at_4.28.21_PM_1765537183723.png" },
+    { vehicle: "Toyota Innova Hycross", service: "Stek ForceShield PPF", image: "/attached_assets/Screenshot_2025-12-12_at_4.28.27_PM_1765537183723.png" },
+    { vehicle: "Nissan GT-R", service: "Stek PPF", image: "/attached_assets/Screenshot_2025-12-12_at_4.28.33_PM_1765537183723.png" },
+    { vehicle: "BMW 3 Series", service: "Stek Gloss PPF + Sunfilm", image: "/attached_assets/Screenshot_2025-12-12_at_4.28.40_PM_1765537183724.png" },
+    { vehicle: "Mahindra XUV700", service: "Stek PPF", image: "/attached_assets/Screenshot_2025-12-12_at_4.28.46_PM_1765537183724.png" },
+    { vehicle: "Toyota Vellfire", service: "Stek PPF", image: "/attached_assets/Screenshot_2025-12-12_at_4.29.31_PM_1765537183724.png" },
+    { vehicle: "Maruti Baleno", service: "Ceramic Coating", image: "/attached_assets/unnamed_(1)_1765537193655.webp" },
+    { vehicle: "Tata Harrier", service: "Full Body PPF", image: "/attached_assets/unnamed_(2)_1765537193656.webp" },
+    { vehicle: "Hyundai Creta", service: "Stek PPF", image: "/attached_assets/unnamed_1765537193657.webp" },
   ];
 
   const faqs = [
@@ -790,24 +796,24 @@ export default function PpfCeramicLanding() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {completedWorks.map((work, idx) => (
               <div 
                 key={idx} 
-                className="group relative rounded-2xl overflow-hidden border border-gray-800 hover:border-green-500 transition-all"
+                className="group relative rounded-xl overflow-hidden border border-gray-800 hover:border-green-500 transition-all aspect-[3/4]"
               >
                 <img
                   src={work.image}
                   alt={work.vehicle}
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-80"></div>
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <BadgeCheck className="w-4 h-4 text-green-400" />
-                    <span className="text-green-400 text-sm font-medium">{work.service}</span>
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-90"></div>
+                <div className="absolute bottom-0 left-0 right-0 p-3">
+                  <div className="flex items-center gap-1 mb-1">
+                    <BadgeCheck className="w-3 h-3 text-green-400" />
+                    <span className="text-green-400 text-xs font-medium">{work.service}</span>
                   </div>
-                  <h3 className="text-lg font-bold text-white">{work.vehicle}</h3>
+                  <h3 className="text-sm font-bold text-white">{work.vehicle}</h3>
                 </div>
               </div>
             ))}
