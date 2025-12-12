@@ -28,8 +28,10 @@ import {
   Zap,
   BadgeCheck,
   Timer,
-  RefreshCcw
+  RefreshCcw,
+  MessageCircle
 } from "lucide-react";
+import { SiWhatsapp } from "react-icons/si";
 import { Link } from "wouter";
 import p91Logo from "@assets/Car Care (4)_1753951564515.png";
 
@@ -186,7 +188,7 @@ export default function PpfCeramicLanding() {
   };
 
   const ppfBrands = [
-    { name: "P91 Premium PPF", description: "Our in-house premium self-healing film", warranty: "7 Years", highlight: true, badge: "EXCLUSIVE" },
+    { name: "P91 Premium PPF", description: "Our in-house premium self-healing film", warranty: "5 Years", highlight: true, badge: "EXCLUSIVE" },
     { name: "STEK", description: "Premium self-healing PPF from USA", warranty: "10 Years", highlight: false },
     { name: "Llumar", description: "Industry leader in paint protection", warranty: "10 Years", highlight: false },
     { name: "3M", description: "Trusted worldwide protection", warranty: "7 Years", highlight: false },
@@ -205,15 +207,37 @@ export default function PpfCeramicLanding() {
 
   const pricingCards = [
     {
-      title: "PPF for Cars",
+      title: "PPF - Hatchback",
       price: "₹45,000",
       originalPrice: "₹65,000",
-      priceNote: "Starting from",
+      priceNote: "Full Body",
+      warranty: "5-10 Year Warranty",
+      features: ["Full body coverage", "Self-healing film", "Stone chip protection", "UV protection", "Hydrophobic surface"],
+      icon: Car,
+      popular: false,
+      discount: "30% OFF"
+    },
+    {
+      title: "PPF - Sedan",
+      price: "₹55,000",
+      originalPrice: "₹75,000",
+      priceNote: "Full Body",
       warranty: "5-10 Year Warranty",
       features: ["Full body coverage", "Self-healing film", "Stone chip protection", "UV protection", "Hydrophobic surface"],
       icon: Car,
       popular: true,
-      discount: "30% OFF"
+      discount: "27% OFF"
+    },
+    {
+      title: "PPF - SUV",
+      price: "₹65,000",
+      originalPrice: "₹90,000",
+      priceNote: "Full Body",
+      warranty: "5-10 Year Warranty",
+      features: ["Full body coverage", "Self-healing film", "Stone chip protection", "UV protection", "Hydrophobic surface"],
+      icon: Car,
+      popular: false,
+      discount: "28% OFF"
     },
     {
       title: "PPF for Bikes",
@@ -302,6 +326,28 @@ export default function PpfCeramicLanding() {
 
   return (
     <div className="min-h-screen bg-black text-white">
+      {/* Floating Call & WhatsApp Buttons - Fixed to right side */}
+      <div className="fixed right-0 top-32 z-50 flex flex-col gap-0">
+        <a 
+          href="tel:+917406619191" 
+          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-3 rounded-l-lg shadow-lg flex items-center gap-2 transition-all hover:pr-4"
+          data-testid="floating-call-btn"
+        >
+          <Phone className="w-5 h-5" />
+          <span className="hidden md:inline text-sm font-medium">Call Now</span>
+        </a>
+        <a 
+          href="https://wa.me/917406619191?text=Hi%20P91%20Car%20Care!%20I'm%20interested%20in%20PPF%20/%20Ceramic%20Coating.%20Please%20share%20more%20details." 
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-green-600 hover:bg-green-700 text-white px-3 py-3 rounded-l-lg shadow-lg flex items-center gap-2 transition-all hover:pr-4"
+          data-testid="floating-whatsapp-btn"
+        >
+          <SiWhatsapp className="w-5 h-5" />
+          <span className="hidden md:inline text-sm font-medium">WhatsApp</span>
+        </a>
+      </div>
+
       {/* Top Banner - Urgency */}
       <div className="bg-gradient-to-r from-red-600 to-red-700 py-3 px-4">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
@@ -396,31 +442,48 @@ export default function PpfCeramicLanding() {
                 ))}
               </div>
 
-              {/* Discounted Price Cards */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-bl-lg">30% OFF</div>
-                  <div className="text-sm text-gray-400 line-through">₹65,000</div>
-                  <div className="text-2xl font-bold text-green-400">₹45,000</div>
-                  <div className="text-xs text-gray-400">PPF for Cars</div>
+              {/* Discounted Price Cards - PPF by Car Type */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-bold text-white">PPF Pricing (Full Body)</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700 relative overflow-hidden text-center">
+                    <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg">30% OFF</div>
+                    <div className="text-xs text-gray-400 line-through">₹65,000</div>
+                    <div className="text-xl font-bold text-green-400">₹45,000</div>
+                    <div className="text-xs text-gray-400">Hatchback</div>
+                  </div>
+                  <div className="bg-green-500/20 rounded-xl p-3 border-2 border-green-500 relative overflow-hidden text-center">
+                    <div className="absolute top-0 right-0 bg-green-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg">POPULAR</div>
+                    <div className="text-xs text-gray-400 line-through">₹75,000</div>
+                    <div className="text-xl font-bold text-green-400">₹55,000</div>
+                    <div className="text-xs text-gray-400">Sedan</div>
+                  </div>
+                  <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700 relative overflow-hidden text-center">
+                    <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg">28% OFF</div>
+                    <div className="text-xs text-gray-400 line-through">₹90,000</div>
+                    <div className="text-xl font-bold text-green-400">₹65,000</div>
+                    <div className="text-xs text-gray-400">SUV</div>
+                  </div>
                 </div>
-                <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-bl-lg">37% OFF</div>
-                  <div className="text-sm text-gray-400 line-through">₹8,000</div>
-                  <div className="text-2xl font-bold text-green-400">₹5,000</div>
-                  <div className="text-xs text-gray-400">PPF for Bikes</div>
-                </div>
-                <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-bl-lg">33% OFF</div>
-                  <div className="text-sm text-gray-400 line-through">₹9,000</div>
-                  <div className="text-2xl font-bold text-green-400">₹6,000</div>
-                  <div className="text-xs text-gray-400">Ceramic - Cars</div>
-                </div>
-                <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-bl-lg">40% OFF</div>
-                  <div className="text-sm text-gray-400 line-through">₹5,000</div>
-                  <div className="text-2xl font-bold text-green-400">₹3,000</div>
-                  <div className="text-xs text-gray-400">Ceramic - Bikes</div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700 relative overflow-hidden text-center">
+                    <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg">37% OFF</div>
+                    <div className="text-xs text-gray-400 line-through">₹8,000</div>
+                    <div className="text-xl font-bold text-green-400">₹5,000</div>
+                    <div className="text-xs text-gray-400">Bikes PPF</div>
+                  </div>
+                  <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700 relative overflow-hidden text-center">
+                    <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg">33% OFF</div>
+                    <div className="text-xs text-gray-400 line-through">₹9,000</div>
+                    <div className="text-xl font-bold text-green-400">₹6,000</div>
+                    <div className="text-xs text-gray-400">Ceramic Cars</div>
+                  </div>
+                  <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700 relative overflow-hidden text-center">
+                    <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg">40% OFF</div>
+                    <div className="text-xs text-gray-400 line-through">₹5,000</div>
+                    <div className="text-xl font-bold text-green-400">₹3,000</div>
+                    <div className="text-xs text-gray-400">Ceramic Bikes</div>
+                  </div>
                 </div>
               </div>
 
@@ -972,7 +1035,7 @@ export default function PpfCeramicLanding() {
               <span className="text-green-400 font-bold">NO QUESTIONS ASKED WARRANTY - We Replace FREE if PPF Fails!</span>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
             <Button
               onClick={scrollToForm}
               className="bg-green-500 hover:bg-green-600 text-black font-bold px-8 py-6 text-lg"
@@ -984,10 +1047,22 @@ export default function PpfCeramicLanding() {
             <a href="tel:+917406619191">
               <Button
                 variant="outline"
-                className="border-green-500 text-green-400 hover:bg-green-500/10 px-8 py-6 text-lg w-full sm:w-auto"
+                className="border-blue-500 text-blue-400 hover:bg-blue-500/10 px-8 py-6 text-lg w-full sm:w-auto"
               >
                 <Phone className="mr-2 w-5 h-5" />
-                Call Now: +91 74066 19191
+                Call Now
+              </Button>
+            </a>
+            <a 
+              href="https://wa.me/917406619191?text=Hi%20P91%20Car%20Care!%20I'm%20interested%20in%20PPF%20/%20Ceramic%20Coating.%20Please%20share%20more%20details." 
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button
+                className="bg-green-600 hover:bg-green-700 text-white px-8 py-6 text-lg w-full sm:w-auto"
+              >
+                <SiWhatsapp className="mr-2 w-5 h-5" />
+                WhatsApp Us
               </Button>
             </a>
           </div>
