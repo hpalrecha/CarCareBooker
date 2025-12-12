@@ -188,6 +188,204 @@ function BlackoutDatesTab() {
   );
 }
 
+function PpfLeadsTab() {
+  const { toast } = useToast();
+  
+  const { data: leads = [], isLoading } = useQuery({
+    queryKey: ["/api/ppf-leads"],
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const response = await apiRequest("PATCH", `/api/ppf-leads/${id}/status`, { status });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/ppf-leads"] });
+      toast({
+        title: "Status Updated",
+        description: "Lead status has been updated.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to Update",
+        description: "Failed to update lead status.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteLeadMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/ppf-leads/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/ppf-leads"] });
+      toast({
+        title: "Lead Deleted",
+        description: "The lead has been removed.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to Delete",
+        description: "Failed to delete lead.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "new": return "bg-blue-900 text-blue-300";
+      case "contacted": return "bg-yellow-900 text-yellow-300";
+      case "converted": return "bg-green-900 text-green-300";
+      case "closed": return "bg-gray-900 text-gray-300";
+      default: return "bg-gray-900 text-gray-300";
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="glass-effect border-medium-gray">
+        <CardHeader>
+          <CardTitle className="text-xl text-neon-green flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            PPF & Ceramic Coating Leads
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8 text-gray-400">Loading leads...</div>
+          ) : leads.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              <AlertCircle className="h-12 w-12 mx-auto mb-3 text-gray-600" />
+              <p>No leads yet.</p>
+              <p className="text-sm mt-2">Leads from the PPF landing page will appear here.</p>
+              <p className="text-xs mt-4 text-gray-500">
+                Share this link: <span className="text-neon-green">/ppf-ceramic-coating</span>
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-gray-700">
+                    <TableHead className="text-gray-300">Name</TableHead>
+                    <TableHead className="text-gray-300">Contact</TableHead>
+                    <TableHead className="text-gray-300">Vehicle</TableHead>
+                    <TableHead className="text-gray-300">Interest</TableHead>
+                    <TableHead className="text-gray-300">Source</TableHead>
+                    <TableHead className="text-gray-300">Status</TableHead>
+                    <TableHead className="text-gray-300">Date</TableHead>
+                    <TableHead className="text-gray-300">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {leads.map((lead: any) => (
+                    <TableRow key={lead.id} className="border-gray-700" data-testid={`lead-row-${lead.id}`}>
+                      <TableCell className="font-medium text-white">
+                        {lead.name}
+                        {lead.vehicleModel && (
+                          <div className="text-xs text-gray-400">{lead.vehicleModel}</div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-white">{lead.phone}</div>
+                        <div className="text-xs text-gray-400">{lead.email}</div>
+                      </TableCell>
+                      <TableCell className="text-gray-300 capitalize">{lead.vehicleType}</TableCell>
+                      <TableCell className="text-gray-300 capitalize">
+                        {lead.serviceInterest === "both" ? "PPF + Ceramic" : lead.serviceInterest.toUpperCase()}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={lead.source === "exit_intent" ? "bg-purple-900 text-purple-300" : "bg-blue-900 text-blue-300"}>
+                          {lead.source === "exit_intent" ? "Exit Offer" : "Landing Page"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={lead.status}
+                          onValueChange={(value) => updateStatusMutation.mutate({ id: lead.id, status: value })}
+                        >
+                          <SelectTrigger className="w-32 bg-medium-gray border-gray-600">
+                            <Badge className={getStatusColor(lead.status)}>
+                              {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+                            </Badge>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="new">New</SelectItem>
+                            <SelectItem value="contacted">Contacted</SelectItem>
+                            <SelectItem value="converted">Converted</SelectItem>
+                            <SelectItem value="closed">Closed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell className="text-gray-400 text-sm">
+                        {format(new Date(lead.createdAt), 'MMM d, yyyy')}
+                        <div className="text-xs">{format(new Date(lead.createdAt), 'h:mm a')}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <a href={`tel:${lead.phone}`}>
+                            <Button variant="ghost" size="sm" className="text-green-400 hover:bg-green-900/20">
+                              <Phone className="h-4 w-4" />
+                            </Button>
+                          </a>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              if (confirm("Are you sure you want to delete this lead?")) {
+                                deleteLeadMutation.mutate(lead.id);
+                              }
+                            }}
+                            className="text-red-400 hover:bg-red-900/20"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="glass-effect border-medium-gray">
+        <CardHeader>
+          <CardTitle className="text-lg text-neon-green">Quick Stats</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-4 gap-4">
+            <div className="bg-deep-black/50 p-4 rounded-lg text-center">
+              <div className="text-2xl font-bold text-blue-400">{leads.filter((l: any) => l.status === "new").length}</div>
+              <div className="text-sm text-gray-400">New Leads</div>
+            </div>
+            <div className="bg-deep-black/50 p-4 rounded-lg text-center">
+              <div className="text-2xl font-bold text-yellow-400">{leads.filter((l: any) => l.status === "contacted").length}</div>
+              <div className="text-sm text-gray-400">Contacted</div>
+            </div>
+            <div className="bg-deep-black/50 p-4 rounded-lg text-center">
+              <div className="text-2xl font-bold text-green-400">{leads.filter((l: any) => l.status === "converted").length}</div>
+              <div className="text-sm text-gray-400">Converted</div>
+            </div>
+            <div className="bg-deep-black/50 p-4 rounded-lg text-center">
+              <div className="text-2xl font-bold text-gray-400">{leads.length}</div>
+              <div className="text-sm text-gray-400">Total Leads</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
   const { admin, isLoading: authLoading, isAuthenticated } = useAuth();
@@ -545,6 +743,14 @@ export default function AdminDashboard() {
               data-testid="tab-blackout"
             >
               Blackout Dates
+            </Button>
+            <Button
+              variant={activeTab === "ppf-leads" ? "default" : "ghost"}
+              onClick={() => setActiveTab("ppf-leads")}
+              className={activeTab === "ppf-leads" ? "bg-neon-green text-deep-black" : "text-gray-400 hover:text-white"}
+              data-testid="tab-ppf-leads"
+            >
+              PPF Leads
             </Button>
           </div>
         </div>
@@ -1052,6 +1258,10 @@ export default function AdminDashboard() {
 
         {activeTab === "blackout" && (
           <BlackoutDatesTab />
+        )}
+
+        {activeTab === "ppf-leads" && (
+          <PpfLeadsTab />
         )}
       </div>
 
