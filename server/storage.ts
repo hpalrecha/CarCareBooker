@@ -5,6 +5,7 @@ import {
   bookings,
   siteSettings,
   blackoutDates,
+  ppfLeads,
   type Admin,
   type InsertAdmin,
   type Service,
@@ -17,6 +18,8 @@ import {
   type InsertSiteSetting,
   type BlackoutDate,
   type InsertBlackoutDate,
+  type PpfLead,
+  type InsertPpfLead,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, desc, asc, sql } from "drizzle-orm";
@@ -61,6 +64,13 @@ export interface IStorage {
   getBlackoutDate(date: string): Promise<BlackoutDate | undefined>;
   createBlackoutDate(blackoutDate: InsertBlackoutDate): Promise<BlackoutDate>;
   deleteBlackoutDate(id: string): Promise<void>;
+
+  // PPF leads operations
+  getAllPpfLeads(): Promise<PpfLead[]>;
+  getPpfLead(id: string): Promise<PpfLead | undefined>;
+  createPpfLead(lead: InsertPpfLead): Promise<PpfLead>;
+  updatePpfLeadStatus(id: string, status: string): Promise<PpfLead>;
+  deletePpfLead(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -258,6 +268,34 @@ export class DatabaseStorage implements IStorage {
 
   async deleteBlackoutDate(id: string): Promise<void> {
     await db.delete(blackoutDates).where(eq(blackoutDates.id, id));
+  }
+
+  // PPF leads operations
+  async getAllPpfLeads(): Promise<PpfLead[]> {
+    return await db.select().from(ppfLeads).orderBy(desc(ppfLeads.createdAt));
+  }
+
+  async getPpfLead(id: string): Promise<PpfLead | undefined> {
+    const [lead] = await db.select().from(ppfLeads).where(eq(ppfLeads.id, id));
+    return lead;
+  }
+
+  async createPpfLead(lead: InsertPpfLead): Promise<PpfLead> {
+    const [newLead] = await db.insert(ppfLeads).values(lead).returning();
+    return newLead;
+  }
+
+  async updatePpfLeadStatus(id: string, status: string): Promise<PpfLead> {
+    const [updatedLead] = await db
+      .update(ppfLeads)
+      .set({ status })
+      .where(eq(ppfLeads.id, id))
+      .returning();
+    return updatedLead;
+  }
+
+  async deletePpfLead(id: string): Promise<void> {
+    await db.delete(ppfLeads).where(eq(ppfLeads.id, id));
   }
 }
 

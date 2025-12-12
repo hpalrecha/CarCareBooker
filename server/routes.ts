@@ -263,6 +263,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PPF Leads Routes
+  app.get("/api/ppf-leads", authenticateAdmin, async (req, res) => {
+    try {
+      const leads = await storage.getAllPpfLeads();
+      res.json(leads);
+    } catch (error) {
+      console.error("Get PPF leads error:", error);
+      res.status(500).json({ message: "Failed to fetch PPF leads" });
+    }
+  });
+
+  app.post("/api/ppf-leads", async (req, res) => {
+    try {
+      const { name, email, phone, vehicleType, serviceInterest, vehicleModel, message, source } = req.body;
+      
+      if (!name || !email || !phone || !vehicleType || !serviceInterest) {
+        return res.status(400).json({ message: "Name, email, phone, vehicle type, and service interest are required" });
+      }
+
+      const lead = await storage.createPpfLead({
+        name,
+        email,
+        phone,
+        vehicleType,
+        serviceInterest,
+        vehicleModel: vehicleModel || null,
+        message: message || null,
+        source: source || "landing_page",
+      });
+      res.json(lead);
+    } catch (error) {
+      console.error("Create PPF lead error:", error);
+      res.status(400).json({ message: "Failed to create lead" });
+    }
+  });
+
+  app.patch("/api/ppf-leads/:id/status", authenticateAdmin, async (req, res) => {
+    try {
+      const { status } = req.body;
+      if (!status) {
+        return res.status(400).json({ message: "Status is required" });
+      }
+      const lead = await storage.updatePpfLeadStatus(req.params.id, status);
+      res.json(lead);
+    } catch (error) {
+      console.error("Update PPF lead status error:", error);
+      res.status(400).json({ message: "Failed to update lead status" });
+    }
+  });
+
+  app.delete("/api/ppf-leads/:id", authenticateAdmin, async (req, res) => {
+    try {
+      await storage.deletePpfLead(req.params.id);
+      res.json({ message: "Lead deleted successfully" });
+    } catch (error) {
+      console.error("Delete PPF lead error:", error);
+      res.status(500).json({ message: "Failed to delete lead" });
+    }
+  });
+
   // Time Slot Routes
   app.get("/api/services/:serviceId/slots/:date", async (req, res) => {
     try {

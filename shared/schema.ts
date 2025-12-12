@@ -148,6 +148,21 @@ export const blackoutDates = pgTable("blackout_dates", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// PPF & Ceramic Coating leads
+export const ppfLeads = pgTable("ppf_leads", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  email: varchar("email").notNull(),
+  phone: varchar("phone").notNull(),
+  vehicleType: varchar("vehicle_type").notNull(), // car, bike
+  serviceInterest: varchar("service_interest").notNull(), // ppf, ceramic, both
+  vehicleModel: varchar("vehicle_model"),
+  message: text("message"),
+  source: varchar("source").default("landing_page"), // landing_page, exit_intent
+  status: varchar("status").default("new").notNull(), // new, contacted, converted, closed
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Schema types
 export type Admin = typeof admins.$inferSelect;
 export type InsertAdmin = typeof admins.$inferInsert;
@@ -172,6 +187,9 @@ export type InsertWhatsappTemplate = typeof whatsappTemplates.$inferInsert;
 
 export type BlackoutDate = typeof blackoutDates.$inferSelect;
 export type InsertBlackoutDate = typeof blackoutDates.$inferInsert;
+
+export type PpfLead = typeof ppfLeads.$inferSelect;
+export type InsertPpfLead = typeof ppfLeads.$inferInsert;
 
 // Zod schemas
 export const insertAdminSchema = createInsertSchema(admins).omit({
@@ -236,4 +254,10 @@ export const whatsappTemplateSchema = z.object({
 export const insertBlackoutDateSchema = createInsertSchema(blackoutDates).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertPpfLeadSchema = createInsertSchema(ppfLeads).omit({
+  id: true,
+  createdAt: true,
+  status: true,
 });
