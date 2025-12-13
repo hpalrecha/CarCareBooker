@@ -832,6 +832,111 @@ export default function PpfCeramicLanding() {
         </div>
       </section>
 
+      {/* Video Section - PPF & Ceramic Benefits */}
+      <section className="py-16 px-4 bg-gray-900">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4">See PPF & Ceramic in Action</h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              Watch real-world demonstrations of how PPF and ceramic coating protect your vehicle
+            </p>
+          </div>
+
+          {/* PPF Benefits Videos */}
+          <div className="mb-12">
+            <h3 className="text-2xl font-bold text-green-400 mb-6 flex items-center gap-2">
+              <Shield className="w-6 h-6" />
+              PPF Protection - Visual Benefits
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="aspect-[9/16] rounded-xl overflow-hidden border border-gray-700 hover:border-green-500 transition-all">
+                <iframe 
+                  src="https://www.youtube.com/embed/q1YKI4JCqsY" 
+                  title="PPF Protection Demo 1"
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+              <div className="aspect-[9/16] rounded-xl overflow-hidden border border-gray-700 hover:border-green-500 transition-all">
+                <iframe 
+                  src="https://www.youtube.com/embed/AhjRUqE6lPc" 
+                  title="PPF Protection Demo 2"
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+              <div className="aspect-[9/16] rounded-xl overflow-hidden border border-gray-700 hover:border-green-500 transition-all">
+                <iframe 
+                  src="https://www.youtube.com/embed/8KQfzSqS4IM" 
+                  title="PPF Protection Demo 3"
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+              <div className="aspect-[9/16] rounded-xl overflow-hidden border border-gray-700 hover:border-green-500 transition-all">
+                <iframe 
+                  src="https://www.youtube.com/embed/bMoHlh6W3Sg" 
+                  title="PPF Protection Demo 4"
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Ceramic Coating Videos */}
+          <div>
+            <h3 className="text-2xl font-bold text-green-400 mb-6 flex items-center gap-2">
+              <Sparkles className="w-6 h-6" />
+              Ceramic Coating - Long-lasting Effects
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+              <div className="aspect-[9/16] rounded-xl overflow-hidden border border-gray-700 hover:border-green-500 transition-all">
+                <iframe 
+                  src="https://www.youtube.com/embed/kzQ5kqFbogY" 
+                  title="Ceramic Coating Demo 1"
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+              <div className="aspect-[9/16] rounded-xl overflow-hidden border border-gray-700 hover:border-green-500 transition-all">
+                <iframe 
+                  src="https://www.youtube.com/embed/IdbBrF7VQ1Q" 
+                  title="Ceramic Coating Demo 2"
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+              <div className="aspect-[9/16] rounded-xl overflow-hidden border border-gray-700 hover:border-green-500 transition-all">
+                <iframe 
+                  src="https://www.youtube.com/embed/Do6CQefTRC0" 
+                  title="Ceramic Coating Demo 3"
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center mt-10">
+            <Button
+              onClick={scrollToForm}
+              className="bg-green-500 hover:bg-green-600 text-black font-bold px-8 py-6 text-lg"
+            >
+              Get This Protection for Your Vehicle
+              <ChevronRight className="ml-2 w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <section className="py-16 px-4 bg-gray-900">
         <div className="max-w-7xl mx-auto">
