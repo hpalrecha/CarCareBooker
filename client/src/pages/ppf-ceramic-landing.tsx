@@ -450,7 +450,7 @@ export default function PpfCeramicLanding() {
 
               {/* Discounted Price Cards - PPF by Car Type */}
               <div className="space-y-3">
-                <h3 className="text-lg font-bold text-white">PPF Pricing (Full Body)</h3>
+                <h3 className="text-lg font-bold text-white">PPF Pricing (Full Body) <span className="text-green-400 text-sm font-normal">- Starts at</span></h3>
                 <div className="grid grid-cols-3 gap-2">
                   <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700 relative overflow-hidden text-center">
                     <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg">30% OFF</div>
