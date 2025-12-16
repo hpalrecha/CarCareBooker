@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import AdminServiceForm from "@/components/admin-service-form";
-import { Plus, Eye, MessageCircle, Edit, Users, Clock, CheckCircle, DollarSign, Settings, Phone, Calendar, Trash2, AlertCircle } from "lucide-react";
+import { Plus, Eye, MessageCircle, Edit, Users, Clock, CheckCircle, DollarSign, Settings, Phone, Calendar, Trash2, AlertCircle, Play } from "lucide-react";
 import { format } from "date-fns";
 
 function BlackoutDatesTab() {
