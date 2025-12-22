@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { loadRazorpay } from "@/lib/razorpay";
-import { bookingFormSchema, type BlackoutDate } from "@shared/schema";
+import { bookingFormSchema, type BlackoutDate, type BusinessHour } from "@shared/schema";
 import { Check, X } from "lucide-react";
 
 interface BookingModalProps {
@@ -38,6 +38,12 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
   // Fetch blackout dates
   const { data: blackoutDates = [], isError: blackoutDatesError } = useQuery<BlackoutDate[]>({
     queryKey: ["/api/blackout-dates"],
+    retry: 1,
+  });
+
+  // Fetch business hours
+  const { data: businessHours = [] } = useQuery<BusinessHour[]>({
+    queryKey: ["/api/business-hours"],
     retry: 1,
   });
 
@@ -96,7 +102,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
   });
 
   // Static time slots from 10 AM to 7 PM
-  const timeSlots = [
+  const allTimeSlots = [
     { id: "10:00", startTime: "10:00 AM", endTime: "11:00 AM", isAvailable: true },
     { id: "11:00", startTime: "11:00 AM", endTime: "12:00 PM", isAvailable: true },
     { id: "12:00", startTime: "12:00 PM", endTime: "1:00 PM", isAvailable: true },
@@ -107,6 +113,27 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
     { id: "17:00", startTime: "5:00 PM", endTime: "6:00 PM", isAvailable: true },
     { id: "18:00", startTime: "6:00 PM", endTime: "7:00 PM", isAvailable: true },
   ];
+
+  // Filter time slots based on business hours for selected date
+  const timeSlots = (() => {
+    if (!selectedDate || businessHours.length === 0) {
+      return allTimeSlots;
+    }
+    
+    // Get day of week from selected date
+    const selectedDay = new Date(selectedDate + 'T00:00:00').getDay();
+    const dayHours = businessHours.find(h => h.dayOfWeek === selectedDay);
+    
+    if (!dayHours || !dayHours.isOpen) {
+      return []; // Store closed on this day
+    }
+    
+    // Filter slots based on opening and cutoff times
+    return allTimeSlots.filter(slot => {
+      const slotTime = slot.id; // e.g., "10:00", "14:00"
+      return slotTime >= dayHours.openTime && slotTime <= dayHours.cutoffTime;
+    });
+  })();
 
   const slotsLoading = false;
 
@@ -349,12 +376,12 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
     return blackoutDate?.reason || "";
   };
 
-  // Handle date selection with blackout date validation
+  // Handle date selection with blackout date and business hours validation
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = e.target.value;
+    const newSelectedDate = e.target.value;
     
-    if (isBlackoutDate(selectedDate)) {
-      const reason = getBlackoutReason(selectedDate);
+    if (isBlackoutDate(newSelectedDate)) {
+      const reason = getBlackoutReason(newSelectedDate);
       toast({
         title: "Booking Not Available",
         description: `Booking not available for this day – ${reason}. Please choose another date before or after.`,
@@ -363,7 +390,24 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
       return; // Don't update the date if it's a blackout date
     }
     
-    setSelectedDate(selectedDate);
+    // Check if store is closed on this day
+    if (businessHours.length > 0) {
+      const dayOfWeek = new Date(newSelectedDate + 'T00:00:00').getDay();
+      const dayHours = businessHours.find(h => h.dayOfWeek === dayOfWeek);
+      
+      if (dayHours && !dayHours.isOpen) {
+        toast({
+          title: "Store Closed",
+          description: `We are closed on ${dayHours.dayName}. Please select another day.`,
+          variant: "destructive",
+        });
+        return; // Don't update the date if store is closed
+      }
+    }
+    
+    // Reset time slot when date changes
+    form.setValue("timeSlotId", "");
+    setSelectedDate(newSelectedDate);
   };
 
   return (
