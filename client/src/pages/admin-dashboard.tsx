@@ -188,6 +188,182 @@ function BlackoutDatesTab() {
   );
 }
 
+interface BusinessHour {
+  id: string;
+  dayOfWeek: number;
+  dayName: string;
+  isOpen: boolean;
+  openTime: string;
+  cutoffTime: string;
+  updatedAt: string;
+}
+
+function BusinessHoursTab() {
+  const { toast } = useToast();
+
+  const { data: businessHours = [], isLoading, refetch } = useQuery<BusinessHour[]>({
+    queryKey: ["/api/business-hours"],
+  });
+
+  const initializeMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/business-hours/initialize");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/business-hours"] });
+      toast({
+        title: "Business Hours Initialized",
+        description: "Default business hours have been set up.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to Initialize",
+        description: "Failed to initialize business hours.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ dayOfWeek, updates }: { dayOfWeek: number; updates: { isOpen?: boolean; openTime?: string; cutoffTime?: string } }) => {
+      const response = await apiRequest("PATCH", `/api/business-hours/${dayOfWeek}`, updates);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/business-hours"] });
+      toast({
+        title: "Business Hours Updated",
+        description: "The hours have been saved.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to Update",
+        description: "Failed to update business hours.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleToggleOpen = (dayOfWeek: number, isOpen: boolean) => {
+    updateMutation.mutate({ dayOfWeek, updates: { isOpen } });
+  };
+
+  const handleUpdateTime = (dayOfWeek: number, field: 'openTime' | 'cutoffTime', value: string) => {
+    updateMutation.mutate({ dayOfWeek, updates: { [field]: value } });
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="glass-effect border-medium-gray">
+        <CardHeader>
+          <CardTitle className="text-xl text-neon-green flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Business Hours & Daily Cutoff Times
+          </CardTitle>
+          <p className="text-gray-400 text-sm mt-2">
+            Set the last booking time for each day. For example, if you have a half day on Saturday, set the cutoff to 2:00 PM.
+            Customers won't be able to book time slots after the cutoff time.
+          </p>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8 text-gray-400">Loading business hours...</div>
+          ) : businessHours.length === 0 ? (
+            <div className="text-center py-8">
+              <AlertCircle className="h-12 w-12 mx-auto mb-3 text-gray-600" />
+              <p className="text-gray-400 mb-4">Business hours not configured yet.</p>
+              <Button
+                onClick={() => initializeMutation.mutate()}
+                disabled={initializeMutation.isPending}
+                className="bg-neon-green text-deep-black hover:bg-neon-green/80"
+                data-testid="button-initialize-hours"
+              >
+                {initializeMutation.isPending ? "Setting up..." : "Set Up Business Hours"}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {businessHours.map((hour) => (
+                <div
+                  key={hour.id}
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 border rounded-lg p-4 transition-colors ${
+                    hour.isOpen 
+                      ? "bg-deep-black/50 border-gray-700" 
+                      : "bg-red-900/20 border-red-800/50"
+                  }`}
+                  data-testid={`business-hour-${hour.dayOfWeek}`}
+                >
+                  <div className="flex items-center gap-4 min-w-[150px]">
+                    <button
+                      onClick={() => handleToggleOpen(hour.dayOfWeek, !hour.isOpen)}
+                      className={`w-12 h-6 rounded-full transition-colors relative ${
+                        hour.isOpen ? "bg-neon-green" : "bg-gray-600"
+                      }`}
+                      data-testid={`toggle-${hour.dayOfWeek}`}
+                    >
+                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                        hour.isOpen ? "right-1" : "left-1"
+                      }`} />
+                    </button>
+                    <div>
+                      <div className="font-semibold text-white">{hour.dayName}</div>
+                      <div className={`text-xs ${hour.isOpen ? "text-green-400" : "text-red-400"}`}>
+                        {hour.isOpen ? "Open" : "Closed"}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {hour.isOpen && (
+                    <div className="flex flex-wrap items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <Label className="text-gray-400 text-sm whitespace-nowrap">Opens at:</Label>
+                        <Input
+                          type="time"
+                          value={hour.openTime}
+                          onChange={(e) => handleUpdateTime(hour.dayOfWeek, 'openTime', e.target.value)}
+                          className="bg-dark-gray border-gray-600 text-white w-28"
+                          data-testid={`open-time-${hour.dayOfWeek}`}
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label className="text-gray-400 text-sm whitespace-nowrap">Last booking:</Label>
+                        <Input
+                          type="time"
+                          value={hour.cutoffTime}
+                          onChange={(e) => handleUpdateTime(hour.dayOfWeek, 'cutoffTime', e.target.value)}
+                          className="bg-dark-gray border-gray-600 text-white w-28"
+                          data-testid={`cutoff-time-${hour.dayOfWeek}`}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="glass-effect border-medium-gray">
+        <CardHeader>
+          <CardTitle className="text-lg text-neon-green">How It Works</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-gray-300 space-y-2 text-sm">
+            <p>• <strong>Open/Closed Toggle:</strong> Completely block bookings for that day (like Sunday)</p>
+            <p>• <strong>Opens at:</strong> First available booking time of the day</p>
+            <p>• <strong>Last booking:</strong> The cutoff time after which no bookings are allowed (e.g., 2 PM for half days)</p>
+            <p className="text-yellow-400 mt-3">Example: For Saturday half-day, set "Last booking" to 14:00 (2 PM)</p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function PpfLeadsTab() {
   const { toast } = useToast();
   
@@ -745,6 +921,15 @@ export default function AdminDashboard() {
               Blackout Dates
             </Button>
             <Button
+              variant={activeTab === "business-hours" ? "default" : "ghost"}
+              onClick={() => setActiveTab("business-hours")}
+              className={activeTab === "business-hours" ? "bg-neon-green text-deep-black" : "text-gray-400 hover:text-white"}
+              data-testid="tab-business-hours"
+            >
+              <Clock className="mr-2 h-4 w-4" />
+              Business Hours
+            </Button>
+            <Button
               variant={activeTab === "ppf-leads" ? "default" : "ghost"}
               onClick={() => setActiveTab("ppf-leads")}
               className={activeTab === "ppf-leads" ? "bg-neon-green text-deep-black" : "text-gray-400 hover:text-white"}
@@ -1258,6 +1443,10 @@ export default function AdminDashboard() {
 
         {activeTab === "blackout" && (
           <BlackoutDatesTab />
+        )}
+
+        {activeTab === "business-hours" && (
+          <BusinessHoursTab />
         )}
 
         {activeTab === "ppf-leads" && (
