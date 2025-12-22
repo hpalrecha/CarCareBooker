@@ -148,6 +148,17 @@ export const blackoutDates = pgTable("blackout_dates", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Business hours table - cutoff times for each day of the week
+export const businessHours = pgTable("business_hours", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  dayOfWeek: integer("day_of_week").notNull().unique(), // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  dayName: varchar("day_name").notNull(), // Sunday, Monday, etc.
+  isOpen: boolean("is_open").default(true).notNull(),
+  openTime: varchar("open_time").default("09:00").notNull(), // HH:MM format
+  cutoffTime: varchar("cutoff_time").default("18:00").notNull(), // HH:MM format - last booking time
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // PPF & Ceramic Coating leads
 export const ppfLeads = pgTable("ppf_leads", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -187,6 +198,9 @@ export type InsertWhatsappTemplate = typeof whatsappTemplates.$inferInsert;
 
 export type BlackoutDate = typeof blackoutDates.$inferSelect;
 export type InsertBlackoutDate = typeof blackoutDates.$inferInsert;
+
+export type BusinessHour = typeof businessHours.$inferSelect;
+export type InsertBusinessHour = typeof businessHours.$inferInsert;
 
 export type PpfLead = typeof ppfLeads.$inferSelect;
 export type InsertPpfLead = typeof ppfLeads.$inferInsert;
@@ -260,4 +274,15 @@ export const insertPpfLeadSchema = createInsertSchema(ppfLeads).omit({
   id: true,
   createdAt: true,
   status: true,
+});
+
+export const insertBusinessHourSchema = createInsertSchema(businessHours).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export const updateBusinessHourSchema = z.object({
+  isOpen: z.boolean().optional(),
+  openTime: z.string().optional(),
+  cutoffTime: z.string().optional(),
 });
