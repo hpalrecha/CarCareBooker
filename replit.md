@@ -141,6 +141,9 @@ Preferred communication style: Simple, everyday language.
 - Performance monitoring through query optimization
 
 ## Recent Changes
+- **December 22, 2025**: Added Business Hours feature to set daily cutoff times (e.g., Saturday half-day at 2 PM) - prevents bookings after the cutoff
+- **December 22, 2025**: Added Google Ads tracking tag (AW-11467752288) to index.html
+- **December 22, 2025**: Fixed Play icon missing import in admin dashboard Scheduler tab
 - **October 7, 2025**: Added store closure dates (Oct 1-2, 2025) - booking system now prevents appointments on these dates with validation and user notifications
 - **October 7, 2025**: Implemented conditional pricing display throughout the app - shows ₹299 for regular services and ₹8,999 for annual package
 - **October 7, 2025**: Created new "1 Year Ceramic Coating" service at ₹5,999 (discounted from ₹12,000) with comprehensive details including 6-step process, before/after gallery, testimonials, and 8 FAQs
