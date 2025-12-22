@@ -411,6 +411,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
+
+      // Check business hours and cutoff time
+      if (bookingData.appointmentDate && bookingData.appointmentTime) {
+        const appointmentDay = new Date(bookingData.appointmentDate + 'T00:00:00').getDay();
+        const businessHours = await storage.getBusinessHoursForDay(appointmentDay);
+        
+        if (businessHours) {
+          // Check if the store is open on this day
+          if (!businessHours.isOpen) {
+            return res.status(400).json({ 
+              message: `Sorry, we are closed on ${businessHours.dayName}. Please select another day.` 
+            });
+          }
+          
+          // Check if booking time is after cutoff
+          const bookingTime = bookingData.appointmentTime;
+          const cutoffTime = businessHours.cutoffTime;
+          
+          if (bookingTime > cutoffTime) {
+            return res.status(400).json({ 
+              message: `Bookings after ${cutoffTime.replace(':', ':')} are not available on ${businessHours.dayName}. Please select an earlier time slot.` 
+            });
+          }
+          
+          // Check if booking time is before opening
+          const openTime = businessHours.openTime;
+          if (bookingTime < openTime) {
+            return res.status(400).json({ 
+              message: `We open at ${openTime} on ${businessHours.dayName}. Please select a later time slot.` 
+            });
+          }
+        }
+      }
       
       // Skip time slot validation - using static time slots
       // No need to check database for time slot availability
