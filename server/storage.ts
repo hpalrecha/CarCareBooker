@@ -6,6 +6,7 @@ import {
   siteSettings,
   blackoutDates,
   ppfLeads,
+  businessHours,
   type Admin,
   type InsertAdmin,
   type Service,
@@ -20,6 +21,7 @@ import {
   type InsertBlackoutDate,
   type PpfLead,
   type InsertPpfLead,
+  type BusinessHour,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, desc, asc, sql } from "drizzle-orm";
@@ -71,6 +73,12 @@ export interface IStorage {
   createPpfLead(lead: InsertPpfLead): Promise<PpfLead>;
   updatePpfLeadStatus(id: string, status: string): Promise<PpfLead>;
   deletePpfLead(id: string): Promise<void>;
+
+  // Business hours operations
+  getAllBusinessHours(): Promise<BusinessHour[]>;
+  getBusinessHoursForDay(dayOfWeek: number): Promise<BusinessHour | undefined>;
+  initializeBusinessHours(): Promise<BusinessHour[]>;
+  updateBusinessHours(dayOfWeek: number, updates: { isOpen?: boolean; openTime?: string; cutoffTime?: string }): Promise<BusinessHour>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -296,6 +304,46 @@ export class DatabaseStorage implements IStorage {
 
   async deletePpfLead(id: string): Promise<void> {
     await db.delete(ppfLeads).where(eq(ppfLeads.id, id));
+  }
+
+  // Business hours operations
+  async getAllBusinessHours(): Promise<BusinessHour[]> {
+    return await db.select().from(businessHours).orderBy(asc(businessHours.dayOfWeek));
+  }
+
+  async getBusinessHoursForDay(dayOfWeek: number): Promise<BusinessHour | undefined> {
+    const [hours] = await db.select().from(businessHours).where(eq(businessHours.dayOfWeek, dayOfWeek));
+    return hours;
+  }
+
+  async initializeBusinessHours(): Promise<BusinessHour[]> {
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const defaultHours = dayNames.map((dayName, index) => ({
+      dayOfWeek: index,
+      dayName,
+      isOpen: index !== 0, // Sunday closed by default
+      openTime: '09:00',
+      cutoffTime: index === 6 ? '14:00' : '18:00', // Saturday half day (2 PM), others full day (6 PM)
+    }));
+
+    // Insert all days, ignore conflicts (already exists)
+    for (const hours of defaultHours) {
+      const existing = await this.getBusinessHoursForDay(hours.dayOfWeek);
+      if (!existing) {
+        await db.insert(businessHours).values(hours);
+      }
+    }
+
+    return this.getAllBusinessHours();
+  }
+
+  async updateBusinessHours(dayOfWeek: number, updates: { isOpen?: boolean; openTime?: string; cutoffTime?: string }): Promise<BusinessHour> {
+    const [updated] = await db
+      .update(businessHours)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(businessHours.dayOfWeek, dayOfWeek))
+      .returning();
+    return updated;
   }
 }
 

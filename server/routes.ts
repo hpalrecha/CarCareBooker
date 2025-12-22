@@ -263,6 +263,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Business Hours Routes
+  app.get("/api/business-hours", async (req, res) => {
+    try {
+      const hours = await storage.getAllBusinessHours();
+      res.json(hours);
+    } catch (error) {
+      console.error("Get business hours error:", error);
+      res.status(500).json({ message: "Failed to fetch business hours" });
+    }
+  });
+
+  app.post("/api/business-hours/initialize", authenticateAdmin, async (req, res) => {
+    try {
+      const hours = await storage.initializeBusinessHours();
+      res.json(hours);
+    } catch (error) {
+      console.error("Initialize business hours error:", error);
+      res.status(500).json({ message: "Failed to initialize business hours" });
+    }
+  });
+
+  app.patch("/api/business-hours/:dayOfWeek", authenticateAdmin, async (req, res) => {
+    try {
+      const dayOfWeek = parseInt(req.params.dayOfWeek);
+      const { isOpen, openTime, cutoffTime } = req.body;
+      
+      const updated = await storage.updateBusinessHours(dayOfWeek, { isOpen, openTime, cutoffTime });
+      res.json(updated);
+    } catch (error) {
+      console.error("Update business hours error:", error);
+      res.status(400).json({ message: "Failed to update business hours" });
+    }
+  });
+
   // PPF Leads Routes
   app.get("/api/ppf-leads", authenticateAdmin, async (req, res) => {
     try {
