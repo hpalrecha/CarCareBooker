@@ -46,6 +46,17 @@ app.use('/attached_assets', express.static(attachedAssetsPath, {
   }
 }));
 
+// Serve uploaded images statically
+const uploadsPath = path.resolve(import.meta.dirname, '..', 'uploads');
+console.log('Serving uploads from:', uploadsPath);
+app.use('/uploads', express.static(uploadsPath, {
+  maxAge: '1d',
+  setHeaders: (res) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+}));
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;

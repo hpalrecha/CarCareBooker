@@ -63,6 +63,40 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
   const [testimonials, setTestimonials] = useState<Testimonial[]>([{ name: "", rating: 5, comment: "", image: "" }]);
   const [faqItems, setFaqItems] = useState<FAQ[]>([{ question: "", answer: "" }]);
   const [images, setImages] = useState<string[]>([""]);
+  const [uploading, setUploading] = useState<number | null>(null);
+
+  const handleImageUpload = async (index: number, file: File) => {
+    setUploading(index);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+      
+      const data = await response.json();
+      updateImage(index, data.url);
+      toast({
+        title: "Image Uploaded",
+        description: "Image uploaded successfully!",
+      });
+    } catch (error) {
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(null);
+    }
+  };
 
   const form = useForm({
     resolver: zodResolver(insertServiceSchema),
@@ -718,24 +752,56 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {images.map((image, index) => (
-                      <div key={index} className="flex gap-2">
-                        <Input
-                          value={image}
-                          onChange={(e) => updateImage(index, e.target.value)}
-                          className="bg-dark-gray border-gray-600 text-white"
-                          placeholder="Image URL"
-                          data-testid={`input-image-${index}`}
-                        />
-                        <Button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          size="sm"
-                          variant="ghost"
-                          className="text-red-400 hover:text-red-300"
-                          data-testid={`button-remove-image-${index}`}
-                        >
-                          <Minus className="h-4 w-4" />
-                        </Button>
+                      <div key={index} className="space-y-2">
+                        <div className="flex gap-2">
+                          <Input
+                            value={image}
+                            onChange={(e) => updateImage(index, e.target.value)}
+                            className="bg-dark-gray border-gray-600 text-white flex-1"
+                            placeholder="Image URL or upload below"
+                            data-testid={`input-image-${index}`}
+                          />
+                          <label className="cursor-pointer">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleImageUpload(index, file);
+                              }}
+                              data-testid={`input-image-upload-${index}`}
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="border-neon-green text-neon-green hover:bg-neon-green hover:text-deep-black"
+                              disabled={uploading === index}
+                              asChild
+                            >
+                              <span>
+                                {uploading === index ? "Uploading..." : <Upload className="h-4 w-4" />}
+                              </span>
+                            </Button>
+                          </label>
+                          <Button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            size="sm"
+                            variant="ghost"
+                            className="text-red-400 hover:text-red-300"
+                            data-testid={`button-remove-image-${index}`}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {image && (
+                          <div className="flex items-center gap-2">
+                            <img src={image} alt={`Preview ${index + 1}`} className="h-16 w-24 object-cover rounded border border-gray-600" />
+                            <span className="text-xs text-gray-400 truncate flex-1">{image}</span>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </CardContent>

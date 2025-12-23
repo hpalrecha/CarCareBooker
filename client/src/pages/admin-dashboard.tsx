@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import AdminServiceForm from "@/components/admin-service-form";
-import { Plus, Eye, MessageCircle, Edit, Users, Clock, CheckCircle, DollarSign, Settings, Phone, Calendar, Trash2, AlertCircle, Play } from "lucide-react";
+import { Plus, Eye, MessageCircle, Edit, Users, Clock, CheckCircle, DollarSign, Settings, Phone, Calendar, Trash2, AlertCircle, Play, Copy } from "lucide-react";
 import { format } from "date-fns";
 
 function BlackoutDatesTab() {
@@ -688,6 +688,17 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDuplicateService = (service: any) => {
+    const duplicatedService = {
+      ...service,
+      id: undefined,
+      title: `${service.title} (Copy)`,
+      slug: undefined,
+    };
+    setEditingService(duplicatedService);
+    setShowServiceForm(true);
+  };
+
   const updateSettingMutation = useMutation({
     mutationFn: async ({ key, value, description, category, dataType }: any) => {
       const response = await apiRequest("PUT", `/api/settings/${key}`, {
@@ -1191,6 +1202,16 @@ export default function AdminDashboard() {
                           </div>
                         </div>
                         <div className="flex space-x-2 ml-4">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDuplicateService(service)}
+                            className="text-green-400 hover:text-green-300"
+                            title="Duplicate Service"
+                            data-testid={`button-duplicate-service-${service.id}`}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
                           <Button
                             size="sm"
                             variant="ghost"
