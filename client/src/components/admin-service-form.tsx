@@ -191,8 +191,8 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
         faq: faqItems.filter(faq => faq.question.trim() !== ""),
         images: images.filter(img => img.trim() !== ""),
         duration: parseInt(data.duration),
-        price: parseFloat(data.price),
-        originalPrice: data.originalPrice ? parseFloat(data.originalPrice) : null,
+        price: String(data.price),
+        originalPrice: data.originalPrice ? String(data.originalPrice) : null,
       };
       
       if (editingService?.id) {
