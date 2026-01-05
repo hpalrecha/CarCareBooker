@@ -190,7 +190,7 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
         testimonials: testimonials.filter(testimonial => testimonial.name.trim() !== ""),
         faq: faqItems.filter(faq => faq.question.trim() !== ""),
         images: images.filter(img => img.trim() !== ""),
-        duration: parseInt(data.duration),
+        duration: parseInt(String(data.duration), 10) || 60,
         price: String(data.price),
         originalPrice: data.originalPrice ? String(data.originalPrice) : null,
       };
