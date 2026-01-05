@@ -68,25 +68,42 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
 
   const uploadImage = async (file: File): Promise<string | null> => {
     try {
-      const formData = new FormData();
-      formData.append("image", file);
-      
-      const response = await fetch("/api/upload", {
+      // Step 1: Request presigned URL from backend
+      const urlResponse = await fetch("/api/uploads/request-url", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: file.name,
+          size: file.size,
+          contentType: file.type || "image/jpeg",
+        }),
         credentials: "include",
       });
       
-      if (!response.ok) {
+      if (!urlResponse.ok) {
+        throw new Error("Failed to get upload URL");
+      }
+      
+      const { uploadURL, objectPath } = await urlResponse.json();
+      
+      // Step 2: Upload file directly to presigned URL
+      const uploadResponse = await fetch(uploadURL, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type || "image/jpeg" },
+      });
+      
+      if (!uploadResponse.ok) {
         throw new Error("Upload failed");
       }
       
-      const data = await response.json();
       toast({
         title: "Image Uploaded",
         description: "Image uploaded successfully!",
       });
-      return data.url;
+      
+      // Return the object path for serving the file
+      return objectPath;
     } catch (error) {
       toast({
         title: "Upload Failed",

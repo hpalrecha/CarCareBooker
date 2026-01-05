@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { schedulerService } from "./services/scheduler";
+import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import path from "path";
 
 const app = express();
@@ -88,6 +89,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Register object storage routes for persistent file uploads
+  registerObjectStorageRoutes(app);
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
