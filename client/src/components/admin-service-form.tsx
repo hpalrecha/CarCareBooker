@@ -195,19 +195,21 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
         originalPrice: data.originalPrice ? parseFloat(data.originalPrice) : null,
       };
       
-      if (editingService) {
+      if (editingService?.id) {
         const response = await apiRequest("PUT", `/api/services/${editingService.id}`, serviceData);
-        return response.json();
+        const text = await response.text();
+        return text ? JSON.parse(text) : {};
       } else {
         const response = await apiRequest("POST", "/api/services", serviceData);
-        return response.json();
+        const text = await response.text();
+        return text ? JSON.parse(text) : {};
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/services"] });
       toast({
-        title: editingService ? "Service Updated" : "Service Created",
-        description: `The service has been successfully ${editingService ? "updated" : "created"} with full content.`,
+        title: editingService?.id ? "Service Updated" : "Service Created",
+        description: `The service has been successfully ${editingService?.id ? "updated" : "created"} with full content.`,
       });
       onClose();
       resetForm();
