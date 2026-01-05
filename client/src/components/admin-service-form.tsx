@@ -63,10 +63,9 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
   const [testimonials, setTestimonials] = useState<Testimonial[]>([{ name: "", rating: 5, comment: "", image: "" }]);
   const [faqItems, setFaqItems] = useState<FAQ[]>([{ question: "", answer: "" }]);
   const [images, setImages] = useState<string[]>([""]);
-  const [uploading, setUploading] = useState<number | null>(null);
+  const [uploading, setUploading] = useState<string | null>(null);
 
-  const handleImageUpload = async (index: number, file: File) => {
-    setUploading(index);
+  const uploadImage = async (file: File): Promise<string | null> => {
     try {
       const formData = new FormData();
       formData.append("image", file);
@@ -82,20 +81,40 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
       }
       
       const data = await response.json();
-      updateImage(index, data.url);
       toast({
         title: "Image Uploaded",
         description: "Image uploaded successfully!",
       });
+      return data.url;
     } catch (error) {
       toast({
         title: "Upload Failed",
         description: "Failed to upload image. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setUploading(null);
+      return null;
     }
+  };
+
+  const handleImageUpload = async (index: number, file: File) => {
+    setUploading(`image-${index}`);
+    const url = await uploadImage(file);
+    if (url) updateImage(index, url);
+    setUploading(null);
+  };
+
+  const handleBeforeAfterUpload = async (index: number, field: 'before' | 'after', file: File) => {
+    setUploading(`ba-${field}-${index}`);
+    const url = await uploadImage(file);
+    if (url) updateBeforeAfter(index, field, url);
+    setUploading(null);
+  };
+
+  const handleGalleryUpload = async (index: number, file: File) => {
+    setUploading(`gallery-${index}`);
+    const url = await uploadImage(file);
+    if (url) updateGalleryItem(index, 'url', url);
+    setUploading(null);
   };
 
   const form = useForm({
@@ -777,11 +796,11 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
                               size="sm"
                               variant="outline"
                               className="border-neon-green text-neon-green hover:bg-neon-green hover:text-deep-black"
-                              disabled={uploading === index}
+                              disabled={uploading === `image-${index}`}
                               asChild
                             >
                               <span>
-                                {uploading === index ? "Uploading..." : <Upload className="h-4 w-4" />}
+                                {uploading === `image-${index}` ? "..." : <Upload className="h-4 w-4" />}
                               </span>
                             </Button>
                           </label>
@@ -841,25 +860,73 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
                             </Button>
                           </div>
                           <div className="grid md:grid-cols-2 gap-3">
-                            <div>
+                            <div className="space-y-2">
                               <Label className="text-white">Before Image URL</Label>
-                              <Input
-                                value={item.before}
-                                onChange={(e) => updateBeforeAfter(index, 'before', e.target.value)}
-                                className="bg-medium-gray border-gray-600 text-white"
-                                placeholder="Before image URL"
-                                data-testid={`input-before-${index}`}
-                              />
+                              <div className="flex gap-2">
+                                <Input
+                                  value={item.before}
+                                  onChange={(e) => updateBeforeAfter(index, 'before', e.target.value)}
+                                  className="bg-medium-gray border-gray-600 text-white flex-1"
+                                  placeholder="Before image URL"
+                                  data-testid={`input-before-${index}`}
+                                />
+                                <label className="cursor-pointer">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleBeforeAfterUpload(index, 'before', file);
+                                    }}
+                                  />
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-neon-green text-neon-green hover:bg-neon-green hover:text-deep-black"
+                                    disabled={uploading === `ba-before-${index}`}
+                                    asChild
+                                  >
+                                    <span>{uploading === `ba-before-${index}` ? "..." : <Upload className="h-4 w-4" />}</span>
+                                  </Button>
+                                </label>
+                              </div>
+                              {item.before && <img src={item.before} alt="Before preview" className="h-12 w-20 object-cover rounded border border-gray-600" />}
                             </div>
-                            <div>
+                            <div className="space-y-2">
                               <Label className="text-white">After Image URL</Label>
-                              <Input
-                                value={item.after}
-                                onChange={(e) => updateBeforeAfter(index, 'after', e.target.value)}
-                                className="bg-medium-gray border-gray-600 text-white"
-                                placeholder="After image URL"
-                                data-testid={`input-after-${index}`}
-                              />
+                              <div className="flex gap-2">
+                                <Input
+                                  value={item.after}
+                                  onChange={(e) => updateBeforeAfter(index, 'after', e.target.value)}
+                                  className="bg-medium-gray border-gray-600 text-white flex-1"
+                                  placeholder="After image URL"
+                                  data-testid={`input-after-${index}`}
+                                />
+                                <label className="cursor-pointer">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleBeforeAfterUpload(index, 'after', file);
+                                    }}
+                                  />
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-neon-green text-neon-green hover:bg-neon-green hover:text-deep-black"
+                                    disabled={uploading === `ba-after-${index}`}
+                                    asChild
+                                  >
+                                    <span>{uploading === `ba-after-${index}` ? "..." : <Upload className="h-4 w-4" />}</span>
+                                  </Button>
+                                </label>
+                              </div>
+                              {item.after && <img src={item.after} alt="After preview" className="h-12 w-20 object-cover rounded border border-gray-600" />}
                             </div>
                           </div>
                           <div>
@@ -927,17 +994,45 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
                               <Minus className="h-4 w-4" />
                             </Button>
                           </div>
-                          <div>
+                          <div className="space-y-2">
                             <Label className="text-white">
                               {item.type === 'video' ? 'Video Embed URL' : 'Image URL'}
                             </Label>
-                            <Input
-                              value={item.url}
-                              onChange={(e) => updateGalleryItem(index, 'url', e.target.value)}
-                              className="bg-medium-gray border-gray-600 text-white"
-                              placeholder={item.type === 'video' ? 'YouTube embed URL' : 'Image URL'}
-                              data-testid={`input-gallery-url-${index}`}
-                            />
+                            <div className="flex gap-2">
+                              <Input
+                                value={item.url}
+                                onChange={(e) => updateGalleryItem(index, 'url', e.target.value)}
+                                className="bg-medium-gray border-gray-600 text-white flex-1"
+                                placeholder={item.type === 'video' ? 'YouTube embed URL' : 'Image URL'}
+                                data-testid={`input-gallery-url-${index}`}
+                              />
+                              {item.type === 'image' && (
+                                <label className="cursor-pointer">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleGalleryUpload(index, file);
+                                    }}
+                                  />
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-neon-green text-neon-green hover:bg-neon-green hover:text-deep-black"
+                                    disabled={uploading === `gallery-${index}`}
+                                    asChild
+                                  >
+                                    <span>{uploading === `gallery-${index}` ? "..." : <Upload className="h-4 w-4" />}</span>
+                                  </Button>
+                                </label>
+                              )}
+                            </div>
+                            {item.type === 'image' && item.url && (
+                              <img src={item.url} alt="Gallery preview" className="h-12 w-20 object-cover rounded border border-gray-600" />
+                            )}
                           </div>
                           <div>
                             <Label className="text-white">Caption (Optional)</Label>
