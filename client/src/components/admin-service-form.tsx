@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -117,8 +118,15 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
     setUploading(null);
   };
 
+  // Create a modified schema for form validation that accepts string inputs
+  const formSchema = insertServiceSchema.extend({
+    duration: z.coerce.number().min(1, "Duration must be at least 1 minute"),
+    price: z.string().min(1, "Price is required"),
+    originalPrice: z.string().optional(),
+  });
+
   const form = useForm({
-    resolver: zodResolver(insertServiceSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
