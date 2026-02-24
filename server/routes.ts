@@ -534,8 +534,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const todayIST = istNow.toISOString().split('T')[0];
         
         if (bookingData.appointmentDate === todayIST) {
-          const currentHour = istNow.getHours();
-          const currentMinute = istNow.getMinutes();
+          const currentHour = istNow.getUTCHours();
+          const currentMinute = istNow.getUTCMinutes();
           const [slotHour, slotMinute] = bookingData.appointmentTime.split(':').map(Number);
           
           if (slotHour < currentHour || (slotHour === currentHour && slotMinute <= currentMinute)) {

@@ -123,22 +123,25 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
     enabled: !!selectedDate && selectedDate.length > 0,
   });
 
-  // Helper: check if today in IST
+  // Helper: check if today in IST (use getUTC* to avoid double-offset in IST browsers)
   const isTodayIST = (dateStr: string) => {
     const now = new Date();
     const istOffset = 5.5 * 60 * 60 * 1000;
     const istNow = new Date(now.getTime() + istOffset);
-    const todayIST = istNow.toISOString().split('T')[0];
+    const y = istNow.getUTCFullYear();
+    const m = String(istNow.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(istNow.getUTCDate()).padStart(2, '0');
+    const todayIST = `${y}-${m}-${d}`;
     return dateStr === todayIST;
   };
 
-  // Helper: get current IST time as "HH:MM"
+  // Helper: get current IST time as "HH:MM" (use getUTC* to avoid double-offset)
   const getCurrentISTTime = () => {
     const now = new Date();
     const istOffset = 5.5 * 60 * 60 * 1000;
     const istNow = new Date(now.getTime() + istOffset);
-    const hours = istNow.getHours().toString().padStart(2, '0');
-    const minutes = istNow.getMinutes().toString().padStart(2, '0');
+    const hours = istNow.getUTCHours().toString().padStart(2, '0');
+    const minutes = istNow.getUTCMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
   };
 
