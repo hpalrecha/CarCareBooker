@@ -92,6 +92,7 @@ export const services = pgTable("services", {
   ctaText: varchar("cta_text").default("Book Now"),
   urgencyText: varchar("urgency_text"), // e.g., "Only 3 slots left today!"
   guaranteeText: text("guarantee_text"),
+  maxBookingsPerSlot: integer("max_bookings_per_slot").default(3).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
