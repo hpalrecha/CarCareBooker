@@ -141,6 +141,8 @@ Preferred communication style: Simple, everyday language.
 - Performance monitoring through query optimization
 
 ## Recent Changes
+- **February 24, 2026**: Added booking slot restrictions - past time slots are now hidden for today's bookings, and max concurrent bookings per slot is limited (default: 3 per service). Added `maxBookingsPerSlot` field to services with admin control. Backend validation prevents overbooking even if frontend is bypassed.
+- **February 24, 2026**: Integrated Replit Object Storage for persistent image uploads using presigned URL flow
 - **December 22, 2025**: Added Business Hours feature to set daily cutoff times (e.g., Saturday half-day at 2 PM) - prevents bookings after the cutoff
 - **December 22, 2025**: Added Google Ads tracking tag (AW-11467752288) to index.html
 - **December 22, 2025**: Fixed Play icon missing import in admin dashboard Scheduler tab
