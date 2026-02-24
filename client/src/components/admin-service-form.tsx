@@ -140,6 +140,7 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
     duration: z.coerce.number().min(1, "Duration must be at least 1 minute"),
     price: z.string().min(1, "Price is required"),
     originalPrice: z.string().optional(),
+    maxBookingsPerSlot: z.coerce.number().min(1).max(20).default(3),
   });
 
   const form = useForm({
@@ -167,6 +168,7 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
       ctaText: "Book Now",
       urgencyText: "",
       guaranteeText: "",
+      maxBookingsPerSlot: 3,
       isActive: true,
     },
   });
@@ -190,6 +192,7 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
         ctaText: editingService.ctaText || "Book Now",
         urgencyText: editingService.urgencyText || "",
         guaranteeText: editingService.guaranteeText || "",
+        maxBookingsPerSlot: editingService.maxBookingsPerSlot || 3,
         isActive: editingService.isActive !== false,
       });
       
@@ -423,6 +426,28 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
                                 data-testid="input-service-duration"
                               />
                             </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="maxBookingsPerSlot"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-white">Max Bookings Per Slot</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                type="number"
+                                min="1"
+                                max="20"
+                                className="bg-dark-gray border-gray-600 text-white"
+                                placeholder="3"
+                                data-testid="input-max-bookings"
+                              />
+                            </FormControl>
+                            <p className="text-xs text-gray-400 mt-1">Max simultaneous bookings allowed per time slot (default: 3)</p>
                             <FormMessage />
                           </FormItem>
                         )}

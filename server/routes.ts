@@ -430,6 +430,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Slot availability endpoint - returns booking counts for all slots on a given date/service
+  app.get("/api/slot-availability/:serviceId/:date", async (req, res) => {
+    try {
+      const { serviceId, date } = req.params;
+      const service = await storage.getService(serviceId);
+      if (!service) {
+        return res.status(404).json({ message: "Service not found" });
+      }
+
+      const allSlotIds = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
+      const maxPerSlot = service.maxBookingsPerSlot || 3;
+
+      const availability: Record<string, { booked: number; max: number; available: boolean }> = {};
+      for (const slotId of allSlotIds) {
+        const count = await storage.getBookingCountForSlot(serviceId, date, slotId);
+        availability[slotId] = {
+          booked: count,
+          max: maxPerSlot,
+          available: count < maxPerSlot,
+        };
+      }
+
+      res.json({ availability, maxPerSlot });
+    } catch (error) {
+      console.error("Slot availability error:", error);
+      res.status(500).json({ message: "Failed to check slot availability" });
+    }
+  });
+
   // Booking Routes
   app.post("/api/bookings", async (req, res) => {
     try {
@@ -491,13 +520,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Skip time slot validation - using static time slots
-      // No need to check database for time slot availability
-      
       // Get service details
       const service = await storage.getService(bookingData.serviceId);
       if (!service) {
         return res.status(404).json({ message: "Service not found" });
+      }
+
+      // Validate: prevent booking past time slots for today
+      if (bookingData.appointmentDate && bookingData.appointmentTime) {
+        const now = new Date();
+        const istOffset = 5.5 * 60 * 60 * 1000;
+        const istNow = new Date(now.getTime() + istOffset);
+        const todayIST = istNow.toISOString().split('T')[0];
+        
+        if (bookingData.appointmentDate === todayIST) {
+          const currentHour = istNow.getHours();
+          const currentMinute = istNow.getMinutes();
+          const [slotHour, slotMinute] = bookingData.appointmentTime.split(':').map(Number);
+          
+          if (slotHour < currentHour || (slotHour === currentHour && slotMinute <= currentMinute)) {
+            return res.status(400).json({ 
+              message: "This time slot has already passed. Please select a future time slot." 
+            });
+          }
+        }
+      }
+
+      // Validate: check max bookings per slot limit
+      if (bookingData.appointmentDate && bookingData.timeSlotId) {
+        const maxPerSlot = service.maxBookingsPerSlot || 3;
+        const currentCount = await storage.getBookingCountForSlot(
+          bookingData.serviceId, 
+          bookingData.appointmentDate, 
+          bookingData.timeSlotId
+        );
+        
+        if (currentCount >= maxPerSlot) {
+          return res.status(400).json({ 
+            message: `This time slot is fully booked (max ${maxPerSlot} bookings). Please select a different time slot.` 
+          });
+        }
       }
 
       // Get booking fee amount from settings or use default

@@ -114,28 +114,72 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
     { id: "18:00", startTime: "6:00 PM", endTime: "7:00 PM", isAvailable: true },
   ];
 
-  // Filter time slots based on business hours for selected date
+  // Fetch slot availability when date is selected
+  const { data: slotAvailability, isLoading: slotsLoading } = useQuery<{
+    availability: Record<string, { booked: number; max: number; available: boolean }>;
+    maxPerSlot: number;
+  }>({
+    queryKey: ["/api/slot-availability", service.id, selectedDate],
+    enabled: !!selectedDate && selectedDate.length > 0,
+  });
+
+  // Helper: check if today in IST
+  const isTodayIST = (dateStr: string) => {
+    const now = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const istNow = new Date(now.getTime() + istOffset);
+    const todayIST = istNow.toISOString().split('T')[0];
+    return dateStr === todayIST;
+  };
+
+  // Helper: get current IST time as "HH:MM"
+  const getCurrentISTTime = () => {
+    const now = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const istNow = new Date(now.getTime() + istOffset);
+    const hours = istNow.getHours().toString().padStart(2, '0');
+    const minutes = istNow.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
+  // Filter time slots based on business hours, past time, and availability
   const timeSlots = (() => {
     if (!selectedDate || businessHours.length === 0) {
       return allTimeSlots;
     }
     
-    // Get day of week from selected date
     const selectedDay = new Date(selectedDate + 'T00:00:00').getDay();
     const dayHours = businessHours.find(h => h.dayOfWeek === selectedDay);
     
     if (!dayHours || !dayHours.isOpen) {
-      return []; // Store closed on this day
+      return [];
     }
     
-    // Filter slots based on opening and cutoff times
-    return allTimeSlots.filter(slot => {
-      const slotTime = slot.id; // e.g., "10:00", "14:00"
-      return slotTime >= dayHours.openTime && slotTime <= dayHours.cutoffTime;
-    });
+    const isToday = isTodayIST(selectedDate);
+    const currentTime = isToday ? getCurrentISTTime() : "00:00";
+    
+    return allTimeSlots
+      .filter(slot => {
+        const slotTime = slot.id;
+        if (slotTime < dayHours.openTime || slotTime > dayHours.cutoffTime) {
+          return false;
+        }
+        if (isToday && slotTime <= currentTime) {
+          return false;
+        }
+        return true;
+      })
+      .map(slot => {
+        const avail = slotAvailability?.availability?.[slot.id];
+        const isFull = avail ? !avail.available : false;
+        return {
+          ...slot,
+          isAvailable: !isFull,
+          bookedCount: avail?.booked || 0,
+          maxBookings: avail?.max || 3,
+        };
+      });
   })();
-
-  const slotsLoading = false;
 
   const bookingMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -584,16 +628,27 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Select Time</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value} disabled={!selectedDate}>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={!selectedDate || slotsLoading}>
                             <FormControl>
                               <SelectTrigger className="bg-dark-gray border-gray-600 text-white" data-testid="select-time">
-                                <SelectValue placeholder="Choose time slot" />
+                                <SelectValue placeholder={slotsLoading ? "Loading slots..." : "Choose time slot"} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="bg-dark-gray border-gray-600">
-                              {timeSlots.filter((slot: any) => slot.isAvailable).map((slot: any) => (
-                                <SelectItem key={slot.id} value={slot.id} data-testid={`option-slot-${slot.id}`}>
+                              {timeSlots.length === 0 && (
+                                <div className="px-3 py-2 text-sm text-gray-400">No available slots for this date</div>
+                              )}
+                              {timeSlots.map((slot: any) => (
+                                <SelectItem 
+                                  key={slot.id} 
+                                  value={slot.id} 
+                                  disabled={!slot.isAvailable}
+                                  data-testid={`option-slot-${slot.id}`}
+                                  className={!slot.isAvailable ? "opacity-50" : ""}
+                                >
                                   {slot.startTime} - {slot.endTime}
+                                  {!slot.isAvailable && " (Full)"}
+                                  {slot.isAvailable && slot.bookedCount > 0 && ` (${slot.maxBookings - slot.bookedCount} left)`}
                                 </SelectItem>
                               ))}
                             </SelectContent>

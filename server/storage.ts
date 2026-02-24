@@ -53,6 +53,7 @@ export interface IStorage {
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBooking(id: string, booking: Partial<InsertBooking>): Promise<Booking>;
   getBookingsByStatus(status: string): Promise<Booking[]>;
+  getBookingCountForSlot(serviceId: string, date: string, timeSlotId: string): Promise<number>;
 
   // Settings operations
   getSetting(key: string): Promise<SiteSetting | undefined>;
@@ -218,6 +219,22 @@ export class DatabaseStorage implements IStorage {
 
   async getBookingsByStatus(status: string): Promise<Booking[]> {
     return await db.select().from(bookings).where(eq(bookings.paymentStatus, status));
+  }
+
+  async getBookingCountForSlot(serviceId: string, date: string, timeSlotId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(bookings)
+      .where(
+        and(
+          eq(bookings.serviceId, serviceId),
+          eq(bookings.appointmentDate, date),
+          eq(bookings.timeSlotId, timeSlotId),
+          sql`${bookings.paymentStatus} != 'failed'`,
+          sql`${bookings.bookingStatus} != 'cancelled'`
+        )
+      );
+    return result[0]?.count || 0;
   }
 
   async getBookingByPaymentOrderId(orderId: string): Promise<Booking | undefined> {
