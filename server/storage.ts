@@ -34,6 +34,7 @@ export interface IStorage {
 
   // Service operations
   getAllServices(): Promise<Service[]>;
+  getAllServicesAdmin(): Promise<Service[]>;
   getService(id: string): Promise<Service | undefined>;
   getServiceBySlug(slug: string): Promise<Service | undefined>;
   createService(service: InsertService): Promise<Service>;
@@ -102,6 +103,10 @@ export class DatabaseStorage implements IStorage {
   // Service operations
   async getAllServices(): Promise<Service[]> {
     return await db.select().from(services).where(eq(services.isActive, true)).orderBy(asc(services.title));
+  }
+
+  async getAllServicesAdmin(): Promise<Service[]> {
+    return await db.select().from(services).orderBy(asc(services.title));
   }
 
   async getService(id: string): Promise<Service | undefined> {

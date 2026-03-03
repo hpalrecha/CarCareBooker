@@ -595,7 +595,7 @@ export default function AdminDashboard() {
   });
 
   const { data: services, isLoading: servicesLoading } = useQuery({
-    queryKey: ["/api/services"],
+    queryKey: ["/api/admin/services"],
     enabled: isAuthenticated,
   });
 
@@ -673,7 +673,7 @@ export default function AdminDashboard() {
     if (confirm("Are you sure you want to delete this service?")) {
       try {
         await apiRequest("DELETE", `/api/services/${serviceId}`);
-        queryClient.invalidateQueries({ queryKey: ["/api/services"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/services"] });
         toast({
           title: "Service Deleted",
           description: "Service has been deleted successfully.",

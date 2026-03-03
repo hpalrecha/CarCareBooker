@@ -234,7 +234,7 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/services"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/services"] });
       toast({
         title: editingService?.id ? "Service Updated" : "Service Created",
         description: `The service has been successfully ${editingService?.id ? "updated" : "created"} with full content.`,

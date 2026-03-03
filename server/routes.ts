@@ -141,6 +141,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/admin/services", authenticateAdmin, async (req, res) => {
+    try {
+      const services = await storage.getAllServicesAdmin();
+      res.json(services);
+    } catch (error) {
+      console.error("Get admin services error:", error);
+      res.status(500).json({ message: "Failed to fetch services" });
+    }
+  });
+
   app.get("/api/services/:id", async (req, res) => {
     try {
       // Check if this is a slug or an ID
@@ -157,6 +167,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!service) {
         return res.status(404).json({ message: "Service not found" });
+      }
+      if (!service.isActive) {
+        return res.status(404).json({ message: "This service is not currently available" });
       }
       res.json(service);
     } catch (error) {
@@ -524,6 +537,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const service = await storage.getService(bookingData.serviceId);
       if (!service) {
         return res.status(404).json({ message: "Service not found" });
+      }
+      if (!service.isActive) {
+        return res.status(400).json({ message: "This service is not currently available for booking." });
       }
 
       // Validate: prevent booking past time slots for today
