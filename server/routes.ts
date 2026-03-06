@@ -205,9 +205,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         body.duration = parseInt(String(body.duration), 10);
       }
 
+      // Handle isActive toggle separately with a dedicated method to ensure it persists reliably
+      if (body.isActive !== undefined) {
+        await storage.setServiceActiveStatus(req.params.id, Boolean(body.isActive));
+        delete body.isActive;
+      }
+
       // For partial updates, we don't need strict validation
       // Just pass the cleaned data directly to storage
-      const service = await storage.updateService(req.params.id, body);
+      if (Object.keys(body).length > 0) {
+        await storage.updateService(req.params.id, body);
+      }
+      const service = await storage.getService(req.params.id);
       res.json(service);
     } catch (error) {
       console.error("Update service error:", error);

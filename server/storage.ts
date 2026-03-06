@@ -39,6 +39,7 @@ export interface IStorage {
   getServiceBySlug(slug: string): Promise<Service | undefined>;
   createService(service: InsertService): Promise<Service>;
   updateService(id: string, service: Partial<InsertService>): Promise<Service>;
+  setServiceActiveStatus(id: string, isActive: boolean): Promise<void>;
   deleteService(id: string): Promise<void>;
 
   // Time slot operations
@@ -132,6 +133,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(services.id, id))
       .returning();
     return updatedService;
+  }
+
+  async setServiceActiveStatus(id: string, isActive: boolean): Promise<void> {
+    await db.update(services).set({ isActive }).where(eq(services.id, id));
   }
 
   async deleteService(id: string): Promise<void> {
