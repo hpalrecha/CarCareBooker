@@ -701,6 +701,19 @@ export default function AdminDashboard() {
     },
   });
 
+  const activateServiceMutation = useMutation({
+    mutationFn: async (serviceId: string) => {
+      await apiRequest("PUT", `/api/services/${serviceId}`, { isActive: true });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/services"] });
+      toast({ title: "Service Activated", description: "The service is now visible to customers." });
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed", description: error.message || "Could not activate service.", variant: "destructive" });
+    },
+  });
+
   const handleDuplicateService = (service: any) => {
     const duplicatedService = {
       ...service,
@@ -1235,12 +1248,12 @@ export default function AdminDashboard() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          {service.isActive && (
+                          {service.isActive ? (
                             <Button
                               size="sm"
                               variant="ghost"
                               onClick={() => {
-                                if (confirm(`Deactivate "${service.title}"? It will be hidden from customers and cannot be reactivated from here.`)) {
+                                if (confirm(`Deactivate "${service.title}"? It will be hidden from customers.`)) {
                                   deactivateServiceMutation.mutate(service.id);
                                 }
                               }}
@@ -1250,6 +1263,18 @@ export default function AdminDashboard() {
                               disabled={deactivateServiceMutation.isPending}
                             >
                               <span className="text-xs font-medium">Deactivate</span>
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => activateServiceMutation.mutate(service.id)}
+                              className="text-green-400 hover:text-green-300"
+                              title="Activate Service"
+                              data-testid={`button-activate-service-${service.id}`}
+                              disabled={activateServiceMutation.isPending}
+                            >
+                              <span className="text-xs font-medium">Activate</span>
                             </Button>
                           )}
                           <Button
