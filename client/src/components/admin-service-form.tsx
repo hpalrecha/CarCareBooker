@@ -169,7 +169,7 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
       urgencyText: "",
       guaranteeText: "",
       maxBookingsPerSlot: 3,
-      isActive: true,
+      isActive: false,
     },
   });
 
@@ -224,11 +224,12 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
       };
       
       if (editingService?.id) {
-        const response = await apiRequest("PUT", `/api/services/${editingService.id}`, serviceData);
+        const { isActive: _stripped, ...editPayload } = serviceData;
+        const response = await apiRequest("PUT", `/api/services/${editingService.id}`, editPayload);
         const text = await response.text();
         return text ? JSON.parse(text) : {};
       } else {
-        const response = await apiRequest("POST", "/api/services", serviceData);
+        const response = await apiRequest("POST", "/api/services", { ...serviceData, isActive: false });
         const text = await response.text();
         return text ? JSON.parse(text) : {};
       }

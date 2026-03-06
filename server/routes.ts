@@ -204,6 +204,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (body.duration !== undefined) {
         body.duration = parseInt(String(body.duration), 10);
       }
+
+      // Prevent reactivation: if the service is currently inactive, never allow setting isActive back to true
+      if (body.isActive === true) {
+        const existing = await storage.getService(req.params.id);
+        if (existing && !existing.isActive) {
+          delete body.isActive;
+        }
+      }
       
       // For partial updates, we don't need strict validation
       // Just pass the cleaned data directly to storage

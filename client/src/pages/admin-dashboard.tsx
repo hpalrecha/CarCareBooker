@@ -688,12 +688,26 @@ export default function AdminDashboard() {
     }
   };
 
+  const deactivateServiceMutation = useMutation({
+    mutationFn: async (serviceId: string) => {
+      await apiRequest("PUT", `/api/services/${serviceId}`, { isActive: false });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/services"] });
+      toast({ title: "Service Deactivated", description: "The service is now hidden from customers." });
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed", description: error.message || "Could not deactivate service.", variant: "destructive" });
+    },
+  });
+
   const handleDuplicateService = (service: any) => {
     const duplicatedService = {
       ...service,
       id: undefined,
       title: `${service.title} (Copy)`,
       slug: undefined,
+      isActive: false,
     };
     setEditingService(duplicatedService);
     setShowServiceForm(true);
@@ -1221,6 +1235,23 @@ export default function AdminDashboard() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
+                          {service.isActive && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                if (confirm(`Deactivate "${service.title}"? It will be hidden from customers and cannot be reactivated from here.`)) {
+                                  deactivateServiceMutation.mutate(service.id);
+                                }
+                              }}
+                              className="text-orange-400 hover:text-orange-300"
+                              title="Deactivate Service"
+                              data-testid={`button-deactivate-service-${service.id}`}
+                              disabled={deactivateServiceMutation.isPending}
+                            >
+                              <span className="text-xs font-medium">Deactivate</span>
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="ghost"
