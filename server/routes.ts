@@ -1106,9 +1106,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing signature" });
       }
 
+      // Razorpay signs the exact bytes it sent, so the HMAC must run over the raw buffer
+      // captured by the express.json() verify hook in index.ts — NOT over req.body, which
+      // the global parser has already turned into an object.
+      const rawBody: Buffer | undefined = (req as any).rawBody;
+      if (!rawBody || !Buffer.isBuffer(rawBody)) {
+        console.error(
+          "❌ Razorpay webhook: raw body unavailable — cannot verify signature. " +
+            "The express.json() verify hook in server/index.ts must be present."
+        );
+        return res.status(500).json({ message: "Cannot verify signature" });
+      }
+
       const expectedSignature = crypto
         .createHmac("sha256", webhookSecret)
-        .update(req.body)
+        .update(rawBody)
         .digest("hex");
 
       // Constant-time compare; never log the secret or the full signature.
@@ -1123,7 +1135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid signature" });
       }
 
-      const event = JSON.parse(req.body.toString());
+      const event = JSON.parse(rawBody.toString("utf8"));
       console.log("Razorpay webhook event:", event.event);
 
       // Handle payment success events
