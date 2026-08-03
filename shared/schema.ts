@@ -128,6 +128,21 @@ export const bookings = pgTable("bookings", {
   emailSent: boolean("email_sent").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+
+  // --- Integration tracking (all nullable; added 2026-08 for ERP/notification observability) ---
+  // When the Razorpay signature was verified — tracked separately from paymentStatus.
+  paymentVerifiedAt: timestamp("payment_verified_at"),
+  // ERP sync lifecycle: pending | processing | synced | failed | retrying | duplicate
+  erpSyncStatus: varchar("erp_sync_status"),
+  erpDocumentType: varchar("erp_document_type"), // e.g. "Appointment"
+  erpDocumentId: varchar("erp_document_id"),     // e.g. "APMT-<name>-1234"
+  erpSyncError: text("erp_sync_error"),          // safe summary only — never payloads or tokens
+  erpSyncedAt: timestamp("erp_synced_at"),
+  erpSyncAttempts: integer("erp_sync_attempts").default(0),
+  n8nExecutionId: varchar("n8n_execution_id"),
+  // WhatsApp provider message IDs — a boolean is not proof of delivery
+  customerWhatsappMessageId: varchar("customer_whatsapp_message_id"),
+  internalNotificationMessageId: varchar("internal_notification_message_id"),
 });
 
 // Session storage for admin auth

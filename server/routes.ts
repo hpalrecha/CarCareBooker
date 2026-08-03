@@ -6,6 +6,7 @@ import express from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import { storage } from "./storage";
 import { authenticateAdmin, hashPassword, comparePassword } from "./middleware/auth";
 import { createPaymentOrder, verifyPaymentSignature } from "./services/payment";
@@ -14,6 +15,81 @@ import { schedulerService } from "./services/scheduler";
 import { sendBookingConfirmationEmail } from "./services/email";
 import { sendBookingWebhook } from "./services/webhook";
 import { z } from "zod";
+
+/** Shape returned to API callers so payment success is never conflated with ERP success. */
+interface ErpSyncOutcome {
+  status: "sent" | "failed" | "skipped";
+  retryable?: boolean;
+  reason?: string;
+}
+
+/**
+ * Idempotently push a PAID booking to n8n -> ERPNext, recording the outcome on the booking.
+ *
+ * Safe to call from both the browser confirmation and the Razorpay server webhook, and safe to
+ * call repeatedly: a booking already marked `synced` is skipped rather than re-sent, so webhook
+ * retries and double-delivery cannot create duplicate ERP documents.
+ *
+ * Never throws — ERP failure must not roll back a captured payment.
+ */
+async function syncBookingToErp(
+  bookingId: string,
+  opts: { force?: boolean } = {},
+): Promise<ErpSyncOutcome> {
+  try {
+    const booking = await storage.getBooking(bookingId);
+    if (!booking) {
+      return { status: "skipped", reason: "booking_not_found" };
+    }
+
+    // Gate: ERP documents are only created for confirmed-paid bookings.
+    if (booking.paymentStatus !== "paid") {
+      console.log(`⏭️  [erp-sync] booking=${bookingId} skipped — paymentStatus=${booking.paymentStatus}`);
+      return { status: "skipped", reason: "payment_not_confirmed" };
+    }
+
+    // Idempotency: already synced -> do not send again.
+    if (booking.erpSyncStatus === "synced" && !opts.force) {
+      console.log(`⏭️  [erp-sync] booking=${bookingId} already synced — skipping duplicate send`);
+      return { status: "skipped", reason: "already_synced" };
+    }
+
+    // Guard against two concurrent deliveries (browser + webhook arriving together).
+    if (booking.erpSyncStatus === "processing" && !opts.force) {
+      console.log(`⏭️  [erp-sync] booking=${bookingId} already in flight — skipping`);
+      return { status: "skipped", reason: "in_progress" };
+    }
+
+    await storage.updateBooking(bookingId, {
+      erpSyncStatus: "processing",
+      erpSyncAttempts: (booking.erpSyncAttempts ?? 0) + 1,
+    });
+
+    const service = await storage.getService(booking.serviceId);
+    const result = await sendBookingWebhook(booking, service || null);
+
+    if (result.ok) {
+      await storage.updateBooking(bookingId, {
+        erpSyncStatus: "synced",
+        erpSyncedAt: new Date(),
+        erpSyncError: null,
+        n8nExecutionId: result.n8nExecutionId ?? null,
+      });
+      return { status: "sent" };
+    }
+
+    await storage.updateBooking(bookingId, {
+      erpSyncStatus: "failed",
+      erpSyncError: `[${result.errorKind ?? "unknown"}] ${result.error ?? "unknown error"}`.slice(0, 500),
+    });
+    return { status: "failed", retryable: result.retryable, reason: result.errorKind };
+  } catch (error) {
+    // Defensive: a bug in tracking must not break payment confirmation.
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error(`❌ [erp-sync] unexpected error for booking=${bookingId}: ${msg}`);
+    return { status: "failed", retryable: true, reason: "internal_error" };
+  }
+}
 
 // Setup multer for image uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -606,8 +682,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if payment service is configured
-      if (!process.env.RAZORPAY_KEY_ID && !process.env.RAZORPAY_TEST_KEY_ID) {
-        // For development, create booking without payment
+      const razorpayConfigured = !!(process.env.RAZORPAY_KEY_ID || process.env.RAZORPAY_TEST_KEY_ID);
+
+      // In production a missing Razorpay credential must STOP order creation. Previously it
+      // silently fell through to the development path, creating a `dev_order_` booking marked
+      // "completed" without any payment being taken — a booking on 2026-07-31 did exactly that.
+      if (!razorpayConfigured && process.env.NODE_ENV === "production") {
+        console.error(
+          "❌ Razorpay is not configured in production — refusing to create a booking. " +
+            "Set RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET in the deployment environment."
+        );
+        return res.status(503).json({
+          message:
+            "Online payment is temporarily unavailable. Please try again shortly or contact us.",
+        });
+      }
+
+      if (!razorpayConfigured) {
+        // Development only (NODE_ENV !== "production"): create booking without payment.
         const booking = await storage.createBooking({
           serviceId: bookingData.serviceId,
           timeSlotId: bookingData.timeSlotId,
@@ -622,15 +714,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         // Skip marking time slot as unavailable - using static time slots
-        
-        // Send webhook for booking creation (development mode)
-        try {
-          await sendBookingWebhook(booking, service, 'booking_created');
-        } catch (webhookError) {
-          console.error("Failed to send booking webhook (development):", webhookError);
-          // Don't fail the booking if webhook fails
-        }
-        
+
+        // ERP sync is deliberately NOT triggered here. Creating an ERP Appointment before
+        // payment produced appointments for unpaid bookings; it now happens only once the
+        // payment is confirmed paid (see syncBookingToErp).
+        await storage.updateBooking(booking.id, { erpSyncStatus: "pending" });
+
         return res.json({
           booking,
           paymentOrder: {
@@ -664,15 +753,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Skip marking time slot as unavailable - using static time slots
-      
-      // Send webhook for booking creation (production mode)
-      try {
-        await sendBookingWebhook(booking, service, 'booking_created');
-      } catch (webhookError) {
-        console.error("Failed to send booking webhook (production):", webhookError);
-        // Don't fail the booking if webhook fails
-      }
-      
+
+      // ERP sync is deliberately NOT triggered here — only after payment is confirmed paid.
+      await storage.updateBooking(booking.id, { erpSyncStatus: "pending" });
+
       res.json({
         booking,
         paymentOrder: {
@@ -734,11 +818,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("✅ Found booking:", booking.id, "for customer:", booking.customerName);
 
+      // Idempotency: if the Razorpay server webhook already confirmed this booking, do not
+      // re-send the customer's WhatsApp. Still reconcile ERP, which is itself idempotent.
+      const alreadyPaid = booking.paymentStatus === "paid";
+      if (alreadyPaid) {
+        console.log(`ℹ️  Booking ${booking.id} already marked paid — skipping duplicate notification`);
+      }
+
       // Update booking status
       console.log("💳 Updating booking status to paid...");
       const updatedBooking = await storage.updateBooking(booking.id, {
         paymentId: razorpay_payment_id,
         paymentStatus: "paid",
+        paymentVerifiedAt: booking.paymentVerifiedAt ?? new Date(),
       });
       console.log("✅ Booking status updated successfully");
 
@@ -746,18 +838,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const service = await storage.getService(booking.serviceId);
       const timeSlot = await storage.getTimeSlot(booking.timeSlotId);
 
-      let whatsappSent = false;
-      if (service) {
+      let whatsappSent = booking.whatsappSent ?? false;
+      if (service && !alreadyPaid) {
         // Send WhatsApp confirmation using the proper service
         console.log("📱 Sending WhatsApp confirmation...");
-        console.log("📱 Customer phone:", booking.customerPhone);
-        console.log("📱 Customer name:", booking.customerName);
-        console.log("📱 Service title:", service.title);
-        console.log("📱 Appointment date:", booking.appointmentDate);
-        console.log("📱 Appointment time:", booking.appointmentTime);
-        console.log("📱 Amount:", booking.amount);
-        
-        whatsappSent = await whatsappService.sendBookingConfirmation(
+
+        const waResult = await whatsappService.sendBookingConfirmation(
           booking.customerPhone,
           booking.customerName,
           service.title,
@@ -765,7 +851,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           booking.appointmentTime || "10:00 AM",
           booking.amount.toString()
         );
-        console.log("📱 WhatsApp sent result:", whatsappSent);
+        whatsappSent = waResult.success;
+        console.log(
+          `📱 WhatsApp result: success=${waResult.success} messageId=${waResult.messageId ?? "(none)"}`
+        );
 
         // Send email confirmation (if email service is configured)
         let emailSent = false;
@@ -780,22 +869,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateBooking(booking.id, {
           whatsappSent,
           emailSent,
+          customerWhatsappMessageId: waResult.messageId ?? null,
         });
       }
 
-      // Send webhook for booking payment confirmation
-      try {
-        await sendBookingWebhook(updatedBooking, service || null, 'booking_payment_confirmed');
-      } catch (webhookError) {
-        console.error("Failed to send payment confirmation webhook:", webhookError);
-        // Don't fail the payment confirmation if webhook fails
-      }
+      // Push to n8n -> ERPNext. Idempotent, and never throws.
+      const erpSync = await syncBookingToErp(booking.id);
 
-      console.log("🎉 Payment confirmation complete!");
-      res.json({ 
+      console.log(`🎉 Payment confirmation complete! erpSync=${erpSync.status}`);
+      // The payment result and the ERP result are reported separately: a failed ERP sync must
+      // not present as a failed payment, and a successful payment must not imply ERP succeeded.
+      res.json({
         message: "Payment confirmed",
-        booking: updatedBooking,
+        booking: await storage.getBooking(booking.id),
         whatsappSent,
+        paymentStatus: "paid",
+        erpSync,
         success: true
       });
     } catch (error) {
@@ -839,22 +928,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Service not found" });
       }
 
-      // Send WhatsApp notification
-      const whatsappSent = await whatsappService.sendBookingConfirmation({
-        customerName: booking.customerName,
-        customerPhone: booking.customerPhone,
-        serviceName: service.title,
-        date: new Date().toLocaleDateString(),
-        time: booking.timeSlotId,
-        amount: booking.amount,
-        bookingId: booking.id,
-      });
+      // Send WhatsApp notification.
+      // (Previously passed a single object to a positional-argument function, so this route
+      //  could never have worked — TS2554 in the baseline typecheck confirmed it.)
+      const waResult = await whatsappService.sendBookingConfirmation(
+        booking.customerPhone,
+        booking.customerName,
+        service.title,
+        booking.appointmentDate || new Date().toLocaleDateString(),
+        booking.appointmentTime || booking.timeSlotId,
+        booking.amount.toString()
+      );
 
-      if (whatsappSent) {
-        await storage.updateBooking(booking.id, { whatsappSent: true });
-        res.json({ message: "WhatsApp notification sent successfully" });
+      if (waResult.success) {
+        await storage.updateBooking(booking.id, {
+          whatsappSent: true,
+          customerWhatsappMessageId: waResult.messageId ?? null,
+        });
+        res.json({
+          message: "WhatsApp notification sent successfully",
+          messageId: waResult.messageId,
+        });
       } else {
-        res.status(500).json({ message: "Failed to send WhatsApp notification" });
+        res.status(500).json({
+          message: "Failed to send WhatsApp notification",
+          error: waResult.error,
+        });
       }
     } catch (error) {
       console.error("Send WhatsApp error:", error);
@@ -957,7 +1056,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get service for WhatsApp
       const service = await storage.getService(booking.serviceId);
       if (service) {
-        const whatsappSent = await whatsappService.sendBookingConfirmation(
+        const waResult = await whatsappService.sendBookingConfirmation(
           booking.customerPhone,
           booking.customerName,
           service.title,
@@ -965,13 +1064,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           booking.appointmentTime || "10:00 AM",
           booking.amount.toString()
         );
-        
-        console.log("🧪 Test WhatsApp result:", whatsappSent);
-        
-        res.json({ 
-          success: true, 
+
+        console.log(
+          `🧪 Test WhatsApp result: success=${waResult.success} messageId=${waResult.messageId ?? "(none)"}`
+        );
+
+        res.json({
+          success: true,
           message: "Test payment confirmation complete",
-          whatsappSent,
+          whatsappSent: waResult.success,
+          whatsappMessageId: waResult.messageId,
           booking: booking
         });
       } else {
@@ -988,18 +1090,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const webhookSignature = req.headers['x-razorpay-signature'] as string;
       const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
-      
-      if (webhookSecret) {
-        const crypto = require("crypto");
-        const expectedSignature = crypto
-          .createHmac("sha256", webhookSecret)
-          .update(req.body)
-          .digest("hex");
-        
-        if (expectedSignature !== webhookSignature) {
-          console.error("Invalid webhook signature");
-          return res.status(400).json({ message: "Invalid signature" });
-        }
+
+      // FAIL CLOSED. Previously a missing secret skipped verification entirely, which let
+      // anyone forge a payment event. No secret => the endpoint is disabled, not open.
+      if (!webhookSecret) {
+        console.error(
+          "❌ RAZORPAY_WEBHOOK_SECRET is not configured — rejecting webhook. " +
+            "Set the secret in the deployment environment to enable server-side confirmation."
+        );
+        return res.status(503).json({ message: "Webhook not configured" });
+      }
+
+      if (!webhookSignature) {
+        console.error("❌ Razorpay webhook rejected: missing x-razorpay-signature header");
+        return res.status(400).json({ message: "Missing signature" });
+      }
+
+      const expectedSignature = crypto
+        .createHmac("sha256", webhookSecret)
+        .update(req.body)
+        .digest("hex");
+
+      // Constant-time compare; never log the secret or the full signature.
+      const expectedBuf = Buffer.from(expectedSignature, "utf8");
+      const receivedBuf = Buffer.from(webhookSignature, "utf8");
+      const signatureValid =
+        expectedBuf.length === receivedBuf.length &&
+        crypto.timingSafeEqual(expectedBuf, receivedBuf);
+
+      if (!signatureValid) {
+        console.error("❌ Razorpay webhook rejected: invalid signature");
+        return res.status(400).json({ message: "Invalid signature" });
       }
 
       const event = JSON.parse(req.body.toString());
@@ -1009,17 +1130,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (event.event === "payment.captured" || event.event === "payment.authorized") {
         const payment = event.payload.payment.entity;
         const orderId = payment.order_id;
-        
-        // Find booking by payment order ID
+
+        // Find booking by Razorpay order ID
         const booking = await storage.getBookingByPaymentOrderId(orderId);
-        if (booking && booking.status === "pending") {
-          await storage.updateBooking(booking.id, {
-            status: "paid",
-            paymentId: payment.id,
-          });
-          
-          console.log(`Booking ${booking.id} marked as paid via webhook`);
+
+        if (!booking) {
+          // Unknown order: ack so Razorpay stops retrying an event we can never satisfy.
+          console.warn(`⚠️  Razorpay webhook: no booking for order ${orderId}`);
+          return res.status(200).json({ received: true, matched: false });
         }
+
+        // Correct schema fields: the column is `paymentStatus`, not `status`.
+        // Idempotent: a replayed webhook re-runs ERP reconciliation but does not re-pay.
+        if (booking.paymentStatus !== "paid") {
+          await storage.updateBooking(booking.id, {
+            paymentStatus: "paid",
+            paymentId: payment.id,
+            paymentVerifiedAt: new Date(),
+          });
+          console.log(`✅ Booking ${booking.id} marked as paid via Razorpay webhook`);
+        } else {
+          console.log(`ℹ️  Booking ${booking.id} already paid — webhook replay, no change`);
+        }
+
+        // Complete ERP sync server-side so it no longer depends on the customer's browser
+        // returning to /api/confirm-payment. syncBookingToErp is idempotent.
+        const erpSync = await syncBookingToErp(booking.id);
+        console.log(`   erpSync=${erpSync.status} for booking=${booking.id}`);
+
+        return res.status(200).json({ received: true, matched: true, erpSync });
       }
 
       res.status(200).json({ received: true });
@@ -1166,7 +1305,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (service) {
         // Send WhatsApp confirmation
-        const whatsappSent = await whatsappService.sendBookingConfirmation(
+        const waResult = await whatsappService.sendBookingConfirmation(
           booking.customerPhone,
           booking.customerName,
           service.title,
@@ -1174,26 +1313,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
           booking.appointmentTime || "10:00 AM",
           booking.amount
         );
-        
+
         // Update notification status
         await storage.updateBooking(bookingId, {
-          whatsappSent,
+          whatsappSent: waResult.success,
           emailSent: false,
+          customerWhatsappMessageId: waResult.messageId ?? null,
         });
-        
-        console.log("✅ Booking marked as paid and notification sent");
-        
-        res.json({ 
-          success: true, 
+
+        // A manually-confirmed payment must reach ERP too. Idempotent.
+        const erpSync = await syncBookingToErp(bookingId);
+
+        console.log(`✅ Booking marked as paid; whatsapp=${waResult.success} erpSync=${erpSync.status}`);
+
+        res.json({
+          success: true,
           message: "Booking marked as paid and WhatsApp notification sent",
-          booking: updatedBooking,
-          whatsappSent 
+          booking: await storage.getBooking(bookingId),
+          whatsappSent: waResult.success,
+          whatsappMessageId: waResult.messageId,
+          erpSync
         });
       } else {
-        res.json({ 
-          success: true, 
+        const erpSync = await syncBookingToErp(bookingId);
+        res.json({
+          success: true,
           message: "Booking marked as paid",
-          booking: updatedBooking 
+          booking: await storage.getBooking(bookingId),
+          erpSync
         });
       }
     } catch (error) {

@@ -21,6 +21,27 @@ interface WhatsAppMessage {
   };
 }
 
+/**
+ * Result of a WhatsApp send. A boolean is not proof of delivery — only a provider
+ * message ID is, so callers can persist `messageId` for audit and reconciliation.
+ */
+export interface WhatsAppSendResult {
+  success: boolean;
+  /** Meta message id, e.g. "wamid.HBg..." — present only on a successful send. */
+  messageId?: string;
+  httpStatus?: number;
+  /** Short, safe error summary. Never contains the access token. */
+  error?: string;
+}
+
+/** +919886682013 -> +91******2013 */
+function maskPhone(phone: string | null | undefined): string {
+  if (!phone) return '(none)';
+  const s = String(phone);
+  if (s.length <= 4) return '****';
+  return s.slice(0, 3) + '*'.repeat(Math.max(0, s.length - 7)) + s.slice(-4);
+}
+
 export class WhatsAppService {
   private config: WhatsappConfig | null = null;
 
@@ -146,11 +167,11 @@ export class WhatsAppService {
       .where(eq(whatsappTemplates.isActive, true));
   }
 
-  async sendMessage(message: WhatsAppMessage): Promise<boolean> {
+  async sendMessage(message: WhatsAppMessage): Promise<WhatsAppSendResult> {
     const config = await this.getConfig();
     if (!config) {
       console.log("WhatsApp not configured, skipping message");
-      return false;
+      return { success: false, error: "WhatsApp not configured" };
     }
 
     try {
@@ -166,18 +187,40 @@ export class WhatsAppService {
         }
       );
 
+      const bodyText = await response.text().catch(() => "");
+
       if (!response.ok) {
-        const error = await response.json();
-        console.error("WhatsApp API error:", error);
-        return false;
+        // Meta nests the useful bit at error.message; keep it short and token-free.
+        let summary = bodyText.slice(0, 200);
+        try {
+          const parsed = JSON.parse(bodyText);
+          if (parsed?.error?.message) summary = String(parsed.error.message).slice(0, 200);
+        } catch {
+          /* non-JSON error body */
+        }
+        console.error(
+          `WhatsApp API error to=${maskPhone(message.to)} http=${response.status} msg="${summary}"`
+        );
+        return { success: false, httpStatus: response.status, error: summary };
       }
 
-      const result = await response.json();
-      console.log("WhatsApp message sent:", result);
-      return true;
+      let messageId: string | undefined;
+      try {
+        const parsed = JSON.parse(bodyText);
+        messageId = parsed?.messages?.[0]?.id;
+      } catch {
+        /* shouldn't happen on 2xx, but never fail the send over parsing */
+      }
+
+      console.log(
+        `WhatsApp message sent to=${maskPhone(message.to)} http=${response.status} ` +
+          `messageId=${messageId ?? "(none returned)"}`
+      );
+      return { success: true, messageId, httpStatus: response.status };
     } catch (error) {
-      console.error("Failed to send WhatsApp message:", error);
-      return false;
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error(`Failed to send WhatsApp message to=${maskPhone(message.to)}: ${msg}`);
+      return { success: false, error: msg.slice(0, 200) };
     }
   }
 
@@ -188,14 +231,21 @@ export class WhatsAppService {
     appointmentDate: string,
     appointmentTime: string,
     bookingAmount: string = "299"
-  ): Promise<boolean> {
+  ): Promise<WhatsAppSendResult> {
     console.log("🔍 WhatsApp sendBookingConfirmation called");
-    console.log("🔍 Parameters:", { customerPhone, customerName, serviceName, appointmentDate, appointmentTime, bookingAmount });
-    
+    console.log("🔍 Parameters:", {
+      customerPhone: maskPhone(customerPhone),
+      customerName,
+      serviceName,
+      appointmentDate,
+      appointmentTime,
+      bookingAmount,
+    });
+
     const config = await this.getConfig();
     if (!config) {
       console.log("❌ WhatsApp not configured, skipping booking confirmation");
-      return false;
+      return { success: false, error: "WhatsApp not configured" };
     }
     
     console.log("✅ WhatsApp config found:", {
@@ -223,7 +273,7 @@ export class WhatsAppService {
     if (!bookingTemplate) {
       console.log("❌ No approved p91_booking_confirmation template found");
       console.log("❌ Available templates:", templates.map(t => t.templateName));
-      return false;
+      return { success: false, error: "No approved p91_booking_confirmation template found" };
     }
 
     console.log(`✅ Using WhatsApp template: ${bookingTemplate.templateName}`);
@@ -276,11 +326,11 @@ export class WhatsAppService {
     serviceName: string,
     appointmentDate: string,
     appointmentTime: string
-  ): Promise<boolean> {
+  ): Promise<WhatsAppSendResult> {
     const config = await this.getConfig();
     if (!config) {
       console.log("WhatsApp not configured, skipping appointment reminder");
-      return false;
+      return { success: false, error: "WhatsApp not configured" };
     }
 
     // Use the configured reminder template or fall back to p91_booking_reminder
@@ -298,7 +348,7 @@ export class WhatsAppService {
 
     if (!reminderTemplate) {
       console.log("No approved p91_booking_reminder template found");
-      return false;
+      return { success: false, error: "No approved p91_booking_reminder template found" };
     }
 
     console.log(`Using reminder template: ${reminderTemplate.templateName}`);

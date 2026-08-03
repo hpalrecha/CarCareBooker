@@ -75,7 +75,7 @@ export class SchedulerService {
           }
 
           // Send WhatsApp reminder
-          const reminderSent = await whatsappService.sendAppointmentReminder(
+          const reminderResult = await whatsappService.sendAppointmentReminder(
             booking.customerPhone,
             booking.customerName,
             service.title,
@@ -83,11 +83,15 @@ export class SchedulerService {
             booking.appointmentTime || '10:00 AM'
           );
 
-          if (reminderSent) {
-            console.log(`✅ Reminder sent to ${booking.customerName} (${booking.customerPhone})`);
+          if (reminderResult.success) {
+            console.log(
+              `✅ Reminder sent to ${booking.customerName} messageId=${reminderResult.messageId ?? '(none)'}`
+            );
             successCount++;
           } else {
-            console.log(`❌ Failed to send reminder to ${booking.customerName}`);
+            console.log(
+              `❌ Failed to send reminder to ${booking.customerName}: ${reminderResult.error ?? 'unknown error'}`
+            );
             failureCount++;
           }
 
