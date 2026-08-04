@@ -33,7 +33,19 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json());
+// Capture the raw request bytes alongside the parsed body.
+//
+// Razorpay signs the exact bytes it sends, so HMAC verification needs the untouched
+// buffer. This global json() parser runs before the webhook route, which means the
+// route-level express.raw() never sees an unconsumed stream and req.body arrives as a
+// parsed object. Without this hook, `JSON.parse(req.body.toString())` evaluates
+// "[object Object]" and throws — which is why /api/razorpay-webhook returned 500 on
+// every delivery.
+app.use(express.json({
+  verify: (req, _res, buf) => {
+    (req as any).rawBody = buf;
+  },
+}));
 app.use(express.urlencoded({ extended: false }));
 
 // Serve attached assets statically - use dirname for reliable path resolution in production

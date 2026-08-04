@@ -1,0 +1,8 @@
+[1G[0K⠙[1G[0K
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K⠙[1G[0KServing attached assets from: /home/runner/workspace/attached_assets
+Serving uploads from: /home/runner/workspace/uploads
+11:29:47 AM [express] serving on port 5000
+✅ Reminder scheduler started - will send reminders daily at 8:00 PM IST

@@ -1,0 +1,16 @@
+[1G[0K⠙[1G[0K
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K⠙[1G[0KServing attached assets from: /home/runner/workspace/attached_assets
+Serving uploads from: /home/runner/workspace/uploads
+11:52:33 AM [express] serving on port 5000
+✅ Reminder scheduler started - will send reminders daily at 8:00 PM IST
+Browserslist: browsers data (caniuse-lite) is 21 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+11:56:38 AM [express] GET /api/services 200 in 75ms :: [{"id":"9be9a48f-4c6b-4b5a-bf15-3824d7ddfe5b",…
+Error serving object: ObjectNotFoundError: Object not found
+    at ObjectStorageService.getObjectEntityFile [90m(/home/runner/workspace/[39mserver/replit_integrations/object_storage/objectStorage.ts:179:13[90m)[39m
+[90m    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+    at async <anonymous> [90m(/home/runner/workspace/[39mserver/replit_integrations/object_storage/routes.ts:75:26[90m)[39m
