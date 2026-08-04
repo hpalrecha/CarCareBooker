@@ -131,6 +131,20 @@ import {
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  const isProd = process.env.NODE_ENV === "production";
+
+  // Require a real session secret in production; never fall back to a public literal.
+  const sessionSecret = process.env.SESSION_SECRET;
+  if (isProd && (!sessionSecret || sessionSecret === "your-secret-key")) {
+    throw new Error(
+      "SESSION_SECRET must be set to a strong secret in production. Refusing to start with the default.",
+    );
+  }
+
+  // Behind Cloudflare / App Engine the app sees a proxy; trust it so `secure` cookies
+  // and req.protocol work correctly.
+  app.set("trust proxy", 1);
+
   // Session configuration
   const pgStore = connectPg(session);
   app.use(
@@ -140,14 +154,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createTableIfMissing: false,
         tableName: "sessions",
       }),
-      secret: process.env.SESSION_SECRET || "your-secret-key",
+      secret: sessionSecret || "dev-only-insecure-secret",
       resave: false,
       saveUninitialized: false,
       cookie: {
         httpOnly: true,
-        secure: false, // Set to false to work with Replit deployments
+        // HTTPS-only cookie in production; plain http allowed only in local dev.
+        secure: isProd,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
-        sameSite: 'lax'
+        sameSite: "lax",
       },
     })
   );
@@ -171,10 +186,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      req.session.adminId = admin.id;
-      console.log("Admin login successful:", { adminId: admin.id, email: admin.email });
-      
-      res.json({ message: "Login successful", admin: { id: admin.id, email: admin.email, name: admin.name } });
+      // Regenerate the session on login to prevent session fixation.
+      req.session.regenerate((err) => {
+        if (err) {
+          console.error("Session regenerate error:", err);
+          return res.status(500).json({ message: "Login failed" });
+        }
+        req.session.adminId = admin.id;
+        console.log("Admin login successful:", { adminId: admin.id, email: admin.email });
+        res.json({ message: "Login successful", admin: { id: admin.id, email: admin.email, name: admin.name } });
+      });
     } catch (error) {
       console.error("Admin login error:", error);
       res.status(400).json({ message: "Invalid request" });

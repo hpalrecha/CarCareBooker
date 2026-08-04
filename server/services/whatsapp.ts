@@ -1,6 +1,7 @@
 import { db } from "../db";
 import { whatsappConfig, whatsappTemplates, type WhatsappConfig, type WhatsappTemplate } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { normalizeIndianMobile } from "../lib/phone";
 
 interface WhatsAppMessage {
   messaging_product: "whatsapp";
@@ -278,20 +279,16 @@ export class WhatsAppService {
 
     console.log(`✅ Using WhatsApp template: ${bookingTemplate.templateName}`);
 
-    // Ensure phone number is in correct format with country code (91 for India)
-    let formattedPhone = customerPhone.replace(/^\+/, "").replace(/\s/g, "").replace(/-/g, "");
-    
-    // If phone number doesn't start with 91 and is 10 digits, add country code
-    if (!formattedPhone.startsWith("91") && formattedPhone.length === 10) {
-      formattedPhone = "91" + formattedPhone;
+    // Normalise the phone strictly (handles 10-digit, 0-prefixed, 91-prefixed and +91).
+    // Invalid numbers are rejected here with a clear reason instead of being sent to Meta,
+    // which would fail opaquely.
+    const norm = normalizeIndianMobile(customerPhone);
+    if (!norm.ok) {
+      console.error(`❌ Invalid customer phone ${maskPhone(customerPhone)} — ${norm.error}`);
+      return { success: false, error: `invalid_phone: ${norm.error}` };
     }
-    
-    // If it starts with 0, remove 0 and add 91 (common Indian format)
-    if (formattedPhone.startsWith("0") && formattedPhone.length === 11) {
-      formattedPhone = "91" + formattedPhone.substring(1);
-    }
-    
-    console.log(`📞 Formatted phone: ${customerPhone} -> ${formattedPhone}`);
+    const formattedPhone = norm.e164;
+    console.log(`📞 Formatted phone: ${maskPhone(customerPhone)} -> ${maskPhoneDigits(formattedPhone)}`);
 
     const message: WhatsAppMessage = {
       messaging_product: "whatsapp",
