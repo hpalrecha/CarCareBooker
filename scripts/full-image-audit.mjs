@@ -4,7 +4,8 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';
 neonConfig.webSocketConstructor = ws;
 
-const BASE = 'http://localhost:5090';
+// Target: default local built server; set AUDIT_BASE=https://p91carcare.com for production.
+const BASE = process.env.AUDIT_BASE || 'http://localhost:5090';
 const pool = new Pool({ connectionString: process.env.CARCARE_LIVE_DATABASE_URL });
 
 const collect = (r) => {
