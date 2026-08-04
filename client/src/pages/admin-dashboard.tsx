@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
@@ -570,6 +571,9 @@ export default function AdminDashboard() {
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [activeTab, setActiveTab] = useState("bookings");
   const [editingService, setEditingService] = useState<any>(null);
+  const [viewingBooking, setViewingBooking] = useState<any>(null);
+  const [editingBooking, setEditingBooking] = useState<any>(null);
+  const [editForm, setEditForm] = useState<any>({});
   const [settings, setSettings] = useState<any>({
     bookingAmount: "299",
     currency: "INR",
@@ -647,10 +651,7 @@ export default function AdminDashboard() {
   });
 
   const handleViewBooking = (booking: any) => {
-    toast({
-      title: "Booking Details",
-      description: `Customer: ${booking.customerName}\nPhone: ${booking.customerPhone}\nEmail: ${booking.customerEmail}\nService: ${booking.service?.title}\nAmount: ₹${booking.amount}`,
-    });
+    setViewingBooking(booking);
   };
 
   const handleSendWhatsApp = (booking: any) => {
@@ -658,11 +659,34 @@ export default function AdminDashboard() {
   };
 
   const handleEditBooking = (booking: any) => {
-    toast({
-      title: "Edit Booking",
-      description: "Booking edit functionality coming soon!",
+    setEditingBooking(booking);
+    setEditForm({
+      customerName: booking.customerName ?? "",
+      customerPhone: booking.customerPhone ?? "",
+      customerEmail: booking.customerEmail ?? "",
+      appointmentDate: booking.appointmentDate ?? "",
+      appointmentTime: booking.appointmentTime ?? "",
+      bookingStatus: booking.bookingStatus ?? "confirmed",
     });
   };
+
+  const editBookingMutation = useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: any }) => {
+      // timeSlotId mirrors appointmentTime (the booking model keys capacity on the hour string)
+      const body = { ...patch };
+      if (patch.appointmentTime) body.timeSlotId = patch.appointmentTime;
+      const res = await apiRequest("PATCH", `/api/admin/bookings/${id}`, body);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      toast({ title: "Booking updated", description: "Changes saved successfully." });
+      setEditingBooking(null);
+    },
+    onError: (error: any) => {
+      toast({ title: "Update failed", description: error?.message || "Could not update booking.", variant: "destructive" });
+    },
+  });
 
   const handleEditService = (service: any) => {
     setEditingService(service);
@@ -821,13 +845,20 @@ export default function AdminDashboard() {
     statusFilter === "all" || booking.paymentStatus === statusFilter
   ) : [];
 
+  // Status model:
+  //   payment_status: pending | paid | refunded | failed   (money state)
+  //   booking_status: pending | confirmed | completed | cancelled   (service state)
+  // "Paid" must count payment_status === 'paid' only. "Completed" is a service state and
+  // must NOT be added into the paid count (that double-counted / mislabelled before).
+  const list = Array.isArray(bookings) ? bookings : [];
   const stats = {
-    totalBookings: Array.isArray(bookings) ? bookings.length : 0,
-    pendingBookings: Array.isArray(bookings) ? bookings.filter((b: any) => b.paymentStatus === "pending").length : 0,
-    paidBookings: Array.isArray(bookings) ? bookings.filter((b: any) => b.paymentStatus === "paid").length : 0,
-    completedBookings: Array.isArray(bookings) ? bookings.filter((b: any) => b.paymentStatus === "completed").length : 0,
-    totalRevenue: Array.isArray(bookings) ? bookings.filter((b: any) => b.paymentStatus === "paid" || b.paymentStatus === "completed")
-      .reduce((sum: number, b: any) => sum + parseFloat(b.amount), 0) : 0,
+    totalBookings: list.length,
+    pendingBookings: list.filter((b: any) => b.paymentStatus === "pending").length,
+    paidBookings: list.filter((b: any) => b.paymentStatus === "paid").length,
+    completedServices: list.filter((b: any) => b.bookingStatus === "completed").length,
+    // Revenue = genuine paid money only.
+    totalRevenue: list.filter((b: any) => b.paymentStatus === "paid")
+      .reduce((sum: number, b: any) => sum + parseFloat(b.amount || "0"), 0),
   };
 
   const getStatusBadge = (status: string) => {
@@ -1006,9 +1037,9 @@ export default function AdminDashboard() {
             <CardContent className="p-6 text-center">
               <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-400" />
               <div className="text-3xl font-bold text-green-400 mb-2" data-testid="stat-paid-bookings">
-                {stats.paidBookings + stats.completedBookings}
+                {stats.paidBookings}
               </div>
-              <div className="text-gray-400">Paid/Completed</div>
+              <div className="text-gray-400">Paid</div>
             </CardContent>
           </Card>
 
@@ -1531,14 +1562,109 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      <AdminServiceForm 
-        isOpen={showServiceForm} 
+      <AdminServiceForm
+        isOpen={showServiceForm}
         onClose={() => {
           setShowServiceForm(false);
           setEditingService(null);
         }}
         editingService={editingService}
       />
+
+      {/* Booking detail (View) */}
+      <Dialog open={!!viewingBooking} onOpenChange={(o) => !o && setViewingBooking(null)}>
+        <DialogContent className="max-w-lg bg-dark-gray border-medium-gray text-white max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Booking details</DialogTitle></DialogHeader>
+          {viewingBooking && (() => {
+            const b = viewingBooking;
+            const rows: Array<[string, any]> = [
+              ["Booking ID", b.id],
+              ["Customer", b.customerName],
+              ["Phone", b.customerPhone],
+              ["Email", b.customerEmail],
+              ["Service", b.service?.title || "—"],
+              ["Appointment", b.appointmentDate ? `${b.appointmentDate} ${b.appointmentTime || ""}` : "To be scheduled"],
+              ["Amount", `₹${b.amount}`],
+              ["Payment status", b.paymentStatus],
+              ["Booking status", b.bookingStatus],
+              ["Razorpay order", b.razorpayOrderId || "—"],
+              ["Razorpay payment", b.paymentId || "—"],
+              ["WhatsApp msg id", b.customerWhatsappMessageId || "—"],
+              ["ERP sync status", b.erpSyncStatus || "—"],
+              ["ERP appointment", b.erpDocumentId || "—"],
+              ["ERP attempts", b.erpSyncAttempts ?? 0],
+              ["ERP last error", b.erpSyncError || "—"],
+              ["ERP synced at", b.erpSyncedAt ? new Date(b.erpSyncedAt).toLocaleString() : "—"],
+              ["Created", b.createdAt ? new Date(b.createdAt).toLocaleString() : "—"],
+              ["Updated", b.updatedAt ? new Date(b.updatedAt).toLocaleString() : "—"],
+            ];
+            return (
+              <div className="space-y-1 text-sm">
+                {rows.map(([k, v]) => (
+                  <div key={k} className="flex justify-between gap-4 py-1 border-b border-gray-800">
+                    <span className="text-gray-400">{k}</span>
+                    <span className="text-right break-all">{String(v)}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit booking */}
+      <Dialog open={!!editingBooking} onOpenChange={(o) => !o && setEditingBooking(null)}>
+        <DialogContent className="max-w-lg bg-dark-gray border-medium-gray text-white">
+          <DialogHeader><DialogTitle>Edit booking</DialogTitle></DialogHeader>
+          {editingBooking && (
+            <div className="space-y-3">
+              <p className="text-xs text-gray-400">
+                Payment, amount and ERP fields cannot be changed here. Editing the date or time
+                is re-checked against holidays, business hours and capacity.
+              </p>
+              {[
+                ["Customer name", "customerName", "text"],
+                ["Phone", "customerPhone", "text"],
+                ["Email", "customerEmail", "email"],
+                ["Appointment date", "appointmentDate", "date"],
+                ["Appointment time (HH:MM)", "appointmentTime", "text"],
+              ].map(([label, key, type]) => (
+                <div key={key}>
+                  <Label className="text-gray-300">{label}</Label>
+                  <Input
+                    type={type as string}
+                    value={editForm[key as string] ?? ""}
+                    onChange={(e) => setEditForm({ ...editForm, [key as string]: e.target.value })}
+                    className="bg-medium-gray border-gray-600 text-white"
+                  />
+                </div>
+              ))}
+              <div>
+                <Label className="text-gray-300">Booking status</Label>
+                <Select value={editForm.bookingStatus} onValueChange={(v) => setEditForm({ ...editForm, bookingStatus: v })}>
+                  <SelectTrigger className="bg-medium-gray border-gray-600 text-white"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="confirmed">Confirmed</SelectItem>
+                    <SelectItem value="completed">Completed (service done)</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditingBooking(null)}>Cancel</Button>
+            <Button
+              onClick={() => editBookingMutation.mutate({ id: editingBooking.id, patch: editForm })}
+              disabled={editBookingMutation.isPending}
+              className="bg-neon-green text-black hover:bg-green-400"
+            >
+              {editBookingMutation.isPending ? "Saving…" : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -16,6 +16,7 @@ import { schedulerService } from "./services/scheduler";
 import { sendBookingConfirmationEmail } from "./services/email";
 import { sendBookingWebhook } from "./services/webhook";
 import { computeAvailability, generateHourlySlots, istNow } from "./lib/slots";
+import { validateAppointmentSlot } from "./lib/booking-validation";
 import { z } from "zod";
 
 /** Shape returned to API callers so payment success is never conflated with ERP success. */
@@ -956,6 +957,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Get booking error:", error);
       res.status(500).json({ message: "Failed to fetch booking" });
+    }
+  });
+
+  // Admin: full booking detail (booking row + its service) for the View modal.
+  app.get("/api/admin/bookings/:id", authenticateAdmin, async (req, res) => {
+    try {
+      const booking = await storage.getBooking(req.params.id);
+      if (!booking) return res.status(404).json({ message: "Booking not found" });
+      const service = await storage.getService(booking.serviceId);
+      res.json({ ...booking, service: service ?? null });
+    } catch (error) {
+      console.error("Get admin booking error:", error);
+      res.status(500).json({ message: "Failed to fetch booking" });
+    }
+  });
+
+  // Admin: edit operational fields only. Payment/ERP/audit fields are NOT editable here.
+  app.patch("/api/admin/bookings/:id", authenticateAdmin, async (req, res) => {
+    try {
+      const editableSchema = z.object({
+        customerName: z.string().min(1).max(120).optional(),
+        customerPhone: z.string().min(6).max(20).optional(),
+        customerEmail: z.string().email().optional(),
+        serviceId: z.string().uuid().optional(),
+        appointmentDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        appointmentTime: z.string().regex(/^\d{1,2}:\d{2}$/).optional(),
+        timeSlotId: z.string().min(1).max(20).optional(),
+        bookingStatus: z.enum(["pending", "confirmed", "completed", "cancelled"]).optional(),
+      }).strict();
+
+      const patch = editableSchema.parse(req.body);
+
+      const existing = await storage.getBooking(req.params.id);
+      if (!existing) return res.status(404).json({ message: "Booking not found" });
+
+      // Reject any attempt to touch protected fields, even if the client sent them.
+      const PROTECTED = ["paymentId", "razorpayOrderId", "amount", "paymentStatus",
+        "erpDocumentId", "erpDocumentType", "erpSyncStatus", "erpSyncAttempts",
+        "erpSyncError", "erpSyncedAt", "n8nExecutionId", "paymentVerifiedAt"];
+      const attempted = PROTECTED.filter((k) => k in (req.body ?? {}));
+      if (attempted.length) {
+        return res.status(400).json({ message: `These fields cannot be edited here: ${attempted.join(", ")}` });
+      }
+
+      // If date/time/service is changing, re-validate the slot against live config.
+      const newDate = patch.appointmentDate ?? existing.appointmentDate ?? undefined;
+      const newTime = patch.appointmentTime ?? existing.appointmentTime ?? undefined;
+      const newSlot = patch.timeSlotId ?? existing.timeSlotId ?? undefined;
+      const newServiceId = patch.serviceId ?? existing.serviceId;
+      const changingSchedule = patch.appointmentDate || patch.appointmentTime || patch.timeSlotId || patch.serviceId;
+
+      if (changingSchedule && newDate && newTime && newSlot) {
+        const service = await storage.getService(newServiceId);
+        if (!service) return res.status(400).json({ message: "Service not found" });
+        const check = await validateAppointmentSlot(storage, {
+          serviceId: newServiceId, date: newDate, time: newTime,
+          timeSlotId: newSlot, maxPerSlot: service.maxBookingsPerSlot || 3,
+        });
+        // Allow keeping the same slot even if "full" (this booking already occupies it),
+        // only block genuinely invalid dates/hours or a full DIFFERENT slot.
+        const movedSlot = newSlot !== existing.timeSlotId || newDate !== existing.appointmentDate || newServiceId !== existing.serviceId;
+        if (!check.ok && !(check.reason === "full" && !movedSlot)) {
+          return res.status(check.status).json({ message: check.message, reason: check.reason });
+        }
+      }
+
+      const updated = await storage.updateBooking(req.params.id, patch);
+      const adminId = (req as any).admin?.id;
+      console.log(`Admin ${adminId} edited booking ${req.params.id}: ${Object.keys(patch).join(", ")}`);
+      const service = await storage.getService(updated.serviceId);
+      res.json({ ...updated, service: service ?? null });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.issues.map(i => `${i.path.join(".")}: ${i.message}`) });
+      }
+      console.error("Edit booking error:", error);
+      res.status(500).json({ message: "Failed to update booking" });
     }
   });
 
