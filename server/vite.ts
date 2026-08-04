@@ -78,8 +78,16 @@ export function serveStatic(app: Express) {
 
   app.use(express.static(distPath));
 
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
+  // Static assets (anything with a file extension) that reached here don't exist —
+  // return a real 404 instead of the SPA shell, so broken images/scripts fail loudly
+  // rather than silently rendering as 200 text/html.
+  const ASSET_EXT = /\.(png|jpe?g|gif|webp|avif|svg|ico|css|js|mjs|map|json|txt|woff2?|ttf|eot|mp4|webm|pdf)$/i;
+
+  app.use("*", (req, res) => {
+    if (ASSET_EXT.test(req.originalUrl.split("?")[0])) {
+      return res.status(404).type("text/plain").send("Not found");
+    }
+    // Genuine SPA navigation → serve the app shell.
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }

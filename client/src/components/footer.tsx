@@ -90,7 +90,7 @@ export default function Footer() {
         <div className="mt-12 pt-8 border-t border-medium-gray">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2025 Plus Nine One Inc. All rights reserved.
+              © {new Date().getFullYear()} Plus Nine One Inc. All rights reserved.
             </p>
             <p className="text-gray-400 text-sm mt-4 md:mt-0">
               Made with ❤️ for car enthusiasts in Bangalore

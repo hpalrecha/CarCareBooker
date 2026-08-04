@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { usePageTitle } from "@/hooks/use-page-title";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { z } from "zod";
@@ -24,6 +25,7 @@ const contactFormSchema = z.object({
 type ContactForm = z.infer<typeof contactFormSchema>;
 
 export default function Contact() {
+  usePageTitle("Contact — P91 Car Care");
   const { toast } = useToast();
 
   const form = useForm<ContactForm>({

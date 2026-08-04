@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Clock, ArrowRight } from "lucide-react";
+import { ImageWithFallback } from "@/components/image-with-fallback";
 
 interface ServiceCardProps {
   service: {
@@ -37,10 +38,10 @@ export default function ServiceCard({ service }: ServiceCardProps) {
           </div>
         )}
         
-        <img 
-          src={service.images?.[0] || "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600"} 
-          alt={service.title}
-          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" 
+        <ImageWithFallback
+          src={service.images?.[0] || "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600"}
+          alt={`${service.title} – P91 Car Care`}
+          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
           data-testid={`img-service-${service.id}`}
         />
         <div className="p-6">

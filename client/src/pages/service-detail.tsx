@@ -2,6 +2,7 @@ import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import Navbar from "@/components/navbar";
+import { ImageWithFallback } from "@/components/image-with-fallback";
 import BookingModal from "@/components/booking-modal";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -116,10 +117,10 @@ export default function ServiceDetail() {
 
         {/* Service Image */}
         <div className="mb-8">
-          <img 
-            src={serviceData.images?.[0] || "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=600"} 
-            alt={serviceData.title}
-            className="w-full h-64 lg:h-96 object-cover rounded-xl" 
+          <ImageWithFallback
+            src={serviceData.images?.[0] || "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=600"}
+            alt={`${serviceData.title} – P91 Car Care`}
+            className="w-full h-64 lg:h-96 object-cover rounded-xl"
             data-testid="img-service-hero"
           />
         </div>
@@ -137,15 +138,7 @@ export default function ServiceDetail() {
               </div>
             )}
 
-            {/* DEBUG: Service data check */}
-            <div className="bg-yellow-900 text-yellow-100 p-4 rounded mb-4">
-              <strong>DEBUG INFO:</strong><br/>
-              Service loaded: {service ? 'YES' : 'NO'}<br/>
-              Service slug: {service?.slug || 'undefined'}<br/>
-              Service title: {service?.title || 'undefined'}
-            </div>
-
-            {/* ALWAYS SHOW - Before & After Results for Headlight Services */}
+            {/* Before & After Results */}
             <div>
               <h2 className="text-2xl font-semibold text-neon-green mb-6">Before & After Results</h2>
               <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-800 mb-8">

@@ -1,8 +1,10 @@
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 export default function PrivacyPolicy() {
+  usePageTitle("Privacy Policy — P91 Car Care");
   return (
     <div className="min-h-screen bg-deep-black text-white">
       {/* Header */}
@@ -116,8 +118,11 @@ export default function PrivacyPolicy() {
             </section>
 
             <div className="mt-12 p-6 bg-medium-gray rounded-lg">
+              {/* Fixed effective date in an unambiguous format. Was previously new Date(),
+                  which incorrectly showed the current day on every page load. Management to
+                  confirm the true effective date. */}
               <p className="text-sm text-gray-400">
-                Last updated: {new Date().toLocaleDateString('en-IN')}
+                Last updated: 1 August 2026
               </p>
               <p className="text-sm text-gray-400 mt-2">
                 © 2025 Plus Nine One Inc. All rights reserved.

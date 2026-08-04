@@ -1,8 +1,10 @@
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 export default function TermsConditions() {
+  usePageTitle("Terms & Conditions — P91 Car Care");
   return (
     <div className="min-h-screen bg-deep-black text-white">
       {/* Header */}
