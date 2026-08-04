@@ -118,6 +118,10 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
   const { data: slotAvailability, isLoading: slotsLoading } = useQuery<{
     availability: Record<string, { booked: number; max: number; available: boolean }>;
     maxPerSlot: number;
+    // New authoritative fields from the server (blackout / closed-day aware).
+    available?: boolean;
+    reason?: string | null;
+    reasonText?: string;
   }>({
     queryKey: ["/api/slot-availability", service.id, selectedDate],
     enabled: !!selectedDate && selectedDate.length > 0,
@@ -145,22 +149,32 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
     return `${hours}:${minutes}`;
   };
 
-  // Filter time slots based on business hours, past time, and availability
+  // Filter time slots based on business hours, past time, and availability.
+  // The server's slot-availability response is now authoritative about whether the
+  // DATE is bookable at all (blackout / closed day) — honour that even if the local
+  // blackout/business-hours queries failed or lagged.
   const timeSlots = (() => {
-    if (!selectedDate || businessHours.length === 0) {
+    if (!selectedDate) return allTimeSlots;
+
+    // Server says this date is not bookable (blackout or closed) → no slots.
+    if (slotAvailability && slotAvailability.available === false) {
+      return [];
+    }
+
+    if (businessHours.length === 0) {
       return allTimeSlots;
     }
-    
+
     const selectedDay = new Date(selectedDate + 'T00:00:00').getDay();
     const dayHours = businessHours.find(h => h.dayOfWeek === selectedDay);
-    
+
     if (!dayHours || !dayHours.isOpen) {
       return [];
     }
-    
+
     const isToday = isTodayIST(selectedDate);
     const currentTime = isToday ? getCurrentISTTime() : "00:00";
-    
+
     return allTimeSlots
       .filter(slot => {
         const slotTime = slot.id;
@@ -168,6 +182,11 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
           return false;
         }
         if (isToday && slotTime <= currentTime) {
+          return false;
+        }
+        // If the server returned an explicit slot list, drop slots it doesn't include.
+        if (slotAvailability?.availability && Object.keys(slotAvailability.availability).length > 0
+            && !(slot.id in slotAvailability.availability)) {
           return false;
         }
         return true;

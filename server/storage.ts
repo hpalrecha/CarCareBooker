@@ -26,6 +26,14 @@ import {
 import { db } from "./db";
 import { eq, and, gte, desc, asc, sql } from "drizzle-orm";
 
+/** Thrown by createBookingWithCapacity when the requested slot is already full. */
+export class SlotFullError extends Error {
+  constructor(public readonly maxPerSlot: number) {
+    super(`This time slot is fully booked (max ${maxPerSlot} bookings).`);
+    this.name = "SlotFullError";
+  }
+}
+
 export interface IStorage {
   // Admin operations
   getAdmin(id: string): Promise<Admin | undefined>;
@@ -53,6 +61,10 @@ export interface IStorage {
   getAllBookings(): Promise<(Booking & { service: Service; timeSlot: TimeSlot })[]>;
   getBooking(id: string): Promise<Booking | undefined>;
   createBooking(booking: InsertBooking): Promise<Booking>;
+  createBookingWithCapacity(
+    booking: InsertBooking,
+    slot: { serviceId: string; date: string; timeSlotId: string; maxPerSlot: number },
+  ): Promise<Booking>;
   updateBooking(id: string, booking: Partial<InsertBooking>): Promise<Booking>;
   getBookingsByStatus(status: string): Promise<Booking[]>;
   getBookingCountForSlot(serviceId: string, date: string, timeSlotId: string): Promise<number>;
@@ -216,6 +228,48 @@ export class DatabaseStorage implements IStorage {
   async createBooking(booking: InsertBooking): Promise<Booking> {
     const [newBooking] = await db.insert(bookings).values(booking).returning();
     return newBooking;
+  }
+
+  /**
+   * Create a booking with an atomic per-slot capacity check.
+   *
+   * Concurrency: a Postgres transaction-scoped advisory lock keyed on the
+   * (serviceId, date, slot) triple serialises simultaneous inserts for the SAME
+   * slot, so two requests for the last space cannot both succeed. Different slots
+   * hash to different keys and never block each other, and the bookings table is
+   * never globally locked. The lock releases automatically at COMMIT/ROLLBACK.
+   *
+   * Throws SlotFullError when the slot is already at capacity.
+   */
+  async createBookingWithCapacity(
+    booking: InsertBooking,
+    slot: { serviceId: string; date: string; timeSlotId: string; maxPerSlot: number },
+  ): Promise<Booking> {
+    return await db.transaction(async (tx) => {
+      // Advisory lock on a stable 64-bit key derived from the slot identity.
+      const lockKey = `${slot.serviceId}|${slot.date}|${slot.timeSlotId}`;
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))`);
+
+      const [{ count }] = await tx
+        .select({ count: sql<number>`count(*)::int` })
+        .from(bookings)
+        .where(
+          and(
+            eq(bookings.serviceId, slot.serviceId),
+            eq(bookings.appointmentDate, slot.date),
+            eq(bookings.timeSlotId, slot.timeSlotId),
+            sql`${bookings.paymentStatus} != 'failed'`,
+            sql`${bookings.bookingStatus} != 'cancelled'`,
+          ),
+        );
+
+      if ((count || 0) >= slot.maxPerSlot) {
+        throw new SlotFullError(slot.maxPerSlot);
+      }
+
+      const [newBooking] = await tx.insert(bookings).values(booking).returning();
+      return newBooking;
+    });
   }
 
   async updateBooking(id: string, booking: Partial<InsertBooking>): Promise<Booking> {

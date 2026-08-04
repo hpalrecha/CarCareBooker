@@ -8,12 +8,14 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import { storage } from "./storage";
+import { SlotFullError } from "./storage";
 import { authenticateAdmin, hashPassword, comparePassword } from "./middleware/auth";
 import { createPaymentOrder, verifyPaymentSignature } from "./services/payment";
 import { whatsappService } from "./services/whatsapp";
 import { schedulerService } from "./services/scheduler";
 import { sendBookingConfirmationEmail } from "./services/email";
 import { sendBookingWebhook } from "./services/webhook";
+import { computeAvailability, generateHourlySlots, istNow } from "./lib/slots";
 import { z } from "zod";
 
 /** Shape returned to API callers so payment success is never conflated with ERP success. */
@@ -528,29 +530,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Slot availability endpoint - returns booking counts for all slots on a given date/service
+  // Slot availability endpoint - returns bookable slots for a date, honouring
+  // blackout dates, the configured business hours for that weekday, past times
+  // (same-day) and per-slot capacity. This mirrors the validation in POST /api/bookings
+  // so a customer never picks a slot that will be rejected after payment.
   app.get("/api/slot-availability/:serviceId/:date", async (req, res) => {
     try {
       const { serviceId, date } = req.params;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return res.status(400).json({ message: "Invalid date format, expected YYYY-MM-DD" });
+      }
       const service = await storage.getService(serviceId);
       if (!service) {
         return res.status(404).json({ message: "Service not found" });
       }
 
-      const allSlotIds = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
       const maxPerSlot = service.maxBookingsPerSlot || 3;
 
-      const availability: Record<string, { booked: number; max: number; available: boolean }> = {};
-      for (const slotId of allSlotIds) {
-        const count = await storage.getBookingCountForSlot(serviceId, date, slotId);
-        availability[slotId] = {
-          booked: count,
-          max: maxPerSlot,
-          available: count < maxPerSlot,
-        };
+      const blackoutDates = await storage.getAllBlackoutDates();
+      const blackout = blackoutDates.find((bd) => bd.date === date);
+
+      const dayOfWeek = new Date(date + "T00:00:00").getDay();
+      const hours = await storage.getBusinessHoursForDay(dayOfWeek);
+
+      const { dateStr: todayIST, minutes: nowMinutes } = istNow(new Date());
+
+      // booked counts only for the hours this weekday actually offers
+      const candidateSlots = generateHourlySlots(hours ?? undefined);
+      const bookedBySlot: Record<string, number> = {};
+      for (const slotId of candidateSlots) {
+        bookedBySlot[slotId] = await storage.getBookingCountForSlot(serviceId, date, slotId);
       }
 
-      res.json({ availability, maxPerSlot });
+      const result = computeAvailability({
+        hours: hours ?? undefined,
+        isBlackout: !!blackout,
+        blackoutReason: blackout?.reason ?? null,
+        isToday: date === todayIST,
+        nowMinutes,
+        maxPerSlot,
+        bookedBySlot,
+      });
+
+      // Response keeps the legacy `availability`/`maxPerSlot` shape the existing frontend
+      // reads, and adds `available`/`reason`/`slots` for the improved UI.
+      res.json(result);
     } catch (error) {
       console.error("Slot availability error:", error);
       res.status(500).json({ message: "Failed to check slot availability" });
@@ -738,8 +762,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `booking_${Date.now()}`
       );
 
-      // Create booking with pending payment
-      const booking = await storage.createBooking({
+      // Create booking with pending payment. When we have a slot, use the atomic
+      // capacity-guarded insert so two simultaneous requests can't both take the last
+      // space (the pre-check above is a fast UX fail; this is the authoritative guard).
+      const bookingValues = {
         serviceId: bookingData.serviceId,
         timeSlotId: bookingData.timeSlotId,
         appointmentDate: bookingData.appointmentDate,
@@ -750,7 +776,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         amount: bookingFeeAmount.toString(),
         razorpayOrderId: paymentOrder.id,
         paymentStatus: "pending",
-      });
+      };
+
+      let booking;
+      try {
+        booking = (bookingData.appointmentDate && bookingData.timeSlotId)
+          ? await storage.createBookingWithCapacity(bookingValues, {
+              serviceId: bookingData.serviceId,
+              date: bookingData.appointmentDate,
+              timeSlotId: bookingData.timeSlotId,
+              maxPerSlot: service.maxBookingsPerSlot || 3,
+            })
+          : await storage.createBooking(bookingValues);
+      } catch (err) {
+        if (err instanceof SlotFullError) {
+          return res.status(409).json({ message: err.message + " Please select a different time slot." });
+        }
+        throw err;
+      }
 
       // Skip marking time slot as unavailable - using static time slots
 
