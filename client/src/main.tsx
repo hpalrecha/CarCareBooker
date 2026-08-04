@@ -1,5 +1,8 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { installGlobalImageFallback } from "./lib/image-fallback";
+
+installGlobalImageFallback();
 
 createRoot(document.getElementById("root")!).render(<App />);
