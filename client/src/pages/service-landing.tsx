@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { CheckCircle, Star, Clock, Shield, Phone, Mail, MapPin, Play, ArrowRight, Zap } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import BookingModal from "@/components/booking-modal";
 
 // Import before/after images
@@ -49,6 +49,10 @@ export default function ServiceLanding() {
   const [, setLocation] = useLocation();
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [showFloatingCTA, setShowFloatingCTA] = useState(false);
+  // True while the final "Ready to Transform" CTA section is on screen — the floating bar
+  // hides then, so it never covers the real Book Now button or the footer contact info.
+  const [finalCtaVisible, setFinalCtaVisible] = useState(false);
+  const finalCtaRef = useRef<HTMLElement | null>(null);
 
   // Track scroll position for floating CTA
   useEffect(() => {
@@ -61,7 +65,7 @@ export default function ServiceLanding() {
 
     // Check immediately on mount
     handleScroll();
-    
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -71,6 +75,18 @@ export default function ServiceLanding() {
     queryKey: ["/api/services", slug],
     enabled: !!slug,
   });
+
+  // Hide the floating CTA once the real bottom CTA scrolls into view.
+  useEffect(() => {
+    const el = finalCtaRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setFinalCtaVisible(entry.isIntersecting),
+      { rootMargin: "0px 0px -10% 0px", threshold: 0.01 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [service]);
 
   if (isLoading) {
     return (
@@ -123,8 +139,9 @@ export default function ServiceLanding() {
           </Button>
         </div>
       </header>
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+      {/* Hero Section — pt clears the fixed header with margin so the card/callout
+          isn't clipped behind it on shorter viewports. */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-12">
         {/* Background Image/Video */}
         <div className="absolute inset-0 z-0">
           {service.heroVideo && showVideo ? (
@@ -180,11 +197,11 @@ export default function ServiceLanding() {
                       </div>
                     </div>
                     <div className="text-base text-gray-300 mb-4">
-                      Package Value: 
+                      Package Value:
+                      <span className="text-green-400 font-bold ml-2 text-xl">₹{service.price}</span>
                       {service.originalPrice && (
                         <span className="text-gray-500 line-through ml-2 text-lg">₹{service.originalPrice}</span>
                       )}
-                      <span className="text-green-400 font-bold ml-2 text-xl">₹{service.price}</span>
                     </div>
                     <div className="text-sm text-yellow-400 bg-yellow-500/20 rounded-lg px-4 py-2 inline-block">
                       💎 Save ₹9,001 with Complete Package
@@ -203,11 +220,11 @@ export default function ServiceLanding() {
                       </div>
                     </div>
                     <div className="text-base text-gray-300 mb-4">
-                      Full Service Value: 
+                      Full Service Value:
+                      <span className="text-green-400 font-bold ml-2 text-xl">₹{service.price}</span>
                       {service.originalPrice && (
                         <span className="text-gray-500 line-through ml-2 text-lg">₹{service.originalPrice}</span>
                       )}
-                      <span className="text-green-400 font-bold ml-2 text-xl">₹{service.price}</span>
                     </div>
                     <div className="text-sm text-yellow-400 bg-yellow-500/20 rounded-lg px-4 py-2 inline-block">
                       🎁 Get FREE Car Wash Voucher Worth ₹500
@@ -952,7 +969,7 @@ export default function ServiceLanding() {
         </section>
       )}
       {/* Final CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-green-600 to-green-800">
+      <section ref={finalCtaRef} className="py-20 px-4 bg-gradient-to-r from-green-600 to-green-800">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold mb-6">Ready to Transform Your Car?</h2>
           <p className="text-xl mb-8 opacity-90">
@@ -1001,10 +1018,11 @@ export default function ServiceLanding() {
           </div>
         </div>
       </section>
-      {/* Floating FOMO CTA Button */}
-      {showFloatingCTA && !bookingModalOpen && (
-        <div 
-          className={`fixed bottom-20 sm:bottom-6 left-1/2 transform -translate-x-1/2 z-[45] transition-all duration-500 ease-in-out ${
+      {/* Floating FOMO CTA Button — hidden while the real bottom CTA is on screen so it
+          never covers the Book Now button or the footer contact info. */}
+      {showFloatingCTA && !finalCtaVisible && !bookingModalOpen && (
+        <div
+          className={`fixed bottom-4 right-4 z-[45] transition-all duration-500 ease-in-out ${
             showFloatingCTA ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
           }`}
           data-testid="floating-cta-button"
