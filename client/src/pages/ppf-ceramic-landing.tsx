@@ -47,47 +47,6 @@ const leadFormSchema = z.object({
 
 type LeadFormData = z.infer<typeof leadFormSchema>;
 
-function CountdownTimer() {
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-
-  useEffect(() => {
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + 3);
-    endDate.setHours(23, 59, 59, 999);
-
-    const timer = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = endDate.getTime() - now;
-
-      if (distance > 0) {
-        setTimeLeft({
-          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-          minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
-          seconds: Math.floor((distance % (1000 * 60)) / 1000)
-        });
-      }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="flex gap-2 justify-center">
-      {[
-        { value: timeLeft.days, label: "Days" },
-        { value: timeLeft.hours, label: "Hrs" },
-        { value: timeLeft.minutes, label: "Mins" },
-        { value: timeLeft.seconds, label: "Secs" }
-      ].map((item, idx) => (
-        <div key={idx} className="bg-red-600 rounded-lg p-2 min-w-[50px] text-center">
-          <div className="text-xl font-bold text-white">{String(item.value).padStart(2, '0')}</div>
-          <div className="text-[10px] text-red-200 uppercase">{item.label}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export default function PpfCeramicLanding() {
   const [showExitPopup, setShowExitPopup] = useState(false);
@@ -354,14 +313,16 @@ export default function PpfCeramicLanding() {
         </a>
       </div>
 
-      {/* Top Banner - Urgency */}
-      <div className="bg-gradient-to-r from-red-600 to-red-700 py-3 px-4">
+      {/* This banner carried a countdown seeded from `new Date() + 3 days` at page load,
+          so the "offer" always expired three days from whenever you happened to visit.
+          Countdown removed; restore it only against a real offer end time held in
+          configuration. */}
+      <div className="bg-gradient-to-r from-green-700 to-green-800 py-3 px-4">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-white font-bold">
-            <Timer className="w-5 h-5 animate-pulse" />
-            <span>LIMITED TIME OFFER - UP TO 40% OFF!</span>
+            <Timer className="w-5 h-5" />
+            <span>Professional PPF &amp; Ceramic Coating — request a quote today</span>
           </div>
-          <CountdownTimer />
         </div>
       </div>
 

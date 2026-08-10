@@ -1,9 +1,8 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
 import ServiceCard from "@/components/service-card";
-
-import CountdownTimer from "@/components/countdown-timer";
-import FakeBookingPopup from "@/components/fake-booking-popup";
+import TransformationCTA from "@/components/transformation-cta";
+import { TRANSFORMATION_CTAS, type ServiceRecord } from "@/lib/canonical-services";
 import { Header } from "@/components/header";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -20,16 +19,21 @@ import exteriorDetailingAfter from "@assets/20241227_164016_1754031651194.jpg";
 import interiorDetailingComparison from "@assets/ff034468a03ea55ea0924270de1e42bd_1754032817032.jpg";
 
 export default function Home() {
-  const { data: services, isLoading } = useQuery({
+  const { data: services, isLoading } = useQuery<ServiceRecord[]>({
     queryKey: ["/api/services"],
   });
+
+  // Arriving from another page as /#services: the grid mounts after the browser has
+  // already tried to resolve the anchor, so scroll once the services have rendered.
+  useEffect(() => {
+    if (window.location.hash !== "#services" || isLoading) return;
+    document.getElementById("services")?.scrollIntoView({ behavior: "smooth" });
+  }, [isLoading]);
 
   return (
     <div className="min-h-screen bg-black text-white relative">
       <Header />
-      {/* Fake Booking Notifications */}
-      <FakeBookingPopup />
-      
+
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
@@ -70,11 +74,11 @@ export default function Home() {
             Book online in 60 seconds and get your car looking showroom-new.
           </p>
 
-          {/* Countdown Timer */}
-          <div className="mb-8 max-w-md mx-auto">
-            <CountdownTimer />
-          </div>
-          
+          {/* A countdown used to sit here. It was seeded from Date.now() + 60 minutes in
+              localStorage, so every visitor saw a personal "offer" expiring an hour after
+              they arrived — not a real promotion end time. Removed rather than replaced;
+              reinstate only when a genuine offer end time exists in configuration. */}
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Button 
               size="lg" 
@@ -109,15 +113,17 @@ export default function Home() {
 
 
 
-      {/* Urgency Banner */}
-      <section className="py-6 bg-gradient-to-r from-red-600 to-red-700">
+      {/* Banner. The previous copy claimed "Only 12 slots left for this week!" — a
+          hardcoded number with no connection to booking capacity. Replaced with neutral
+          wording; restore a count here only if it is computed from real availability. */}
+      <section className="py-6 bg-gradient-to-r from-green-700 to-green-800">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-3">
-            <Zap className="w-5 h-5 text-yellow-300 animate-pulse" />
+            <Zap className="w-5 h-5 text-green-200" />
             <span className="text-white font-bold text-lg">
-              🔥 LIMITED TIME: Book today and save up to ₹1000! Only 12 slots left for this week!
+              Professional detailing across Bangalore — book your service online in 60 seconds
             </span>
-            <Zap className="w-5 h-5 text-yellow-300 animate-pulse" />
+            <Zap className="w-5 h-5 text-green-200" />
           </div>
         </div>
       </section>
@@ -168,22 +174,24 @@ export default function Home() {
             )}
           </div>
           
-          {/* Emergency Book Now Section */}
+          {/* Was "🚨 URGENT: Limited Weekend Slots Available! Only 3 slots left" — a
+              fixed number unrelated to real capacity. Neutral wording until availability
+              is computed from the bookings table. */}
           <div className="text-center mt-16 bg-gradient-to-r from-green-600 to-green-700 rounded-2xl p-8 mx-auto max-w-4xl">
             <h3 className="text-3xl font-bold text-white mb-4">
-              🚨 URGENT: Limited Weekend Slots Available!
+              Weekend Appointments Available
             </h3>
             <p className="text-green-100 text-lg mb-6">
-              Only <span className="font-bold text-yellow-300">3 slots left</span> for this weekend. 
-              Book now before they're gone!
+              Pick a service above and choose the slot that suits you — live availability is
+              shown when you book.
             </p>
-            <Button 
+            <Button
               size="lg"
-              className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-xl px-12 py-4 animate-pulse"
+              className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-xl px-12 py-4"
               onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
               data-testid="button-emergency-book"
             >
-              GRAB YOUR SLOT NOW!
+              Book Your Service
             </Button>
           </div>
         </div>
@@ -282,21 +290,17 @@ export default function Home() {
             </div>
           </div>
           
+          {/* Marketing label "Interior Deep Clean" -> canonical active service
+              "Interior Detailing Service" (interior-detailing-service). The old link went
+              to the INACTIVE slug `interior-deep-clean` and dead-ended on Service Not
+              Found; its ₹2,500 / ₹6,250 prices were stale too. */}
           <div className="text-center mt-12">
-            <div className="space-y-4">
-              <div className="inline-block bg-red-600 text-white px-6 py-2 rounded-full font-bold text-lg animate-pulse">
-                🔥 SPECIAL OFFER: 60% OFF! 🔥
-              </div>
-              <div className="text-center">
-                <div className="text-gray-400 line-through text-lg mb-2">Original Price: ₹6,250</div>
-                <Link href="/service/interior-deep-clean">
-                  <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg">
-                    Get Interior Deep Clean - ₹2,500 ONLY!
-                    <ArrowRight className="ml-2 w-6 h-6" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
+            <TransformationCTA
+              service={TRANSFORMATION_CTAS.interiorDeepClean}
+              services={services}
+              action="Get"
+              testId="button-cta-interior-deep-clean"
+            />
           </div>
         </div>
       </section>
@@ -346,21 +350,16 @@ export default function Home() {
             </div>
           </div>
           
+          {/* Marketing label "Glass Coating" -> canonical active service "Windshield
+              Glass Coating" (windshield-glass-coating-new). The old link used the
+              INACTIVE slug `glass-coating`; its ₹3,000 price was stale (really ₹1,399). */}
           <div className="text-center mt-12">
-            <div className="space-y-4">
-              <div className="inline-block bg-red-600 text-white px-6 py-2 rounded-full font-bold text-lg animate-pulse">
-                🔥 LIMITED TIME: 50% OFF! 🔥
-              </div>
-              <div className="text-center">
-                <div className="text-gray-400 line-through text-lg mb-2">Original Price: ₹6,000</div>
-                <Link href="/service/glass-coating">
-                  <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg">
-                    Get Glass Coating - ₹3,000 ONLY!
-                    <ArrowRight className="ml-2 w-6 h-6" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
+            <TransformationCTA
+              service={TRANSFORMATION_CTAS.glassCoating}
+              services={services}
+              action="Get"
+              testId="button-cta-glass-coating"
+            />
           </div>
         </div>
       </section>
@@ -428,21 +427,17 @@ export default function Home() {
             </div>
           </div>
           
+          {/* Marketing label "Headlight Restoration" -> canonical active service
+              "Headlight Restoration - Both Lights" (headlight-restoration-both). The old
+              link used the INACTIVE slug `headlight-restoration`; ₹1,800 was stale
+              (really ₹1,199). */}
           <div className="text-center mt-12">
-            <div className="space-y-4">
-              <div className="inline-block bg-red-600 text-white px-6 py-2 rounded-full font-bold text-lg animate-pulse">
-                🔥 MEGA DEAL: 70% OFF! 🔥
-              </div>
-              <div className="text-center">
-                <div className="text-gray-400 line-through text-lg mb-2">Original Price: ₹6,000</div>
-                <Link href="/service/headlight-restoration">
-                  <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg">
-                    Restore My Headlights - ₹1,800 ONLY!
-                    <ArrowRight className="ml-2 w-6 h-6" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
+            <TransformationCTA
+              service={TRANSFORMATION_CTAS.headlightRestoration}
+              services={services}
+              action="Book"
+              testId="button-cta-headlight-restoration"
+            />
           </div>
         </div>
       </section>
@@ -510,21 +505,18 @@ export default function Home() {
             </div>
           </div>
           
+          {/* Marketing label "Complete Exterior Detail" -> canonical active service
+              "Exterior Detailing with Hard Water Spot Removal"
+              (exterior-detailing-hard-water-new). The old link used the INACTIVE slug
+              `premium-wash-detail`, which shares that exact title — a title lookup would
+              have resolved to the wrong row. ₹1,500 was stale (really ₹2,999). */}
           <div className="text-center mt-12">
-            <div className="space-y-4">
-              <div className="inline-block bg-red-600 text-white px-6 py-2 rounded-full font-bold text-lg animate-pulse">
-                🔥 SUPER SAVER: 75% OFF! 🔥
-              </div>
-              <div className="text-center">
-                <div className="text-gray-400 line-through text-lg mb-2">Original Price: ₹6,000</div>
-                <Link href="/service/premium-wash-detail">
-                  <Button size="lg" className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg">
-                    Get Premium Detail - ₹1,500 ONLY!
-                    <ArrowRight className="ml-2 w-6 h-6" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
+            <TransformationCTA
+              service={TRANSFORMATION_CTAS.exteriorDetailing}
+              services={services}
+              action="Get"
+              testId="button-cta-exterior-detailing"
+            />
           </div>
         </div>
       </section>

@@ -1,6 +1,24 @@
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import {
+  FOOTER_SERVICES,
+  formatINR,
+  resolveCanonical,
+  type ServiceRecord,
+} from "@/lib/canonical-services";
 
 export default function Footer() {
+  // Titles and prices come from the live active-service records, never from hardcoded
+  // footer copy — that is how "Premium Car Wash - ₹599" (no such service, active or
+  // inactive) and "Exterior Detailing - ₹1,999" (really ₹2,999) drifted out of sync.
+  // resolveCanonical returns null unless the row is present in /api/services (active
+  // only) with a matching id, slug and title, so a delisted service simply drops out
+  // of the footer instead of becoming a dead link.
+  const { data: services } = useQuery<ServiceRecord[]>({ queryKey: ["/api/services"] });
+  const footerServices = FOOTER_SERVICES
+    .map((entry) => resolveCanonical(services, entry))
+    .filter((row): row is ServiceRecord => row !== null);
+
   return (
     <footer className="bg-deep-black border-t border-medium-gray">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -26,12 +44,19 @@ export default function Footer() {
           {/* Services */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-neon-green">Our Services</h3>
-            <ul className="space-y-2 text-gray-400 text-sm">
-              <li>Premium Car Wash - ₹599</li>
-              <li>Interior Detailing - ₹2,499</li>
-              <li>Exterior Detailing - ₹1,999</li>
-              <li>Windshield Glass Coating - ₹1,399</li>
-              <li>Headlight Restoration - ₹1,199</li>
+            <ul className="space-y-2 text-gray-400 text-sm" data-testid="list-footer-services">
+              {footerServices.map((row) => (
+                <li key={row.id}>
+                  <Link href={`/service/${row.slug}`}>
+                    <span
+                      className="hover:text-neon-green transition-colors cursor-pointer"
+                      data-testid={`link-footer-service-${row.slug}`}
+                    >
+                      {row.title.trim()} - {formatINR(row.price)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 

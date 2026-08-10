@@ -1,36 +1,13 @@
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
 import { usePageTitle } from "@/hooks/use-page-title";
+import { Header } from "@/components/header";
+import Footer from "@/components/footer";
+import { LEGAL_LAST_UPDATED } from "@/lib/legal-metadata";
 
 export default function RefundPolicy() {
   usePageTitle("Refund Policy — P91 Car Care");
   return (
     <div className="min-h-screen bg-deep-black text-white">
-      {/* Header */}
-      <div className="glass-effect border-b border-medium-gray">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <img 
-                src="/Car Care (4)_1753951564515.png" 
-                alt="P91 Car Care" 
-                className="h-8 w-auto"
-                data-testid="img-logo-refund"
-              />
-              <h1 className="text-xl font-semibold gradient-text">
-                Plus Nine One Inc
-              </h1>
-            </div>
-            <Link href="/">
-              <Button variant="ghost" className="text-gray-300 hover:text-white" data-testid="button-back-home">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Home
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
+      <Header />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="prose prose-invert max-w-none">
@@ -152,7 +129,7 @@ export default function RefundPolicy() {
 
             <div className="mt-12 p-6 bg-medium-gray rounded-lg">
               <p className="text-sm text-gray-400">
-                Last updated: {new Date().toLocaleDateString('en-IN')}
+                Last updated: {LEGAL_LAST_UPDATED.refundPolicy}
               </p>
               <p className="text-sm text-gray-400 mt-2">
                 © 2025 Plus Nine One Inc. All rights reserved.
@@ -161,6 +138,7 @@ export default function RefundPolicy() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

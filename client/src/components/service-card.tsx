@@ -38,10 +38,16 @@ export default function ServiceCard({ service }: ServiceCardProps) {
           </div>
         )}
         
+        {/* One 2:1 image band on every card. aspect-ratio (not a fixed height) reserves
+            the box from the card's width alone, so the row height is known before the
+            image loads and the grid never shifts. The intrinsic width/height attributes
+            match that ratio, so there is no reflow even before the stylesheet applies. */}
         <ImageWithFallback
-          src={service.images?.[0] || "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600"}
-          alt={`${service.title} – P91 Car Care`}
-          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+          src={service.images?.[0] || "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400"}
+          alt={`${service.title} being carried out at P91 Car Care`}
+          width={1600}
+          height={800}
+          className="block w-full aspect-[2/1] object-cover object-center bg-[#1a1a1a] group-hover:scale-105 transition-transform duration-300"
           data-testid={`img-service-${service.id}`}
         />
         <div className="p-6">

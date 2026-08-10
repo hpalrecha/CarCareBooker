@@ -1,0 +1,31 @@
+# Keep the build context small and keep secrets out of the image.
+# NOTE: attached_assets/ is deliberately NOT ignored — the server serves
+# /attached_assets/* from it at runtime and leaving it out is exactly the bug
+# this Dockerfile fixes.
+
+node_modules
+**/node_modules
+dist
+.git
+.gitignore
+
+# Rebuilt inside the image; the host copy is ephemeral runtime state.
+uploads
+
+# Secrets and local state — must never reach a layer.
+.env
+.env.*
+*.env
+cookies.txt
+githubtoken
+.local
+.replit
+
+# Local-only tooling and notes.
+scripts/*.mjs
+migrations
+*.md
+test-*.html
+.DS_Store
+npm-debug.log*
+tests

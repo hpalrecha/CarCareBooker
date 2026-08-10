@@ -4,6 +4,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { schedulerService } from "./services/scheduler";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import path from "path";
+import fs from "fs";
 
 const app = express();
 
@@ -51,6 +52,22 @@ app.use(express.urlencoded({ extended: false }));
 // Serve attached assets statically - use dirname for reliable path resolution in production
 const attachedAssetsPath = path.resolve(import.meta.dirname, '..', 'attached_assets');
 console.log('Serving attached assets from:', attachedAssetsPath);
+
+// Fail loudly at boot if the directory is missing. express.static() on a non-existent
+// directory silently calls next(), so every /attached_assets/* request falls through to
+// the SPA catch-all and returns index.html with content-type text/html — which browsers
+// render as a broken image. A container built without attached_assets/ therefore looked
+// healthy while every service image on the site was broken.
+if (!fs.existsSync(attachedAssetsPath)) {
+  const message =
+    `attached_assets/ is missing at ${attachedAssetsPath}. Every service image will 404. ` +
+    `If this is a container, the image was built without copying attached_assets/ (see Dockerfile).`;
+  if (process.env.NODE_ENV === 'production') {
+    console.error(`FATAL: ${message}`);
+    process.exit(1);
+  }
+  console.warn(`WARNING: ${message}`);
+}
 app.use('/attached_assets', express.static(attachedAssetsPath, {
   maxAge: '1d', // Cache images for 1 day
   setHeaders: (res) => {

@@ -12,7 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { loadRazorpay } from "@/lib/razorpay";
 import { bookingFormSchema, type BlackoutDate, type BusinessHour } from "@shared/schema";
-import { Check, X } from "lucide-react";
+import { ImageWithFallback } from "@/components/image-with-fallback";
+import { Check } from "lucide-react";
 
 interface BookingModalProps {
   service: {
@@ -480,27 +481,29 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto bg-dark-gray text-white border-medium-gray p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold gradient-text" data-testid="text-booking-modal-title">
+          <DialogTitle className="text-2xl font-bold gradient-text pr-14" data-testid="text-booking-modal-title">
             {service.title}
           </DialogTitle>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="absolute right-4 top-4 text-gray-400 hover:text-white"
-            onClick={onClose}
-            data-testid="button-close-modal"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          {/* No close button here on purpose. DialogContent (components/ui/dialog.tsx)
+              already renders a Radix DialogPrimitive.Close in this same top-right
+              corner; a second one stacked two X icons on every service. The Radix one
+              also provides Escape-to-close, focus trapping and focus return to the
+              trigger, which the hand-rolled Button did not. */}
         </DialogHeader>
-        
+
         <div className="space-y-8">
-          {/* Service Image Gallery */}
+          {/* Service image — same resolver and framing as the corrected service cards:
+              images[0] straight off the canonical record, a 2:1 box reserved before load
+              so the modal never jumps, cover/center so it never stretches, and the shared
+              branded placeholder only after a genuine error event (no hardcoded Unsplash
+              stand-in, and an HTML error response fails the decode rather than rendering). */}
           <div>
-            <img 
-              src={service.images?.[0] || "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=600"} 
-              alt={service.title}
-              className="w-full h-48 sm:h-64 object-cover rounded-xl" 
+            <ImageWithFallback
+              src={service.images?.[0]}
+              alt={`${service.title} being carried out at P91 Car Care`}
+              width={1600}
+              height={800}
+              className="block w-full aspect-[2/1] object-cover object-center bg-[#1a1a1a] rounded-xl"
               data-testid="img-service-banner"
             />
           </div>

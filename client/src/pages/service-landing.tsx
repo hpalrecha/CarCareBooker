@@ -7,6 +7,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { CheckCircle, Star, Clock, Shield, Phone, Mail, MapPin, Play, ArrowRight, Zap } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import BookingModal from "@/components/booking-modal";
+import { Header } from "@/components/header";
+import Footer from "@/components/footer";
+import { useSeoMeta } from "@/hooks/use-seo-meta";
 
 // Import before/after images
 import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029992282.webp";
@@ -49,6 +52,8 @@ export default function ServiceLanding() {
   const [, setLocation] = useLocation();
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [showFloatingCTA, setShowFloatingCTA] = useState(false);
+  // Once dismissed the sticky bar stays gone for the rest of the visit.
+  const [floatingCtaDismissed, setFloatingCtaDismissed] = useState(false);
   // True while the final "Ready to Transform" CTA section is on screen — the floating bar
   // hides then, so it never covers the real Book Now button or the footer contact info.
   const [finalCtaVisible, setFinalCtaVisible] = useState(false);
@@ -96,28 +101,61 @@ export default function ServiceLanding() {
     );
   }
 
+  // Customer-facing empty state for an unknown or deactivated slug. This used to be a
+  // bare "Service Not Found" heading — which is where all four homepage transformation
+  // CTAs landed, because they pointed at inactive slugs.
   if (!service) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Service Not Found</h1>
-          <Button onClick={() => setLocation("/")} className="bg-green-400 hover:bg-green-500 text-black">
-            Back to Home
-          </Button>
-        </div>
+      <div className="min-h-screen bg-black text-white flex flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center px-4 py-20">
+          <div className="max-w-xl w-full text-center">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">We couldn't find that service</h1>
+            <p className="text-gray-300 text-lg mb-10">
+              It may have been renamed or is no longer offered. All of our current services
+              are listed on the homepage.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <a href="/#services">
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto bg-green-400 hover:bg-green-500 text-black font-bold"
+                  data-testid="button-service-not-found-services"
+                >
+                  Browse All Services
+                </Button>
+              </a>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => setLocation("/")}
+                className="w-full sm:w-auto border-green-400 text-green-400 hover:bg-green-400 hover:text-black font-bold"
+                data-testid="button-service-not-found-home"
+              >
+                Go Home
+              </Button>
+            </div>
+            <p className="mt-8 text-gray-400">
+              Need help choosing?{" "}
+              <a href="/contact" className="text-green-400 hover:text-green-300 underline">
+                Contact us
+              </a>
+            </p>
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }
 
-  const discountPercent = service.originalPrice 
+  const discountPercent = service.originalPrice
     ? Math.round(((parseFloat(service.originalPrice) - parseFloat(service.price)) / parseFloat(service.originalPrice)) * 100)
     : 0;
 
   return (
+    <>
+    <ServiceSeo service={service} />
     <div className="min-h-screen bg-black text-white">
-      {/* SEO Meta Tags */}
-      <title>{service.metaTitle || `${service.title} - P91 Car Care`}</title>
-      <meta name="description" content={service.metaDescription || service.description} />
       {/* Header with Logo */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-gray-800">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -129,14 +167,17 @@ export default function ServiceLanding() {
               data-testid="img-logo"
             />
           </div>
-          <Button
-            onClick={() => setLocation("/")}
-            variant="ghost"
-            className="text-green-400 hover:text-green-300"
-            data-testid="button-back-home"
-          >
-            ← Back to Services
-          </Button>
+          {/* Anchors to the homepage services grid rather than just "/" — the grid does
+              not exist on this page, so scrolling to #services locally would be a no-op. */}
+          <a href="/#services">
+            <Button
+              variant="ghost"
+              className="text-green-400 hover:text-green-300"
+              data-testid="button-back-home"
+            >
+              ← Back to Services
+            </Button>
+          </a>
         </div>
       </header>
       {/* Hero Section — pt clears the fixed header with margin so the card/callout
@@ -1020,22 +1061,30 @@ export default function ServiceLanding() {
       </section>
       {/* Floating FOMO CTA Button — hidden while the real bottom CTA is on screen so it
           never covers the Book Now button or the footer contact info. */}
-      {showFloatingCTA && !finalCtaVisible && !bookingModalOpen && (
+      {showFloatingCTA && !finalCtaVisible && !bookingModalOpen && !floatingCtaDismissed && (
         <div
-          className={`fixed bottom-4 right-4 z-[45] transition-all duration-500 ease-in-out ${
-            showFloatingCTA ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
-          }`}
+          className="fixed right-4 z-[45] transition-all duration-500 ease-in-out translate-y-0 opacity-100"
+          // Sits above the iOS/Android home indicator instead of under it.
+          style={{ pointerEvents: 'auto', bottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
           data-testid="floating-cta-button"
-          style={{ pointerEvents: 'auto' }}
         >
-          <div className="bg-gradient-to-r from-red-500 via-red-600 to-orange-600 rounded-2xl shadow-2xl px-4 py-3 mx-4 max-w-xs relative border border-red-400/30">
+          <div className="bg-gray-900 rounded-2xl shadow-2xl px-4 py-3 mr-1 max-w-xs relative border border-green-500/40">
+            {/* Persistent bar, so it needs a way out. 44x44 touch target. */}
+            <button
+              type="button"
+              onClick={() => setFloatingCtaDismissed(true)}
+              aria-label="Dismiss booking bar"
+              className="absolute -top-3 -right-3 inline-flex h-11 w-11 items-center justify-center rounded-full bg-gray-800 border border-gray-600 text-gray-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
+              data-testid="button-dismiss-floating-cta"
+            >
+              <span aria-hidden="true" className="text-lg leading-none">×</span>
+            </button>
             <div className="flex items-center justify-between gap-3">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                  <span className="text-white text-xs font-bold tracking-wide uppercase">
-                    Limited Slots
-                  </span>
+                {/* Was an "LIMITED SLOTS" pill with a pulsing dot. No slot count is
+                    calculated anywhere, so the claim was fabricated. */}
+                <div className="text-gray-300 text-xs font-semibold tracking-wide uppercase mb-1">
+                  Book Your Service
                 </div>
                 <div className="text-white text-sm font-semibold">
                   {service.title === 'Annual Maintenance Package' ? 'Book now for ₹8999' : 'Book now for ₹299'}
@@ -1047,24 +1096,14 @@ export default function ServiceLanding() {
                   e.stopPropagation();
                   setBookingModalOpen(true);
                 }}
-                className="bg-white hover:bg-gray-100 text-red-600 font-bold px-4 py-2 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 min-w-fit relative z-10 border-2 border-white"
+                className="bg-green-400 hover:bg-green-500 text-black font-bold px-4 py-2 rounded-xl shadow-lg transition-colors flex items-center gap-2 min-w-fit relative z-10"
                 data-testid="button-floating-book-now"
               >
                 <Zap className="w-4 h-4" />
                 <span className="text-sm font-bold">BOOK</span>
               </Button>
             </div>
-            
-            {/* Subtle Glow Effect */}
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-red-500 via-red-600 to-orange-600 opacity-40 blur-sm -z-10"></div>
           </div>
-          
-          {/* Enhanced Save Badge */}
-          {service?.originalPrice && parseFloat(service.originalPrice) > parseFloat(service.price) && (
-            <div className="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full shadow-lg border-2 border-white animate-bounce">
-              Save ₹{(parseFloat(service.originalPrice) - parseFloat(service.price)).toLocaleString()}
-            </div>
-          )}
         </div>
       )}
       {/* Booking Modal */}
@@ -1074,5 +1113,36 @@ export default function ServiceLanding() {
         service={service}
       />
     </div>
+    </>
   );
+}
+
+/**
+ * Title, description, Open Graph and Service JSON-LD for the current service, all driven
+ * by the canonical service record — so a record that says "Bike" produces a tab title,
+ * og:title and structured data that say "Bike" too.
+ */
+function ServiceSeo({ service }: { service: Service }) {
+  const title = service.metaTitle || `${service.title.trim()} - P91 Car Care`;
+  const description = service.metaDescription || service.description;
+  useSeoMeta({
+    title,
+    description,
+    image: service.images?.[0],
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      name: service.title.trim(),
+      description,
+      image: service.images?.[0],
+      provider: { "@type": "AutoRepair", name: "P91 Car Care", areaServed: "Bangalore" },
+      offers: {
+        "@type": "Offer",
+        price: service.price,
+        priceCurrency: "INR",
+        availability: "https://schema.org/InStock",
+      },
+    },
+  });
+  return null;
 }

@@ -8,6 +8,12 @@ import { nanoid } from "nanoid";
 
 const viteLogger = createLogger();
 
+// URLs that name a file with an asset extension must never be answered with the SPA
+// shell — a 200 text/html in place of an image is exactly how the broken service images
+// went unnoticed. Shared by setupVite() and serveStatic().
+const ASSET_EXT =
+  /\.(png|jpe?g|gif|webp|avif|svg|ico|css|js|mjs|map|json|txt|woff2?|ttf|eot|mp4|webm|pdf)$/i;
+
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -43,6 +49,13 @@ export async function setupVite(app: Express, server: Server) {
   app.use(vite.middlewares);
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
+
+    // Same guard as serveStatic(): a missing asset must 404 rather than be answered with
+    // the SPA shell at 200 text/html, so a broken image URL fails the same way in
+    // development as it does in production.
+    if (ASSET_EXT.test(url.split("?")[0])) {
+      return res.status(404).type("text/plain").send("Not found");
+    }
 
     try {
       const clientTemplate = path.resolve(
@@ -81,8 +94,6 @@ export function serveStatic(app: Express) {
   // Static assets (anything with a file extension) that reached here don't exist —
   // return a real 404 instead of the SPA shell, so broken images/scripts fail loudly
   // rather than silently rendering as 200 text/html.
-  const ASSET_EXT = /\.(png|jpe?g|gif|webp|avif|svg|ico|css|js|mjs|map|json|txt|woff2?|ttf|eot|mp4|webm|pdf)$/i;
-
   app.use("*", (req, res) => {
     if (ASSET_EXT.test(req.originalUrl.split("?")[0])) {
       return res.status(404).type("text/plain").send("Not found");
