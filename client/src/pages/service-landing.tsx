@@ -166,6 +166,14 @@ export default function ServiceLanding() {
 
   const showTestimonials = !TESTIMONIALS_SUPPRESSED.has(service.slug);
 
+  // This template is shared by every service, and its fixed copy said "car"
+  // throughout — which read wrong on the bike ceramic-coating page ("transform your
+  // car", "Ready to Transform Your Car?"). Derive the noun from the service itself.
+  // "P91 Car Care" is the brand name and is deliberately left alone.
+  const isBikeService = /\bbike\b|\bmotorcycle\b/i.test(service.title);
+  const vehicleNoun = isBikeService ? "bike" : "car";
+  const vehicleNounTitle = isBikeService ? "Bike" : "Car";
+
   return (
     <>
     <ServiceSeo service={service} />
@@ -866,7 +874,7 @@ export default function ServiceLanding() {
                 Watch Our Process
               </h2>
               <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-                See our expert technicians in action as they transform your car with precision and care.
+                See our expert technicians in action as they transform your {vehicleNoun} with precision and care.
               </p>
             </div>
 
@@ -939,7 +947,7 @@ export default function ServiceLanding() {
                   Experience Professional Car Care
                 </h3>
                 <p className="text-gray-300 mb-6">
-                  Book your service today and let our experts give your car the attention it deserves
+                  Book your service today and let our experts give your {vehicleNoun} the attention it deserves
                 </p>
                 <Button
                   size="lg"
@@ -1026,7 +1034,7 @@ export default function ServiceLanding() {
       {/* Final CTA Section */}
       <section ref={finalCtaRef} className="py-20 px-4 bg-gradient-to-r from-green-600 to-green-800">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-6">Ready to Transform Your Car?</h2>
+          <h2 className="text-4xl font-bold mb-6">Ready to Transform Your {vehicleNounTitle}?</h2>
           <p className="text-xl mb-8 opacity-90">
             Book your {service.title.toLowerCase()} today and experience the P91 difference!
           </p>

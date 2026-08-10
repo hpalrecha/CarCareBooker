@@ -365,6 +365,17 @@ describe('bike ceramic coating content', () => {
     // The old inline <title>/<meta> JSX is inert in React 18 and must be gone.
     assert.ok(!landing.includes('<title>{service.metaTitle'));
   });
+  test('the shared service template does not hardcode "car" as the vehicle noun', () => {
+    const landing = readCode('client/src/pages/service-landing.tsx');
+    assert.match(landing, /const vehicleNoun = isBikeService \? "bike" : "car"/);
+    // The three fixed strings that read wrong on a motorcycle page.
+    assert.ok(!/transform your car\b/i.test(landing), '"transform your car" still hardcoded');
+    assert.ok(!/Transform Your Car\?/.test(landing), '"Ready to Transform Your Car?" still hardcoded');
+    assert.ok(!/give your car the attention/i.test(landing), '"your car the attention" still hardcoded');
+    // Brand name must survive.
+    assert.match(landing, /P91 Car Care/);
+  });
+
   test('car testimonials are hidden on the bike page only, and not deleted', () => {
     const landing = read('client/src/pages/service-landing.tsx');
     assert.match(landing, /TESTIMONIALS_SUPPRESSED = new Set<string>\(\['1-year-bike-ceramic-coating'\]\)/);
