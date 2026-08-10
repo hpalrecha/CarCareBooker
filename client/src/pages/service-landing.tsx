@@ -655,7 +655,7 @@ export default function ServiceLanding() {
                   <div className="mt-8 text-center">
                     <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 max-w-4xl mx-auto">
                       <p className="text-lg text-gray-300 leading-relaxed">
-                        Transform your car's interior from dirty and stained to fresh and spotless. 
+                        Transform your {vehicleNoun}'s interior from dirty and stained to fresh and spotless.
                         Our deep cleaning process removes dirt, stains, and odors, leaving your interior 
                         looking and smelling like new.
                       </p>
