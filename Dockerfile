@@ -23,22 +23,31 @@ RUN npm run build
 FROM node:20-bookworm-slim AS runtime
 WORKDIR /app
 
-# server/index.ts branches on app.get("env"), which reads NODE_ENV. Anything
-# other than "production" takes the Vite dev-middleware path instead of
-# serveStatic(), so this must be set.
-ENV NODE_ENV=production
-ENV PORT=5000
-
-# Deliberately a FULL install, not `npm ci --omit=dev`.
+# Deliberately a FULL install, including devDependencies.
 #
 # esbuild bundles server/vite.ts into dist/index.js, and that file carries
 # top-level ESM imports of `vite`, `@vitejs/plugin-react` and
 # `@replit/vite-plugin-runtime-error-modal` — all devDependencies. Static
 # imports resolve at module load, long before the development/production branch
-# is reached, so an --omit=dev image dies immediately with
-# ERR_MODULE_NOT_FOUND. See "Slimming this image" at the bottom of the file.
+# is reached, so an install without them dies immediately with
+# `ERR_MODULE_NOT_FOUND: Cannot find package 'vite'`.
+#
+# NOTE: NODE_ENV is set AFTER this step on purpose. `npm ci` silently drops
+# devDependencies when NODE_ENV=production is already in the environment, which
+# is exactly how an earlier revision of this file shipped an image that could
+# not boot. --include=dev makes it explicit even if the order is disturbed
+# again, and the assertion below fails the build rather than the container.
 COPY package.json package-lock.json ./
-RUN npm ci && npm cache clean --force
+RUN npm ci --include=dev && npm cache clean --force
+RUN test -f node_modules/vite/package.json \
+    && test -f node_modules/@vitejs/plugin-react/package.json \
+    || (echo "FATAL: devDependencies missing — dist/index.js imports vite at load time"; exit 1)
+
+# server/index.ts branches on app.get("env"), which reads NODE_ENV. Anything
+# other than "production" takes the Vite dev-middleware path instead of
+# serveStatic(), so this must be set — but only once the install is done.
+ENV NODE_ENV=production
+ENV PORT=5000
 
 COPY --from=build /app/dist ./dist
 

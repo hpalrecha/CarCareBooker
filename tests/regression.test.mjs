@@ -331,6 +331,26 @@ describe('static asset serving', () => {
     assert.match(df, /COPY attached_assets \.\/attached_assets/);
     assert.match(df, /WORKDIR \/app/);
   });
+
+  test('the runtime install keeps devDependencies (dist/index.js imports vite)', () => {
+    // Comments stripped: the trailing "Slimming this image" note discusses
+    // `npm ci --omit=dev` in prose, which is documentation, not an instruction.
+    const df = read('Dockerfile').replace(/^\s*#.*$/gm, '');
+    // The runtime stage is everything from the second FROM onwards.
+    const runtime = df.slice(df.indexOf('AS runtime'));
+    const installAt = runtime.indexOf('npm ci');
+    const nodeEnvAt = runtime.indexOf('ENV NODE_ENV=production');
+    assert.ok(installAt > 0 && nodeEnvAt > 0, 'runtime stage is missing npm ci or NODE_ENV');
+    // npm silently drops devDependencies when NODE_ENV=production is already set,
+    // which produced "Cannot find package 'vite'" at container start.
+    assert.ok(nodeEnvAt > installAt,
+      'ENV NODE_ENV=production must come AFTER npm ci, or dev deps are dropped');
+    assert.match(runtime, /npm ci --include=dev/,
+      'runtime install must explicitly include devDependencies');
+    assert.ok(!/npm ci --omit=dev/.test(runtime), 'runtime install must not omit dev deps');
+    assert.match(runtime, /test -f node_modules\/vite\/package\.json/,
+      'build must assert vite is installed rather than let the container crash-loop');
+  });
   test('.dockerignore does not exclude attached_assets', () => {
     const di = read('.dockerignore');
     assert.ok(!di.split('\n').some((l) => l.trim() === 'attached_assets'));
