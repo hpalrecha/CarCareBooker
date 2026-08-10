@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Clock, ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "@/components/image-with-fallback";
+import { resolveServiceImage } from "@/lib/canonical-services";
 
 interface ServiceCardProps {
   service: {
@@ -43,7 +44,7 @@ export default function ServiceCard({ service }: ServiceCardProps) {
             image loads and the grid never shifts. The intrinsic width/height attributes
             match that ratio, so there is no reflow even before the stylesheet applies. */}
         <ImageWithFallback
-          src={service.images?.[0] || "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400"}
+          src={resolveServiceImage(service)}
           alt={`${service.title} being carried out at P91 Car Care`}
           width={1600}
           height={800}

@@ -20,14 +20,21 @@ type Props = React.ImgHTMLAttributes<HTMLImageElement> & {
 };
 
 export function ImageWithFallback({ src, alt, fallback = PLACEHOLDER, onError, ...rest }: Props) {
-  const [failed, setFailed] = useState(false);
+  // Remember WHICH src failed rather than a bare boolean. A boolean sticks: once one
+  // image errored, the component kept showing the placeholder even after `src` changed
+  // to a working image — which matters here because the same card and modal components
+  // are reused across services as the user navigates. Comparing against the current src
+  // resets the error state automatically, with no effect needed.
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const showFallback = !src || failedSrc === src;
+
   return (
     <img
-      src={failed || !src ? fallback : src}
+      src={showFallback ? fallback : src}
       alt={alt}
       loading="lazy"
       onError={(e) => {
-        if (!failed) setFailed(true);
+        if (src && failedSrc !== src) setFailedSrc(src);
         onError?.(e);
       }}
       {...rest}

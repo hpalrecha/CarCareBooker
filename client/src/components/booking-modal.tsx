@@ -13,6 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { loadRazorpay } from "@/lib/razorpay";
 import { bookingFormSchema, type BlackoutDate, type BusinessHour } from "@shared/schema";
 import { ImageWithFallback } from "@/components/image-with-fallback";
+import { resolveServiceImage } from "@/lib/canonical-services";
 import { Check } from "lucide-react";
 
 interface BookingModalProps {
@@ -499,7 +500,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
               stand-in, and an HTML error response fails the decode rather than rendering). */}
           <div>
             <ImageWithFallback
-              src={service.images?.[0]}
+              src={resolveServiceImage(service)}
               alt={`${service.title} being carried out at P91 Car Care`}
               width={1600}
               height={800}

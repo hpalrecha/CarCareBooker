@@ -134,7 +134,7 @@ describe('booking modal', () => {
 
   test('resolves the service image through the shared fallback component', () => {
     assert.match(modal, /<ImageWithFallback/);
-    assert.match(modal, /src=\{service\.images\?\.\[0\]\}/);
+    assert.match(modal, /src=\{resolveServiceImage\(service\)\}/);
   });
 
   test('no hardcoded Unsplash stand-in remains in the modal', () => {
@@ -147,6 +147,53 @@ describe('booking modal', () => {
     assert.match(block, /aspect-\[2\/1\]/);
     assert.match(block, /object-cover/);
     assert.match(block, /object-center/);
+  });
+});
+
+describe('canonical image resolver', () => {
+  test('card, modal and detail hero all use resolveServiceImage', () => {
+    for (const f of [
+      'client/src/components/service-card.tsx',
+      'client/src/components/booking-modal.tsx',
+      'client/src/pages/service-landing.tsx',
+    ]) {
+      assert.match(read(f), /resolveServiceImage/, `${f} does not use the resolver`);
+    }
+  });
+
+  test('no images.unsplash.com anywhere in the card / modal / detail flow', () => {
+    for (const f of [
+      'client/src/components/service-card.tsx',
+      'client/src/components/booking-modal.tsx',
+      'client/src/pages/service-landing.tsx',
+    ]) {
+      assert.ok(!read(f).includes('images.unsplash.com'), `${f} still falls back to Unsplash`);
+    }
+  });
+
+  test('the resolver returns undefined rather than a remote stand-in', () => {
+    // Comments stripped — the resolver's docblock explains the Unsplash fallback it replaced.
+    const lib = readCode('client/src/lib/canonical-services.ts');
+    assert.match(lib, /export function resolveServiceImage/);
+    assert.ok(!lib.includes('unsplash'), 'resolver still references a remote host');
+    assert.match(lib, /return typeof first === 'string' && first\.trim\(\) !== '' \? first : undefined/);
+  });
+
+  test('ImageWithFallback resets its error state when src changes', () => {
+    const c = read('client/src/components/image-with-fallback.tsx');
+    // A boolean would stick across src changes; the failed src is tracked instead.
+    assert.match(c, /useState<string \| null>\(null\)/);
+    assert.match(c, /failedSrc === src/);
+    assert.ok(!/useState\(false\)/.test(c), 'still uses a sticky boolean for the error state');
+  });
+
+  test('annual-maintenance-package.webp exists, is WebP and is under 250 KB', () => {
+    const p = path.join(repoRoot, 'attached_assets/services/annual-maintenance-package.webp');
+    assert.ok(fs.existsSync(p), 'asset missing');
+    const buf = fs.readFileSync(p);
+    assert.equal(buf.subarray(0, 4).toString('ascii'), 'RIFF');
+    assert.equal(buf.subarray(8, 12).toString('ascii'), 'WEBP');
+    assert.ok(buf.length <= 250 * 1024, `${Math.round(buf.length / 1024)} KB`);
   });
 });
 
@@ -452,6 +499,25 @@ describe('HTTP', { skip: BASE ? false : 'set TEST_BASE_URL to run' }, () => {
     ]) {
       assert.ok(!services.some((s) => s.slug === dead), `${dead} unexpectedly active`);
     }
+  });
+
+  test('every active service has its own local image (none missing)', () => {
+    const missing = services.filter((s) => !s.images?.[0]);
+    assert.equal(missing.length, 0,
+      `services without an image: ${missing.map((s) => s.title.trim()).join(', ')}`);
+    const remote = services.filter((s) => /^https?:\/\//.test(s.images?.[0] || ''));
+    assert.equal(remote.length, 0,
+      `services pointing at a remote image: ${remote.map((s) => s.title.trim()).join(', ')}`);
+  });
+
+  test('annual maintenance serves its own image, 200 image/webp', async () => {
+    const row = services.find((s) => s.slug === 'annual-maintenance-package');
+    assert.ok(row, 'annual maintenance missing from the API');
+    assert.equal(row.images[0], '/attached_assets/services/annual-maintenance-package.webp');
+    const res = await fetch(`${BASE}${row.images[0]}`);
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get('content-type'), 'image/webp');
+    assert.ok(Number(res.headers.get('content-length')) > 10000);
   });
 
   test('no two active services share an images[0]', () => {

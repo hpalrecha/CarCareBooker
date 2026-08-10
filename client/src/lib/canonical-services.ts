@@ -102,6 +102,21 @@ export function resolveCanonical(
   return row;
 }
 
+/**
+ * The single resolver for a service's display image, shared by ServiceCard,
+ * BookingModal and the service-detail hero so they can never disagree.
+ *
+ * Returns undefined when the record has no image; the caller shows the branded
+ * placeholder. There is deliberately no remote stand-in: the card and the modal used to
+ * fall back to a hardcoded images.unsplash.com URL, which meant a third-party CDN
+ * outage broke a card, and the two components could show different pictures for the
+ * same service. Every active service now carries its own local image.
+ */
+export function resolveServiceImage(service: { images?: string[] } | undefined): string | undefined {
+  const first = service?.images?.[0];
+  return typeof first === 'string' && first.trim() !== '' ? first : undefined;
+}
+
 /** Consistent INR formatting for every price rendered outside a service card. */
 export function formatINR(amount: string | number | undefined): string {
   if (amount === undefined || amount === null || amount === '') return '';

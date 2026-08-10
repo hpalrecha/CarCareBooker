@@ -10,6 +10,7 @@ import BookingModal from "@/components/booking-modal";
 import { Header } from "@/components/header";
 import Footer from "@/components/footer";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
+import { resolveServiceImage } from "@/lib/canonical-services";
 
 // Import before/after images
 import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029992282.webp";
@@ -170,6 +171,7 @@ export default function ServiceLanding() {
   // throughout — which read wrong on the bike ceramic-coating page ("transform your
   // car", "Ready to Transform Your Car?"). Derive the noun from the service itself.
   // "P91 Car Care" is the brand name and is deliberately left alone.
+  const heroImage = resolveServiceImage(service);
   const isBikeService = /\bbike\b|\bmotorcycle\b/i.test(service.title);
   const vehicleNoun = isBikeService ? "bike" : "car";
   const vehicleNounTitle = isBikeService ? "Bike" : "Car";
@@ -219,8 +221,14 @@ export default function ServiceLanding() {
           ) : (
             <div 
               className="w-full h-full bg-cover bg-center bg-no-repeat"
-              style={{ 
-                backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(${service.images?.[0] || 'https://images.unsplash.com/photo-1607860108855-64acf2078ed9'})` 
+              // Same resolver as the card and the booking modal, so all three show the
+              // same picture. No remote stand-in: if a service somehow has no image the
+              // hero is just the dark gradient.
+              style={{
+                backgroundImage: [
+                  'linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7))',
+                  heroImage ? `url(${heroImage})` : null,
+                ].filter(Boolean).join(', '),
               }}
             />
           )}
@@ -1147,16 +1155,18 @@ export default function ServiceLanding() {
 function ServiceSeo({ service }: { service: Service }) {
   const title = service.metaTitle || `${service.title.trim()} - P91 Car Care`;
   const description = service.metaDescription || service.description;
+  // Separate component, so resolve here rather than reaching for the page's local.
+  const seoImage = resolveServiceImage(service);
   useSeoMeta({
     title,
     description,
-    image: service.images?.[0],
+    image: seoImage,
     structuredData: {
       "@context": "https://schema.org",
       "@type": "Service",
       name: service.title.trim(),
       description,
-      image: service.images?.[0],
+      image: seoImage,
       provider: { "@type": "AutoRepair", name: "P91 Car Care", areaServed: "Bangalore" },
       offers: {
         "@type": "Offer",
