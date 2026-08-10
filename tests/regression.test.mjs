@@ -345,6 +345,16 @@ describe('bike ceramic coating content', () => {
     // The old inline <title>/<meta> JSX is inert in React 18 and must be gone.
     assert.ok(!landing.includes('<title>{service.metaTitle'));
   });
+  test('car testimonials are hidden on the bike page only, and not deleted', () => {
+    const landing = read('client/src/pages/service-landing.tsx');
+    assert.match(landing, /TESTIMONIALS_SUPPRESSED = new Set<string>\(\['1-year-bike-ceramic-coating'\]\)/);
+    assert.match(landing, /\{showTestimonials && service\.testimonials/);
+    // The suppression must be presentation-only — no script may clear the column.
+    for (const f of ['scripts/fix-service-content.mjs', 'scripts/set-service-card-images.mjs']) {
+      assert.ok(!/testimonials\s*=/.test(read(f)), `${f} writes testimonials`);
+    }
+  });
+
   test('the content script never writes price, duration or discount', () => {
     const script = read('scripts/fix-service-content.mjs');
     const updates = [...script.matchAll(/update services set ([\s\S]*?)where/g)].map((m) => m[1]);

@@ -20,6 +20,18 @@ import exteriorDetailingBefore from "@assets/WhatsApp Image 2025-01-03 at 3.39.3
 import exteriorDetailingAfter from "@assets/20241227_164016_1754031651194.jpg";
 import interiorDetailingComparison from "@assets/ff034468a03ea55ea0924270de1e42bd_1754032817032.jpg";
 
+/**
+ * Slugs whose testimonial section is hidden in the UI.
+ *
+ * TEMPORARY. The bike ceramic-coating record carries testimonials copied from the CAR
+ * ceramic service — they talk about "my car" and "my white car", which reads wrong on a
+ * motorcycle page. They are attributed quotes from named people, so they are neither
+ * rewritten nor deleted: the rows stay untouched in the database and only the section is
+ * suppressed, on this one service. Remove the slug from this set once genuine
+ * bike-specific testimonials are supplied. No other service is affected.
+ */
+const TESTIMONIALS_SUPPRESSED = new Set<string>(['1-year-bike-ceramic-coating']);
+
 interface Service {
   id: string;
   title: string;
@@ -151,6 +163,8 @@ export default function ServiceLanding() {
   const discountPercent = service.originalPrice
     ? Math.round(((parseFloat(service.originalPrice) - parseFloat(service.price)) / parseFloat(service.originalPrice)) * 100)
     : 0;
+
+  const showTestimonials = !TESTIMONIALS_SUPPRESSED.has(service.slug);
 
   return (
     <>
@@ -942,7 +956,7 @@ export default function ServiceLanding() {
         </section>
       )}
       {/* Testimonials Section */}
-      {service.testimonials && service.testimonials.length > 0 && (
+      {showTestimonials && service.testimonials && service.testimonials.length > 0 && (
         <section className="py-20 px-4">
           <div className="max-w-6xl mx-auto">
             <h2 className="text-4xl font-bold text-center mb-12">What Our Customers Say</h2>
