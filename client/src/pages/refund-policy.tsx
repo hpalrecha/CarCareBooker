@@ -1,7 +1,7 @@
 import { usePageTitle } from "@/hooks/use-page-title";
 import { Header } from "@/components/header";
 import Footer from "@/components/footer";
-import { LEGAL_LAST_UPDATED } from "@/lib/legal-metadata";
+import { LEGAL_LAST_UPDATED, COMPANY_NAME, copyrightYear } from "@/lib/legal-metadata";
 
 export default function RefundPolicy() {
   usePageTitle("Refund Policy — P91 Car Care");
@@ -132,7 +132,7 @@ export default function RefundPolicy() {
                 Last updated: {LEGAL_LAST_UPDATED.refundPolicy}
               </p>
               <p className="text-sm text-gray-400 mt-2">
-                © 2025 Plus Nine One Inc. All rights reserved.
+                © {copyrightYear()} {COMPANY_NAME}. All rights reserved.
               </p>
             </div>
           </div>

@@ -273,6 +273,45 @@ describe('legal page dates', () => {
       assert.match(src, /LEGAL_LAST_UPDATED\./, `${f} does not use the static metadata`);
     }
   });
+  test('Terms lists no hardcoded prices and reads from active records', () => {
+    const tc = readCode('client/src/pages/terms-conditions.tsx');
+    assert.ok(!tc.includes('₹599'), 'non-existent "Premium Car Wash - ₹599" still listed');
+    assert.ok(!tc.includes('₹1,999'), 'stale ₹1,999 exterior detailing still listed');
+    assert.match(tc, /FOOTER_SERVICES/);
+    assert.match(tc, /resolveCanonical/);
+    assert.match(tc, /formatINR\(row\.price\)/);
+  });
+
+  test('copyright comes from one shared source, not hardcoded years', () => {
+    for (const f of [
+      'client/src/pages/terms-conditions.tsx',
+      'client/src/pages/refund-policy.tsx',
+      'client/src/pages/privacy-policy.tsx',
+      'client/src/components/footer.tsx',
+    ]) {
+      const src = readCode(f);
+      assert.ok(!/©\s*20\d\d/.test(src), `${f} hardcodes a copyright year`);
+      assert.match(src, /copyrightYear\(\)/, `${f} does not use the shared year`);
+    }
+  });
+
+  test('the privacy policy does not deny advertising cookies while running them', () => {
+    const pp = readCode('client/src/pages/privacy-policy.tsx');
+    const html = read('client/index.html');
+    const runsAds = /googletagmanager\.com\/gtag/.test(html) && /AW-\d+/.test(html);
+    if (runsAds) {
+      assert.ok(!/do not use tracking cookies for advertising/i.test(pp),
+        'policy denies advertising cookies while the Google Ads tag is loaded');
+      assert.match(pp, /Google Ads/, 'policy does not disclose Google Ads');
+      assert.match(pp, /_gcl_au/, 'policy does not name the advertising cookie');
+      assert.match(pp, /adssettings\.google\.com/, 'policy gives no opt-out route');
+    }
+  });
+
+  test('no Replit dev-banner script ships to production', () => {
+    assert.ok(!read('client/index.html').includes('replit-dev-banner'));
+  });
+
   test('every legal page has a fixed date value', () => {
     for (const key of ['privacyPolicy', 'termsConditions', 'refundPolicy']) {
       assert.match(meta, new RegExp(`${key}: "\\d+ \\w+ \\d{4}"`), `${key} has no fixed date`);

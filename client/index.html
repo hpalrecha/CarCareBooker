@@ -23,7 +23,8 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
-    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
+    <!-- The Replit dev-banner script was removed. It is a development-only helper, the
+         app no longer runs on Replit, and it made a third-party request to replit.com on
+         every production page load (blocked by ORB, so it only ever cost a round trip). -->
   </body>
 </html>

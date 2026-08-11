@@ -1,10 +1,21 @@
+import { useQuery } from "@tanstack/react-query";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { Header } from "@/components/header";
 import Footer from "@/components/footer";
-import { LEGAL_LAST_UPDATED } from "@/lib/legal-metadata";
+import { LEGAL_LAST_UPDATED, COMPANY_NAME, copyrightYear } from "@/lib/legal-metadata";
+import {
+  FOOTER_SERVICES,
+  formatINR,
+  resolveCanonical,
+  type ServiceRecord,
+} from "@/lib/canonical-services";
 
 export default function TermsConditions() {
   usePageTitle("Terms & Conditions — P91 Car Care");
+  const { data: services } = useQuery<ServiceRecord[]>({ queryKey: ["/api/services"] });
+  const termsServices = FOOTER_SERVICES
+    .map((entry) => resolveCanonical(services, entry))
+    .filter((row): row is ServiceRecord => row !== null);
   return (
     <div className="min-h-screen bg-deep-black text-white">
       <Header />
@@ -27,13 +38,21 @@ export default function TermsConditions() {
             <section>
               <h2 className="text-2xl font-semibold text-neon-green mb-4">2. Service Agreement</h2>
               <p>By booking our services through P91 Car Care portal, you agree to these terms and conditions. Our services include:</p>
-              <ul className="list-disc ml-6 space-y-2">
-                <li>Premium Car Wash - ₹599</li>
-                <li>Interior Detailing - ₹2,499</li>
-                <li>Exterior Detailing - ₹1,999</li>
-                <li>Windshield Glass Coating - ₹1,399</li>
-                <li>Headlight Restoration - ₹1,199</li>
+              {/* Read from the live active-service records rather than restated here.
+                  This list previously named a "Premium Car Wash - ₹599" that does not
+                  exist and quoted ₹1,999 for exterior detailing when the real price is
+                  ₹2,999 — a pricing contradiction inside the contractual terms. */}
+              <ul className="list-disc ml-6 space-y-2" data-testid="list-terms-services">
+                {termsServices.map((row) => (
+                  <li key={row.id}>
+                    {row.title.trim()} - {formatINR(row.price)}
+                  </li>
+                ))}
               </ul>
+              <p className="text-sm text-gray-400">
+                This list reflects our current published prices. The price shown on the
+                service page at the time of booking is the price that applies.
+              </p>
             </section>
 
             <section>
@@ -67,7 +86,7 @@ export default function TermsConditions() {
                 Last updated: {LEGAL_LAST_UPDATED.termsConditions}
               </p>
               <p className="text-sm text-gray-400 mt-2">
-                © 2025 Plus Nine One Inc. All rights reserved.
+                © {copyrightYear()} {COMPANY_NAME}. All rights reserved.
               </p>
             </div>
           </div>

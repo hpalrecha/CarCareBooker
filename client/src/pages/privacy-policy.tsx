@@ -1,7 +1,7 @@
 import { usePageTitle } from "@/hooks/use-page-title";
 import { Header } from "@/components/header";
 import Footer from "@/components/footer";
-import { LEGAL_LAST_UPDATED } from "@/lib/legal-metadata";
+import { LEGAL_LAST_UPDATED, COMPANY_NAME, copyrightYear } from "@/lib/legal-metadata";
 
 export default function PrivacyPolicy() {
   usePageTitle("Privacy Policy — P91 Car Care");
@@ -78,8 +78,43 @@ export default function PrivacyPolicy() {
             </section>
 
             <section>
+              {/* This section previously stated "We do not use tracking cookies for
+                  advertising purposes". That was inaccurate: the site loads Google tag
+                  (gtag.js) for Google Ads conversion tracking and remarketing, which sets
+                  the _gcl_au cookie and a test_cookie on .doubleclick.net, alongside
+                  Google Analytics 4 (_ga, _ga_QXEEJ4EK4J). The wording below describes
+                  what the site actually does. If the intention is genuinely not to run
+                  advertising cookies, the fix is to remove the Google Ads tag from
+                  client/index.html rather than to restate the old claim. */}
               <h2 className="text-2xl font-semibold text-neon-green mb-4">7. Cookies and Tracking</h2>
-              <p>Our website uses essential cookies for functionality and session management. We do not use tracking cookies for advertising purposes.</p>
+              <p>Our website uses essential cookies for functionality and session management.</p>
+              <p>We also use the following third-party services, which set cookies and collect usage data:</p>
+              <ul className="list-disc ml-6 space-y-2">
+                <li>
+                  <strong>Google Analytics</strong> — to understand how visitors use the
+                  site. Sets <code>_ga</code> and related cookies.
+                </li>
+                <li>
+                  <strong>Google Ads (conversion tracking and remarketing)</strong> — to
+                  measure the performance of our advertising and to show you our ads on
+                  other websites. Sets <code>_gcl_au</code>, and Google may set cookies on
+                  the doubleclick.net domain.
+                </li>
+              </ul>
+              <p>
+                These are advertising and analytics cookies, not essential cookies. You can
+                opt out of personalised Google advertising at{" "}
+                <a
+                  href="https://adssettings.google.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-neon-green hover:underline"
+                >
+                  adssettings.google.com
+                </a>
+                , and you can block or delete cookies in your browser settings. Blocking
+                them does not affect your ability to browse or book.
+              </p>
             </section>
 
             <section>
@@ -99,7 +134,7 @@ export default function PrivacyPolicy() {
                 Last updated: {LEGAL_LAST_UPDATED.privacyPolicy}
               </p>
               <p className="text-sm text-gray-400 mt-2">
-                © 2025 Plus Nine One Inc. All rights reserved.
+                © {copyrightYear()} {COMPANY_NAME}. All rights reserved.
               </p>
             </div>
           </div>
