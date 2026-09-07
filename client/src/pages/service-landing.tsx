@@ -798,8 +798,8 @@ export default function ServiceLanding() {
           </div>
           <p className="text-lg text-gray-300 mb-4">
             {service.title === 'Annual Maintenance Package' 
-              ? 'Pay just ₹8999 now for the complete package and receive a FREE car wash voucher worth ₹500. Show your booking confirmation at our store to claim your bonus!'
-              : 'Pay just ₹299 now to reserve your slot and receive a FREE car wash voucher worth ₹500. Show your booking confirmation at our store to claim your bonus!'
+              ? 'Pay just ₹8999 now for the complete package and receive a gift voucher worth ₹500 on your 2nd visit. Show your booking confirmation at our store to claim your bonus!'
+              : 'Pay just ₹299 now to reserve your slot and receive a gift voucher worth ₹500 on your 2nd visit. Show your booking confirmation at our store to claim your bonus!'
             }
           </p>
           <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 inline-block">

@@ -602,7 +602,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                   ) : (
                     <ul className="text-sm text-gray-300 space-y-1">
                       <li>• Pay ₹299 booking fee to reserve your slot</li>
-                      <li>• Get a FREE car wash voucher worth ₹500</li>
+                      <li>• Get a gift voucher worth ₹500 on your 2nd visit</li>
                       <li>• Show your booking confirmation at our store to claim</li>
                       <li>• No hidden charges - transparent pricing</li>
                     </ul>
