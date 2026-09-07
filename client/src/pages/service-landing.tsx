@@ -788,7 +788,7 @@ export default function ServiceLanding() {
             <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
               <div className="text-4xl mb-4">🎁</div>
               <h3 className="text-xl font-bold mb-2">FREE ₹500 Voucher</h3>
-              <p className="text-gray-300">Get a complimentary car wash voucher as a bonus</p>
+              <p className="text-gray-300">Get a gift voucher worth ₹500 on 2nd visit</p>
             </div>
             <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
               <div className="text-4xl mb-4">✨</div>
