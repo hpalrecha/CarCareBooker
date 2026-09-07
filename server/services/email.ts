@@ -74,7 +74,7 @@ export async function sendBookingConfirmationEmail(data: BookingEmailData): Prom
               <span class="label">Booking Fee Paid:</span> ₹${data.amount}
             </div>
             <div class="detail-row">
-              <span class="label">🎁 BONUS EARNED:</span> FREE Car Wash Voucher (Worth ₹500)
+              <span class="label">🎁 BONUS EARNED:</span> FREE Gift Voucher (Worth ₹500) — on your 2nd visit
             </div>
             <div class="detail-row">
               <span class="label">Booking ID:</span> ${data.bookingId}
@@ -82,14 +82,14 @@ export async function sendBookingConfirmationEmail(data: BookingEmailData): Prom
             
             <div style="background-color: #00FF94; color: #0A0A0B; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
               <h3 style="margin: 0 0 10px 0;">🎁 CONGRATULATIONS!</h3>
-              <p style="margin: 0; font-size: 16px; font-weight: bold;">You've earned a FREE Car Wash Voucher worth ₹500!</p>
+              <p style="margin: 0; font-size: 16px; font-weight: bold;">You've earned a FREE Gift Voucher worth ₹500, redeemable on your 2nd visit!</p>
             </div>
             
             <div style="background-color: #333334; padding: 15px; border-radius: 8px; margin: 20px 0;">
               <h4 style="color: #00FF94; margin: 0 0 10px 0;">How to claim your voucher:</h4>
-              <p style="margin: 5px 0;">✅ Visit P91 Car Care on your booking date</p>
+              <p style="margin: 5px 0;">✅ Visit P91 Car Care on your booking date for your service</p>
               <p style="margin: 5px 0;">✅ Show this email confirmation at our store</p>
-              <p style="margin: 5px 0;">✅ Get your FREE car wash service (worth ₹500)</p>
+              <p style="margin: 5px 0;">✅ Redeem your ₹500 gift voucher on your 2nd visit</p>
             </div>
             
             <p><strong>Important Notes:</strong></p>

@@ -581,8 +581,8 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
               ) : (
                 <div className="text-center p-4 bg-dark-gray rounded-lg">
                   <div className="text-3xl font-bold text-neon-green mb-2">FREE</div>
-                  <div className="text-sm text-gray-400 mb-2">Car Wash Voucher</div>
-                  <div className="text-xs text-green-400">✓ Worth ₹500 - Show at store</div>
+                  <div className="text-sm text-gray-400 mb-2">Gift Voucher</div>
+                  <div className="text-xs text-green-400">✓ Worth ₹500 - On your 2nd visit</div>
                 </div>
               )}
             </div>

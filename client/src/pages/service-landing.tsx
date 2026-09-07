@@ -298,7 +298,7 @@ export default function ServiceLanding() {
                       )}
                     </div>
                     <div className="text-sm text-yellow-400 bg-yellow-500/20 rounded-lg px-4 py-2 inline-block">
-                      🎁 Get FREE Car Wash Voucher Worth ₹500
+                      🎁 Get FREE ₹500 Gift Voucher on 2nd Visit
                     </div>
                   </>
                 )}
