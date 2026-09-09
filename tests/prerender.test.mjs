@@ -55,7 +55,6 @@ function componentTitle(file) {
 describe('prerendered metadata matches the page it represents', () => {
   const PAIRS = [
     ['/', 'client/src/pages/home.tsx'],
-    ['/blog', 'client/src/pages/blog-index.tsx'],
     ['/contact', 'client/src/pages/contact.tsx'],
     ['/services', 'client/src/pages/services.tsx'],
   ];
@@ -71,12 +70,37 @@ describe('prerendered metadata matches the page it represents', () => {
     });
   }
 
+  test('the blog index title is a shared constant, not duplicated', () => {
+    // It used to live in STATIC_ROUTES and in the component. Both now read one export,
+    // so there is nothing left to drift.
+    const table = script.slice(
+      script.indexOf('const STATIC_ROUTES'),
+      script.indexOf('/** Bundle the TS'),
+    );
+    assert.ok(!table.includes('path: "/blog"'), '/blog must not be duplicated in STATIC_ROUTES');
+    assert.match(script, /title: BLOG_INDEX_TITLE/);
+    assert.match(read('client/src/pages/blog-index.tsx'), /BLOG_INDEX_TITLE/);
+  });
+
+  test('category listings are prerendered, one per category', () => {
+    assert.match(script, /content\.blogCategories\(\)/);
+    assert.ok(
+      script.includes('path: `/blog/category/${slug}`'),
+      'each category needs its own prerendered URL, or the nav links to pages that only exist client-side',
+    );
+    assert.ok(
+      script.includes('if (!posts.length) continue'),
+      'an empty category page is a soft 404: indexed, ranks for nothing, hides the typo',
+    );
+  });
+
   test('blog posts and SEO pages are imported, never duplicated', () => {
     const entry = read('scripts/prerender-content-entry.ts');
-    assert.match(entry, /export \{ BLOG_POSTS \} from "@\/lib\/blog-posts"/);
+    assert.match(entry, /BLOG_POSTS,/);
     assert.match(entry, /export \{ SEO_PAGES \} from "@\/lib\/seo-pages"/);
     // The script must read them from the bundle, not carry its own copies.
-    assert.match(script, /const \{ BLOG_POSTS, SEO_PAGES \} = await loadContent\(\)/);
+    assert.match(script, /const content = await loadContent\(\)/);
+    assert.match(script, /const \{ BLOG_POSTS, SEO_PAGES, BLOG_INDEX_TITLE/);
     assert.ok(
       !/slug:\s*"ppf-vs-ceramic-coating-bangalore"/.test(script),
       'post content must not be copied into the prerender script',

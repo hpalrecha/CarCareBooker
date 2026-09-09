@@ -67,6 +67,9 @@ function Router() {
         <Route path="/services" component={Services} />
         <Route path="/services/:seoSlug" component={SeoServicePage} />
         <Route path="/blog" component={BlogIndex} />
+        {/* Category listings share BlogIndex — same page, filtered. Declared BEFORE
+            /blog/:slug so "category" is never mistaken for a post slug. */}
+        <Route path="/blog/category/:categorySlug" component={BlogIndex} />
         <Route path="/blog/:slug" component={BlogPost} />
         <Route path="/service/:slug" component={ServiceLanding} />
         <Route path="/booking-confirmation/:id" component={BookingConfirmation} />

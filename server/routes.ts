@@ -298,6 +298,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { loc: "/blog/ppf-vs-ceramic-coating-bangalore", priority: "0.6", changefreq: "yearly" },
         { loc: "/blog/hard-water-spot-removal-bangalore", priority: "0.6", changefreq: "yearly" },
         { loc: "/blog/windshield-heat-rejection-film-summer", priority: "0.6", changefreq: "yearly" },
+        // Category listings. Each is a real, prerendered, indexable URL rather than a
+        // client-side filter over /blog — otherwise the hub has exactly one crawlable
+        // listing page however much gets written. Slugs come from categorySlug() in
+        // client/src/lib/blog-posts.ts; adding a post in a NEW category means adding a
+        // line here, which tests/blog-seo.test.mjs enforces.
+        { loc: "/blog/category/protection", priority: "0.5", changefreq: "monthly" },
+        { loc: "/blog/category/paint-care", priority: "0.5", changefreq: "monthly" },
+        { loc: "/blog/category/glass-film", priority: "0.5", changefreq: "monthly" },
         { loc: "/ppf-ceramic-coating", priority: "0.9", changefreq: "monthly" },
         { loc: "/contact", priority: "0.6", changefreq: "yearly" },
         { loc: "/terms-conditions", priority: "0.3", changefreq: "yearly" },

@@ -317,3 +317,77 @@ export function formatPostDate(iso: string): string {
   if (Number.isNaN(d.getTime())) return iso;
   return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }
+
+/**
+ * Categories present in the post list, in the order they first appear.
+ *
+ * Derived, never a hand-kept list. A separate constant would let a post carry a
+ * category the filter cannot show — the post would then be unreachable from the
+ * index, which is the kind of bug nobody notices for months.
+ */
+export function blogCategories(): string[] {
+  const seen: string[] = [];
+  for (const post of BLOG_POSTS) {
+    if (post.category && !seen.includes(post.category)) seen.push(post.category);
+  }
+  return seen;
+}
+
+/**
+ * URL-safe form of a category name ("Glass & film" -> "glass-film").
+ *
+ * Used for /blog/category/:slug. Kept as a function rather than a stored field so
+ * a category cannot have two spellings of its own slug.
+ */
+export function categorySlug(category: string): string {
+  return category
+    .toLowerCase()
+    .replace(/&/g, " ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/** The category whose slug matches, or undefined. Case- and spelling-safe. */
+export function categoryFromSlug(slug: string): string | undefined {
+  return blogCategories().find((c) => categorySlug(c) === slug);
+}
+
+/** Posts in a category, newest first. */
+export function postsInCategory(category: string): BlogPost[] {
+  return BLOG_POSTS.filter((p) => p.category === category).sort(
+    (a, b) => Date.parse(b.date) - Date.parse(a.date),
+  );
+}
+
+/** All posts, newest first — the order the index renders. */
+export function postsNewestFirst(): BlogPost[] {
+  return [...BLOG_POSTS].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+}
+
+/**
+ * Index copy, shared by the page and the prerenderer.
+ *
+ * These live here rather than being typed into both blog-index.tsx and
+ * scripts/prerender.mjs because that duplication already bit once: /contact shipped a
+ * prerendered <title> that differed from the one useSeoMeta set, so a crawler would have
+ * indexed one string and a visitor seen another. Anything the prerenderer can import, it
+ * should — a shared constant cannot drift.
+ */
+export const BLOG_INDEX_TITLE = "Car Care Guides & Detailing Advice | P91 Car Care";
+
+export const BLOG_INDEX_DESCRIPTION =
+  "Straight answers on ceramic coating, paint protection film, hard water spots and sun " +
+  "control film — written for Bangalore conditions by the P91 Car Care studio.";
+
+/** <title> for a category listing. */
+export function categoryTitle(category: string): string {
+  return `${category} guides | P91 Car Care`;
+}
+
+/** Meta description for a category listing. */
+export function categoryDescription(category: string): string {
+  return (
+    `P91 Car Care guides on ${category.toLowerCase()} — written for Bangalore traffic, ` +
+    `water and weather.`
+  );
+}

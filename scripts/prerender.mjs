@@ -86,13 +86,6 @@ const STATIC_ROUTES = [
       "Call, WhatsApp or visit the P91 Car Care detailing studio in Indiranagar, Bangalore. " +
       "Opening hours, directions and enquiry form.",
   },
-  {
-    path: "/blog",
-    title: "Car Care Guides & Detailing Advice | P91 Car Care",
-    description:
-      "Straight answers on ceramic coating, paint protection film, hard water spots and sun " +
-      "control film — written for Bangalore conditions by the P91 Car Care studio.",
-  },
 ];
 
 /** Bundle the TS content modules so their real data drives the output. */
@@ -151,11 +144,37 @@ async function main() {
   const shell = await fs.readFile(SHELL, "utf8");
   if (!/<\/head>/i.test(shell)) die("the built index.html has no </head> to inject into");
 
-  const { BLOG_POSTS, SEO_PAGES } = await loadContent();
+  const content = await loadContent();
+  const { BLOG_POSTS, SEO_PAGES, BLOG_INDEX_TITLE, BLOG_INDEX_DESCRIPTION } = content;
   if (!Array.isArray(BLOG_POSTS) || !BLOG_POSTS.length) die("BLOG_POSTS is empty");
   if (!Array.isArray(SEO_PAGES) || !SEO_PAGES.length) die("SEO_PAGES is empty");
 
   const routes = [...STATIC_ROUTES];
+
+  // /blog — title and description come from the shared constants, not a copy here.
+  routes.push({
+    path: "/blog",
+    title: BLOG_INDEX_TITLE,
+    description: BLOG_INDEX_DESCRIPTION,
+    jsonLd: [breadcrumbs([["Home", "/"], ["Blog", "/blog"]])],
+  });
+
+  // /blog/category/<slug> — one indexable listing per category. Without these the site
+  // has a single crawlable blog page no matter how much gets written, and the category
+  // nav would be links to URLs that only exist client-side.
+  for (const category of content.blogCategories()) {
+    const slug = content.categorySlug(category);
+    const posts = content.postsInCategory(category);
+    if (!posts.length) continue; // never emit a page that lists nothing
+    routes.push({
+      path: `/blog/category/${slug}`,
+      title: content.categoryTitle(category),
+      description: content.categoryDescription(category),
+      jsonLd: [
+        breadcrumbs([["Home", "/"], ["Blog", "/blog"], [category, `/blog/category/${slug}`]]),
+      ],
+    });
+  }
 
   for (const p of BLOG_POSTS) {
     if (!p.slug || !p.seoTitle || !p.excerpt) die(`blog post "${p.slug}" is missing metadata`);
