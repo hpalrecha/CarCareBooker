@@ -124,3 +124,14 @@
     to { box-shadow: 0 0 12px rgba(0, 255, 148, 0.4), 0 0 16px rgba(0, 255, 148, 0.2); }
   }
 }
+
+/* ImageWithFallback renders <picture> whenever generated variants exist for a source.
+ *
+ * `display: contents` makes the wrapper vanish from layout so the <img> stays the direct
+ * layout child of whatever contained it before. Without this, every flex and grid rule
+ * that targeted the image — card thumbnails, the hero, the article header — would suddenly
+ * be laying out an inline <picture> box instead, and the component could not be a drop-in
+ * replacement for the plain <img> it used to render. */
+picture {
+  display: contents;
+}

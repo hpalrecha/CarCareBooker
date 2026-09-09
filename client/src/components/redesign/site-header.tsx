@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import logoPath from "@assets/Car Care (4)_1753951564515.png";
+import { ImageWithFallback } from "@/components/image-with-fallback";
 
 /**
  * Site header in the approved redesign.
@@ -22,7 +23,17 @@ export default function SiteHeader() {
       <div className="wrap">
         <div className="nav">
           <Link href="/" onClick={() => setOpen(false)} data-testid="link-nav-logo">
-            <img src={logoPath} alt="P91 Car Care — car detailing studio in Bangalore" width={140} height={34} decoding="async" />
+            {/* Was a plain <img> serving the 1492x1129 source PNG (52 KB) into a 140x34
+                box, on EVERY page, in both the header and the footer. The responsive
+                component picks the 200w variant instead — same pixels on screen, ~6 KB. */}
+            <ImageWithFallback
+              src={logoPath}
+              alt="P91 Car Care — car detailing studio in Bangalore"
+              width={140}
+              height={34}
+              sizes="140px"
+              priority
+            />
           </Link>
 
           <nav className={"links" + (open ? " open" : "")} id="navlinks" aria-label="Main">

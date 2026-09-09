@@ -151,6 +151,10 @@ export default function Home() {
             alt="Exterior detailing and hard water spot removal at the P91 Car Care studio in Indiranagar, Bangalore"
             width={1600}
             height={900}
+            /* The LCP element. Eager + fetchpriority=high so it is not queued behind
+               lazy card thumbnails, and 100vw because it really is full-bleed. */
+            sizes="100vw"
+            priority
             data-testid="img-hero"
           />
         )}
@@ -241,6 +245,10 @@ export default function Home() {
                           alt={`${s.title.trim()} at P91 Car Care studio, Indiranagar, Bangalore`}
                           width={1200}
                           height={300}
+                          /* Matches .grid: 3-up above 940px, 2-up above 600px, else full
+                             width. Without an honest `sizes` the browser assumes 100vw and
+                             picks the 1600w variant for a ~380px slot. */
+                          sizes="(min-width: 940px) 380px, (min-width: 600px) 50vw, 100vw"
                           loading="lazy"
                           data-testid={`img-teaser-${s.id}`}
                         />
@@ -309,6 +317,7 @@ export default function Home() {
                   alt="Interior detailing before and after — dirty versus deep-cleaned car interior"
                   width={1200}
                   height={300}
+                  sizes="(min-width: 600px) 50vw, 100vw"
                   loading="lazy"
                 />
                 <span className="card-cat">Interior</span>
@@ -334,6 +343,7 @@ export default function Home() {
                   alt="Glass coating water beading demonstration on a treated windscreen"
                   width={1200}
                   height={300}
+                  sizes="(min-width: 600px) 50vw, 100vw"
                   loading="lazy"
                 />
                 <span className="card-cat">Glass</span>
@@ -359,6 +369,7 @@ export default function Home() {
                   alt="Headlight after restoration — clear lens with yellowing removed"
                   width={1200}
                   height={300}
+                  sizes="(min-width: 600px) 50vw, 100vw"
                   loading="lazy"
                 />
                 <span className="card-cat">Restoration</span>
@@ -384,6 +395,7 @@ export default function Home() {
                   alt="Exterior detailing after hard water spot removal and paint correction"
                   width={1200}
                   height={300}
+                  sizes="(min-width: 600px) 50vw, 100vw"
                   loading="lazy"
                 />
                 <span className="card-cat">Exterior</span>

@@ -204,7 +204,12 @@ describe('service card image handling', () => {
     assert.match(card, /object-cover/);
     assert.match(card, /object-center/);
     assert.match(card, /alt=\{`\$\{service\.title\}/);
-    assert.match(read('client/src/components/image-with-fallback.tsx'), /loading="lazy"/);
+    // Images must still default to lazy. The attribute is now conditional — the LCP
+    // image opts into eager via `priority` — so this asserts the DEFAULT rather than a
+    // literal string, which is what the rule was always about.
+    const img = read('client/src/components/image-with-fallback.tsx');
+    assert.match(img, /loading=\{priority \? "eager" : "lazy"\}/);
+    assert.ok(!/loading="eager"/.test(img), 'nothing may be unconditionally eager');
   });
 });
 
@@ -414,8 +419,30 @@ describe('static asset serving', () => {
   });
   test('the Dockerfile copies attached_assets to the runtime path', () => {
     const df = read('Dockerfile');
-    assert.match(df, /COPY attached_assets \.\/attached_assets/);
+    // The DESTINATION is what this test has always been about: a runtime image without
+    // /app/attached_assets serves index.html for every image request, which is exactly
+    // the bug that shipped once already.
+    //
+    // The SOURCE changed deliberately. It is now taken from the build stage, because
+    // scripts/optimize-images.mjs writes the responsive ladder to attached_assets/_opt
+    // during `npm run build`, and that directory is generated — gitignored, absent from
+    // the build context. Copying from the context would ship a container whose
+    // /attached_assets/_opt/* URLs all 404 while the manifest insists they exist.
+    assert.match(df, /COPY (--from=build \/app\/)?attached_assets \.\/attached_assets/);
     assert.match(df, /WORKDIR \/app/);
+  });
+
+  test('the generated image variants reach the runtime image', () => {
+    const df = read('Dockerfile');
+    assert.match(
+      df,
+      /COPY --from=build \/app\/attached_assets \.\/attached_assets/,
+      'attached_assets must come from the build stage or _opt/ is missing at runtime',
+    );
+    // And the build stage must actually produce them.
+    const pkg = JSON.parse(read('package.json'));
+    assert.match(pkg.scripts.build, /optimize-images\.mjs/,
+      'the build must generate the variants the Dockerfile then copies');
   });
 
   test('the runtime install keeps devDependencies (dist/index.js imports vite)', () => {

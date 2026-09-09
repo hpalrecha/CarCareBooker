@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import type { BusinessHour } from "@shared/schema";
 import logoPath from "@assets/Car Care (4)_1753951564515.png";
+import { ImageWithFallback } from "@/components/image-with-fallback";
 
 /**
  * Site footer in the approved redesign.
@@ -90,7 +91,7 @@ export default function SiteFooter() {
       <div className="wrap">
         <div className="foot-grid">
           <div className="foot-brand">
-            <img src={logoPath} alt="P91 Car Care" width={140} height={34} loading="lazy" decoding="async" />
+            <ImageWithFallback src={logoPath} alt="P91 Car Care" width={140} height={34} sizes="140px" />
             <p>Detailing, ceramic coating and paint protection film, done properly — in Indiranagar, Bangalore.</p>
             <div className="foot-actions">
               <a className="foot-btn" href="tel:+917406619191" data-testid="link-footer-call">☎&nbsp; 74066 19191</a>

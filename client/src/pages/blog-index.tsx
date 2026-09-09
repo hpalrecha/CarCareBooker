@@ -88,6 +88,7 @@ export default function BlogIndex() {
                       alt={`${post.title} — P91 Car Care, Indiranagar, Bangalore`}
                       width={800}
                       height={200}
+                      sizes="(min-width: 940px) 380px, (min-width: 640px) 50vw, 100vw"
                       loading="lazy"
                     />
                   )}

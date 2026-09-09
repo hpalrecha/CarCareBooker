@@ -64,8 +64,15 @@ COPY --from=build /app/dist ./dist
 #
 # This is ~167 MB and cannot be trimmed: the two large MP4s are referenced by
 # client/src/pages/service-landing.tsx.
+#
+# COPIED FROM THE BUILD STAGE, not from the build context. `npm run build` runs
+# scripts/optimize-images.mjs, which writes the responsive AVIF/WebP ladder to
+# attached_assets/_opt (~35 MB). That directory only exists inside the build
+# stage — it is generated, so it is gitignored and is not in the context. Taking
+# this from the context instead, as it used to, would ship a container whose
+# /attached_assets/_opt/* URLs all 404 while the manifest insists they exist.
 # ---------------------------------------------------------------------------
-COPY attached_assets ./attached_assets
+COPY --from=build /app/attached_assets ./attached_assets
 
 # multer writes admin uploads to process.cwd()/uploads (server/routes.ts creates
 # the directory on boot). Bind-mount a host directory over this at run time —
