@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { schedulerService } from "./services/scheduler";
@@ -7,6 +8,14 @@ import path from "path";
 import fs from "fs";
 
 const app = express();
+
+// gzip/brotli every text response (HTML, JS, CSS, JSON). Typically a 3-4x reduction on
+// the JS bundle and the /api/services payload, on every single request.
+//
+// Registered first so it wraps everything below it. Already-compressed binaries — the
+// WebP service images and the MP4s under /attached_assets — are skipped automatically by
+// the default filter, so this costs nothing on those routes.
+app.use(compression());
 
 // Disable all restrictive security policies for Razorpay compatibility
 app.use((req, res, next) => {

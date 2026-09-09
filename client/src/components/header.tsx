@@ -5,7 +5,7 @@ import logoPath from "@assets/Car Care (4)_1753951564515.png";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
-  { label: "Services", href: "/#services", isServices: true },
+  { label: "Services", href: "/services" },
   { label: "Contact Us", href: "/contact" },
   { label: "Terms & Conditions", href: "/terms-conditions" },
   { label: "Privacy Policy", href: "/privacy-policy" },
@@ -72,7 +72,6 @@ export function Header() {
               <a
                 key={link.href}
                 href={link.href}
-                onClick={link.isServices ? onServicesClick : undefined}
                 className="text-sm text-gray-300 hover:text-green-400 transition-colors whitespace-nowrap"
                 data-testid={`link-nav-${link.label.toLowerCase().replace(/[^a-z]+/g, "-")}`}
               >
@@ -115,10 +114,7 @@ export function Header() {
               <a
                 key={link.href}
                 href={link.href}
-                onClick={(e) => {
-                  setOpen(false);
-                  if (link.isServices) onServicesClick(e);
-                }}
+                onClick={() => setOpen(false)}
                 className="px-2 py-3 text-base text-gray-200 hover:text-green-400 transition-colors"
                 data-testid={`link-mobile-${link.label.toLowerCase().replace(/[^a-z]+/g, "-")}`}
               >

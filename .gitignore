@@ -5,3 +5,9 @@ server/public
 vite.config.ts.*
 *.tar.gz
 .local/
+
+# Local secrets - never commit
+.env
+.env.local
+# Isolated E2E test environment (Razorpay TEST keys + Neon branch). Never committed.
+.env.test

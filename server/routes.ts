@@ -11,6 +11,7 @@ import { storage } from "./storage";
 import { SlotFullError } from "./storage";
 import { authenticateAdmin, hashPassword, comparePassword } from "./middleware/auth";
 import { createPaymentOrder, verifyPaymentSignature } from "./services/payment";
+import { resolveBookingAmount, FULL_PRICE_SLUG } from "./lib/booking-amount";
 import { whatsappService } from "./services/whatsapp";
 import { schedulerService } from "./services/scheduler";
 import { sendBookingConfirmationEmail } from "./services/email";
@@ -227,6 +228,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Upload error:", error);
       res.status(500).json({ message: "Failed to upload image" });
+    }
+  });
+
+  // robots.txt — served from here, not client/public, so it can react to the deploy
+  // environment. A checked-in static file would ship the production Allow rules and the
+  // production sitemap URL to every staging and preview host, inviting Google to index
+  // p91-cc-audit.web.app and similar as duplicates of the real site.
+  //
+  // Any origin that is not the canonical one is served a blanket Disallow.
+  // registerRoutes() runs before serveStatic()/setupVite(), so this wins over any file of
+  // the same name.
+  app.get("/robots.txt", (_req, res) => {
+    const origin = process.env.PUBLIC_SITE_ORIGIN || "https://p91carcare.com";
+    const isCanonical = origin === "https://p91carcare.com";
+
+    if (!isCanonical) {
+      res
+        .type("text/plain")
+        .send(
+          `# Non-production origin (${origin}) — indexing disabled.\n` +
+            `# Set PUBLIC_SITE_ORIGIN=https://p91carcare.com on the production deploy.\n` +
+            `User-agent: *\nDisallow: /\n`,
+        );
+      return;
+    }
+
+    res.type("text/plain").send(
+      `# P91 Car Care — ${origin}\n` +
+        `#\n` +
+        `# Marketing pages are open. The admin panel, the JSON API and per-booking\n` +
+        `# confirmation URLs are not useful in search and are kept out of the index.\n` +
+        `\n` +
+        `User-agent: *\n` +
+        `Allow: /\n` +
+        `Disallow: /admin/\n` +
+        `Disallow: /api/\n` +
+        `Disallow: /booking-confirmation/\n` +
+        `\n` +
+        `Sitemap: ${origin}/sitemap.xml\n`,
+    );
+  });
+
+  // sitemap.xml — generated from the live active-service rows rather than a checked-in
+  // file, so a service added or deactivated in the admin panel is reflected without a
+  // redeploy. getAllServices() returns active rows only, which is exactly the set that
+  // should be indexable: an inactive slug renders "Service Not Found".
+  //
+  // Registered here rather than in client/public because the SPA catch-all in vite.ts
+  // would otherwise answer /sitemap.xml with index.html.
+  app.get("/sitemap.xml", async (_req, res) => {
+    try {
+      const origin = process.env.PUBLIC_SITE_ORIGIN || "https://p91carcare.com";
+      const services = await storage.getAllServices();
+
+      const staticPaths = [
+        { loc: "/", priority: "1.0", changefreq: "weekly" },
+        // The catalogue page. Ranks for the broad "services" queries that the homepage
+        // and the 17 per-service pages were previously competing for on their own.
+        { loc: "/services", priority: "0.9", changefreq: "weekly" },
+        // Local-intent landing pages. Additive — /service/:slug below is unchanged.
+        // Kept in step with client/src/lib/seo-pages.ts.
+        { loc: "/services/ceramic-coating-bangalore", priority: "0.8", changefreq: "monthly" },
+        { loc: "/services/paint-protection-film-bangalore", priority: "0.8", changefreq: "monthly" },
+        { loc: "/services/interior-detailing-bangalore", priority: "0.8", changefreq: "monthly" },
+        { loc: "/services/glass-sun-control-film-bangalore", priority: "0.8", changefreq: "monthly" },
+        // Blog. Kept in step with client/src/lib/blog-posts.ts.
+        { loc: "/blog", priority: "0.7", changefreq: "weekly" },
+        { loc: "/blog/ppf-vs-ceramic-coating-bangalore", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/hard-water-spot-removal-bangalore", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/windshield-heat-rejection-film-summer", priority: "0.6", changefreq: "yearly" },
+        { loc: "/ppf-ceramic-coating", priority: "0.9", changefreq: "monthly" },
+        { loc: "/contact", priority: "0.6", changefreq: "yearly" },
+        { loc: "/terms-conditions", priority: "0.3", changefreq: "yearly" },
+        { loc: "/privacy-policy", priority: "0.3", changefreq: "yearly" },
+        { loc: "/refund-policy", priority: "0.3", changefreq: "yearly" },
+      ];
+
+      const escape = (s: string) =>
+        s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+      const urls = [
+        ...staticPaths.map(
+          (p) =>
+            `  <url>\n    <loc>${escape(origin + p.loc)}</loc>\n` +
+            `    <changefreq>${p.changefreq}</changefreq>\n    <priority>${p.priority}</priority>\n  </url>`,
+        ),
+        ...services
+          .filter((s: any) => typeof s.slug === "string" && s.slug.trim() !== "")
+          .map(
+            (s: any) =>
+              `  <url>\n    <loc>${escape(`${origin}/service/${s.slug}`)}</loc>\n` +
+              `    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`,
+          ),
+      ];
+
+      res.type("application/xml").send(
+        `<?xml version="1.0" encoding="UTF-8"?>\n` +
+          `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`,
+      );
+    } catch (error) {
+      console.error("Sitemap error:", error);
+      res.status(500).type("text/plain").send("Failed to build sitemap");
     }
   });
 
@@ -709,22 +812,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Get booking fee amount from settings or use default
-      let bookingFeeAmount = bookingData.amount || 299; // Default ₹299 booking fee
-      
-      // Check if this is the Annual Maintenance Package - charge full price
-      if (service.slug === 'annual-maintenance-package') {
-        bookingFeeAmount = parseFloat(service.price);
-        console.log("Annual Maintenance Package - charging full price:", bookingFeeAmount);
-      } else {
+      // ---------------------------------------------------------------------------
+      // AUTHORITATIVE PAYABLE AMOUNT — server-side only.
+      //
+      // This used to be seeded from the request body:
+      //
+      //     let bookingFeeAmount = bookingData.amount || 299;
+      //
+      // For the Annual Maintenance Package and for the normal path that value was then
+      // overwritten from the database, so it was usually harmless. But the override was
+      // CONDITIONAL: if the `booking_amount` setting row was missing, its value was empty,
+      // or the read threw (the catch below logs and continues), the client's number
+      // survived — and it is this variable that becomes the Razorpay order amount in
+      // createPaymentOrder() and the stored `bookings.amount`. An admin can delete a
+      // setting via DELETE /api/settings/:key, so that state was reachable without any
+      // code change, and a crafted request could then have paid ₹1.
+      //
+      // The seed is now a server-side constant. `bookingData.amount` is still accepted by
+      // the schema (so existing clients keep validating) but is NEVER read for pricing.
+      // Precedence, all server-side:
+      //   1. Annual Maintenance Package -> services.price
+      //   2. otherwise                  -> site_settings.booking_amount
+      //   3. neither available          -> DEFAULT_BOOKING_FEE below
+      // ---------------------------------------------------------------------------
+      // Read the configured fee. A failed read becomes null, never a price: an outage must
+      // not be able to change what a customer is charged.
+      let bookingAmountSettingValue: string | null = null;
+      if (service.slug !== FULL_PRICE_SLUG) {
         try {
           const bookingAmountSetting = await storage.getSetting("booking_amount");
-          if (bookingAmountSetting && bookingAmountSetting.value) {
-            bookingFeeAmount = parseFloat(bookingAmountSetting.value);
-          }
+          bookingAmountSettingValue = bookingAmountSetting?.value ?? null;
         } catch (error) {
           console.log("Using default booking amount due to setting fetch error:", error);
+          bookingAmountSettingValue = null;
         }
+      }
+
+      const resolvedAmount = resolveBookingAmount({
+        serviceSlug: service.slug,
+        servicePrice: service.price,
+        bookingAmountSetting: bookingAmountSettingValue,
+      });
+      const bookingFeeAmount = resolvedAmount.amount;
+      console.log(
+        `💰 Authoritative amount ₹${bookingFeeAmount} (source: ${resolvedAmount.source}) for ${service.slug}`,
+      );
+
+      // Observability only — never pricing. A mismatch means the client displayed a
+      // different figure to the one being charged, which is worth seeing in the logs.
+      if (
+        typeof bookingData.amount === "number" &&
+        Math.round(bookingData.amount * 100) !== Math.round(bookingFeeAmount * 100)
+      ) {
+        console.warn(
+          `⚠️  Client-supplied amount ${bookingData.amount} ignored; ` +
+            `server authority charged ${bookingFeeAmount} for service ${service.slug}.`,
+        );
       }
       
       // Check if payment service is configured
@@ -868,13 +1011,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid payment signature" });
       }
 
-      // Find booking by order ID
+      // Find the booking by its Razorpay order id.
+      //
+      // This previously scanned getBookingsByStatus("pending") — which filters on
+      // paymentStatus — and matched razorpayOrderId within that list. That created a race:
+      // Razorpay's server-to-server webhook and the customer's browser both confirm the
+      // same payment, and whichever arrives first sets paymentStatus to "paid". If the
+      // WEBHOOK won, the booking was no longer "pending", the browser's lookup missed it,
+      // and this endpoint returned 404 for a payment that had in fact succeeded. The
+      // browser then retried five times, gave up, and showed the degraded
+      // "Payment Successful!" toast — and, because the purchase conversion only fires on
+      // an ok response, that sale was never reported to Google Ads.
+      //
+      // It also meant the `alreadyPaid` branch below was unreachable: a booking found in
+      // the "pending" list is pending by definition.
+      //
+      // Looking up by order id directly makes the endpoint idempotent instead of
+      // order-dependent. getBookingByPaymentOrderId already existed and is what the
+      // webhook route uses, so both paths now resolve the same row the same way.
       console.log("🔍 Looking for booking with order ID:", razorpay_order_id);
-      const bookings = await storage.getBookingsByStatus("pending");
-      console.log("📊 Found", bookings.length, "pending bookings");
-      console.log("🎯 Pending booking order IDs:", bookings.map(b => b.razorpayOrderId));
-      
-      const booking = bookings.find(b => b.razorpayOrderId === razorpay_order_id);
+      const booking = await storage.getBookingByPaymentOrderId(razorpay_order_id);
 
       if (!booking) {
         console.error("❌ Booking not found for order ID:", razorpay_order_id);
@@ -950,6 +1106,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         whatsappSent,
         paymentStatus: "paid",
         erpSync,
+        // True when the Razorpay webhook had already marked this booking paid before the
+        // browser got here. The response is still a success — the payment is verified and
+        // the booking is confirmed — but no duplicate WhatsApp was sent. The client uses
+        // this only for logging; the purchase conversion fires in both cases, deduplicated
+        // client-side by razorpay_payment_id.
+        alreadyConfirmed: alreadyPaid,
         success: true
       });
     } catch (error) {

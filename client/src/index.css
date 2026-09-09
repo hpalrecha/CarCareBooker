@@ -29,6 +29,21 @@
   --deep-black: hsl(240, 10%, 3.9%);
   --dark-gray: hsl(240, 3.7%, 10.2%);
   --medium-gray: hsl(240, 3.7%, 20%);
+
+  /* --- Ported from the redesign prototype (audit branch). --------------------
+     The palette tokens above already matched the prototype exactly; these are the
+     text-tier and accent tokens it added on top.
+
+     --txt-3 note: the prototype measured #6E737B at 3.65:1 on card surfaces, below
+     the WCAG AA 4.5:1 minimum for body text. #868C95 measures 5.14:1 on cards and
+     5.87:1 on the page ground, so it is used instead. Do not darken it back. */
+  --neon-soft:  hsla(142, 100%, 50%, .12);
+  --neon-line:  hsla(142, 100%, 50%, .28);
+  --txt:        #EDEEF0;
+  --txt-2:      #A0A4AB;
+  --txt-3:      #868C95;
+  --warn:       #E9B949;
+  --danger:     #FF6B7D;
 }
 
 .dark {

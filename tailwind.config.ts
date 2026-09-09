@@ -44,6 +44,35 @@ export default {
         border: "var(--border)",
         input: "var(--input)",
         ring: "var(--ring)",
+
+        /* DELIBERATELY NOT REGISTERED: neon-green / deep-black / dark-gray / medium-gray.
+         *
+         * Registering them here was tried and reverted. It works — but it is not safe for
+         * this migration, and the reason is worth recording so nobody "fixes" it again
+         * without meaning to.
+         *
+         * index.css defines `.bg-neon-green`, `.bg-deep-black`, `.bg-dark-gray` and
+         * `.bg-medium-gray` as hand-written `@layer components` rules. Those four work.
+         * Every OTHER variant the codebase spells — `text-neon-green`,
+         * `border-neon-green`, `hover:border-neon-green`, `shadow-neon-green/20`,
+         * `text-deep-black`, `border-medium-gray` — has always generated no CSS at all.
+         * That is verifiable in the deployed stylesheet: `.text-neon-green` does not
+         * appear in assets/index-B5GcQq1H.css.
+         *
+         * Registering the colour family activates all of them AT ONCE, across 13 files
+         * that are nothing to do with the redesign — the whole admin area
+         * (admin-dashboard, admin-service-form, admin-login, admin-whatsapp), the booking
+         * confirmation page, contact, the three legal pages, navbar and footer. That is
+         * ~150 class occurrences changing colour simultaneously, with no way to review
+         * them as part of a frontend migration.
+         *
+         * So the redesigned components use the CSS variables directly instead
+         * (`text-[var(--neon-green)]`), which is scoped to the components that intend it
+         * and leaves every other page rendering exactly as production does today.
+         *
+         * Turning these on is a reasonable follow-up — the classes were clearly written
+         * meaning green — but it is a deliberate visual change to the admin and legal
+         * pages and belongs in its own reviewed change, not in this one. */
         chart: {
           "1": "var(--chart-1)",
           "2": "var(--chart-2)",

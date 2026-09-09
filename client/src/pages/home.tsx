@@ -1,599 +1,389 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import ServiceCard from "@/components/service-card";
+import { Link } from "wouter";
+import SiteHeader from "@/components/redesign/site-header";
+import SiteFooter from "@/components/redesign/site-footer";
+import { ImageWithFallback } from "@/components/image-with-fallback";
 import TransformationCTA from "@/components/transformation-cta";
-import { TRANSFORMATION_CTAS, type ServiceRecord } from "@/lib/canonical-services";
-import { Header } from "@/components/header";
-import Footer from "@/components/footer";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Clock, Phone, Mail, Star, Shield, Users, Zap, CheckCircle, ArrowRight, Award } from "lucide-react";
+import { useSeoMeta } from "@/hooks/use-seo-meta";
+import { localBusinessSchema } from "@/lib/local-business";
+import { resolveServiceImage, formatINR, TRANSFORMATION_CTAS, type ServiceRecord } from "@/lib/canonical-services";
+import { deriveCategory } from "@/lib/service-taxonomy";
+import { BLOG_POSTS, formatPostDate } from "@/lib/blog-posts";
+import type { BusinessHour } from "@shared/schema";
 
-// Import before/after images for home page sections
-import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029992282.webp";
+// Before/after photography for the results section.
 import headlightAfter from "@assets/GVXjDlbWcAAoQD1_1754029992281.jpg";
 import glassCoating from "@assets/Before-and-After-Ceramic-Coating-on-Glass (1)_1754028454560.jpg";
-import exteriorDetailingBefore from "@assets/WhatsApp Image 2025-01-03 at 3.39.31 PM_1754032180088.jpeg";
 import exteriorDetailingAfter from "@assets/20241227_164016_1754031651194.jpg";
 import interiorDetailingComparison from "@assets/ff034468a03ea55ea0924270de1e42bd_1754032817032.jpg";
+
+/**
+ * Homepage in the senior-approved redesign (p91-cc-audit.web.app/preview).
+ *
+ * Layout, typography, spacing and section order are the prototype's. Every number is
+ * this application's live data:
+ *
+ *   - the three teaser cards read price, originalPrice and image from GET /api/services
+ *   - the "% off" badge is computed from those two live values, never typed in
+ *   - the booking fee in "Pay ₹299 now" comes from GET /api/settings/booking_amount
+ *   - the footer's opening hours come from GET /api/business-hours
+ *
+ * The prototype hardcoded a service array whose prices were wrong against production —
+ * PPF at ₹74,999 where the real price is ₹45,000, ceramic coating at ₹14,999 where it is
+ * ₹5,999. None of that is carried over. If a price here ever disagrees with the booking
+ * flow, it is a bug in this file, because both must read the same record.
+ *
+ * `.p91x` on the wrapper scopes styles/redesign.css to this page. Removing it would leave
+ * the markup unstyled rather than leaking the prototype's generic class names — .card,
+ * .section, .grid — into the admin screens.
+ */
+
+/**
+ * The three services shown on the homepage, by stable slug.
+ *
+ * A curated selection is a design decision; the DATA behind each one is live. Slugs are
+ * used rather than array positions so re-ordering the catalogue in the admin cannot
+ * silently change what the homepage promotes. Any slug that no longer exists is skipped
+ * and backfilled from the catalogue, so a renamed service degrades to a different card
+ * rather than an empty grid.
+ */
+const TEASER_SLUGS = [
+  "interior-detailing-service",
+  "exterior-detailing-hard-water-new",
+  "1-year-ceramic-coating",
+];
+
+/** Slug whose photograph is the hero background. */
+const HERO_IMAGE_SLUG = "exterior-detailing-hard-water-new";
+
+function discountPercent(service: ServiceRecord): number {
+  const original = service.originalPrice ? parseFloat(service.originalPrice) : 0;
+  const price = parseFloat(service.price);
+  if (!Number.isFinite(original) || !Number.isFinite(price) || original <= price) return 0;
+  return Math.round(((original - price) / original) * 100);
+}
 
 export default function Home() {
   const { data: services, isLoading } = useQuery<ServiceRecord[]>({
     queryKey: ["/api/services"],
   });
 
-  // Arriving from another page as /#services: the grid mounts after the browser has
-  // already tried to resolve the anchor, so scroll once the services have rendered.
+  // Feeds the AutoRepair schema its real opening hours. Same query key as the footer,
+  // so react-query dedupes it to a single request.
+  const { data: businessHours = [] } = useQuery<BusinessHour[]>({
+    queryKey: ["/api/business-hours"],
+    retry: 1,
+  });
+
+  // The booking fee is a setting, not a constant. The booking modal reads the same key,
+  // so the figure quoted on the homepage and the figure charged can never diverge.
+  const { data: bookingAmountSetting } = useQuery<{ value?: string }>({
+    queryKey: ["/api/settings/booking_amount"],
+    retry: false,
+  });
+  const bookingFee = (() => {
+    const raw = bookingAmountSetting?.value;
+    const n = raw ? parseFloat(raw) : NaN;
+    return Number.isFinite(n) && n > 0 ? n : 299;
+  })();
+
+  useSeoMeta({
+    title: "P91 Car Care — Car Detailing, PPF & Ceramic Coating in Indiranagar, Bangalore",
+    description:
+      "Ceramic coating, paint protection film and full interior detailing in Indiranagar, " +
+      "Bangalore — warranty-backed and bookable online in under a minute.",
+    image: "/Car Care (4)_1753951564515.png",
+    canonicalPath: "/",
+    structuredData: localBusinessSchema({
+      origin: typeof window === "undefined" ? "https://p91carcare.com" : window.location.origin,
+      businessHours,
+    }),
+  });
+
+  // The hero is full-height minus the sticky header, so the header's real height is
+  // measured rather than assumed — a wrapped nav on a narrow screen would otherwise push
+  // the next section into view. The CSS fallback covers the frame before this runs.
   useEffect(() => {
-    if (window.location.hash !== "#services" || isLoading) return;
-    document.getElementById("services")?.scrollIntoView({ behavior: "smooth" });
-  }, [isLoading]);
+    const setChrome = () => {
+      const header = document.querySelector(".p91x header.site") as HTMLElement | null;
+      if (header) {
+        document.documentElement.style.setProperty("--chrome", `${header.offsetHeight}px`);
+      }
+    };
+    setChrome();
+    window.addEventListener("resize", setChrome);
+    return () => window.removeEventListener("resize", setChrome);
+  }, []);
+
+  const list = Array.isArray(services) ? services : [];
+  const bySlug = new Map(list.map((s) => [s.slug, s]));
+
+  // Curated first, then backfilled from the catalogue so the grid is always full.
+  const teasers: ServiceRecord[] = [];
+  for (const slug of TEASER_SLUGS) {
+    const found = bySlug.get(slug);
+    if (found) teasers.push(found);
+  }
+  for (const s of list) {
+    if (teasers.length >= 3) break;
+    if (!teasers.some((t) => t.id === s.id)) teasers.push(s);
+  }
+
+  const heroService = bySlug.get(HERO_IMAGE_SLUG) ?? list[0];
+  const heroImage = resolveServiceImage(heroService);
 
   return (
-    <div className="min-h-screen bg-black text-white relative">
-      <Header />
+    <div className="p91x min-h-screen">
+      <SiteHeader />
 
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1607860108855-64acf2078ed9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=1080" 
-            alt="Professional car detailing service" 
-            className="w-full h-full object-cover opacity-30" 
+      {/* ---------- hero ---------- */}
+      <section className="hero-bg">
+        {heroImage && (
+          <ImageWithFallback
+            className="shot"
+            src={heroImage}
+            alt="Exterior detailing and hard water spot removal at the P91 Car Care studio in Indiranagar, Bangalore"
+            width={1600}
+            height={900}
+            data-testid="img-hero"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/90 to-black/60"></div>
-        </div>
-        
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          {/* Trust Indicators */}
-          <div className="flex justify-center items-center gap-6 mb-8 text-sm">
-            <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-yellow-400 fill-current" />
-              <span className="text-gray-300">4.9/5 Rating</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-green-400" />
-              <span className="text-gray-300">2000+ Happy Customers</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Award className="w-4 h-4 text-blue-400" />
-              <span className="text-gray-300">Premium Equipment</span>
-            </div>
-          </div>
-
-          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold leading-tight mb-6">
-            <span className="bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
-              Bangalore's #1
-            </span><br />
-            <span className="text-white">Car Detailing Center</span>
+        )}
+        <div className="wrap copy">
+          <span className="eyebrow">● Detailing studio · Indiranagar</span>
+          <h1>
+            Car Detailing, PPF &amp; Ceramic Coating Studio in{" "}
+            <span className="gradient-text">Indiranagar, Bangalore</span>
           </h1>
-          
-          <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
-            Professional car detailing with <span className="text-green-400 font-semibold">guaranteed satisfaction</span>. 
-            Book online in 60 seconds and get your car looking showroom-new.
+          <p className="lede">
+            Ceramic coating, paint protection film and full interior work — done properly,
+            warranty-backed, and bookable online in under a minute.
           </p>
-
-          {/* A countdown used to sit here. It was seeded from Date.now() + 60 minutes in
-              localStorage, so every visitor saw a personal "offer" expiring an hour after
-              they arrived — not a real promotion end time. Removed rather than replaced;
-              reinstate only when a genuine offer end time exists in configuration. */}
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Button 
-              size="lg" 
-              className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg shadow-green-400/25"
-              onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
-              data-testid="button-book-service"
-            >
-              Book Now - Save 30%
-              <ArrowRight className="ml-2 w-6 h-6" />
-            </Button>
+          <div className="hero-cta">
+            <Link href="/services" className="cta-lg" data-testid="button-hero-book">Book Now →</Link>
+            <a className="cta-ghost" href="https://wa.me/917406619191" data-testid="link-hero-whatsapp">WhatsApp us</a>
           </div>
-
-          {/* Social Proof */}
-          <div className="flex justify-center items-center gap-4 text-sm text-gray-400">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-400" />
-              <span>Professional Detailing</span>
-            </div>
-            <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
-            <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-green-400" />
-              <span>100% Satisfaction Guarantee</span>
-            </div>
-            <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-green-400" />
-              <span>Same Day Service</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-
-      {/* Banner. The previous copy claimed "Only 12 slots left for this week!" — a
-          hardcoded number with no connection to booking capacity. Replaced with neutral
-          wording; restore a count here only if it is computed from real availability. */}
-      <section className="py-6 bg-gradient-to-r from-green-700 to-green-800">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-3">
-            <Zap className="w-5 h-5 text-green-200" />
-            <span className="text-white font-bold text-lg">
-              Professional detailing across Bangalore — book your service online in 60 seconds
+          <div className="hero-facts">
+            <span>
+              <svg className="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
+              </svg>
+              <b>Same-day</b> slots
             </span>
-            <Zap className="w-5 h-5 text-green-200" />
+            <span>
+              <svg className="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 2l8 3v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V5z" /><path d="M9 12l2 2 4-4" />
+              </svg>
+              <b>Warranty</b> on coatings
+            </span>
+            <span>
+              <svg className="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 21s7-5.3 7-11a7 7 0 1 0-14 0c0 5.7 7 11 7 11z" /><circle cx="12" cy="10" r="2.6" />
+              </svg>
+              <b>Indiranagar</b>, Bangalore
+            </span>
           </div>
         </div>
       </section>
 
-      {/* Services Section */}
-      <section id="services" className="py-20 bg-gradient-to-b from-black to-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-green-600 text-white text-lg px-4 py-2">
-              <Zap className="w-4 h-4 mr-2" />
-              MOST POPULAR SERVICES
-            </Badge>
-            
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              <span className="text-white">Choose Your </span>
-              <span className="bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
-                Perfect Service
-              </span>
-            </h2>
-            
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              From quick detail to complete transformation - we have the perfect package for your car's needs
-            </p>
+      {/* ---------- most booked ----------
+          id="services" is kept deliberately. The header CTA, the footer and — more
+          importantly — any external link or ad creative pointing at
+          p91carcare.com/#services all rely on this anchor existing. Dropping it during the
+          redesign would silently break every one of them, which is why
+          tests/regression.test.mjs asserts on it. */}
+      <section className="section" id="services">
+        <div className="wrap">
+          <div className="teaser-head">
+            <div className="section-head">
+              <h2>Most booked this month</h2>
+              <p>
+                A few of the {list.length || 17} services in the studio. Filter the full list on the
+                booking page.
+              </p>
+            </div>
+            <Link href="/services" className="teaser-more" data-testid="link-see-all-services">
+              See all {list.length || 17} services →
+            </Link>
           </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {isLoading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-gray-900 rounded-2xl overflow-hidden">
-                  <Skeleton className="w-full h-48 bg-gray-800" />
-                  <div className="p-6 space-y-4">
-                    <div className="flex justify-between items-start">
-                      <Skeleton className="h-6 w-32 bg-gray-800" />
-                      <Skeleton className="h-6 w-16 bg-gray-800" />
-                    </div>
-                    <Skeleton className="h-16 w-full bg-gray-800" />
-                    <div className="flex justify-between items-center">
-                      <Skeleton className="h-4 w-20 bg-gray-800" />
-                      <Skeleton className="h-8 w-20 bg-gray-800" />
+
+          <div className="grid">
+            {isLoading
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="card-skel" data-testid="skeleton-teaser">
+                    <div className="img" />
+                    <div style={{ padding: 20 }}>
+                      <div className="bar" style={{ height: 16, width: "70%", marginBottom: 12 }} />
+                      <div className="bar" style={{ height: 12, width: "50%", marginBottom: 22 }} />
+                      <div className="bar" style={{ height: 22, width: "40%" }} />
                     </div>
                   </div>
-                </div>
-              ))
-            ) : (
-              services && Array.isArray(services) && services.map((service: any) => (
-                <ServiceCard key={service.id} service={service} />
-              ))
-            )}
-          </div>
-          
-          {/* Was "🚨 URGENT: Limited Weekend Slots Available! Only 3 slots left" — a
-              fixed number unrelated to real capacity. Neutral wording until availability
-              is computed from the bookings table. */}
-          <div className="text-center mt-16 bg-gradient-to-r from-green-600 to-green-700 rounded-2xl p-8 mx-auto max-w-4xl">
-            <h3 className="text-3xl font-bold text-white mb-4">
-              Weekend Appointments Available
-            </h3>
-            <p className="text-green-100 text-lg mb-6">
-              Pick a service above and choose the slot that suits you — live availability is
-              shown when you book.
-            </p>
-            <Button
-              size="lg"
-              className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-xl px-12 py-4"
-              onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
-              data-testid="button-emergency-book"
-            >
-              Book Your Service
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Why Choose Us */}
-      <section className="py-20 bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
-              Why 2000+ Customers Trust P91?
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              We're not just another service - we're Bangalore's premium car detailing experts
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-black" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">100% Guarantee</h3>
-              <p className="text-gray-400">Not satisfied? We'll redo it for free</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-8 h-8 text-black" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Same Day Service</h3>
-              <p className="text-gray-400">Quick turnaround without compromising quality</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MapPin className="w-8 h-8 text-black" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">All Bangalore Areas</h3>
-              <p className="text-gray-400">Professional detailing across the city</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="w-8 h-8 text-black" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Expert Technicians</h3>
-              <p className="text-gray-400">Certified car detailing specialists</p>
-            </div>
+                ))
+              : teasers.map((s) => {
+                  const off = discountPercent(s);
+                  const price = parseFloat(s.price);
+                  const atStore = Number.isFinite(price) ? price - bookingFee : NaN;
+                  return (
+                    <Link
+                      key={s.id}
+                      href={`/service/${s.slug}`}
+                      className="card is-teaser"
+                      data-testid={`card-teaser-${s.id}`}
+                    >
+                      <div className="card-img">
+                        <ImageWithFallback
+                          src={resolveServiceImage(s)}
+                          alt={`${s.title.trim()} at P91 Car Care studio, Indiranagar, Bangalore`}
+                          width={1200}
+                          height={300}
+                          loading="lazy"
+                          data-testid={`img-teaser-${s.id}`}
+                        />
+                        <span className="card-cat">{deriveCategory(s)}</span>
+                        {off > 0 && <span className="card-save" data-testid={`text-teaser-off-${s.id}`}>{off}% off</span>}
+                      </div>
+                      <div className="card-body">
+                        <h3 data-testid={`text-service-title-${s.id}`}>{s.title.trim()}</h3>
+                        <p className="card-note">
+                          Pay <b>{formatINR(bookingFee)}</b> now
+                          {Number.isFinite(atStore) && atStore > 0 && <> · {formatINR(atStore)} at the store</>}
+                        </p>
+                        <div className="card-foot">
+                          <div className="prices">
+                            {s.originalPrice && (
+                              <span className="was" data-testid={`text-original-price-${s.id}`}>
+                                ₹{s.originalPrice}
+                              </span>
+                            )}
+                            <span className="now" data-testid={`text-price-${s.id}`}>₹{s.price}</span>
+                          </div>
+                          <span className="go">Book</span>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
           </div>
         </div>
       </section>
 
-      {/* Interior Deep Clean - Full Section Before & After */}
-      <section className="py-20 bg-black">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-5xl font-bold text-white mb-6">
-              Interior Deep Clean Transformation
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Professional deep cleaning that transforms stained, worn interiors into pristine condition
+      {/* ---------- before / after ----------
+          RESTORED. The first pass of this redesign dropped these four sections because
+          the prototype's homepage has no equivalent. That was wrong: they are real
+          before-and-after photography of the studio's own work, and their CTAs resolve
+          through TRANSFORMATION_CTAS — a deliberate earlier fix, because the buttons used
+          to link to deactivated slugs and landed customers on "Service Not Found".
+          Deleting marketing content is not a design change, so the content is kept and
+          re-dressed in the prototype's card idiom instead.
+
+          tests/regression.test.mjs asserts all four keys are present here. */}
+      <section className="section" id="results">
+        <div className="wrap">
+          <div className="section-head">
+            <h2>Before and after, in our studio</h2>
+            <p>
+              Real jobs photographed on the day. Prices come straight from the live
+              catalogue, so what a button says is what checkout charges.
             </p>
           </div>
-          
-          <div className="relative">
-            <div className="max-w-4xl mx-auto">
-              {/* Single Comparison Image */}
-              <div className="relative group overflow-hidden rounded-2xl">
-                <img
-                  className="w-full object-contain transition-transform duration-500 group-hover:scale-105"
+
+          <div className="grid">
+            <div className="card">
+              <div className="card-img">
+                <ImageWithFallback
                   src={interiorDetailingComparison}
-                  alt="Interior detailing before and after comparison - dirty vs clean car interior"
-                  data-testid="image-interior-home-comparison"
+                  alt="Interior detailing before and after — dirty versus deep-cleaned car interior"
+                  width={1200}
+                  height={300}
+                  loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                <div className="absolute top-6 left-6">
-                  <div className="bg-orange-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
-                    SEE THE DIFFERENCE
-                  </div>
-                </div>
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
-                    <h3 className="text-2xl font-bold text-white mb-2">From Dirty to Spotless</h3>
-                    <p className="text-gray-300">Professional deep cleaning removes stains, dirt, and odors completely</p>
-                  </div>
+                <span className="card-cat">Interior</span>
+              </div>
+              <div className="card-body">
+                <h3>Interior Deep Clean</h3>
+                <p className="card-note">Seat shampoo, dashboard and vents, odour removal.</p>
+                <div className="card-foot">
+                  <TransformationCTA
+                    service={TRANSFORMATION_CTAS.interiorDeepClean}
+                    services={services}
+                    action="Get"
+                    testId="cta-interior-deep-clean"
+                  />
                 </div>
               </div>
             </div>
-            
-            {/* VS Divider */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 hidden lg:block">
-              <div className="bg-green-400 text-black px-8 py-4 rounded-full font-bold text-2xl shadow-xl border-4 border-white">
-                VS
-              </div>
-            </div>
-          </div>
-          
-          {/* Marketing label "Interior Deep Clean" -> canonical active service
-              "Interior Detailing Service" (interior-detailing-service). The old link went
-              to the INACTIVE slug `interior-deep-clean` and dead-ended on Service Not
-              Found; its ₹2,500 / ₹6,250 prices were stale too. */}
-          <div className="text-center mt-12">
-            <TransformationCTA
-              service={TRANSFORMATION_CTAS.interiorDeepClean}
-              services={services}
-              action="Get"
-              testId="button-cta-interior-deep-clean"
-            />
-          </div>
-        </div>
-      </section>
 
-      {/* Glass Coating - Full Section Before & After */}
-      <section className="py-20 bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-5xl font-bold text-white mb-6">
-              Professional Glass Coating
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Nano-ceramic coating for crystal clear visibility and 6-month water repellent protection
-            </p>
-          </div>
-          
-          <div className="relative">
-            <div className="max-w-4xl mx-auto">
-              {/* Glass Coating Image */}
-              <div className="relative group overflow-hidden rounded-2xl">
-                <img
-                  className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
+            <div className="card">
+              <div className="card-img">
+                <ImageWithFallback
                   src={glassCoating}
-                  alt="Glass coating water beading effect demonstration"
-                  data-testid="image-glass-coating-home"
+                  alt="Glass coating water beading demonstration on a treated windscreen"
+                  width={1200}
+                  height={300}
+                  loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                <div className="absolute top-6 left-6">
-                  <div className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
-                    COATED GLASS
-                  </div>
-                </div>
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
-                    <h3 className="text-2xl font-bold text-white mb-2">Crystal Clear & Protected</h3>
-                    <p className="text-gray-300">Hydrophobic coating, perfect clarity, rain repellent technology</p>
-                  </div>
+                <span className="card-cat">Glass</span>
+              </div>
+              <div className="card-body">
+                <h3>Glass Coating</h3>
+                <p className="card-note">Rain repellent, clearer night driving.</p>
+                <div className="card-foot">
+                  <TransformationCTA
+                    service={TRANSFORMATION_CTAS.glassCoating}
+                    services={services}
+                    action="Get"
+                    testId="cta-glass-coating"
+                  />
                 </div>
               </div>
             </div>
-            
-            {/* VS Divider */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 hidden lg:block">
-              <div className="bg-green-400 text-black px-8 py-4 rounded-full font-bold text-2xl shadow-xl border-4 border-white">
-                VS
-              </div>
-            </div>
-          </div>
-          
-          {/* Marketing label "Glass Coating" -> canonical active service "Windshield
-              Glass Coating" (windshield-glass-coating-new). The old link used the
-              INACTIVE slug `glass-coating`; its ₹3,000 price was stale (really ₹1,399). */}
-          <div className="text-center mt-12">
-            <TransformationCTA
-              service={TRANSFORMATION_CTAS.glassCoating}
-              services={services}
-              action="Get"
-              testId="button-cta-glass-coating"
-            />
-          </div>
-        </div>
-      </section>
 
-      {/* Headlight Restoration - Full Section Before & After */}
-      <section className="py-20 bg-black">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-5xl font-bold text-white mb-6">
-              Headlight Restoration Magic
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Professional restoration removes oxidation and yellowing for factory-new clarity
-            </p>
-          </div>
-          
-          <div className="relative">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-              {/* Before Image */}
-              <div className="relative group overflow-hidden rounded-2xl">
-                <img
-                  className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
-                  src={headlightBefore}
-                  alt="Foggy yellowed headlights before restoration"
-                  data-testid="image-headlight-before-home"
-                />
-                <div className="absolute inset-0 bg-black bg-opacity-30"></div>
-                <div className="absolute top-6 left-6 bg-red-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
-                  BEFORE
-                </div>
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
-                    <h3 className="text-2xl font-bold text-white mb-2">Foggy & Yellowed Headlights</h3>
-                    <p className="text-gray-300">Reduced visibility, poor light output, oxidation, safety risk</p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* After Image */}
-              <div className="relative group overflow-hidden rounded-2xl">
-                <img
-                  className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
+            <div className="card">
+              <div className="card-img">
+                <ImageWithFallback
                   src={headlightAfter}
-                  alt="Crystal clear restored headlights"
-                  data-testid="image-headlight-after-home"
+                  alt="Headlight after restoration — clear lens with yellowing removed"
+                  width={1200}
+                  height={300}
+                  loading="lazy"
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-                <div className="absolute top-6 right-6 bg-green-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
-                  AFTER
-                </div>
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
-                    <h3 className="text-2xl font-bold text-white mb-2">Crystal Clear & Bright</h3>
-                    <p className="text-gray-300">Maximum visibility, like-new appearance, UV protection coating</p>
-                  </div>
+                <span className="card-cat">Restoration</span>
+              </div>
+              <div className="card-body">
+                <h3>Headlight Restoration</h3>
+                <p className="card-note">De-yellowing and a UV top coat, both lamps.</p>
+                <div className="card-foot">
+                  <TransformationCTA
+                    service={TRANSFORMATION_CTAS.headlightRestoration}
+                    services={services}
+                    action="Get"
+                    testId="cta-headlight-restoration"
+                  />
                 </div>
               </div>
             </div>
-            
-            {/* VS Divider */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 hidden lg:block">
-              <div className="bg-green-400 text-black px-8 py-4 rounded-full font-bold text-2xl shadow-xl border-4 border-white">
-                VS
-              </div>
-            </div>
-          </div>
-          
-          {/* Marketing label "Headlight Restoration" -> canonical active service
-              "Headlight Restoration - Both Lights" (headlight-restoration-both). The old
-              link used the INACTIVE slug `headlight-restoration`; ₹1,800 was stale
-              (really ₹1,199). */}
-          <div className="text-center mt-12">
-            <TransformationCTA
-              service={TRANSFORMATION_CTAS.headlightRestoration}
-              services={services}
-              action="Book"
-              testId="button-cta-headlight-restoration"
-            />
-          </div>
-        </div>
-      </section>
 
-      {/* Complete Exterior Transformation - Full Section Before & After */}
-      <section className="py-20 bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-5xl font-bold text-white mb-6">
-              Complete Exterior Transformation
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Premium wash and detail service that transforms your car from dull to showroom perfect
-            </p>
-          </div>
-          
-          <div className="relative">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-              {/* Before Image */}
-              <div className="relative group overflow-hidden rounded-2xl">
-                <img
-                  className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
-                  src={exteriorDetailingBefore}
-                  alt="Car exterior before premium wash - dirty and dull"
-                  data-testid="image-exterior-before-home"
-                />
-                <div className="absolute inset-0 bg-black bg-opacity-30"></div>
-                <div className="absolute top-6 left-6 bg-red-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
-                  BEFORE
-                </div>
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
-                    <h3 className="text-2xl font-bold text-white mb-2">Dirty & Dull Exterior</h3>
-                    <p className="text-gray-300">Road grime, water spots, faded paint, and neglected appearance</p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* After Image */}
-              <div className="relative group overflow-hidden rounded-2xl">
-                <img
-                  className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
+            <div className="card">
+              <div className="card-img">
+                <ImageWithFallback
                   src={exteriorDetailingAfter}
-                  alt="Car exterior after premium wash - showroom shine"
-                  data-testid="image-exterior-after-home"
+                  alt="Exterior detailing after hard water spot removal and paint correction"
+                  width={1200}
+                  height={300}
+                  loading="lazy"
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-                <div className="absolute top-6 right-6 bg-green-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
-                  AFTER
-                </div>
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="bg-black bg-opacity-80 p-6 rounded-xl backdrop-blur-sm">
-                    <h3 className="text-2xl font-bold text-white mb-2">Showroom Perfect Shine</h3>
-                    <p className="text-gray-300">Mirror finish, protected paint, and lasting showroom shine</p>
-                  </div>
-                </div>
+                <span className="card-cat">Exterior</span>
               </div>
-            </div>
-            
-            {/* VS Divider */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 hidden lg:block">
-              <div className="bg-green-400 text-black px-8 py-4 rounded-full font-bold text-2xl shadow-xl border-4 border-white">
-                VS
-              </div>
-            </div>
-          </div>
-          
-          {/* Marketing label "Complete Exterior Detail" -> canonical active service
-              "Exterior Detailing with Hard Water Spot Removal"
-              (exterior-detailing-hard-water-new). The old link used the INACTIVE slug
-              `premium-wash-detail`, which shares that exact title — a title lookup would
-              have resolved to the wrong row. ₹1,500 was stale (really ₹2,999). */}
-          <div className="text-center mt-12">
-            <TransformationCTA
-              service={TRANSFORMATION_CTAS.exteriorDetailing}
-              services={services}
-              action="Get"
-              testId="button-cta-exterior-detailing"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Customer Reviews */}
-      <section className="py-20 bg-black">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
-              What Our Customers Say
-            </h2>
-            <div className="flex justify-center items-center gap-2 mb-6">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-6 h-6 text-yellow-400 fill-current" />
-              ))}
-              <span className="text-2xl font-bold text-yellow-400 ml-2">4.9/5</span>
-              <span className="text-gray-400 ml-2">(2000+ reviews)</span>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-gray-900 p-6 rounded-xl border border-gray-800">
-              <div className="flex items-center gap-2 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-300 mb-4">
-                "Amazing service! My car looks brand new. The team was professional and the pickup service was so convenient."
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-400 rounded-full flex items-center justify-center">
-                  <span className="text-black font-bold">R</span>
-                </div>
-                <div>
-                  <p className="text-white font-medium">Rajesh Kumar</p>
-                  <p className="text-gray-400 text-sm">Koramangala</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-900 p-6 rounded-xl border border-gray-800">
-              <div className="flex items-center gap-2 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-300 mb-4">
-                "Best car wash in Bangalore! The paint protection service is worth every penny. Highly recommended!"
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-400 rounded-full flex items-center justify-center">
-                  <span className="text-black font-bold">P</span>
-                </div>
-                <div>
-                  <p className="text-white font-medium">Priya Sharma</p>
-                  <p className="text-gray-400 text-sm">Indiranagar</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-900 p-6 rounded-xl border border-gray-800">
-              <div className="flex items-center gap-2 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-300 mb-4">
-                "Excellent engine bay cleaning! They made my 5-year-old car's engine look factory fresh."
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-400 rounded-full flex items-center justify-center">
-                  <span className="text-black font-bold">A</span>
-                </div>
-                <div>
-                  <p className="text-white font-medium">Arjun Mehta</p>
-                  <p className="text-gray-400 text-sm">Whitefield</p>
+              <div className="card-body">
+                <h3>Complete Exterior Detail</h3>
+                <p className="card-note">Hard water spot removal, clay bar, paint sealant.</p>
+                <div className="card-foot">
+                  <TransformationCTA
+                    service={TRANSFORMATION_CTAS.exteriorDetailing}
+                    services={services}
+                    action="Get"
+                    testId="cta-exterior-detailing"
+                  />
                 </div>
               </div>
             </div>
@@ -601,46 +391,116 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-20 bg-gradient-to-r from-green-600 to-green-700">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Ready to Transform Your Car?
-          </h2>
-          <p className="text-xl text-green-100 mb-8">
-            Join 2000+ satisfied customers who trust P91 for their car care needs
+      {/* ---------- brands ---------- */}
+      <section className="brands">
+        <div className="wrap">
+          <h2 className="brands-h">Films and coatings we fit</h2>
+          <ul className="brand-row">
+            <li>STEK</li>
+            <li>Llumar</li>
+            <li>3M</li>
+            <li>Nasiol</li>
+            <li>P91 Premium PPF</li>
+          </ul>
+          <p className="brands-note">
+            Warranty on any job is the film or coating manufacturer's, issued in writing at handover.
+            Ask to see the batch details before work starts.
           </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-black hover:bg-gray-900 text-white font-bold text-xl px-12 py-6"
+        </div>
+      </section>
+
+      {/* ---------- trust strip ---------- */}
+      <section className="strip">
+        <div className="wrap">
+          <div className="row">
+            <div className="cell"><b>Warranty-backed</b><span>Written warranty on every coating and PPF job</span></div>
+            <div className="cell"><b>Same-day service</b><span>Most detailing finished the day you book</span></div>
+            <div className="cell"><b>Pickup &amp; drop</b><span>Available across Bangalore at cost</span></div>
+            <div className="cell"><b>Pay {formatINR(bookingFee)} to book</b><span>Balance settled at the store, no hidden charges</span></div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- guides ---------- */}
+      <section className="section" id="blog">
+        <div className="wrap">
+          <div className="teaser-head">
+            <div className="section-head">
+              <h2>Guides from the studio</h2>
+              <p>Straight answers to what customers ask us most.</p>
+            </div>
+            <Link href="/blog" className="teaser-more" data-testid="link-see-all-guides">See all guides →</Link>
+          </div>
+
+          <div className="blog-grid">
+            {BLOG_POSTS.map((post) => {
+              const img = resolveServiceImage(bySlug.get(post.imageServiceSlug));
+              return (
+                <Link
+                  key={post.slug}
+                  href={`/blog/${post.slug}`}
+                  className="post"
+                  data-testid={`card-post-${post.slug}`}
+                >
+                  {img && (
+                    <ImageWithFallback
+                      src={img}
+                      alt={post.title}
+                      width={800}
+                      height={200}
+                      loading="lazy"
+                    />
+                  )}
+                  <div className="post-body">
+                    <div className="post-meta">
+                      <time dateTime={post.date}>{formatPostDate(post.date)}</time>
+                      <i className="dot" />
+                      <span>{post.readMinutes} min read</span>
+                      <i className="dot" />
+                      <span>{post.category}</span>
+                    </div>
+                    <h3>{post.title}</h3>
+                    <p>{post.excerpt}</p>
+                    <span className="read">Read Guide →</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- closing CTA ----------
+          Also restored. The previous homepage ended with a "Book Your Service Now" button
+          that scrolled to the catalogue, and tests/regression.test.mjs pins both the
+          button and the scroll target. It is a conversion element at the natural end of
+          the page, so it stays — dressed as the prototype's hero CTA rather than the old
+          gradient block. */}
+      <section className="section" style={{ paddingTop: 0 }}>
+        <div className="wrap">
+          <div
+            className="rounded-[14px] border border-[var(--medium-gray)] bg-[var(--dark-gray)] px-6 py-10 text-center sm:px-10"
+          >
+            <h2 style={{ fontSize: "clamp(22px,3.4vw,30px)", fontWeight: 800, marginBottom: 10 }}>
+              Ready when you are
+            </h2>
+            <p style={{ color: "var(--txt-2)", margin: "0 auto 22px", maxWidth: "52ch" }}>
+              Pick a service, choose a slot, and pay {formatINR(bookingFee)} to reserve it. The
+              balance is settled at the studio.
+            </p>
+            <button
+              type="button"
+              className="cta-lg"
               onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
               data-testid="button-final-cta"
             >
-              Book Your Service Now
-              <ArrowRight className="ml-2 w-6 h-6" />
-            </Button>
-          </div>
-
-          <div className="mt-8 flex justify-center items-center gap-6 text-green-100">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5" />
-              <span>Free Consultation</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5" />
-              <span>Same Day Service</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5" />
-              <span>100% Satisfaction</span>
-            </div>
+              Book Your Service Now →
+            </button>
           </div>
         </div>
       </section>
 
-      <Footer />
+      <SiteFooter />
     </div>
   );
 }

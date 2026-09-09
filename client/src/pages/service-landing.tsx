@@ -184,22 +184,31 @@ export default function ServiceLanding() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-gray-800">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center">
-            <img 
-              src="/Car Care (4)_1753951564515.png" 
-              alt="P91 Car Care" 
+            <img
+              src="/Car Care (4)_1753951564515.png"
+              alt="P91 Car Care"
+              width={42}
+              height={32}
+              decoding="async"
               className="h-8 w-auto"
               data-testid="img-logo"
             />
           </div>
-          {/* Anchors to the homepage services grid rather than just "/" — the grid does
-              not exist on this page, so scrolling to #services locally would be a no-op. */}
-          <a href="/#services">
+          {/* Now points at the real /services catalogue page rather than the homepage
+              anchor — the grid does not exist on this page, so #services was a no-op here.
+
+              The label shortens under 640px on purpose. The logo is `h-8 w-auto`, which
+              renders about 203px wide; with the full 150px nowrap label that is 353px of
+              content in the 328px box a 360px phone gives, and the 25px difference became
+              horizontal page scroll (the deployed site does this too — pre-existing). */}
+          <a href="/services" className="shrink-0">
             <Button
               variant="ghost"
-              className="text-green-400 hover:text-green-300"
+              className="text-green-400 hover:text-green-300 px-2 sm:px-4"
               data-testid="button-back-home"
             >
-              ← Back to Services
+              <span className="sm:hidden">← Back</span>
+              <span className="hidden sm:inline">← Back to Services</span>
             </Button>
           </a>
         </div>
@@ -235,7 +244,13 @@ export default function ServiceLanding() {
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 text-center max-w-5xl mx-auto px-4 py-8">
+        {/* `w-full min-w-0` is required, not cosmetic: the parent <section> is a flex
+            container, so this is a flex item, and a flex item defaults to
+            `min-width: auto` — it refuses to shrink below its content's min-content
+            width. That measured 394px against a 360px viewport, giving the page 25px of
+            horizontal scroll on narrow Android devices (the deployed site does the same;
+            this is a pre-existing bug, not one the redesign introduced). */}
+        <div className="relative z-10 text-center max-w-5xl w-full min-w-0 mx-auto px-4 py-8">
           {discountPercent > 0 && (
             <Badge className="mb-6 bg-red-600 hover:bg-red-700 text-white text-lg px-6 py-3 rounded-full">
               <Zap className="w-5 h-5 mr-2" />
@@ -338,14 +353,14 @@ export default function ServiceLanding() {
             <Button
               size="lg"
               onClick={() => setBookingModalOpen(true)}
-              className="bg-green-400 hover:bg-green-500 text-black font-bold px-10 py-4 text-lg rounded-full transform hover:scale-105 transition-all duration-200"
+              className="bg-green-400 hover:bg-green-500 text-black font-bold px-6 sm:px-10 py-4 text-base sm:text-lg rounded-full transform hover:scale-105 transition-all duration-200 max-w-full whitespace-normal h-auto"
               data-testid="button-book-now-hero"
             >
               {service.title === 'Annual Maintenance Package' 
                 ? 'Pay ₹8999 Complete Package' 
                 : 'Pay ₹299 & Get FREE Voucher'
               }
-              <ArrowRight className="ml-2 w-5 h-5" />
+              <ArrowRight className="ml-2 w-5 h-5 shrink-0" />
             </Button>
             
             {service.heroVideo && !showVideo && (
@@ -384,7 +399,14 @@ export default function ServiceLanding() {
         <section className="py-24 px-4 bg-gradient-to-b from-gray-900 to-black">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
+              {/* Starts at text-3xl, not text-5xl. "Transformations" is a single
+                  unbreakable 15-character word: at 48px it measures ~368px, and the
+                  column is 328px on a 360px phone, so it alone gave the page 25px of
+                  horizontal scroll. Every fixed element (header, toast viewport) then
+                  stretched to match, which is why the header looked like the culprit.
+                  This section only renders for services that have before/after content,
+                  which is why some service pages overflowed and others did not. */}
+              <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
                 Dramatic Transformations
               </h2>
               <p className="text-xl text-gray-300 max-w-3xl mx-auto">
@@ -747,7 +769,7 @@ export default function ServiceLanding() {
 
             {/* CTA at bottom of before/after section */}
             <div className="mt-20 text-center">
-              <div className="bg-green-600/20 backdrop-blur-sm rounded-2xl p-8 max-w-2xl mx-auto border border-green-400/30">
+              <div className="bg-green-600/20 backdrop-blur-sm rounded-2xl p-6 sm:p-8 max-w-2xl mx-auto border border-green-400/30">
                 <h3 className="text-2xl font-bold mb-4 text-white">
                   Ready for Your Transformation?
                 </h3>
@@ -757,11 +779,11 @@ export default function ServiceLanding() {
                 <Button
                   size="lg"
                   onClick={() => setBookingModalOpen(true)}
-                  className="bg-green-400 hover:bg-green-500 text-black font-bold px-8 py-4 text-lg"
+                  className="bg-green-400 hover:bg-green-500 text-black font-bold px-6 sm:px-8 py-4 text-base sm:text-lg max-w-full whitespace-normal h-auto"
                   data-testid="button-book-transformation"
                 >
                   Book Your Transformation
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  <ArrowRight className="ml-2 w-5 h-5 shrink-0" />
                 </Button>
               </div>
             </div>
@@ -847,9 +869,13 @@ export default function ServiceLanding() {
                   <CardContent className="p-0">
                     {step.image && (
                       <div className="relative h-48 w-full overflow-hidden">
-                        <img 
-                          src={step.image} 
-                          alt={step.title}
+                        <img
+                          src={step.image}
+                          alt={`${step.title} — step ${step.step} of the ${service.title.trim()} process at P91 Car Care`}
+                          width={800}
+                          height={600}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute top-4 left-4 w-12 h-12 bg-green-400 text-black rounded-full flex items-center justify-center text-xl font-bold shadow-lg">
@@ -879,7 +905,7 @@ export default function ServiceLanding() {
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
-                Watch Our Process
+                Inside the Studio
               </h2>
               <p className="text-xl text-gray-300 max-w-3xl mx-auto">
                 See our expert technicians in action as they transform your {vehicleNoun} with precision and care.
@@ -926,15 +952,17 @@ export default function ServiceLanding() {
                   <img
                     className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
                     src={service.gallery.find(item => item.type === 'image')?.url}
-                    alt={service.gallery.find(item => item.type === 'image')?.caption || `${service.title} Process`}
+                    alt={
+                      service.gallery.find(item => item.type === 'image')?.caption ||
+                      `${service.title.trim()} being carried out at the P91 Car Care studio in Indiranagar, Bangalore`
+                    }
+                    width={1600}
+                    height={1000}
+                    loading="lazy"
+                    decoding="async"
                     data-testid="image-process"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                  <div className="absolute top-6 left-6">
-                    <div className="bg-green-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                      PROCESS IMAGE
-                    </div>
-                  </div>
                   {service.gallery.find(item => item.type === 'image')?.caption && (
                     <div className="absolute bottom-6 left-6 right-6">
                       <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-3 rounded-lg">
@@ -964,7 +992,7 @@ export default function ServiceLanding() {
                   data-testid="button-book-gallery"
                 >
                   Book Your Service
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  <ArrowRight className="ml-2 w-5 h-5 shrink-0" />
                 </Button>
               </div>
             </div>
@@ -1048,7 +1076,10 @@ export default function ServiceLanding() {
           </p>
           
           <div className="mb-8">
-            <div className="flex items-center justify-center gap-4 mb-4">
+            {/* flex-wrap because the price is live data of unknown length: the PPF rows
+                are five figures ("₹65000.00" beside "₹95000.00" and the Save badge),
+                which is 2px wider than a 360px phone allows on one line. */}
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mb-4">
               <span className="text-4xl font-bold">₹{service.price}</span>
               {service.originalPrice && (
                 <>
@@ -1153,28 +1184,74 @@ export default function ServiceLanding() {
  * og:title and structured data that say "Bike" too.
  */
 function ServiceSeo({ service }: { service: Service }) {
-  const title = service.metaTitle || `${service.title.trim()} - P91 Car Care`;
+  const name = service.title.trim();
+
+  // Search results truncate around 60 characters, so an admin-set metaTitle is used as
+  // given (they chose it) but the generated fallback keeps the brand suffix and drops the
+  // location only when the service name is already long. "1 Year Bike Ceramic Coating -
+  // Motorcycle Paint Protection | P91 Car Care Bangalore" was 82 characters and got cut
+  // mid-phrase.
+  const generated = `${name} in Bangalore | P91 Car Care`;
+  const title = service.metaTitle || (generated.length <= 60 ? generated : `${name} | P91 Car Care`);
+
   const description = service.metaDescription || service.description;
   // Separate component, so resolve here rather than reaching for the page's local.
   const seoImage = resolveServiceImage(service);
+
+  const provider = {
+    "@type": "AutoRepair",
+    name: "P91 Car Care",
+    telephone: "+91-7406619191",
+    areaServed: "Bangalore",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Bengaluru",
+      addressRegion: "Karnataka",
+      addressCountry: "IN",
+    },
+  };
+
+  const schemas: Record<string, unknown>[] = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      name,
+      description,
+      image: seoImage,
+      provider,
+      offers: {
+        "@type": "Offer",
+        // Live price from the record. Never a literal — a schema price that disagrees with
+        // the page is a Merchant-listing violation as well as a lie to the customer.
+        price: service.price,
+        priceCurrency: "INR",
+        availability: "https://schema.org/InStock",
+        url: `${typeof window === "undefined" ? "https://p91carcare.com" : window.location.origin}/service/${service.slug}`,
+      },
+    },
+  ];
+
+  // FAQPage only when the record actually has questions — an empty FAQPage is a
+  // structured-data error, and inventing questions to fill it would be worse.
+  const faqs = (service.faq || []).filter((f) => f?.question?.trim() && f?.answer?.trim());
+  if (faqs.length > 0) {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqs.map((f) => ({
+        "@type": "Question",
+        name: f.question.trim(),
+        acceptedAnswer: { "@type": "Answer", text: f.answer.trim() },
+      })),
+    });
+  }
+
   useSeoMeta({
     title,
     description,
     image: seoImage,
-    structuredData: {
-      "@context": "https://schema.org",
-      "@type": "Service",
-      name: service.title.trim(),
-      description,
-      image: seoImage,
-      provider: { "@type": "AutoRepair", name: "P91 Car Care", areaServed: "Bangalore" },
-      offers: {
-        "@type": "Offer",
-        price: service.price,
-        priceCurrency: "INR",
-        availability: "https://schema.org/InStock",
-      },
-    },
+    canonicalPath: `/service/${service.slug}`,
+    structuredData: schemas,
   });
   return null;
 }

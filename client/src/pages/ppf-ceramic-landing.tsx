@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { 
   Shield, 
   Sparkles, 
@@ -53,6 +54,18 @@ export default function PpfCeramicLanding() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [exitIntentShown, setExitIntentShown] = useState(false);
   const { toast } = useToast();
+
+  // This page is the largest and most deliberate marketing page in the project, built for
+  // the highest-value service, and it declared no title or meta of its own — so in search
+  // results and shared links it was indistinguishable from the homepage. Its own title and
+  // description let it compete for PPF and ceramic-coating queries on its own terms.
+  useSeoMeta({
+    title: "Paint Protection Film & Ceramic Coating in Bangalore | P91 Car Care",
+    description:
+      "PPF and 9H ceramic coating for cars and bikes in Bangalore. See real before-and-after " +
+      "work, compare packages, and get a quote from P91 Car Care.",
+    image: "/Car Care (4)_1753951564515.png",
+  });
 
   const form = useForm<LeadFormData>({
     resolver: zodResolver(leadFormSchema),
@@ -502,7 +515,7 @@ export default function PpfCeramicLanding() {
                         <FormItem>
                           <FormLabel>Your Name *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter your name" {...field} data-testid="input-name" />
+                            <Input placeholder="Enter your name" {...field} data-testid="input-name" data-clarity-mask="true" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -517,7 +530,7 @@ export default function PpfCeramicLanding() {
                           <FormItem>
                             <FormLabel>Email *</FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="your@email.com" {...field} data-testid="input-email" />
+                              <Input type="email" placeholder="your@email.com" {...field} data-testid="input-email" data-clarity-mask="true" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -531,7 +544,7 @@ export default function PpfCeramicLanding() {
                           <FormItem>
                             <FormLabel>Phone *</FormLabel>
                             <FormControl>
-                              <Input placeholder="+91 XXXXX XXXXX" {...field} data-testid="input-phone" />
+                              <Input placeholder="+91 XXXXX XXXXX" {...field} data-testid="input-phone" data-clarity-mask="true" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -621,7 +634,7 @@ export default function PpfCeramicLanding() {
                       data-testid="button-submit-lead"
                     >
                       {submitLeadMutation.isPending ? "Submitting..." : "Get Free Quote Now"}
-                      <ChevronRight className="ml-2 w-5 h-5" />
+                      <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
                     </Button>
 
                     <p className="text-xs text-gray-500 text-center">
@@ -737,11 +750,11 @@ export default function PpfCeramicLanding() {
           <div className="text-center mt-8">
             <Button
               onClick={scrollToForm}
-              className="bg-green-500 hover:bg-green-600 text-black font-bold px-8 py-6 text-lg"
+              className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto"
               data-testid="button-cta-brands"
             >
               Get Quote for Your Vehicle
-              <ChevronRight className="ml-2 w-5 h-5" />
+              <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
             </Button>
           </div>
         </div>
@@ -784,10 +797,10 @@ export default function PpfCeramicLanding() {
             <p className="text-gray-400 mb-4">And 500+ more vehicles protected!</p>
             <Button
               onClick={scrollToForm}
-              className="bg-green-500 hover:bg-green-600 text-black font-bold px-8 py-6 text-lg"
+              className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto"
             >
               Get Your Vehicle Protected
-              <ChevronRight className="ml-2 w-5 h-5" />
+              <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
             </Button>
           </div>
         </div>
@@ -889,10 +902,10 @@ export default function PpfCeramicLanding() {
           <div className="text-center mt-10">
             <Button
               onClick={scrollToForm}
-              className="bg-green-500 hover:bg-green-600 text-black font-bold px-8 py-6 text-lg"
+              className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto"
             >
               Get This Protection for Your Vehicle
-              <ChevronRight className="ml-2 w-5 h-5" />
+              <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
             </Button>
           </div>
         </div>
@@ -999,11 +1012,11 @@ export default function PpfCeramicLanding() {
           <div className="text-center mt-8">
             <Button
               onClick={scrollToForm}
-              className="bg-green-500 hover:bg-green-600 text-black font-bold px-8 py-6 text-lg"
+              className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto"
               data-testid="button-cta-features"
             >
               Protect Your Vehicle Today
-              <ChevronRight className="ml-2 w-5 h-5" />
+              <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
             </Button>
           </div>
         </div>
@@ -1052,10 +1065,10 @@ export default function PpfCeramicLanding() {
           <div className="text-center mt-8">
             <Button
               onClick={scrollToForm}
-              className="bg-green-500 hover:bg-green-600 text-black font-bold px-8 py-6 text-lg"
+              className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto"
             >
               Join 500+ Happy Customers
-              <ChevronRight className="ml-2 w-5 h-5" />
+              <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
             </Button>
           </div>
         </div>
@@ -1080,11 +1093,11 @@ export default function PpfCeramicLanding() {
           <div className="text-center mt-8">
             <Button
               onClick={scrollToForm}
-              className="bg-green-500 hover:bg-green-600 text-black font-bold px-8 py-6 text-lg"
+              className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto"
               data-testid="button-cta-faq"
             >
               Still Have Questions? Get Expert Advice
-              <ChevronRight className="ml-2 w-5 h-5" />
+              <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
             </Button>
           </div>
         </div>
@@ -1110,11 +1123,11 @@ export default function PpfCeramicLanding() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
             <Button
               onClick={scrollToForm}
-              className="bg-green-500 hover:bg-green-600 text-black font-bold px-8 py-6 text-lg"
+              className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto"
               data-testid="button-final-cta"
             >
               Get Free Quote
-              <ChevronRight className="ml-2 w-5 h-5" />
+              <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
             </Button>
             <a href="tel:+917406619191">
               <Button
@@ -1184,7 +1197,7 @@ export default function PpfCeramicLanding() {
                   <FormItem>
                     <FormLabel>Your Name *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your name" {...field} data-testid="exit-input-name" />
+                      <Input placeholder="Enter your name" {...field} data-testid="exit-input-name" data-clarity-mask="true" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -1198,7 +1211,7 @@ export default function PpfCeramicLanding() {
                   <FormItem>
                     <FormLabel>Phone *</FormLabel>
                     <FormControl>
-                      <Input placeholder="+91 XXXXX XXXXX" {...field} data-testid="exit-input-phone" />
+                      <Input placeholder="+91 XXXXX XXXXX" {...field} data-testid="exit-input-phone" data-clarity-mask="true" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -1212,7 +1225,7 @@ export default function PpfCeramicLanding() {
                   <FormItem>
                     <FormLabel>Email *</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="your@email.com" {...field} data-testid="exit-input-email" />
+                      <Input type="email" placeholder="your@email.com" {...field} data-testid="exit-input-email" data-clarity-mask="true" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

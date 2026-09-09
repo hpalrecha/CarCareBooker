@@ -8,6 +8,28 @@ import {
   type ServiceRecord,
 } from "@/lib/canonical-services";
 
+/**
+ * Shared CTA button styling.
+ *
+ * `whitespace-normal` and `h-auto` are the load-bearing parts. shadcn's Button base class
+ * includes `whitespace-nowrap` and a fixed height, and these labels are built from a LIVE
+ * service title — "Get Exterior Detailing with Hard Water Spot Removal - ₹2,999" is 710px
+ * on one line. Inside a 358px column on a 390px phone that produced 336px of horizontal
+ * page scroll, and because the toast viewport is `fixed w-full`, it then stretched to the
+ * same 726px and looked like the culprit.
+ *
+ * Measured on production before the change: scrollWidth 726 at a 390px viewport, on both
+ * the deployed site and this build. So this fixes a pre-existing mobile bug rather than
+ * one introduced by the redesign — but the redesign must not ship it either.
+ *
+ * The padding and text size step down on small screens for the same reason: the label
+ * length is data-driven and cannot be assumed short.
+ */
+const CTA_CLASS =
+  "bg-green-400 hover:bg-green-500 text-black font-bold shadow-lg " +
+  "text-base sm:text-xl px-6 sm:px-12 py-4 sm:py-6 " +
+  "max-w-full whitespace-normal h-auto text-center";
+
 interface Props {
   /** canonical ACTIVE service this offer books */
   service: CanonicalService;
@@ -32,14 +54,14 @@ export default function TransformationCTA({ service, services, action = "Get", t
 
   if (!row) {
     return (
-      <a href="/#services">
+      <a href="/#services" className="inline-block max-w-full">
         <Button
           size="lg"
-          className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg"
+          className={CTA_CLASS}
           data-testid={`${testId}-fallback`}
         >
           Browse Our Services
-          <ArrowRight className="ml-2 w-6 h-6" />
+          <ArrowRight className="ml-2 w-6 h-6 shrink-0" />
         </Button>
       </a>
     );
@@ -56,14 +78,14 @@ export default function TransformationCTA({ service, services, action = "Get", t
           Original Price: {formatINR(row.originalPrice)}
         </div>
       )}
-      <Link href={`/service/${row.slug}`}>
+      <Link href={`/service/${row.slug}`} className="inline-block max-w-full">
         <Button
           size="lg"
-          className="bg-green-400 hover:bg-green-500 text-black font-bold text-xl px-12 py-6 shadow-lg"
+          className={CTA_CLASS}
           data-testid={testId}
         >
           {action} {row.title.trim()} - {formatINR(row.price)}
-          <ArrowRight className="ml-2 w-6 h-6" />
+          <ArrowRight className="ml-2 w-6 h-6 shrink-0" />
         </Button>
       </Link>
     </div>

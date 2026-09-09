@@ -4,13 +4,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { loadRazorpay } from "@/lib/razorpay";
+import BookingCalendar from "@/components/booking-calendar";
+import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
 import { bookingFormSchema, type BlackoutDate, type BusinessHour } from "@shared/schema";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import { resolveServiceImage } from "@/lib/canonical-services";
@@ -222,7 +223,15 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
       
       try {
         console.log("Opening Razorpay payment gateway...");
-        
+
+        // Intent signal, not a conversion — the customer is being shown the payment
+        // sheet. The matching `purchase` fires only after the server verifies payment.
+        trackBeginCheckout({
+          serviceId: service.id,
+          serviceTitle: service.title,
+          amount: bookingAmount,
+        });
+
         // Load Razorpay with enhanced error handling
         const razorpay = await loadRazorpay();
         if (!razorpay) {
@@ -275,7 +284,24 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                   if (confirmResponse.ok) {
                     console.log("✅ Payment confirmation successful");
                     const confirmData = await confirmResponse.json();
-                    
+
+                    // Conversion fires HERE and nowhere else: the server has verified the
+                    // Razorpay signature. Firing in Razorpay's handler before this point
+                    // would count payments the backend later rejects.
+                    //
+                    // This is reached whether the browser confirmed the payment first or
+                    // Razorpay's webhook got there first — in the latter case the server
+                    // responds ok with alreadyConfirmed: true rather than the 404 it used
+                    // to return, so a webhook-confirmed sale is no longer lost to Ads.
+                    // trackPurchase itself deduplicates on razorpay_payment_id, so the
+                    // retry loop and any re-render cannot report the same sale twice.
+                    trackPurchase({
+                      transactionId: response.razorpay_payment_id,
+                      serviceId: service.id,
+                      serviceTitle: service.title,
+                      amount: bookingAmount,
+                    });
+
                     toast({
                       title: "Booking Confirmed!",
                       description: confirmData.whatsappSent 
@@ -431,7 +457,6 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
     bookingMutation.mutate(bookingData);
   };
 
-  const today = new Date().toISOString().split('T')[0];
 
   // Check if a date is a blackout date
   const isBlackoutDate = (dateString: string) => {
@@ -444,10 +469,15 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
     return blackoutDate?.reason || "";
   };
 
-  // Handle date selection with blackout date and business hours validation
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newSelectedDate = e.target.value;
-    
+  // Handle date selection with blackout date and business hours validation.
+  //
+  // Takes the date string directly rather than a change event: the native date input was
+  // replaced by BookingCalendar, which disables unavailable days up front. The guards
+  // below are deliberately KEPT rather than trimmed — the calendar can be working from a
+  // stale blackout/business-hours query, and this is the last client-side check before
+  // the booking call. The server re-validates all of it regardless.
+  const handleDateSelect = (newSelectedDate: string) => {
+
     if (isBlackoutDate(newSelectedDate)) {
       const reason = getBlackoutReason(newSelectedDate);
       toast({
@@ -634,57 +664,99 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
               
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Date and time, ported from the redesign prototype.
+                      Previously a native date input (every day looked bookable until a
+                      toast said otherwise) and a dropdown that hid how full each slot was.
+                      Both now read the same live blackout/business-hours/availability
+                      queries that were already here — no new endpoints, no new state. */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="date">Select Date</Label>
-                      <Input
-                        id="date"
-                        type="date"
-                        min={today}
-                        value={selectedDate}
-                        onChange={handleDateChange}
-                        className="bg-dark-gray border-gray-600 text-white"
-                        data-testid="input-date"
+                      <Label className="mb-2 block">Select Date</Label>
+                      <BookingCalendar
+                        selectedDate={selectedDate}
+                        onSelect={handleDateSelect}
+                        blackoutDates={blackoutDates}
+                        businessHours={businessHours}
                       />
                     </div>
-                    
+
                     <FormField
                       control={form.control}
                       name="timeSlotId"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Select Time</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value} disabled={!selectedDate || slotsLoading}>
-                            <FormControl>
-                              <SelectTrigger className="bg-dark-gray border-gray-600 text-white" data-testid="select-time">
-                                <SelectValue placeholder={slotsLoading ? "Loading slots..." : "Choose time slot"} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent className="bg-dark-gray border-gray-600">
-                              {timeSlots.length === 0 && (
-                                <div className="px-3 py-2 text-sm text-gray-400">No available slots for this date</div>
+                          <FormControl>
+                            <div
+                              className="rounded-xl border border-medium-gray bg-dark-gray p-3 sm:p-4 min-h-[140px]"
+                              role="radiogroup"
+                              aria-label="Choose an appointment time"
+                            >
+                              {!selectedDate ? (
+                                <p className="text-sm text-[var(--txt-3)] py-8 text-center">
+                                  Pick a date to see available times.
+                                </p>
+                              ) : slotsLoading ? (
+                                <p className="text-sm text-[var(--txt-3)] py-8 text-center">Loading slots…</p>
+                              ) : timeSlots.length === 0 ? (
+                                <p className="text-sm text-[var(--txt-3)] py-8 text-center" data-testid="text-no-slots">
+                                  {slotAvailability?.reasonText || "No available slots for this date."}
+                                </p>
+                              ) : (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                  {timeSlots.map((slot: any) => {
+                                    const active = field.value === slot.id;
+                                    const left =
+                                      slot.isAvailable && slot.bookedCount > 0
+                                        ? slot.maxBookings - slot.bookedCount
+                                        : null;
+                                    return (
+                                      <button
+                                        key={slot.id}
+                                        type="button"
+                                        role="radio"
+                                        aria-checked={active}
+                                        disabled={!slot.isAvailable}
+                                        onClick={() => field.onChange(slot.id)}
+                                        data-testid={`option-slot-${slot.id}`}
+                                        className={
+                                          "rounded-lg border px-2 py-2 text-center transition-colors " +
+                                          (active
+                                            ? "bg-neon-green border-neon-green text-[#04120A] font-bold"
+                                            : slot.isAvailable
+                                              ? "border-medium-gray text-[var(--txt)] hover:border-[var(--neon-line)] hover:text-neon-green"
+                                              : "border-medium-gray text-[var(--txt-3)]/45 line-through cursor-not-allowed")
+                                        }
+                                      >
+                                        <span className="block text-sm leading-tight">{slot.startTime}</span>
+                                        {/* Scarcity shown only when it is real — this is the
+                                            remaining capacity the server reported for this
+                                            slot, never a fixed "only N left" string. */}
+                                        {!slot.isAvailable ? (
+                                          <span className="block text-[10px] mt-0.5">Full</span>
+                                        ) : left !== null ? (
+                                          <span
+                                            className={
+                                              "block text-[10px] mt-0.5 " +
+                                              (active ? "text-[#04120A]/70" : "text-[var(--warn)]")
+                                            }
+                                          >
+                                            {left} left
+                                          </span>
+                                        ) : null}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
                               )}
-                              {timeSlots.map((slot: any) => (
-                                <SelectItem 
-                                  key={slot.id} 
-                                  value={slot.id} 
-                                  disabled={!slot.isAvailable}
-                                  data-testid={`option-slot-${slot.id}`}
-                                  className={!slot.isAvailable ? "opacity-50" : ""}
-                                >
-                                  {slot.startTime} - {slot.endTime}
-                                  {!slot.isAvailable && " (Full)"}
-                                  {slot.isAvailable && slot.bookedCount > 0 && ` (${slot.maxBookings - slot.bookedCount} left)`}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            </div>
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -697,6 +769,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                               {...field} 
                               className="bg-dark-gray border-gray-600 text-white" 
                               data-testid="input-name"
+                              data-clarity-mask="true"
                             />
                           </FormControl>
                           <FormMessage />
@@ -716,6 +789,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                               type="tel" 
                               className="bg-dark-gray border-gray-600 text-white" 
                               data-testid="input-phone"
+                              data-clarity-mask="true"
                             />
                           </FormControl>
                           <FormMessage />
@@ -736,6 +810,7 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                             type="email" 
                             className="bg-dark-gray border-gray-600 text-white" 
                             data-testid="input-email"
+                            data-clarity-mask="true"
                           />
                         </FormControl>
                         <FormMessage />
