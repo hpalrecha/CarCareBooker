@@ -276,7 +276,34 @@ export default function ServiceLanding() {
           <div className="mb-10">
             <div className="bg-gradient-to-r from-green-900/40 to-blue-900/40 rounded-2xl p-8 border border-green-500/30 max-w-2xl mx-auto">
               <div className="text-center">
-                {service.title === 'Annual Maintenance Package' ? (
+                {/* The free-booking window applies to EVERY service, so it is checked before
+                    the package/standard split. Leaving the split first is how this card kept
+                    advertising ₹299 while the server was charging nothing. */}
+                {offer.free ? (
+                  <>
+                    <div className="mb-4">
+                      <span className="text-sm text-gray-400 uppercase tracking-wider">Book Your Slot For</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-6 mb-6">
+                      <span className="text-6xl font-bold text-green-400">FREE</span>
+                      <div className="text-left">
+                        <div className="text-sm text-gray-400">No Booking Fee</div>
+                        <div className="text-sm text-green-400 font-semibold">+ FREE ₹500 Voucher</div>
+                      </div>
+                    </div>
+                    <div className="text-base text-gray-300 mb-4">
+                      {service.title === 'Annual Maintenance Package' ? 'Package Value:' : 'Full Service Value:'}
+                      <span className="text-green-400 font-bold ml-2 text-xl">₹{service.price}</span>
+                      {service.originalPrice && (
+                        <span className="text-gray-500 line-through ml-2 text-lg">₹{service.originalPrice}</span>
+                      )}
+                      <span className="block text-sm text-gray-400 mt-1">Settled at the studio after the work</span>
+                    </div>
+                    <div className="text-sm text-yellow-400 bg-yellow-500/20 rounded-lg px-4 py-2 inline-block">
+                      🎁 Free booking{offerEnds ? ` until ${offerEnds}` : ''} · ₹500 voucher on your 2nd visit
+                    </div>
+                  </>
+                ) : service.title === 'Annual Maintenance Package' ? (
                   <>
                     <div className="mb-4">
                       <span className="text-sm text-gray-400 uppercase tracking-wider">Complete Package Price</span>
