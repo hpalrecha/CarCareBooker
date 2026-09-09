@@ -15,10 +15,28 @@
       content="Professional car detailing in Bangalore: ceramic coating, paint protection film, interior and exterior detailing, glass coating and headlight restoration. Book online in 60 seconds."
     />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Archivo (headings) and IBM Plex Sans (body) are the approved redesign typefaces. -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" />
+    <!--
+      Archivo (headings) and IBM Plex Sans (body) are the approved redesign typefaces,
+      now self-hosted. The render-blocking stylesheet from fonts.googleapis.com is gone,
+      and with it two extra origins (googleapis + gstatic) that each cost a DNS lookup
+      and a TLS handshake in front of first paint. Faces are declared in
+      client/src/styles/fonts.css.
+
+      Both are VARIABLE fonts: one file per family covers every weight the site uses,
+      which is why there are two preloads rather than seven.
+
+      These preloads exist BECAUSE of font-display: optional. `optional` gives a font one
+      short window to arrive and otherwise keeps the fallback for the whole page view —
+      that is what guarantees no font-driven layout shift, but without a preload the font
+      would routinely miss that window and a first-time visitor would never see it.
+      Preload only what renders above the fold: adding the editorial faces here would
+      make them compete with the LCP image for bandwidth.
+
+      crossorigin is REQUIRED even though these are same-origin: fonts are always fetched
+      in CORS mode, and a preload without it is fetched twice.
+    -->
+    <link rel="preload" href="/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/ibm-plex-sans.woff2" as="font" type="font/woff2" crossorigin />
 
     <link rel="icon" href="/Car Care (4)_1753951564515.png" />
     <link rel="apple-touch-icon" href="/Car Care (4)_1753951564515.png" />
