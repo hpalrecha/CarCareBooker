@@ -22,7 +22,21 @@ githubtoken
 .replit
 
 # Local-only tooling and notes.
+#
+# scripts/*.mjs is excluded because most of it IS local tooling — one-off ERP pollers,
+# reporting scripts, database fixups — and none of it belongs in a production image.
+#
+# The two exceptions below are BUILD STEPS, not tooling: `npm run build` invokes them, so
+# excluding them makes the container build fail with
+#   Error: Cannot find module '/app/scripts/optimize-images.mjs'
+# which is exactly what happened. A later `!` pattern wins in .dockerignore, so these are
+# re-included by name rather than by widening the exclusion.
+#
+# tests/blog-seo.test.mjs asserts every .mjs referenced by the build script is reachable
+# here, so adding a third build step cannot silently break the deploy the same way.
 scripts/*.mjs
+!scripts/optimize-images.mjs
+!scripts/prerender.mjs
 migrations
 *.md
 test-*.html

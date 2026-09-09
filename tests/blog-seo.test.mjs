@@ -175,3 +175,81 @@ describe('the editorial layer stays scoped', () => {
     assert.match(index, /className="p91x p91x-editorial min-h-screen"/);
   });
 });
+
+describe('the build can actually run in the container', () => {
+  const pkg = JSON.parse(read('package.json'));
+  const dockerignore = read('.dockerignore');
+
+  /** Does .dockerignore exclude this path, honouring later `!` negations? */
+  function isIgnored(file) {
+    const patterns = dockerignore
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter((l) => l && !l.startsWith('#'));
+    // Only the pattern shapes this file actually uses — an exact path, a directory
+    // prefix, and `dir/*.ext`. Deliberately not a reimplementation of Docker's matcher:
+    // a wrong answer here would be worse than no test at all.
+    const matches = (pattern, target) => {
+      if (pattern.includes('*')) {
+        const cut = pattern.lastIndexOf('/') + 1;
+        const dir = pattern.slice(0, cut);
+        const tail = pattern.slice(cut);
+        if (!target.startsWith(dir)) return false;
+        const name = target.slice(dir.length);
+        if (name.includes('/')) return false; // a single * does not cross directories
+        return name.endsWith(tail.startsWith('*') ? tail.slice(1) : tail);
+      }
+      return target === pattern || target.startsWith(pattern + '/');
+    };
+
+    // Last matching pattern wins, which is how Docker resolves `!` re-inclusion.
+    let ignored = false;
+    for (const pattern of patterns) {
+      const negate = pattern.startsWith('!');
+      const body = negate ? pattern.slice(1) : pattern;
+      if (matches(body, file)) ignored = !negate;
+    }
+    return ignored;
+  }
+
+  test('the matcher itself is right', () => {
+    // A matcher that always returned false would make every assertion below pass.
+    assert.equal(isIgnored('scripts/build-erp-poller-workflow.mjs'), true, 'local tooling stays out');
+    assert.equal(isIgnored('scripts/optimize-images.mjs'), false, 're-included by name');
+    assert.equal(isIgnored('tests/blog-seo.test.mjs'), true, 'tests stay out');
+    assert.equal(isIgnored('client/src/main.tsx'), false, 'app source is included');
+  });
+
+  test('every script the build invokes is in the Docker build context', () => {
+    // This failed in production: `npm run build` called scripts/optimize-images.mjs while
+    // .dockerignore excluded scripts/*.mjs, so the container build died with
+    // MODULE_NOT_FOUND and auto-deploy silently stopped shipping.
+    const invoked = [...pkg.scripts.build.matchAll(/(scripts\/[\w-]+\.mjs)/g)].map((m) => m[1]);
+    assert.ok(invoked.length >= 2, 'expected the build to invoke the image and prerender scripts');
+    for (const file of invoked) {
+      assert.ok(fs.existsSync(path.join(repoRoot, file)), `${file} does not exist`);
+      assert.ok(
+        !isIgnored(file),
+        `${file} is excluded by .dockerignore but the build runs it — the container build ` +
+          `will fail with "Cannot find module /app/${file}"`,
+      );
+    }
+  });
+
+  test('sharp cannot break npm ci', () => {
+    // A native binary that fails to build must not take the whole install with it. The
+    // optimiser already degrades to original images; the install has to degrade too.
+    assert.ok(!('sharp' in (pkg.dependencies || {})), 'sharp must not be a hard dependency');
+    assert.ok(!('sharp' in (pkg.devDependencies || {})), 'sharp must not be a devDependency');
+    assert.ok(
+      'sharp' in (pkg.optionalDependencies || {}),
+      'sharp belongs in optionalDependencies so npm ci survives a failed native build',
+    );
+  });
+
+  test('the prerender content entry is not excluded either', () => {
+    // It is a .ts file, so scripts/*.mjs does not cover it — but if that pattern is ever
+    // widened this catches it.
+    assert.ok(!isIgnored('scripts/prerender-content-entry.ts'));
+  });
+});
