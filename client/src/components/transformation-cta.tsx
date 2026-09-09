@@ -11,31 +11,28 @@ import {
 /**
  * Shared CTA button styling.
  *
- * `whitespace-normal` and `h-auto` are the load-bearing parts. shadcn's Button base class
- * includes `whitespace-nowrap` and a fixed height, and these labels are built from a LIVE
- * service title — "Get Exterior Detailing with Hard Water Spot Removal - ₹2,999" is 710px
- * on one line. Inside a 358px column on a 390px phone that produced 336px of horizontal
- * page scroll, and because the toast viewport is `fixed w-full`, it then stretched to the
- * same 726px and looked like the culprit.
+ * This used to be a wrapping, data-driven label — "Get Exterior Detailing with Hard Water
+ * Spot Removal - ₹2,999" — which needed `whitespace-normal` and `h-auto` because at 710px
+ * it caused 336px of horizontal page scroll on a 390px phone. That fixed the overflow but
+ * left the button rendering as three ragged lines, with the real price buried inside it
+ * while the struck-through original sat orphaned above.
  *
- * Measured on production before the change: scrollWidth 726 at a 390px viewport, on both
- * the deployed site and this build. So this fixes a pre-existing mobile bug rather than
- * one introduced by the redesign — but the redesign must not ship it either.
- *
- * The padding and text size step down on small screens for the same reason: the label
- * length is data-driven and cannot be assumed short.
+ * The label is now a fixed, short string, so the price moves out of the button and into a
+ * proper price row. `whitespace-nowrap` is safe again precisely BECAUSE the label is no
+ * longer built from live service data — if that ever changes back, the overflow returns.
+ * The full service name is kept on aria-label so the control is still self-describing for
+ * screen readers and for anything that indexes accessible names.
  */
 const CTA_CLASS =
-  "bg-green-400 hover:bg-green-500 text-black font-bold shadow-lg " +
-  "text-base sm:text-xl px-6 sm:px-12 py-4 sm:py-6 " +
-  "max-w-full whitespace-normal h-auto text-center";
+  "bg-green-400 hover:bg-green-500 text-black font-bold rounded-lg shadow-md " +
+  "text-sm px-5 py-2.5 h-auto whitespace-nowrap shrink-0";
 
 interface Props {
   /** canonical ACTIVE service this offer books */
   service: CanonicalService;
   /** the live /api/services payload */
   services: ServiceRecord[] | undefined;
-  /** verb for the button, e.g. "Get" -> "Get Interior Detailing Service - ₹2,499" */
+  /** verb used in the accessible name, e.g. "Get" -> "Get Interior Detailing Service" */
   action?: string;
   testId: string;
 }
@@ -44,10 +41,13 @@ interface Props {
  * A homepage before/after offer CTA.
  *
  * The label, the price and the destination all come from ONE resolved active service
- * record, so the button can never advertise a price the booking flow won't charge. If
- * the record cannot be resolved — deactivated, renamed, id changed — the CTA renders a
- * safe link to the services list instead of a URL that would dead-end on "Service Not
- * Found", which is exactly what the old hardcoded slugs did.
+ * record, so the card can never advertise a price the booking flow won't charge. If the
+ * record cannot be resolved — deactivated, renamed, id changed — it renders a safe link to
+ * the services list instead of a URL that would dead-end on "Service Not Found", which is
+ * exactly what the old hardcoded slugs did.
+ *
+ * Renders as a fragment so the price and the button become two children of `.card-foot`,
+ * whose `justify-content: space-between` then reads as a real price/action row.
  */
 export default function TransformationCTA({ service, services, action = "Get", testId }: Props) {
   const row = resolveCanonical(services, service);
@@ -55,13 +55,9 @@ export default function TransformationCTA({ service, services, action = "Get", t
   if (!row) {
     return (
       <a href="/#services" className="inline-block max-w-full">
-        <Button
-          size="lg"
-          className={CTA_CLASS}
-          data-testid={`${testId}-fallback`}
-        >
-          Browse Our Services
-          <ArrowRight className="ml-2 w-6 h-6 shrink-0" />
+        <Button size="lg" className={CTA_CLASS} data-testid={`${testId}-fallback`}>
+          Browse Services
+          <ArrowRight className="ml-2 w-4 h-4 shrink-0" />
         </Button>
       </a>
     );
@@ -70,24 +66,32 @@ export default function TransformationCTA({ service, services, action = "Get", t
   const original = row.originalPrice ? parseFloat(row.originalPrice) : 0;
   const price = parseFloat(row.price);
   const showOriginal = Number.isFinite(original) && original > price;
+  const savePct = showOriginal ? Math.round(((original - price) / original) * 100) : 0;
 
   return (
-    <div className="space-y-4">
-      {showOriginal && (
-        <div className="text-gray-400 line-through text-lg" data-testid={`${testId}-original-price`}>
-          Original Price: {formatINR(row.originalPrice)}
-        </div>
-      )}
-      <Link href={`/service/${row.slug}`} className="inline-block max-w-full">
+    <>
+      <div className="cta-price">
+        <span className="cta-price-now">{formatINR(row.price)}</span>
+        {showOriginal && (
+          <span className="cta-price-was" data-testid={`${testId}-original-price`}>
+            {formatINR(row.originalPrice)}
+          </span>
+        )}
+        {showOriginal && savePct >= 5 && (
+          <span className="cta-price-save">Save {savePct}%</span>
+        )}
+      </div>
+      <Link href={`/service/${row.slug}`} className="shrink-0">
         <Button
           size="lg"
           className={CTA_CLASS}
+          aria-label={`${action} ${row.title.trim()} — ${formatINR(row.price)}`}
           data-testid={testId}
         >
-          {action} {row.title.trim()} - {formatINR(row.price)}
-          <ArrowRight className="ml-2 w-6 h-6 shrink-0" />
+          Book Now
+          <ArrowRight className="ml-2 w-4 h-4 shrink-0" />
         </Button>
       </Link>
-    </div>
+    </>
   );
 }

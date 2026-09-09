@@ -154,6 +154,19 @@
 @media (max-width: 940px) { .p91x .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 600px) { .p91x .grid { grid-template-columns: minmax(0, 1fr); } }
 
+/* Two-up variant, used by the before/after section.
+ *
+ * That section has FOUR cards and the 3-up default left the fourth orphaned on a row of
+ * its own, which read as unfinished. Two-up also suits the content: these are 1200x300
+ * side-by-side comparison photographs, so a wider card shows the "before" and "after"
+ * halves at a readable size rather than shrinking both.
+ *
+ * The mobile override is required, not redundant: `.p91x .grid.grid-2` outranks the
+ * `.p91x .grid` rule inside the 600px media query, so without it phones would stay at two
+ * columns. */
+.p91x .grid.grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 600px) { .p91x .grid.grid-2 { grid-template-columns: minmax(0, 1fr); } }
+
 .p91x .card {
   background: var(--dark-gray); border: 1px solid var(--medium-gray); border-radius: 14px;
   overflow: hidden; display: flex; flex-direction: column; text-align: left;
@@ -162,6 +175,16 @@
 .p91x .card:hover { border-color: var(--neon-line); transform: translateY(-2px); }
 .p91x .card-img { position: relative; background: #111114; }
 .p91x .card-img img { aspect-ratio: 4/1; object-fit: cover; object-position: center bottom; width: 100%; }
+
+/* The before/after section is photographs, not banners.
+ *
+ * Those four files are ordinary camera images — 1200x1788, 2048x1536 and one 4592x8160
+ * portrait — so the global 4/1 rule above cropped each to a ~138px sliver taken from the
+ * BOTTOM of the frame. On the 8160px-tall exterior shot that sliver was bare floor, which
+ * is why the card looked washed out and empty. A photographic ratio with a centred crop
+ * shows the actual work. Scoped to #results so the teaser and blog cards, whose art IS
+ * banner-shaped, keep the 4/1 treatment the prototype specified. */
+.p91x #results .card-img img { aspect-ratio: 16 / 9; object-position: center; }
 .p91x .card-cat {
   position: absolute; top: 10px; left: 10px;
   background: rgba(9,9,11,.86); border: 1px solid var(--neon-line); color: var(--neon-green);
@@ -177,6 +200,30 @@
 .p91x .card-note { color: var(--txt-2); font-size: 12.5px; margin: 11px 0 0; }
 .p91x .card-note b { color: var(--neon-green); font-weight: 600; }
 .p91x .card-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: auto; padding-top: 14px; }
+
+/* Offer price / action row inside .card-foot.
+ *
+ * The price used to live INSIDE the CTA label ("Get Interior Detailing Service - ₹2,499"),
+ * which wrapped to three lines and left the struck-through original stranded on its own
+ * row above the button. Splitting them makes .card-foot's space-between do the work:
+ * price on the left, one-line action on the right.
+ *
+ * min-width: 0 is load-bearing — a flex item defaults to min-width: auto and would refuse
+ * to shrink below its content, pushing the button out of the card on narrow screens. */
+.p91x .cta-price { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.p91x .cta-price-now { font-size: 21px; font-weight: 800; color: #fff; letter-spacing: -0.02em; line-height: 1.1; }
+.p91x .cta-price-was { font-size: 13px; color: var(--txt-2); text-decoration: line-through; }
+.p91x .cta-price-save {
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--neon-green); background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 999px; padding: 2px 7px;
+  white-space: nowrap;
+}
+
+@media (max-width: 380px) {
+  .p91x .card-foot { gap: 10px; }
+  .p91x .cta-price-now { font-size: 19px; }
+}
 .p91x .card .prices { text-align: left; flex: none; display: flex; align-items: baseline; gap: 8px; }
 .p91x .card .was { color: var(--txt-3); text-decoration: line-through; font-size: 12px; }
 .p91x .card .now { color: var(--neon-green); font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums; }
