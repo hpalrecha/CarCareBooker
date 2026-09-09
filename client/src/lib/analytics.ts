@@ -44,6 +44,32 @@ function track(event: string, params: Record<string, unknown>): void {
   }
 }
 
+/**
+ * A booking confirmed under the free-booking offer.
+ *
+ * Deliberately NOT `purchase`. No money changed hands, and a stream of ₹0 purchases would
+ * drag average order value down, corrupt ROAS, and make the conversion column meaningless
+ * for the real ₹299 payments either side of the offer. `generate_lead` is what this
+ * actually is: a qualified booking with contact details and a held slot.
+ *
+ * Not deduplicated, because there is no payment id to key on — the guard on trackPurchase
+ * exists to protect a money figure, and there is none here. The call site fires once, on
+ * the server's confirmed response.
+ */
+export function trackFreeBooking(args: {
+  serviceId: string;
+  serviceTitle: string;
+  bookingId?: string;
+}): void {
+  track("generate_lead", {
+    currency: "INR",
+    value: 0,
+    lead_source: "free_booking_offer",
+    booking_id: args.bookingId,
+    items: [{ item_id: args.serviceId, item_name: args.serviceTitle, price: 0, quantity: 1 }],
+  });
+}
+
 /** The payment sheet is opening. Not a conversion — an intent signal. */
 export function trackBeginCheckout(args: {
   serviceId: string;

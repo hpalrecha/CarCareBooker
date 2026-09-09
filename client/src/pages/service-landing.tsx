@@ -11,6 +11,7 @@ import { Header } from "@/components/header";
 import Footer from "@/components/footer";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { resolveServiceImage } from "@/lib/canonical-services";
+import { useBookingOffer, formatOfferEnd } from "@/hooks/use-booking-offer";
 
 // Import before/after images
 import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029992282.webp";
@@ -88,6 +89,11 @@ export default function ServiceLanding() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   const [showVideo, setShowVideo] = useState(false);
+
+  // Free-booking offer state, decided server-side. Declared here (before the early
+  // returns) because hooks cannot be called conditionally.
+  const offer = useBookingOffer();
+  const offerEnds = formatOfferEnd(offer.until);
 
   const { data: service, isLoading } = useQuery<Service>({
     queryKey: ["/api/services", slug],
@@ -356,9 +362,14 @@ export default function ServiceLanding() {
               className="bg-green-400 hover:bg-green-500 text-black font-bold px-6 sm:px-10 py-4 text-base sm:text-lg rounded-full transform hover:scale-105 transition-all duration-200 max-w-full whitespace-normal h-auto"
               data-testid="button-book-now-hero"
             >
-              {service.title === 'Annual Maintenance Package' 
-                ? 'Pay ₹8999 Complete Package' 
-                : 'Pay ₹299 & Get FREE Voucher'
+              {/* During the free-booking offer every service reads the same, including the
+                  annual package — the label must never quote a price the server will not
+                  charge. `free` comes from the same server that decides the amount. */}
+              {offer.free
+                ? 'Book Free — Get FREE ₹500 Voucher'
+                : service.title === 'Annual Maintenance Package'
+                  ? 'Pay ₹8999 Complete Package'
+                  : 'Pay ₹299 & Get FREE Voucher'
               }
               <ArrowRight className="ml-2 w-5 h-5 shrink-0" />
             </Button>
@@ -793,17 +804,23 @@ export default function ServiceLanding() {
       {/* Booking Fee Explanation Section */}
       <section className="py-16 px-4 bg-gradient-to-r from-green-900/20 to-blue-900/20">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-6 text-green-400">🎉 Special Booking Offer</h2>
+          <h2 className="text-3xl font-bold mb-6 text-green-400">
+            {offer.free ? '🎉 Free Booking Offer' : '🎉 Special Booking Offer'}
+          </h2>
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
-              <div className="text-4xl mb-4">💰</div>
+              <div className="text-4xl mb-4">{offer.free ? '🎁' : '💰'}</div>
               <h3 className="text-xl font-bold mb-2">
-                {service.title === 'Annual Maintenance Package' ? 'Just ₹8999' : 'Just ₹299'}
+                {offer.free
+                  ? 'Pay Nothing Now'
+                  : service.title === 'Annual Maintenance Package' ? 'Just ₹8999' : 'Just ₹299'}
               </h3>
               <p className="text-gray-300">
-                {service.title === 'Annual Maintenance Package' 
-                  ? 'Complete package payment - no additional charges' 
-                  : 'Secure your preferred time slot with a small booking fee'
+                {offer.free
+                  ? 'Book with just your name, number, email and the slot you want'
+                  : service.title === 'Annual Maintenance Package'
+                    ? 'Complete package payment - no additional charges'
+                    : 'Secure your preferred time slot with a small booking fee'
                 }
               </p>
             </div>
@@ -819,9 +836,11 @@ export default function ServiceLanding() {
             </div>
           </div>
           <p className="text-lg text-gray-300 mb-4">
-            {service.title === 'Annual Maintenance Package' 
-              ? 'Pay just ₹8999 now for the complete package and receive a gift voucher worth ₹500 on your 2nd visit. Show your booking confirmation at our store to claim your bonus!'
-              : 'Pay just ₹299 now to reserve your slot and receive a gift voucher worth ₹500 on your 2nd visit. Show your booking confirmation at our store to claim your bonus!'
+            {offer.free
+              ? `Book free${offerEnds ? ` until ${offerEnds}` : ''} — no payment to reserve your slot, and you still receive a gift voucher worth ₹500 on your 2nd visit. Show your booking confirmation at our store to claim your bonus!`
+              : service.title === 'Annual Maintenance Package'
+                ? 'Pay just ₹8999 now for the complete package and receive a gift voucher worth ₹500 on your 2nd visit. Show your booking confirmation at our store to claim your bonus!'
+                : 'Pay just ₹299 now to reserve your slot and receive a gift voucher worth ₹500 on your 2nd visit. Show your booking confirmation at our store to claim your bonus!'
             }
           </p>
           <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 inline-block">
@@ -1148,7 +1167,9 @@ export default function ServiceLanding() {
                   Book Your Service
                 </div>
                 <div className="text-white text-sm font-semibold">
-                  {service.title === 'Annual Maintenance Package' ? 'Book now for ₹8999' : 'Book now for ₹299'}
+                  {offer.free
+                    ? 'Free this week — no payment'
+                    : service.title === 'Annual Maintenance Package' ? 'Book now for ₹8999' : 'Book now for ₹299'}
                 </div>
               </div>
               <Button

@@ -29,6 +29,7 @@ const src = fs
   .replace(/declare global \{[\s\S]*?\n\}/, '')
   .replace(/const reportedPurchases = new Set<string>\(\);/, 'const reportedPurchases = new Set();')
   .replace(/function track\([^)]*\)[^{]*\{/, 'function track(event, params) {')
+  .replace(/export function trackFreeBooking\(args: \{[\s\S]*?\}\): void \{/, 'function trackFreeBooking(args) {')
   .replace(/export function trackBeginCheckout\(args: \{[\s\S]*?\}\): void \{/, 'function trackBeginCheckout(args) {')
   .replace(/export function trackPurchase\(args: \{[\s\S]*?\}\): boolean \{/, 'function trackPurchase(args) {')
   .replace(/export function __resetPurchaseDedupeForTests\(\): void \{/, 'function __resetPurchaseDedupeForTests() {')
@@ -36,7 +37,7 @@ const src = fs
 
 const mod = new Function(
   'window',
-  src + '; return { trackPurchase, trackBeginCheckout, __resetPurchaseDedupeForTests };',
+  src + '; return { trackPurchase, trackBeginCheckout, trackFreeBooking, __resetPurchaseDedupeForTests };',
 );
 
 let win;
@@ -154,5 +155,34 @@ describe('source guard — the conversion stays on the verified path', () => {
     assert.ok(html.includes('AW-11467752288'), 'Google Ads tag must remain');
     assert.ok(html.includes('clarity.ms/tag/'), 'Clarity tag must remain');
     assert.ok(html.includes("indexOf('/admin')"), 'Clarity admin guard must remain');
+  });
+});
+
+describe('free bookings are leads, never purchases', () => {
+  test('a free booking fires generate_lead with zero value', () => {
+    api.trackFreeBooking({ serviceId: 'svc-1', serviceTitle: 'Interior Detailing', bookingId: 'bk-1' });
+    const leads = win.dataLayer.filter((e) => e.event === 'generate_lead');
+    assert.equal(leads.length, 1);
+    assert.equal(leads[0].value, 0);
+    assert.equal(leads[0].lead_source, 'free_booking_offer');
+  });
+
+  test('a free booking NEVER reports a purchase', () => {
+    api.trackFreeBooking({ serviceId: 'svc-1', serviceTitle: 'X', bookingId: 'bk-1' });
+    assert.equal(purchases().length, 0,
+      'a zero-value purchase would corrupt ROAS and the Ads conversion value');
+  });
+
+  test('free bookings and real sales stay separable', () => {
+    api.trackFreeBooking({ serviceId: 'svc-1', serviceTitle: 'X', bookingId: 'bk-1' });
+    api.trackPurchase(PAYMENT);
+    assert.equal(win.dataLayer.filter((e) => e.event === 'generate_lead').length, 1);
+    assert.equal(purchases().length, 1);
+    assert.equal(purchases()[0].value, 299, 'the paid sale keeps its real value');
+  });
+
+  test('tracking a free booking never throws when the tag is absent', () => {
+    const noGtag = mod({ dataLayer: [] });
+    assert.doesNotThrow(() => noGtag.trackFreeBooking({ serviceId: 'a', serviceTitle: 'b' }));
   });
 });

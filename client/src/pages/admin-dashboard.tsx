@@ -577,7 +577,9 @@ export default function AdminDashboard() {
   const [settings, setSettings] = useState<any>({
     bookingAmount: "299",
     currency: "INR",
-    paymentGateway: "razorpay"
+    paymentGateway: "razorpay",
+    // Final day of the free-booking offer (YYYY-MM-DD, IST). Blank = offer off.
+    freeBookingUntil: ""
   });
 
 
@@ -597,6 +599,22 @@ export default function AdminDashboard() {
     queryKey: ["/api/bookings"],
     enabled: isAuthenticated,
   });
+
+  /**
+   * Current free-booking offer, so the field below shows what is actually live rather
+   * than an empty box while customers are booking for free.
+   */
+  const { data: currentOffer } = useQuery<{ free: boolean; until: string | null }>({
+    queryKey: ["/api/booking-offer"],
+    enabled: isAuthenticated,
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (currentOffer?.until) {
+      setSettings((prev: any) => ({ ...prev, freeBookingUntil: currentOffer.until }));
+    }
+  }, [currentOffer?.until]);
 
   const { data: services, isLoading: servicesLoading } = useQuery({
     queryKey: ["/api/admin/services"],
@@ -819,6 +837,25 @@ export default function AdminDashboard() {
     },
   });
 
+  /**
+   * Start or end the free-booking offer.
+   *
+   * The value is a plain YYYY-MM-DD date. The SERVER decides whether that window is still
+   * open in IST and therefore whether anything is charged — this field only records the
+   * intent. Clearing it ends the offer immediately, and the server fails closed on any
+   * value it cannot parse, so a typo here restores the ₹299 fee rather than giving the
+   * catalogue away.
+   */
+  const handleUpdateFreeBooking = (until: string) => {
+    updateSettingMutation.mutate({
+      key: "free_booking_until",
+      value: until,
+      description: "Final day (YYYY-MM-DD, IST) of the free-booking offer. Blank = no offer.",
+      category: "booking",
+      dataType: "string"
+    });
+  };
+
   const handleUpdateBookingAmount = (amount: string) => {
     updateSettingMutation.mutate({
       key: "booking_amount",
@@ -867,6 +904,11 @@ export default function AdminDashboard() {
         return <Badge className="bg-green-900 text-green-300 font-semibold">✓ Paid</Badge>;
       case "pending":
         return <Badge className="bg-yellow-900 text-yellow-300 font-semibold">⏳ Pending</Badge>;
+      // Booked during the free-booking offer. Deliberately its own status: it is not
+      // "paid" (no money arrived, and revenue must not include it) and not "pending"
+      // (nothing is owed online, so it must not sit in the chase-the-payment queue).
+      case "free":
+        return <Badge className="bg-emerald-900 text-emerald-300 font-semibold">🎁 Free</Badge>;
       case "failed":
         return <Badge className="bg-red-900 text-red-300 font-semibold">✗ Failed</Badge>;
       default:
@@ -1067,6 +1109,7 @@ export default function AdminDashboard() {
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="pending">⏳ Payment Pending</SelectItem>
                   <SelectItem value="paid">✓ Paid</SelectItem>
+                  <SelectItem value="free">🎁 Free Booking</SelectItem>
                   <SelectItem value="completed">🏁 Service Completed</SelectItem>
                   <SelectItem value="failed">✗ Payment Failed</SelectItem>
                   <SelectItem value="cancelled">⊘ Cancelled</SelectItem>
@@ -1340,6 +1383,52 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2 p-4 rounded-lg border border-neon-green/40 bg-green-900/10">
+                    <Label className="text-white text-lg font-semibold mb-1 block">
+                      🎁 Free Booking Offer
+                    </Label>
+                    <p className="text-gray-400 text-sm mb-3">
+                      While this date is in the future, <strong className="text-white">nothing is charged
+                      online for any service</strong> — including the Annual Maintenance Package.
+                      Customers book with just their name, number, email and a slot. Leave it blank
+                      (or set a past date) to end the offer and go back to the ₹{settings.bookingAmount} fee.
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      <Input
+                        type="date"
+                        value={settings.freeBookingUntil}
+                        onChange={(e: any) => setSettings((prev: any) => ({ ...prev, freeBookingUntil: e.target.value }))}
+                        className="bg-dark-gray border-gray-600 text-white text-lg font-semibold max-w-[220px]"
+                        data-testid="input-free-booking-until"
+                      />
+                      <Button
+                        onClick={() => handleUpdateFreeBooking(settings.freeBookingUntil)}
+                        disabled={updateSettingMutation.isPending}
+                        className="bg-neon-green text-deep-black hover:bg-neon-green/90"
+                        data-testid="button-update-free-booking"
+                      >
+                        {updateSettingMutation.isPending ? "Saving..." : "Save offer"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setSettings((prev: any) => ({ ...prev, freeBookingUntil: "" }));
+                          handleUpdateFreeBooking("");
+                        }}
+                        disabled={updateSettingMutation.isPending}
+                        className="border-gray-600 text-gray-300 hover:text-white"
+                        data-testid="button-end-free-booking"
+                      >
+                        End offer now
+                      </Button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-3">
+                      Free bookings appear below with a <strong>Free</strong> payment status. They are
+                      deliberately not counted as revenue, and the service itself is still collected
+                      at the studio.
+                    </p>
+                  </div>
+
                   <div>
                     <Label className="text-white text-lg font-semibold mb-3 block">Booking Amount (₹)</Label>
                     <p className="text-gray-400 text-sm mb-4">

@@ -58,6 +58,10 @@ export default function TermsConditions() {
             <section>
               <h2 className="text-2xl font-semibold text-neon-green mb-4">3. Booking and Payment Terms</h2>
               <p>A booking fee of ₹299 is required to secure your appointment. This amount will be adjusted against the total service cost. All prices are listed in Indian Rupees (INR) and include applicable taxes.</p>
+              {/* Kept as a standing clause rather than rewritten: the fee is the normal terms,
+                  and the offer is a temporary waiver of it. Without this sentence the page
+                  would contradict a site that is visibly taking bookings for nothing. */}
+              <p><strong className="text-white">Promotional periods:</strong> During an advertised free-booking offer, no booking fee is charged and no advance payment is taken. Your appointment is confirmed on your contact details alone, and the full service cost is settled at the studio after the work is completed.</p>
               <p>Payment is processed securely through Razorpay. We accept all major credit cards, debit cards, UPI, and net banking.</p>
             </section>
 

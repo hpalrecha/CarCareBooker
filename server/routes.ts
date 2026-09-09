@@ -11,7 +11,7 @@ import { storage } from "./storage";
 import { SlotFullError } from "./storage";
 import { authenticateAdmin, hashPassword, comparePassword } from "./middleware/auth";
 import { createPaymentOrder, verifyPaymentSignature } from "./services/payment";
-import { resolveBookingAmount, FULL_PRICE_SLUG } from "./lib/booking-amount";
+import { resolveBookingAmount, isFreeBookingWindow, FULL_PRICE_SLUG } from "./lib/booking-amount";
 import { whatsappService } from "./services/whatsapp";
 import { schedulerService } from "./services/scheduler";
 import { sendBookingConfirmationEmail } from "./services/email";
@@ -464,6 +464,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * Public: is the free-booking offer running right now?
+   *
+   * The browser must not decide this. The window is an IST calendar date, and a customer
+   * whose phone is set to another timezone — or whose clock is simply wrong — would
+   * otherwise see "Book Free" and then be charged, or see ₹299 during the offer. One
+   * server-computed answer, used by every surface that mentions the price.
+   *
+   * Fails closed like everything else here: any error reports the offer as OFF, so an
+   * outage shows the normal fee rather than giving work away.
+   */
+  app.get("/api/booking-offer", async (_req, res) => {
+    try {
+      const setting = await storage.getSetting("free_booking_until");
+      const until = setting?.value ?? null;
+      const free = isFreeBookingWindow(until);
+      res.json({ free, until: free ? until : null });
+    } catch (error) {
+      console.error("booking-offer read failed; reporting offer as off:", error);
+      res.json({ free: false, until: null });
+    }
+  });
+
   app.put("/api/settings/:key", authenticateAdmin, async (req, res) => {
     try {
       const { value, description, category, dataType } = req.body;
@@ -848,10 +871,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Free-booking offer window. Same rule as the fee: a failed read becomes null, which
+      // means "not free" — an outage must never be able to give the catalogue away.
+      let freeBookingUntilValue: string | null = null;
+      try {
+        const freeSetting = await storage.getSetting("free_booking_until");
+        freeBookingUntilValue = freeSetting?.value ?? null;
+      } catch (error) {
+        console.log("free_booking_until unreadable; charging normally:", error);
+        freeBookingUntilValue = null;
+      }
+
       const resolvedAmount = resolveBookingAmount({
         serviceSlug: service.slug,
         servicePrice: service.price,
         bookingAmountSetting: bookingAmountSettingValue,
+        freeBookingUntil: freeBookingUntilValue,
       });
       const bookingFeeAmount = resolvedAmount.amount;
       console.log(
@@ -870,6 +905,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       }
       
+      // ---------------------------------------------------------------- free booking
+      //
+      // While the offer window is open nothing is charged online, so Razorpay is not
+      // involved at all — no order, no signature, no webhook. The booking is confirmed
+      // the moment it is created and the customer is notified immediately, which is the
+      // whole point of the offer: name, number, email, date and slot, and they are booked.
+      //
+      // This sits BEFORE the Razorpay configuration check on purpose. A free booking has
+      // no payment to configure, so a missing key must not block it.
+      //
+      // paymentStatus is "free", deliberately not "paid": admin sums revenue from "paid"
+      // rows, and recording ₹0 bookings as paid would inflate the revenue figure with
+      // money nobody sent. It is also not "pending" — nothing is owed online, so these
+      // must not sit in the queue of payments to chase.
+      if (resolvedAmount.amount === 0) {
+        const freeValues = {
+          serviceId: bookingData.serviceId,
+          timeSlotId: bookingData.timeSlotId,
+          appointmentDate: bookingData.appointmentDate,
+          appointmentTime: bookingData.appointmentTime,
+          customerName: bookingData.customerName,
+          customerEmail: bookingData.customerEmail,
+          customerPhone: bookingData.customerPhone,
+          amount: "0.00",
+          razorpayOrderId: null,
+          paymentStatus: "free",
+        };
+
+        let freeBooking;
+        try {
+          // Same atomic capacity guard as the paid path. A free slot is still a real slot
+          // and two simultaneous requests must not both take the last one.
+          freeBooking = (bookingData.appointmentDate && bookingData.timeSlotId)
+            ? await storage.createBookingWithCapacity(freeValues, {
+                serviceId: bookingData.serviceId,
+                date: bookingData.appointmentDate,
+                timeSlotId: bookingData.timeSlotId,
+                maxPerSlot: service.maxBookingsPerSlot || 3,
+              })
+            : await storage.createBooking(freeValues);
+        } catch (err) {
+          if (err instanceof SlotFullError) {
+            return res.status(409).json({ message: err.message + " Please select a different time slot." });
+          }
+          throw err;
+        }
+
+        console.log(`🎁 Free booking ${freeBooking.id} created (offer window open, ₹0 charged)`);
+
+        let whatsappSent = false;
+        try {
+          const waResult = await whatsappService.sendBookingConfirmation(
+            freeBooking.customerPhone,
+            freeBooking.customerName,
+            service.title,
+            freeBooking.appointmentDate || new Date().toLocaleDateString(),
+            freeBooking.appointmentTime || "10:00 AM",
+            "0",
+          );
+          whatsappSent = waResult.success;
+          await storage.updateBooking(freeBooking.id, {
+            whatsappSent,
+            customerWhatsappMessageId: waResult.messageId ?? null,
+          });
+        } catch (error) {
+          // A notification failure must not undo a confirmed booking. The row already
+          // exists and the slot is held; the studio can still see it in admin.
+          console.error("Free booking created but WhatsApp failed:", error);
+        }
+
+        // Same treatment as a confirmed payment: the booking is real, so ERP gets it.
+        const erpSync = await syncBookingToErp(freeBooking.id);
+
+        return res.json({
+          booking: await storage.getBooking(freeBooking.id),
+          freeBooking: true,
+          amount: 0,
+          whatsappSent,
+          erpSync,
+          message: "Booking confirmed. No payment required during the free booking offer.",
+          success: true,
+        });
+      }
+
       // Check if payment service is configured
       const razorpayConfigured = !!(process.env.RAZORPAY_KEY_ID || process.env.RAZORPAY_TEST_KEY_ID);
 

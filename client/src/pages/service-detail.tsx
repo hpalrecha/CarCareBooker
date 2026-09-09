@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, Check, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
+import { useBookingOffer } from "@/hooks/use-booking-offer";
 
 // Import images
 import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029992282.webp";
@@ -17,6 +18,8 @@ import glassCoating from "@assets/Before-and-After-Ceramic-Coating-on-Glass (1)_
 export default function ServiceDetail() {
   const { slug } = useParams();
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  // Free-booking offer, decided server-side (see hooks/use-booking-offer).
+  const offer = useBookingOffer();
 
   const { data: service, isLoading, error } = useQuery({
     queryKey: [`/api/services/${slug}`],
@@ -281,7 +284,9 @@ export default function ServiceDetail() {
               data-testid="button-mobile-book-now"
             >
               <span className="flex items-center justify-center gap-3 relative z-10">
-                <span className="text-sm sm:text-base font-bold">Pay ₹299 & Get FREE Voucher</span>
+                <span className="text-sm sm:text-base font-bold">
+                  {offer.free ? 'Book Free & Get ₹500 Voucher' : 'Pay ₹299 & Get FREE Voucher'}
+                </span>
                 <span className="text-lg">🎁</span>
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>

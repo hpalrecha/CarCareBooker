@@ -19,6 +19,8 @@ export default function RefundPolicy() {
             <section>
               <h2 className="text-2xl font-semibold text-neon-green mb-4">1. Booking Fee Refund Policy</h2>
               <p>Plus Nine One Inc charges a booking fee of ₹299 to secure your appointment. This policy outlines our refund terms:</p>
+              {/* A refund policy has to say what happens when there is nothing to refund. */}
+              <p className="mt-3"><strong className="text-white">During a free-booking offer</strong> no fee is charged, so there is nothing to refund — cancel any time at no cost by calling or messaging us. The cancellation terms below apply only to bookings where a fee was actually paid.</p>
               
               <div className="bg-medium-gray p-6 rounded-lg mt-4">
                 <h3 className="text-lg font-semibold text-white mb-3">Cancellation Timeline:</h3>

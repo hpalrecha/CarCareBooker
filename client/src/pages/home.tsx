@@ -9,6 +9,7 @@ import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { localBusinessSchema } from "@/lib/local-business";
 import { resolveServiceImage, formatINR, TRANSFORMATION_CTAS, type ServiceRecord } from "@/lib/canonical-services";
 import { deriveCategory } from "@/lib/service-taxonomy";
+import { useBookingOffer } from "@/hooks/use-booking-offer";
 import { BLOG_POSTS, formatPostDate } from "@/lib/blog-posts";
 import type { BusinessHour } from "@shared/schema";
 
@@ -87,6 +88,10 @@ export default function Home() {
     const n = raw ? parseFloat(raw) : NaN;
     return Number.isFinite(n) && n > 0 ? n : 299;
   })();
+
+  // Free-booking offer, decided server-side by the same authority that sets the amount,
+  // so this page can never advertise a price the booking flow will not charge.
+  const offer = useBookingOffer();
 
   useSeoMeta({
     title: "P91 Car Care — Car Detailing, PPF & Ceramic Coating in Indiranagar, Bangalore",
@@ -245,8 +250,17 @@ export default function Home() {
                       <div className="card-body">
                         <h3 data-testid={`text-service-title-${s.id}`}>{s.title.trim()}</h3>
                         <p className="card-note">
-                          Pay <b>{formatINR(bookingFee)}</b> now
-                          {Number.isFinite(atStore) && atStore > 0 && <> · {formatINR(atStore)} at the store</>}
+                          {offer.free ? (
+                            <>
+                              <b>Book free</b>
+                              {Number.isFinite(price) && price > 0 && <> · {formatINR(String(price))} at the store</>}
+                            </>
+                          ) : (
+                            <>
+                              Pay <b>{formatINR(bookingFee)}</b> now
+                              {Number.isFinite(atStore) && atStore > 0 && <> · {formatINR(atStore)} at the store</>}
+                            </>
+                          )}
                         </p>
                         <div className="card-foot">
                           <div className="prices">
@@ -416,7 +430,9 @@ export default function Home() {
             <div className="cell"><b>Warranty-backed</b><span>Written warranty on every coating and PPF job</span></div>
             <div className="cell"><b>Same-day service</b><span>Most detailing finished the day you book</span></div>
             <div className="cell"><b>Pickup &amp; drop</b><span>Available across Bangalore at cost</span></div>
-            <div className="cell"><b>Pay {formatINR(bookingFee)} to book</b><span>Balance settled at the store, no hidden charges</span></div>
+            <div className="cell">{offer.free
+              ? <><b>Free to book</b><span>No payment to reserve — settle at the store, no hidden charges</span></>
+              : <><b>Pay {formatINR(bookingFee)} to book</b><span>Balance settled at the store, no hidden charges</span></>}</div>
           </div>
         </div>
       </section>
@@ -485,8 +501,17 @@ export default function Home() {
               Ready when you are
             </h2>
             <p style={{ color: "var(--txt-2)", margin: "0 auto 22px", maxWidth: "52ch" }}>
-              Pick a service, choose a slot, and pay {formatINR(bookingFee)} to reserve it. The
-              balance is settled at the studio.
+              {offer.free ? (
+                <>
+                  Pick a service and choose a slot — booking is free right now, with no payment
+                  to reserve. You settle at the studio after the work.
+                </>
+              ) : (
+                <>
+                  Pick a service, choose a slot, and pay {formatINR(bookingFee)} to reserve it. The
+                  balance is settled at the studio.
+                </>
+              )}
             </p>
             <button
               type="button"

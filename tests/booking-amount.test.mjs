@@ -34,12 +34,19 @@ const src = fs
   .readFileSync(path.join(repoRoot, 'server/lib/booking-amount.ts'), 'utf8')
   .replace(/export interface \w+ \{[\s\S]*?\n\}/g, '')
   .replace(/function usableAmount\([^)]*\)[^{]*\{/, 'function usableAmount(value) {')
+  // Multi-line signature with a default parameter, so it needs its own rule.
+  .replace(
+    /export function isFreeBookingWindow\([\s\S]*?\): boolean \{/,
+    'function isFreeBookingWindow(freeBookingUntil, now) { if (now === undefined) now = new Date();',
+  )
   .replace(/export function resolveBookingAmount\([^)]*\)[^{]*\{/, 'function resolveBookingAmount(input) {')
   .replace(/^export /gm, '');
 
-const { resolveBookingAmount, DEFAULT_BOOKING_FEE, FULL_PRICE_SLUG } = new Function(
-  src + '; return { resolveBookingAmount, DEFAULT_BOOKING_FEE, FULL_PRICE_SLUG };',
-)();
+const { resolveBookingAmount, isFreeBookingWindow, DEFAULT_BOOKING_FEE, FULL_PRICE_SLUG } =
+  new Function(
+    src +
+      '; return { resolveBookingAmount, isFreeBookingWindow, DEFAULT_BOOKING_FEE, FULL_PRICE_SLUG };',
+  )();
 
 /** Route source with comments removed, so assertions match code and not the explanations. */
 const routeCode = fs
@@ -189,5 +196,112 @@ describe('DEFECT 1 — the full-price package cannot be downgraded', () => {
       bookingAmountSetting: '1',
     });
     assert.equal(r.amount, 8999);
+  });
+});
+
+describe('FREE BOOKING OFFER — nothing is charged while the window is open', () => {
+  const IN_WINDOW = new Date('2026-09-12T10:00:00+05:30');
+
+  test('every service resolves to zero during the offer', () => {
+    for (const slug of ['car-polishing', 'interior-detailing-service', 'ppf-suv']) {
+      const r = resolveBookingAmount({
+        serviceSlug: slug,
+        servicePrice: '2999.00',
+        bookingAmountSetting: '299',
+        freeBookingUntil: '2026-09-16',
+        now: IN_WINDOW,
+      });
+      assert.equal(r.amount, 0, `${slug} must be free`);
+      assert.equal(r.source, 'free-offer');
+    }
+  });
+
+  test('the full-price package is free too, not charged its 8999', () => {
+    const r = resolveBookingAmount({
+      serviceSlug: FULL_PRICE_SLUG,
+      servicePrice: '8999.00',
+      bookingAmountSetting: '299',
+      freeBookingUntil: '2026-09-16',
+      now: IN_WINDOW,
+    });
+    assert.equal(r.amount, 0, 'a customer told booking is free must not be charged 8999');
+    assert.equal(r.source, 'free-offer');
+  });
+
+  test('the fee returns the moment the window closes', () => {
+    const after = new Date('2026-09-17T00:00:01+05:30');
+    const r = resolveBookingAmount({
+      serviceSlug: 'car-polishing',
+      servicePrice: '2999.00',
+      bookingAmountSetting: '299',
+      freeBookingUntil: '2026-09-16',
+      now: after,
+    });
+    assert.equal(r.amount, 299);
+    assert.equal(r.source, 'settings');
+  });
+
+  test('the last IST minute of the final day is still free', () => {
+    // A booking at 23:50 in Bangalore on the 16th is inside the offer. Parsing the bare
+    // date as UTC would have ended it at 05:30 IST that morning.
+    assert.equal(isFreeBookingWindow('2026-09-16', new Date('2026-09-16T23:50:00+05:30')), true);
+    assert.equal(isFreeBookingWindow('2026-09-16', new Date('2026-09-17T00:10:00+05:30')), false);
+  });
+
+  test('FAILS CLOSED: a malformed or hostile value never makes anything free', () => {
+    for (const bad of [null, undefined, '', '   ', 'true', 'yes', 'forever', '2026-13-45x',
+                       '16-09-2026', '2026/09/16', '"2026-09-16"', '2026-09-16T00:00:00Z']) {
+      assert.equal(isFreeBookingWindow(bad, IN_WINDOW), false, `"${bad}" must not open the offer`);
+      const r = resolveBookingAmount({
+        serviceSlug: 'car-polishing',
+        servicePrice: '2999.00',
+        bookingAmountSetting: '299',
+        freeBookingUntil: bad,
+        now: IN_WINDOW,
+      });
+      assert.equal(r.amount, 299, `"${bad}" must leave the fee in place`);
+    }
+  });
+
+  test('a past date does not reopen the offer', () => {
+    assert.equal(isFreeBookingWindow('2026-09-01', IN_WINDOW), false);
+  });
+
+  test('absent setting behaves exactly as before the offer existed', () => {
+    const r = resolveBookingAmount({
+      serviceSlug: FULL_PRICE_SLUG,
+      servicePrice: '8999.00',
+      bookingAmountSetting: '299',
+    });
+    assert.equal(r.amount, 8999);
+    assert.equal(r.source, 'service-price');
+  });
+});
+
+describe('FREE BOOKING OFFER — the route takes no payment', () => {
+  test('a zero amount short-circuits before Razorpay is consulted', () => {
+    const freeIdx = routeCode.indexOf('resolvedAmount.amount === 0');
+    const rzpIdx = routeCode.indexOf('const razorpayConfigured');
+    assert.ok(freeIdx > -1, 'the free-booking branch must exist');
+    assert.ok(freeIdx < rzpIdx, 'free booking must not be blocked by a missing Razorpay key');
+  });
+
+  test('free bookings are recorded as free, never as paid', () => {
+    const block = routeCode.slice(routeCode.indexOf('resolvedAmount.amount === 0'));
+    assert.match(block.slice(0, 1200), /paymentStatus: "free"/);
+    assert.ok(!/paymentStatus: "paid"/.test(block.slice(0, 1200)),
+      'recording 0 as paid would inflate admin revenue');
+    assert.match(block.slice(0, 1200), /amount: "0\.00"/);
+  });
+
+  test('the free path still guards slot capacity', () => {
+    const block = routeCode.slice(routeCode.indexOf('resolvedAmount.amount === 0'), routeCode.indexOf('const razorpayConfigured'));
+    assert.match(block, /createBookingWithCapacity/, 'a free slot is still a real slot');
+    assert.match(block, /SlotFullError/);
+  });
+
+  test('the offer state is decided server-side, not in the browser', () => {
+    assert.match(routeCode, /app\.get\("\/api\/booking-offer"/);
+    assert.match(routeCode, /isFreeBookingWindow\(until\)/);
   });
 });

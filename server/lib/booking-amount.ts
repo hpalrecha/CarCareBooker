@@ -11,9 +11,10 @@
  * customer's number in, because there is nowhere to put it.
  *
  * Precedence, all server-side:
- *   1. Annual Maintenance Package -> services.price (the full package price)
- *   2. any other service          -> site_settings.booking_amount
- *   3. neither usable             -> DEFAULT_BOOKING_FEE
+ *   0. inside the free-booking window -> 0 (no payment taken, for every service)
+ *   1. Annual Maintenance Package     -> services.price (the full package price)
+ *   2. any other service              -> site_settings.booking_amount
+ *   3. neither usable                 -> DEFAULT_BOOKING_FEE
  *
  * History: POST /api/bookings used to seed the variable with `bookingData.amount || 299`
  * and then overwrite it from the database. The overwrite was conditional, so a missing or
@@ -27,6 +28,37 @@ export const DEFAULT_BOOKING_FEE = 299;
 /** The one service that is charged its full price up front rather than a booking fee. */
 export const FULL_PRICE_SLUG = "annual-maintenance-package";
 
+/**
+ * IST end-of-day for the free-booking window.
+ *
+ * The offer is expressed as a DATE ("free until the 16th"), and a customer booking at
+ * 11pm on the 16th in Bangalore must still get it. Parsing the bare date would give
+ * midnight UTC — 05:30 IST — ending the offer eighteen and a half hours early for the
+ * only timezone this business operates in.
+ */
+const IST_END_OF_DAY = "T23:59:59.999+05:30";
+
+/**
+ * True while free booking is active.
+ *
+ * FAILS CLOSED. A missing, blank, malformed or unparseable value means "not free", so a
+ * typo in the admin panel cannot silently switch the whole catalogue to zero. The only
+ * way to give work away is a value that genuinely parses to a future IST date.
+ */
+export function isFreeBookingWindow(
+  freeBookingUntil: string | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  if (!freeBookingUntil) return false;
+  const raw = String(freeBookingUntil).trim();
+  // Exactly YYYY-MM-DD. Anything else — a timestamp, "true", "yes", a stray quote — is
+  // rejected rather than guessed at, because guessing wrong here costs real money.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return false;
+  const endsAt = Date.parse(raw + IST_END_OF_DAY);
+  if (!Number.isFinite(endsAt)) return false;
+  return now.getTime() <= endsAt;
+}
+
 export interface ResolveBookingAmountInput {
   /** services.slug of the service being booked (from the database, not the request). */
   serviceSlug: string;
@@ -38,13 +70,22 @@ export interface ResolveBookingAmountInput {
    * read into null — a failure must never look like a valid price.
    */
   bookingAmountSetting: string | number | null | undefined;
+  /**
+   * Raw `value` of the site_settings row keyed "free_booking_until" — a YYYY-MM-DD date,
+   * or null when the row is absent or the read threw. While that date has not passed in
+   * IST, NOTHING is charged online: no booking fee, and no full-price package either.
+   */
+  freeBookingUntil?: string | null;
+  /** Injected so the window is testable without waiting for a calendar. */
+  now?: Date;
 }
 
 export interface ResolvedBookingAmount {
-  /** Rupees. This is what is charged and what is stored on the booking. */
+  /** Rupees. This is what is charged and what is stored on the booking. Zero means no
+   *  payment is taken and Razorpay is not involved at all. */
   amount: number;
   /** Which rule produced it — surfaced for logging and asserted in tests. */
-  source: "service-price" | "settings" | "default";
+  source: "service-price" | "settings" | "default" | "free-offer";
 }
 
 /** Accepts a value only if it parses to a finite, strictly positive number. */
@@ -56,6 +97,15 @@ function usableAmount(value: string | number | null | undefined): number | null 
 }
 
 export function resolveBookingAmount(input: ResolveBookingAmountInput): ResolvedBookingAmount {
+  // 0. Free-booking offer. Deliberately ahead of the full-price package: the offer is
+  //    "book free", and a customer told the booking is free must not be charged ₹8999
+  //    because of which service they picked. The window fails closed (see above), and
+  //    zero is returned as a first-class result rather than by setting booking_amount to
+  //    "0" — usableAmount() rejects 0, so that route would silently charge ₹299 instead.
+  if (isFreeBookingWindow(input.freeBookingUntil, input.now ?? new Date())) {
+    return { amount: 0, source: "free-offer" };
+  }
+
   // 1. The full-price package is priced from its own service row.
   if (input.serviceSlug === FULL_PRICE_SLUG) {
     const fromService = usableAmount(input.servicePrice);

@@ -8,10 +8,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { loadRazorpay } from "@/lib/razorpay";
 import BookingCalendar from "@/components/booking-calendar";
-import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
+import { trackBeginCheckout, trackPurchase, trackFreeBooking } from "@/lib/analytics";
+import { useBookingOffer, formatOfferEnd } from "@/hooks/use-booking-offer";
 import { bookingFormSchema, type BlackoutDate, type BusinessHour } from "@shared/schema";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import { resolveServiceImage } from "@/lib/canonical-services";
@@ -78,6 +79,21 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
     queryKey: ["/api/settings/booking_amount"],
     retry: false,
   });
+
+  /**
+   * Is the free-booking offer running?
+   *
+   * Answered by the server, never computed here. The window is an IST calendar date, and
+   * a device on another timezone — or with a wrong clock — would otherwise show "Book
+   * Free" and then be charged, or show ₹299 in the middle of the offer. The server is the
+   * same authority that decides the amount, so the label and the charge cannot disagree.
+   *
+   * Defaults to NOT free while loading or on error, so the customer is never promised a
+   * free booking the backend intends to charge for.
+   */
+  const offer = useBookingOffer();
+  const isFreeBooking = offer.free;
+  const offerEnds = formatOfferEnd(offer.until);
 
   useEffect(() => {
     console.log("Booking amount setting changed:", bookingAmountSetting);
@@ -220,7 +236,41 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
     },
     onSuccess: async (data) => {
       const { booking, paymentOrder } = data;
-      
+
+      /**
+       * Free-booking offer: the server already confirmed this booking and took no money,
+       * so there is no payment sheet to open.
+       *
+       * Gated on the SERVER's `freeBooking` flag rather than on the local `isFreeBooking`
+       * state. The server decides both the amount and the offer window; trusting its
+       * response means the browser cannot skip Razorpay for a booking the backend
+       * actually expects to be paid for.
+       *
+       * No `purchase` conversion is sent. Nothing was bought — reporting a ₹0 sale to
+       * Google Ads would dilute ROAS and corrupt the conversion value of real payments.
+       * `generate_lead` is the honest signal for a free booking.
+       */
+      if (data?.freeBooking === true) {
+        console.log("🎁 Free booking confirmed — no payment required");
+        trackFreeBooking({
+          serviceId: service.id,
+          serviceTitle: service.title,
+          bookingId: booking?.id,
+        });
+
+        toast({
+          title: "Booking Confirmed!",
+          description: data.whatsappSent
+            ? "You're booked — no payment needed. WhatsApp confirmation sent."
+            : "You're booked — no payment needed. We'll confirm shortly.",
+        });
+
+        queryClient.invalidateQueries({ queryKey: ["/api/time-slots"] });
+        onClose();
+        form.reset();
+        return;
+      }
+
       try {
         console.log("Opening Razorpay payment gateway...");
 
@@ -577,7 +627,18 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
           
           {/* Booking Fee Structure */}
           <div className="bg-gradient-to-r from-green-900/30 to-blue-900/30 rounded-xl p-6 border border-green-500/30">
-            {service.title === 'Annual Maintenance Package' ? (
+            {/* During the free-booking window this block is the same for EVERY service,
+                including the annual package — the offer is "book free", so the copy must
+                not still quote ₹8,999 for one service while the server charges nothing. */}
+            {isFreeBooking ? (
+              <div className="text-center mb-4">
+                <h3 className="text-2xl font-bold text-neon-green mb-2">🎉 Free Booking!</h3>
+                <p className="text-gray-300">
+                  No payment needed — just your name, number, email and the slot you want
+                  {offerEnds ? `. Offer ends ${offerEnds}.` : "."}
+                </p>
+              </div>
+            ) : service.title === 'Annual Maintenance Package' ? (
               <div className="text-center mb-4">
                 <h3 className="text-2xl font-bold text-neon-green mb-2">💳 Complete Package Payment!</h3>
                 <p className="text-gray-300">Pay full package price of ₹{bookingAmount} and get started</p>
@@ -591,14 +652,20 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
               <div className="text-center p-4 bg-dark-gray rounded-lg">
-                <div className="text-3xl font-bold text-white mb-2">₹{bookingAmount}</div>
+                <div className="text-3xl font-bold text-white mb-2">
+                  {isFreeBooking ? '₹0' : `₹${bookingAmount}`}
+                </div>
                 <div className="text-sm text-gray-400 mb-2">
-                  {service.title === 'Annual Maintenance Package' ? 'Full Package Price' : 'Booking Fee Only'}
+                  {isFreeBooking
+                    ? 'Pay Nothing Now'
+                    : service.title === 'Annual Maintenance Package' ? 'Full Package Price' : 'Booking Fee Only'}
                 </div>
                 <div className="text-xs text-green-400">
-                  {service.title === 'Annual Maintenance Package' 
-                    ? '✓ Complete payment - no more charges' 
-                    : '✓ Secures your preferred slot'
+                  {isFreeBooking
+                    ? '✓ Slot held on your details alone'
+                    : service.title === 'Annual Maintenance Package'
+                      ? '✓ Complete payment - no more charges'
+                      : '✓ Secures your preferred slot'
                   }
                 </div>
               </div>
@@ -622,7 +689,14 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                 <div className="text-yellow-400">💡</div>
                 <div>
                   <div className="font-semibold text-yellow-300 mb-1">How it works:</div>
-                  {service.title === 'Annual Maintenance Package' ? (
+                  {isFreeBooking ? (
+                    <ul className="text-sm text-gray-300 space-y-1">
+                      <li>• No booking fee — enter your details and pick a slot</li>
+                      <li>• Get a gift voucher worth ₹500 on your 2nd visit</li>
+                      <li>• Pay for the service itself at the studio after the work</li>
+                      <li>• Show your booking confirmation at our store to claim</li>
+                    </ul>
+                  ) : service.title === 'Annual Maintenance Package' ? (
                     <ul className="text-sm text-gray-300 space-y-1">
                       <li>• Pay full package price of ₹8,999 to secure your annual plan</li>
                       <li>• Valid for 12 months from purchase date</li>
@@ -824,7 +898,18 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                     disabled={bookingMutation.isPending}
                     data-testid="button-proceed-payment"
                   >
-                    {service.title === 'Annual Maintenance Package' ? (
+                    {isFreeBooking ? (
+                      <>
+                        <span className="block sm:hidden">
+                          {bookingMutation.isPending ? "Booking..." : "Book Free + ₹500 Voucher"}
+                        </span>
+                        <span className="hidden sm:block">
+                          {bookingMutation.isPending
+                            ? "Confirming your booking..."
+                            : "Confirm Free Booking + Get FREE ₹500 Voucher"}
+                        </span>
+                      </>
+                    ) : service.title === 'Annual Maintenance Package' ? (
                       <span>{bookingMutation.isPending ? "Processing..." : `Pay ₹${bookingAmount} Complete Package`}</span>
                     ) : (
                       <>
