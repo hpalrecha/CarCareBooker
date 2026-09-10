@@ -18,10 +18,12 @@
  *
  * FAIL-SOFT, DELIBERATELY. sharp is a native binary and the production image is
  * node:20-bookworm-slim; if that binary ever fails to install, this script logs and exits
- * 0 rather than failing the build. Deploys on this host are automatic, so a broken build
- * is a broken deploy pipeline. A missing optimisation must degrade to the original image,
- * never to an outage — image-with-fallback.tsx falls back to the untouched `src` whenever
- * a manifest entry is absent, so the site is always correct, sometimes just heavier.
+ * 0 rather than failing the build. `npm run build` runs INSIDE the Docker build, so a
+ * non-zero exit here fails `docker build` and there is then no new image to start — the
+ * old container keeps serving, but the deploy simply does not happen, silently, over an
+ * image optimisation. A missing optimisation must degrade to the original image, never to
+ * a blocked release — image-with-fallback.tsx falls back to the untouched `src` whenever a
+ * manifest entry is absent, so the site is always correct, sometimes just heavier.
  *
  * Idempotent: an output newer than its source is left alone, so repeat builds are cheap.
  */
@@ -285,7 +287,7 @@ main().catch(async (error) => {
     log("manifest emptied; the site falls back to original images");
   } catch {
     // If even this fails there is nothing safe left to do, and exiting non-zero
-    // would break an automatic deploy over an image optimisation.
+    // would fail `docker build` — blocking a release over an image optimisation.
   }
   log("continuing without optimised images");
   process.exit(0);
