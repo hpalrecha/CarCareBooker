@@ -13,9 +13,32 @@ import {
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+/**
+ * EVERY PRIMARY-KEY COLUMN CARRIES AN EXPLICIT .notNull(). DO NOT REMOVE IT AS REDUNDANT.
+ *
+ * It looks redundant — a primary key is not nullable by definition, and Postgres enforces
+ * that whether or not we say so. It is here because of how drizzle-kit DIFFS rather than
+ * how it creates.
+ *
+ * With `.primaryKey()` alone, drizzle-kit's desired state records the column as nullable.
+ * It then compares that against the live database, where the column is NOT NULL (because
+ * it is a primary key), decides the two disagree, and emits:
+ *
+ *     ALTER TABLE bookings ALTER COLUMN id DROP NOT NULL;
+ *
+ * Postgres refuses with `42P16: column "id" is in a primary key`, and `npm run db:push`
+ * aborts — before it has applied any of the changes actually wanted. That is exactly what
+ * happened on 2026-09-10: the push died on this statement and the campaigns table and the
+ * booking attribution columns were never created.
+ *
+ * Adding .notNull() changes nothing about the database. It makes the desired state match
+ * what the database already is, so drizzle-kit stops generating a statement Postgres will
+ * never accept.
+ */
+
 // Admin users table
 export const admins = pgTable("admins", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().notNull().default(sql`gen_random_uuid()`),
   email: varchar("email").notNull().unique(),
   password: varchar("password").notNull(),
   name: varchar("name").notNull(),
@@ -24,7 +47,7 @@ export const admins = pgTable("admins", {
 
 // Site settings table
 export const siteSettings = pgTable("site_settings", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().notNull().default(sql`gen_random_uuid()`),
   key: varchar("key").notNull().unique(),
   value: text("value").notNull(),
   description: text("description"),
@@ -35,7 +58,7 @@ export const siteSettings = pgTable("site_settings", {
 
 // WhatsApp Business API configuration
 export const whatsappConfig = pgTable("whatsapp_config", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().notNull().default(sql`gen_random_uuid()`),
   accessToken: text("access_token").notNull(),
   phoneNumberId: varchar("phone_number_id").notNull(),
   businessAccountId: varchar("business_account_id").notNull(),
@@ -50,7 +73,7 @@ export const whatsappConfig = pgTable("whatsapp_config", {
 
 // WhatsApp message templates
 export const whatsappTemplates = pgTable("whatsapp_templates", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().notNull().default(sql`gen_random_uuid()`),
   templateName: varchar("template_name").notNull(),
   templateId: varchar("template_id").notNull().unique(),
   category: varchar("category").notNull(), // booking_confirmation, appointment_reminder, etc.
@@ -64,7 +87,7 @@ export const whatsappTemplates = pgTable("whatsapp_templates", {
 
 // Services table
 export const services = pgTable("services", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().notNull().default(sql`gen_random_uuid()`),
   title: varchar("title").notNull(),
   slug: varchar("slug").notNull().unique(),
   description: text("description"),
@@ -100,7 +123,7 @@ export const services = pgTable("services", {
 
 // Available time slots for services
 export const timeSlots = pgTable("time_slots", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().notNull().default(sql`gen_random_uuid()`),
   serviceId: varchar("service_id").notNull().references(() => services.id, { onDelete: "cascade" }),
   date: timestamp("date").notNull(),
   startTime: varchar("start_time").notNull(), // HH:MM format
@@ -111,7 +134,7 @@ export const timeSlots = pgTable("time_slots", {
 
 // Bookings table
 export const bookings = pgTable("bookings", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().notNull().default(sql`gen_random_uuid()`),
   serviceId: varchar("service_id").notNull().references(() => services.id),
   timeSlotId: varchar("time_slot_id").notNull(), // Changed: removed foreign key constraint for static time slots
   appointmentDate: varchar("appointment_date"), // Store the selected date (YYYY-MM-DD format)
@@ -204,7 +227,7 @@ export const bookings = pgTable("bookings", {
 export const sessions = pgTable(
   "sessions",
   {
-    sid: varchar("sid").primaryKey(),
+    sid: varchar("sid").primaryKey().notNull(),
     sess: jsonb("sess").notNull(),
     expire: timestamp("expire").notNull(),
   },
@@ -213,7 +236,7 @@ export const sessions = pgTable(
 
 // Blackout dates table - dates when booking is not allowed
 export const blackoutDates = pgTable("blackout_dates", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().notNull().default(sql`gen_random_uuid()`),
   date: varchar("date").notNull().unique(), // YYYY-MM-DD format
   reason: text("reason").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -221,7 +244,7 @@ export const blackoutDates = pgTable("blackout_dates", {
 
 // Business hours table - cutoff times for each day of the week
 export const businessHours = pgTable("business_hours", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().notNull().default(sql`gen_random_uuid()`),
   dayOfWeek: integer("day_of_week").notNull().unique(), // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
   dayName: varchar("day_name").notNull(), // Sunday, Monday, etc.
   isOpen: boolean("is_open").default(true).notNull(),
@@ -253,7 +276,7 @@ export const businessHours = pgTable("business_hours", {
 export const campaigns = pgTable(
   "campaigns",
   {
-    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+    id: varchar("id").primaryKey().notNull().default(sql`gen_random_uuid()`),
     /** Human label shown in admin, e.g. "September Ceramic Car Campaign". */
     name: varchar("name").notNull(),
     /**
@@ -289,7 +312,7 @@ export const campaigns = pgTable(
 
 // PPF & Ceramic Coating leads
 export const ppfLeads = pgTable("ppf_leads", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().notNull().default(sql`gen_random_uuid()`),
   name: varchar("name").notNull(),
   email: varchar("email").notNull(),
   phone: varchar("phone").notNull(),
