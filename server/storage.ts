@@ -225,6 +225,27 @@ export class DatabaseStorage implements IStorage {
     return booking;
   }
 
+  /**
+   * Look a booking up by its customer-facing confirmation token.
+   *
+   * This is the ONLY read path a customer can reach without an admin session, so the
+   * token is a bearer credential and this lookup is the gate.
+   *
+   * Guards against a blank token matching the many historical rows whose
+   * confirmation_token is NULL. Without this check a request for `/confirmation/`
+   * would compare against NULL — which in SQL matches nothing, so it happens to be
+   * safe today — but an empty string would match any row later backfilled with one.
+   * Refusing empty input here means that can never become true by accident.
+   */
+  async getBookingByConfirmationToken(token: string): Promise<Booking | undefined> {
+    if (!token || typeof token !== "string" || token.trim() === "") return undefined;
+    const [booking] = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.confirmationToken, token));
+    return booking;
+  }
+
   async createBooking(booking: InsertBooking): Promise<Booking> {
     const [newBooking] = await db.insert(bookings).values(booking).returning();
     return newBooking;

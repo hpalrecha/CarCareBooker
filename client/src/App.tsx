@@ -2,6 +2,8 @@ import { useEffect, lazy, Suspense } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { applyClarityRouteGuard } from "@/lib/clarity";
+import { captureAttribution } from "@/lib/attribution";
+import { initMetaPixel, trackPageView } from "@/lib/meta-pixel";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -100,11 +102,48 @@ function ClarityRouteGuard() {
   return null;
 }
 
+/**
+ * Campaign attribution and Meta Pixel.
+ *
+ * Mounted once, above the router, so both survive every client-side navigation.
+ *
+ * ORDER MATTERS. captureAttribution() runs synchronously in the FIRST effect, before the
+ * pixel's async config fetch resolves and before any route component mounts. The URL is
+ * only trustworthy on the initial load — the first internal link click replaces it — so
+ * the utm parameters have to be read out of it immediately. Waiting on the network here
+ * would mean a fast click loses the attribution entirely.
+ *
+ * The route effect below then fires a PageView per navigation. Without it Meta would
+ * record a single PageView for a whole visit, and every landing page except the entry
+ * point would look unvisited — which is precisely the per-campaign breakdown the ads are
+ * being run to produce.
+ */
+function CampaignTracking() {
+  const [location] = useLocation();
+
+  useEffect(() => {
+    // Synchronous, and first. See above.
+    captureAttribution();
+    // Fire-and-forget: a failed config fetch must never reject into the render tree.
+    void initMetaPixel();
+  }, []);
+
+  useEffect(() => {
+    // Skipped on the very first run only in the sense that initMetaPixel fires its own
+    // PageView once configured; trackPageView is a no-op until then, so an early call
+    // here cannot produce a duplicate.
+    trackPageView();
+  }, [location]);
+
+  return null;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <div className="dark">
+          <CampaignTracking />
           <ClarityRouteGuard />
           <Toaster />
           <Router />

@@ -18,7 +18,59 @@ import { sendBookingConfirmationEmail } from "./services/email";
 import { sendBookingWebhook } from "./services/webhook";
 import { computeAvailability, generateHourlySlots, istNow } from "./lib/slots";
 import { validateAppointmentSlot } from "./lib/booking-validation";
+import { parseAttribution, deriveSource } from "./lib/attribution";
+import { rateLimit } from "./lib/rate-limit";
 import { z } from "zod";
+
+/**
+ * Unguessable customer-facing confirmation token.
+ *
+ * 32 bytes from the CSPRNG — the same generator the Razorpay signature check relies on,
+ * not Math.random(), because this string is the only thing standing between a stranger
+ * and a customer's name, phone number and appointment time.
+ *
+ * Base64url so it is safe in a URL without escaping, which matters because it is handed
+ * to customers in a link.
+ */
+function generateConfirmationToken(): string {
+  return crypto.randomBytes(32).toString("base64url");
+}
+
+/**
+ * The subset of a booking a customer may see about their OWN appointment.
+ *
+ * An allowlist, not a denylist. A denylist silently leaks every column added later —
+ * and this table gains columns regularly (ERP sync fields, attribution, this token).
+ * Anything not named here does not reach the browser, including:
+ *
+ *   paymentId, razorpayOrderId   payment-processor identifiers
+ *   erp*, n8nExecutionId         internal integration state
+ *   confirmationToken            the credential itself; the holder already has it
+ *   utm*, fbclid, source         the business's marketing data, not the customer's
+ */
+function publicBookingView(booking: any, service: any) {
+  return {
+    id: booking.id,
+    customerName: booking.customerName,
+    customerEmail: booking.customerEmail,
+    customerPhone: booking.customerPhone,
+    appointmentDate: booking.appointmentDate,
+    appointmentTime: booking.appointmentTime,
+    amount: booking.amount,
+    paymentStatus: booking.paymentStatus,
+    bookingStatus: booking.bookingStatus,
+    createdAt: booking.createdAt,
+    service: service
+      ? {
+          id: service.id,
+          title: service.title,
+          slug: service.slug,
+          duration: service.duration,
+          price: service.price,
+        }
+      : null,
+  };
+}
 
 /** Shape returned to API callers so payment success is never conflated with ERP success. */
 interface ErpSyncOutcome {
@@ -128,6 +180,7 @@ import {
   bookingFormSchema,
   insertServiceSchema,
   insertTimeSlotSchema,
+  insertPpfLeadSchema,
   whatsappConfigSchema,
 } from "@shared/schema";
 
@@ -483,6 +536,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
    * Fails closed like everything else here: any error reports the offer as OFF, so an
    * outage shows the normal fee rather than giving work away.
    */
+  /**
+   * Public: runtime configuration the browser needs.
+   *
+   * Exists because Vite inlines `VITE_*` at BUILD time and the Dockerfile passes no build
+   * arguments — a VITE_META_PIXEL_ID would be baked as undefined inside the container
+   * regardless of the deployment environment, and the pixel would silently never load.
+   * Serving it at runtime means marketing can change the pixel with a container restart
+   * rather than a rebuild and redeploy.
+   *
+   * ONLY non-secret, already-public values belong here. A Meta Pixel ID is visible in the
+   * page source of every site that uses one; it is an identifier, not a credential. The
+   * Conversions API access token, if that is ever added, is a genuine secret and must
+   * NEVER be served from this endpoint — it stays server-side and is used server-side.
+   */
+  app.get("/api/public-config", (_req, res) => {
+    // No cache: this is how the pixel is turned on and off, and a CDN holding a stale
+    // "null" would keep tracking dark after the id is configured.
+    res.set("Cache-Control", "no-store");
+    res.json({
+      metaPixelId: process.env.META_PIXEL_ID || null,
+    });
+  });
+
+  /**
+   * Public: a customer reading THEIR OWN booking confirmation.
+   *
+   * ─────────────────────────────────────────────────────────────────────────────────
+   * WHY THIS EXISTS AS A SEPARATE ROUTE.
+   *
+   * /booking-confirmation/:id was registered in the router and the page existed, but
+   * nothing navigated to it, and if anything had, it fetched GET /api/bookings/:id —
+   * which is authenticateAdmin-gated. A customer got 401 and was silently redirected to
+   * the homepage.
+   *
+   * The fix is NOT to relax that admin route. It stays exactly as it is: session
+   * required, full row including payment and ERP internals. This is a second, narrower
+   * door.
+   *
+   * WHY A TOKEN AND NOT THE ID. The booking id is a database key. It appears in admin
+   * URLs, in server logs and in ERP payloads, and it is handed to the client that
+   * created the booking. A key that is also a credential means every place the key leaks
+   * is a place the credential leaks. The token is generated for this one purpose, is
+   * unique-indexed, and carries no other meaning — so it can be rotated or revoked
+   * without touching the booking.
+   *
+   * WHY IT IS STILL SAFE WITH NO LOGIN. 32 CSPRNG bytes is 256 bits. Guessing one is not
+   * a realistic attack, and the rate limit below removes even the theoretical one by
+   * capping attempts per address.
+   *
+   * Response is an allowlist (publicBookingView), so columns added to this table in
+   * future are private by default rather than public by default.
+   * ─────────────────────────────────────────────────────────────────────────────────
+   */
+  app.get(
+    "/api/bookings/confirmation/:token",
+    // Generous enough that a customer refreshing their confirmation, or opening it on a
+    // second device, is never blocked — but low enough that token guessing is pointless.
+    rateLimit({
+      bucket: "confirmation-lookup",
+      windowMs: 60_000,
+      max: 30,
+      message: "Too many lookups. Please wait a moment and refresh.",
+    }),
+    async (req, res) => {
+      try {
+        const booking = await storage.getBookingByConfirmationToken(req.params.token);
+
+        // Same 404 for "no such token" and "malformed token". Distinguishing them would
+        // confirm to a guesser which of their attempts had the right shape.
+        if (!booking) {
+          return res.status(404).json({ message: "Booking not found" });
+        }
+
+        const service = await storage.getService(booking.serviceId);
+        res.json(publicBookingView(booking, service ?? null));
+      } catch (error) {
+        console.error("Public confirmation lookup error:", error);
+        res.status(500).json({ message: "Failed to load booking" });
+      }
+    },
+  );
+
   app.get("/api/booking-offer", async (_req, res) => {
     try {
       const setting = await storage.getSetting("free_booking_until");
@@ -610,30 +745,141 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/ppf-leads", async (req, res) => {
-    try {
-      const { name, email, phone, vehicleType, serviceInterest, vehicleModel, message, source } = req.body;
-      
-      if (!name || !email || !phone || !vehicleType || !serviceInterest) {
-        return res.status(400).json({ message: "Name, email, phone, vehicle type, and service interest are required" });
-      }
+  /**
+   * Public: PPF / ceramic enquiry.
+   *
+   * ─────────────────────────────────────────────────────────────────────────────────
+   * WHAT THIS USED TO BE. `const { name, email, ... } = req.body`, a truthiness check on
+   * five fields, and straight into the database. No format validation, no length limits,
+   * no rate limit, no bot protection. `insertPpfLeadSchema` was written for this route in
+   * shared/schema.ts and never imported.
+   *
+   * That is the endpoint about to be pointed at from paid advertising. "test"/"a@b"/"1"
+   * was a valid lead, a 10 MB string was a valid name, and a trivial script could fill
+   * the table faster than staff could read it.
+   *
+   * WHY NOT insertPpfLeadSchema AS-IS. It is drizzle-zod generated from the column types,
+   * so every field is just `string` — it would accept "not-an-email" as an email and
+   * "abc" as a phone number, and impose no length bound. It is the right STARTING point
+   * (it already omits id, createdAt and status, so those cannot be injected) and is
+   * extended below with the checks that actually matter for a lead someone has to ring.
+   * ─────────────────────────────────────────────────────────────────────────────────
+   */
+  const ppfLeadRequestSchema = insertPpfLeadSchema
+    .extend({
+      // Bounded on both ends. The lower bound rejects junk, the upper stops a crafted
+      // request writing unbounded data into a varchar column.
+      name: z.string().trim().min(2, "Please enter your name").max(120),
+      email: z.string().trim().email("Please enter a valid email address").max(200),
+      // Deliberately permissive about FORMAT and strict about CONTENT: customers type
+      // "+91 98765 43210", "098765 43210" and "9876543210", all of which are the same
+      // number and all of which staff can dial. Rejecting on punctuation would lose real
+      // leads; requiring 10-15 actual digits rejects "1" and "abc".
+      phone: z
+        .string()
+        .trim()
+        .max(20)
+        .refine((v) => (v.match(/\d/g) ?? []).length >= 10 && (v.match(/\d/g) ?? []).length <= 15, {
+          message: "Please enter a valid phone number",
+        }),
+      // Enums, not free strings: these drive admin filtering, and an unrecognised value
+      // would create a silent third category nobody is looking at.
+      vehicleType: z.enum(["car", "bike"], { errorMap: () => ({ message: "Select car or bike" }) }),
+      serviceInterest: z.enum(["ppf", "ceramic", "both"], {
+        errorMap: () => ({ message: "Select a service" }),
+      }),
+      vehicleModel: z.string().trim().max(120).optional().nullable(),
+      message: z.string().trim().max(2000).optional().nullable(),
+      // Which FORM produced this. Not client-defined: an arbitrary value here would
+      // pollute the only column that distinguishes the main form from the exit popup.
+      source: z.enum(["landing_page", "exit_intent"]).optional(),
+      /**
+       * Honeypot. Rendered in the form, visually hidden, never focusable, and left empty
+       * by every human. Bots fill inputs they can see in the DOM.
+       *
+       * Named "website" because that is a field name a naive form-filler will recognise
+       * and populate. A field called "honeypot" defeats itself.
+       */
+      website: z.string().max(200).optional(),
+    })
+    // Unknown keys are dropped rather than rejected, so a future client sending an extra
+    // field does not start failing against an older server.
+    .passthrough();
 
-      const lead = await storage.createPpfLead({
-        name,
-        email,
-        phone,
-        vehicleType,
-        serviceInterest,
-        vehicleModel: vehicleModel || null,
-        message: message || null,
-        source: source || "landing_page",
-      });
-      res.json(lead);
-    } catch (error) {
-      console.error("Create PPF lead error:", error);
-      res.status(400).json({ message: "Failed to create lead" });
-    }
-  });
+  app.post(
+    "/api/ppf-leads",
+    /**
+     * Rate limit.
+     *
+     * Five per ten minutes per address. A real customer submits once — occasionally
+     * twice if they mistype an email — so this is far above genuine use and far below
+     * what makes scripted submission worthwhile.
+     *
+     * NOTE: counters are per-process (see server/lib/rate-limit.ts). This deployment runs
+     * one container, so the limit is the limit. Scaling out needs a shared store.
+     */
+    rateLimit({
+      bucket: "ppf-leads",
+      windowMs: 10 * 60_000,
+      max: 5,
+      message:
+        "You've already sent us an enquiry. Our team will call you shortly — or reach us directly on +91 74066 19191.",
+    }),
+    async (req, res) => {
+      try {
+        const parsed = ppfLeadRequestSchema.safeParse(req.body);
+
+        if (!parsed.success) {
+          // Field-keyed errors so the form can mark the offending input rather than
+          // showing one generic toast for eight possible causes.
+          const fieldErrors: Record<string, string> = {};
+          for (const issue of parsed.error.issues) {
+            const key = issue.path.join(".") || "form";
+            if (!fieldErrors[key]) fieldErrors[key] = issue.message;
+          }
+          return res.status(400).json({
+            message: "Please check the highlighted fields and try again.",
+            fieldErrors,
+          });
+        }
+
+        const data = parsed.data;
+
+        // Honeypot tripped. Respond exactly as if it succeeded: a bot that learns it was
+        // detected adapts, and the response must be indistinguishable from the real one.
+        // Nothing is written.
+        if (data.website && data.website.trim() !== "") {
+          console.warn(`[ppf-leads] honeypot tripped from ${req.ip} — discarded silently`);
+          return res.json({ id: null, status: "new", createdAt: new Date().toISOString() });
+        }
+
+        // Attribution is validated separately and never fails the request: losing a lead
+        // to a malformed marketing label would be the wrong trade.
+        const attribution = parseAttribution(req.body);
+
+        const lead = await storage.createPpfLead({
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          vehicleType: data.vehicleType,
+          serviceInterest: data.serviceInterest,
+          vehicleModel: data.vehicleModel || null,
+          message: data.message || null,
+          source: data.source || "landing_page",
+          channel: deriveSource(attribution),
+          ...attribution,
+        });
+
+        console.log(
+          `[ppf-leads] created ${lead.id} channel=${lead.channel} campaign=${lead.utmCampaign ?? "-"}`,
+        );
+        res.json(lead);
+      } catch (error) {
+        console.error("Create PPF lead error:", error);
+        res.status(500).json({ message: "Failed to submit. Please try again or call us directly." });
+      }
+    },
+  );
 
   app.patch("/api/ppf-leads/:id/status", authenticateAdmin, async (req, res) => {
     try {
@@ -738,10 +984,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Booking Routes
-  app.post("/api/bookings", async (req, res) => {
+  app.post(
+    "/api/bookings",
+    /**
+     * Rate limit on the booking endpoint.
+     *
+     * Higher than the lead form because this is a multi-step flow a customer legitimately
+     * retries: a failed payment, a slot that filled while they were typing, a browser
+     * back-and-resubmit. Ten in ten minutes never blocks a real customer and still stops
+     * a script from creating bookings in bulk — each of which holds slot capacity, sends
+     * a WhatsApp message and triggers an ERP sync.
+     */
+    rateLimit({
+      bucket: "bookings",
+      windowMs: 10 * 60_000,
+      max: 10,
+      message:
+        "Too many booking attempts. Please wait a moment, or call us on +91 74066 19191 and we'll book you in.",
+    }),
+    async (req, res) => {
     try {
       console.log("Booking request body:", req.body);
-      
+
       // Parse booking data with extended schema to include amount and appointment fields
       const extendedBookingSchema = bookingFormSchema.extend({
         amount: z.number().optional(),
@@ -749,8 +1013,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         appointmentDate: z.string().optional(),
         appointmentTime: z.string().optional(),
       });
-      
+
       const bookingData = extendedBookingSchema.parse(req.body);
+
+      // Campaign attribution. Validated separately from the booking body and never able
+      // to fail the request — a malformed marketing label must not cost a sale. `source`
+      // is derived here rather than read from the body, so what reporting groups by
+      // cannot be set by the browser. See server/lib/attribution.ts.
+      const attribution = parseAttribution(req.body);
+      const attributionSource = deriveSource(attribution);
       
       // Check if appointment date is a blackout date
       if (bookingData.appointmentDate) {
@@ -939,6 +1210,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           amount: "0.00",
           razorpayOrderId: null,
           paymentStatus: "free",
+          // Attribution + the customer-facing confirmation credential. Applied to every
+          // insert path (free, dev and paid) so no route can create a booking that the
+          // customer cannot open or that reporting cannot attribute.
+          source: attributionSource,
+          ...attribution,
+          confirmationToken: generateConfirmationToken(),
         };
 
         let freeBooking;
@@ -988,6 +1265,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         return res.json({
           booking: await storage.getBooking(freeBooking.id),
+          // The customer-facing confirmation URL. Returned explicitly so the client has a
+          // stable contract and does not have to know it lives on the booking row.
+          confirmationToken: freeBooking.confirmationToken,
           freeBooking: true,
           amount: 0,
           whatsappSent,
@@ -1027,6 +1307,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           amount: bookingFeeAmount.toString(),
           razorpayOrderId: `dev_order_${Date.now()}`,
           paymentStatus: "completed", // Skip payment for development
+          source: attributionSource,
+          ...attribution,
+          confirmationToken: generateConfirmationToken(),
         });
 
         // Skip marking time slot as unavailable - using static time slots
@@ -1038,6 +1321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         return res.json({
           booking,
+          confirmationToken: booking.confirmationToken,
           paymentOrder: {
             id: `dev_order_${Date.now()}`,
             amount: bookingFeeAmount * 100, // Convert to paisa
@@ -1068,6 +1352,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         amount: bookingFeeAmount.toString(),
         razorpayOrderId: paymentOrder.id,
         paymentStatus: "pending",
+        source: attributionSource,
+        ...attribution,
+        confirmationToken: generateConfirmationToken(),
       };
 
       let booking;
@@ -1094,6 +1381,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         booking,
+        confirmationToken: booking.confirmationToken,
         paymentOrder: {
           id: paymentOrder.id,
           amount: paymentOrder.amount,
@@ -1111,7 +1399,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.status(400).json({ message: "Invalid booking data" });
     }
-  });
+  },
+  );
 
   // Payment confirmation endpoint (called by frontend after successful payment)
   app.post("/api/confirm-payment", async (req, res) => {
@@ -1230,6 +1519,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         message: "Payment confirmed",
         booking: await storage.getBooking(booking.id),
+        // Where to send the customer next. Read from the row rather than regenerated, so
+        // a retry of this endpoint returns the SAME confirmation URL — the retry loop in
+        // booking-modal.tsx can call this up to five times, and a fresh token each time
+        // would invalidate the link the customer may already be looking at.
+        confirmationToken: booking.confirmationToken,
         whatsappSent,
         paymentStatus: "paid",
         erpSync,

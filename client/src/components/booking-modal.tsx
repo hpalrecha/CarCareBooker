@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { loadRazorpay } from "@/lib/razorpay";
 import BookingCalendar from "@/components/booking-calendar";
 import { trackBeginCheckout, trackPurchase, trackFreeBooking } from "@/lib/analytics";
+import { attributionPayload } from "@/lib/attribution";
+import { trackBooking as trackMetaBooking } from "@/lib/meta-pixel";
 import { useBookingOffer, formatOfferEnd } from "@/hooks/use-booking-offer";
 import { bookingFormSchema, type BlackoutDate, type BusinessHour } from "@shared/schema";
 import { ImageWithFallback } from "@/components/image-with-fallback";
@@ -38,6 +41,23 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
   const [selectedDate, setSelectedDate] = useState("");
   const [bookingAmount, setBookingAmount] = useState(299);
   const { toast } = useToast();
+  const [, navigate] = useLocation();
+
+  /**
+   * Send the customer to their confirmation page.
+   *
+   * Until now a completed booking produced a toast and nothing else: the confirmation
+   * route was registered and the page existed, but nothing ever navigated to it.
+   *
+   * Degrades rather than breaks. A missing token means the server did not return one —
+   * an older build, or a booking created before the column existed — and in that case the
+   * customer keeps the success toast they already have. Sending them to a confirmation
+   * page that cannot load would be worse than not sending them at all.
+   */
+  const goToConfirmation = (token: string | null | undefined) => {
+    if (!token) return;
+    navigate(`/booking-confirmation/${encodeURIComponent(token)}`);
+  };
 
   // Fetch blackout dates
   const { data: blackoutDates = [], isError: blackoutDatesError } = useQuery<BlackoutDate[]>({
@@ -230,6 +250,12 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
         ...data,
         amount: bookingAmount, // Fixed booking fee
         isBookingFee: true, // Flag to indicate this is a booking fee, not full payment
+        // Campaign attribution, read at SUBMIT time rather than at mount. This component
+        // never sees the URL that carried the utm parameters — the customer landed on an ad
+        // page, browsed, and only then opened this modal — so the values come from the
+        // first-touch store instead. Server-side validation is authoritative; nothing here
+        // can fail the booking.
+        ...attributionPayload(),
       };
       const response = await apiRequest("POST", "/api/bookings", bookingData);
       return response.json();
@@ -257,17 +283,22 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
           serviceTitle: service.title,
           bookingId: booking?.id,
         });
-
-        toast({
-          title: "Booking Confirmed!",
-          description: data.whatsappSent
-            ? "You're booked — no payment needed. WhatsApp confirmation sent."
-            : "You're booked — no payment needed. We'll confirm shortly.",
+        // Meta's `Schedule`, deduplicated on the booking id. Not `Purchase`: no money
+        // changed hands, and zero-value purchases would corrupt ROAS exactly as they
+        // would in Google Ads above.
+        trackMetaBooking({
+          eventId: `booking-${booking?.id}`,
+          serviceTitle: service.title,
+          value: 0,
         });
 
         queryClient.invalidateQueries({ queryKey: ["/api/time-slots"] });
-        onClose();
         form.reset();
+        onClose();
+        // The confirmation page replaces the toast that used to be the ONLY thing a
+        // customer got. Falls back to closing the modal if the server did not return a
+        // token — an older server, or a booking created before this column existed.
+        goToConfirmation(data?.confirmationToken);
         return;
       }
 
@@ -316,6 +347,11 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
               
               // Call payment confirmation endpoint with retry logic
               let confirmResponse;
+              // Declared outside the retry loop so the successful attempt's token is still
+              // in scope after `break`. Stays null if all five attempts fail — the payment
+              // still succeeded, so that case falls back to the reassurance toast below
+              // rather than sending the customer to a confirmation page that cannot load.
+              let confirmationToken: string | null = null;
               for (let attempt = 1; attempt <= 5; attempt++) {
                 try {
                   console.log(`🔄 Payment confirmation attempt ${attempt}/5`);
@@ -352,12 +388,19 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                       amount: bookingAmount,
                     });
 
-                    toast({
-                      title: "Booking Confirmed!",
-                      description: confirmData.whatsappSent 
-                        ? "Your booking is confirmed! WhatsApp confirmation sent."
-                        : "Your booking is confirmed! You'll receive confirmation shortly.",
+                    // Meta Schedule, deduplicated on the Razorpay payment id — the same
+                    // key trackPurchase uses, and for the same reason: this block is inside
+                    // a five-attempt retry loop and the webhook can arrive first.
+                    trackMetaBooking({
+                      eventId: `payment-${response.razorpay_payment_id}`,
+                      serviceTitle: service.title,
+                      value: bookingAmount,
                     });
+
+                    // Captured for the redirect below. The retry loop returns the SAME
+                    // token on every attempt, so a retry cannot invalidate a link the
+                    // customer is already looking at.
+                    confirmationToken = confirmData?.confirmationToken ?? null;
                     break;
                   } else {
                     const errorText = await confirmResponse.text();
@@ -378,9 +421,15 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                   }
                 }
               }
-              
-              onClose();
+
+              queryClient.invalidateQueries({ queryKey: ["/api/time-slots"] });
               form.reset();
+              onClose();
+              // Confirmation page, replacing the toast that used to be the only thing the
+              // customer received. When the token is null every confirmation attempt
+              // failed, and the toast above has already told them the payment went
+              // through — so this is a no-op rather than a broken page.
+              goToConfirmation(confirmationToken);
             } catch (error) {
               console.error("💥 Payment confirmation error:", error);
               // Payment was successful, just confirmation failed

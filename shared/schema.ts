@@ -143,6 +143,33 @@ export const bookings = pgTable("bookings", {
   // WhatsApp provider message IDs — a boolean is not proof of delivery
   customerWhatsappMessageId: varchar("customer_whatsapp_message_id"),
   internalNotificationMessageId: varchar("internal_notification_message_id"),
+
+  // --- Campaign attribution (all nullable; added 2026-09 for paid-ads reporting) ---
+  //
+  // Captured first-touch in the browser and held across navigation, so a booking made
+  // three pages after an ad click still names the ad. See client/src/lib/attribution.ts
+  // for the capture rule and server/lib/attribution.ts for validation.
+  //
+  // `source` is DERIVED server-side from the fields below, never accepted from the
+  // client: it is what reporting groups by, and a value the browser can set is a value
+  // that can be spoofed into the business's own numbers.
+  source: varchar("source"),                    // meta | google | organic | direct | admin | <utm_source>
+  utmSource: varchar("utm_source"),
+  utmMedium: varchar("utm_medium"),
+  utmCampaign: varchar("utm_campaign"),
+  utmContent: varchar("utm_content"),
+  utmTerm: varchar("utm_term"),
+  fbclid: varchar("fbclid"),                    // Meta click id
+  gclid: varchar("gclid"),                      // Google click id
+  landingPage: varchar("landing_page"),         // first path seen, e.g. /ceramic-coating/car
+  referrer: varchar("referrer"),                // external referrer only; same-origin is dropped
+
+  // --- Customer-facing confirmation ---
+  //
+  // Unguessable token that lets a customer read THEIR OWN booking without logging in.
+  // The booking id is a database key and appears in admin URLs and logs; it must not
+  // double as a bearer credential. See GET /api/bookings/confirmation/:token.
+  confirmationToken: varchar("confirmation_token"),
 });
 
 // Session storage for admin auth
@@ -185,9 +212,25 @@ export const ppfLeads = pgTable("ppf_leads", {
   serviceInterest: varchar("service_interest").notNull(), // ppf, ceramic, both
   vehicleModel: varchar("vehicle_model"),
   message: text("message"),
-  source: varchar("source").default("landing_page"), // landing_page, exit_intent
+  // Which FORM produced the lead (landing_page | exit_intent). Distinct from the campaign
+  // channel below — this one says where on the site, `channel` says which advertisement.
+  source: varchar("source").default("landing_page"),
   status: varchar("status").default("new").notNull(), // new, contacted, converted, closed
   createdAt: timestamp("created_at").defaultNow().notNull(),
+
+  // --- Campaign attribution (all nullable; added 2026-09) ---
+  // Mirrors the columns on `bookings` so a lead and a booking from the same advertisement
+  // can be counted together. `channel` is the derived equivalent of bookings.source.
+  channel: varchar("channel"),                  // meta | google | organic | direct | <utm_source>
+  utmSource: varchar("utm_source"),
+  utmMedium: varchar("utm_medium"),
+  utmCampaign: varchar("utm_campaign"),
+  utmContent: varchar("utm_content"),
+  utmTerm: varchar("utm_term"),
+  fbclid: varchar("fbclid"),
+  gclid: varchar("gclid"),
+  landingPage: varchar("landing_page"),
+  referrer: varchar("referrer"),
 });
 
 // Schema types

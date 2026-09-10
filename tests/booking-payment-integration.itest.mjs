@@ -29,6 +29,7 @@ import { test, describe, before, after, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import express from 'express';
+import { __resetRateLimitsForTests } from '../server/lib/rate-limit.ts';
 
 const WEBHOOK_SECRET = 'integration-test-webhook-secret';
 const KEY_SECRET = 'integration-test-key-secret';
@@ -137,6 +138,21 @@ after(async () => {
 });
 
 beforeEach(() => {
+  /**
+   * Reset the public-endpoint rate limiter between tests.
+   *
+   * POST /api/bookings allows 10 requests per client per 10 minutes. Every test in this
+   * file posts from the same loopback address, so from the limiter's point of view they
+   * are one very busy customer — and from the 11th test onward every booking came back
+   * 429 instead of the status being asserted.
+   *
+   * The limiter is behaving correctly; it is the harness that is unusual. Resetting here
+   * rather than exempting tests in the middleware keeps the SHIPPING code path under
+   * test — an env-var bypass would mean these 31 tests exercise a limiter that production
+   * does not have.
+   */
+  __resetRateLimitsForTests();
+
   db.services.clear(); db.bookings.clear(); db.settings.clear();
   db.blackouts = []; db.businessHours.clear(); db.settingThrows = false;
   chargedAmounts.length = 0; notifications.whatsapp = 0;

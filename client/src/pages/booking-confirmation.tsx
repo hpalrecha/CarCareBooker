@@ -10,19 +10,43 @@ import { CheckCircle, Calendar, Clock, MapPin, Phone, Mail, MessageCircle, Arrow
 import { Link } from "wouter";
 
 export default function BookingConfirmation() {
-  const { id } = useParams();
+  /**
+   * The route parameter is a CONFIRMATION TOKEN, not a booking id.
+   *
+   * This page used to fetch GET /api/bookings/:id, which is authenticateAdmin-gated — so
+   * a customer reaching it got 401 and was bounced to the homepage by the error effect
+   * below. The admin route is unchanged and still requires a session; this reads a
+   * separate public endpoint that accepts only an unguessable 256-bit token and returns
+   * an allowlisted subset of the booking.
+   *
+   * Destructured to the local name "token" rather than "id", so nothing here is tempted
+   * to treat it as a database key and the distinction is visible at the call site.
+   */
+  const { id: token } = useParams();
   const [, setLocation] = useLocation();
 
   const { data: booking, isLoading, error } = useQuery({
-    queryKey: ["/api/bookings", id],
-    enabled: !!id,
+    queryKey: ["/api/bookings/confirmation", token],
+    enabled: !!token,
   });
 
+  /**
+   * Deliberately NOT redirecting on error.
+   *
+   * This effect used to run setLocation("/") whenever the query failed. Combined with the
+   * admin-gated endpoint the page was calling, that produced the exact customer-visible
+   * failure this work exists to fix: a customer who had just paid was bounced to the
+   * homepage with no explanation and no record of their booking.
+   *
+   * The component already renders a "Booking Not Found" state below with a route home.
+   * Showing it — and letting the customer read it — is strictly better than a silent
+   * redirect, which is indistinguishable from the site losing their booking.
+   */
   useEffect(() => {
     if (error) {
-      setLocation("/");
+      console.warn("Confirmation lookup failed; showing the not-found state.", error);
     }
-  }, [error, setLocation]);
+  }, [error]);
 
   if (isLoading) {
     return (

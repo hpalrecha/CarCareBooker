@@ -12,6 +12,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
+import { attributionPayload } from "@/lib/attribution";
+import { trackLead as trackMetaLead } from "@/lib/meta-pixel";
 import { 
   Shield, 
   Sparkles, 
@@ -44,9 +46,74 @@ const leadFormSchema = z.object({
   serviceInterest: z.enum(["ppf", "ceramic", "both"]),
   vehicleModel: z.string().optional(),
   message: z.string().optional(),
+  /**
+   * Honeypot. Rendered but visually hidden and removed from the tab order, so no human
+   * ever fills it; automated form-fillers populate every input they find in the DOM.
+   *
+   * Client-side validation of this field is deliberately absent — the server decides.
+   * A bot does not run this schema anyway, and the ONLY purpose of the field here is to
+   * exist in the markup so it can be filled.
+   */
+  website: z.string().optional(),
 });
 
 type LeadFormData = z.infer<typeof leadFormSchema>;
+
+/** A 400 from the lead endpoint, carrying per-field messages. */
+class LeadValidationError extends Error {
+  fieldErrors: Record<string, string>;
+  constructor(message: string, fieldErrors: Record<string, string>) {
+    super(message);
+    this.name = "LeadValidationError";
+    this.fieldErrors = fieldErrors;
+  }
+}
+
+/** A 429 from the lead endpoint. Carries the server's own wording, which names the phone number. */
+class LeadRateLimitError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "LeadRateLimitError";
+  }
+}
+
+/**
+ * POST a lead and translate the response into typed errors.
+ *
+ * Not using `apiRequest`: that helper throws `new Error("400: <raw body>")`, which turns
+ * the server's structured `fieldErrors` into an unparsed string in a toast. The server now
+ * validates every field, so the form has to be able to say WHICH field was wrong —
+ * otherwise stricter validation just means more customers seeing a generic failure with
+ * no way to fix it, and a lead lost for a mistyped email.
+ *
+ * Frontend validation is not trusted or relied upon; this exists to surface the SERVER's
+ * verdict, which is the authoritative one.
+ */
+async function postLead(payload: Record<string, unknown>): Promise<unknown> {
+  const res = await fetch("/api/ppf-leads", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    credentials: "include",
+  });
+
+  if (res.ok) return res.json();
+
+  let body: any = null;
+  try {
+    body = await res.json();
+  } catch {
+    /* non-JSON error body; fall through to the generic message below */
+  }
+
+  if (res.status === 400 && body?.fieldErrors) {
+    throw new LeadValidationError(body.message ?? "Please check the form.", body.fieldErrors);
+  }
+  if (res.status === 429) {
+    throw new LeadRateLimitError(body?.message ?? "Too many requests. Please try again shortly.");
+  }
+  throw new Error(body?.message ?? `Request failed (${res.status})`);
+}
 
 
 export default function PpfCeramicLanding() {
@@ -77,6 +144,7 @@ export default function PpfCeramicLanding() {
       serviceInterest: "ppf",
       vehicleModel: "",
       message: "",
+      website: "", // honeypot; see leadFormSchema
     },
   });
 
@@ -90,47 +158,95 @@ export default function PpfCeramicLanding() {
       serviceInterest: "ppf",
       vehicleModel: "",
       message: "",
+      website: "", // honeypot; see leadFormSchema
     },
   });
 
+  /**
+   * Apply the server's per-field verdict to a react-hook-form instance.
+   *
+   * Shared by both forms. Unknown field names fall back to a toast rather than being
+   * dropped, so a validation rule added on the server can never fail silently in the UI.
+   */
+  const applyServerErrors = (
+    err: unknown,
+    setError: (field: any, error: { type: string; message: string }) => void,
+    knownFields: string[],
+  ): boolean => {
+    if (!(err instanceof LeadValidationError)) return false;
+    let shown = false;
+    for (const [field, message] of Object.entries(err.fieldErrors)) {
+      if (knownFields.includes(field)) {
+        setError(field, { type: "server", message });
+        shown = true;
+      }
+    }
+    if (!shown) {
+      toast({ title: "Please check the form", description: err.message, variant: "destructive" });
+    }
+    return true;
+  };
+
+  const LEAD_FIELDS = ["name", "email", "phone", "vehicleType", "serviceInterest", "vehicleModel", "message"];
+
   const submitLeadMutation = useMutation({
     mutationFn: async (data: LeadFormData & { source?: string }) => {
-      return await apiRequest("POST", "/api/ppf-leads", data);
+      // Attribution read at submit time from the first-touch store, so a customer who
+      // arrived on an ad and filled this in three scrolls later still carries the campaign.
+      return await postLead({ ...data, ...attributionPayload() });
     },
     onSuccess: () => {
       setHasSubmitted(true);
+      // Meta Lead, deduplicated. The event id is per submission rather than per row,
+      // because the honeypot path deliberately returns a null id.
+      trackMetaLead({
+        eventId: `lead-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        service: form.getValues("serviceInterest"),
+        vehicleType: form.getValues("vehicleType"),
+      });
       toast({
         title: "Thank you!",
         description: "We'll contact you within 24 hours to discuss your requirements.",
       });
       form.reset();
     },
-    onError: () => {
+    onError: (err) => {
+      if (applyServerErrors(err, form.setError, LEAD_FIELDS)) return;
       toast({
-        title: "Error",
-        description: "Failed to submit. Please try again or call us directly.",
-        variant: "destructive",
+        title: err instanceof LeadRateLimitError ? "Already received" : "Error",
+        description:
+          err instanceof Error && err.message
+            ? err.message
+            : "Failed to submit. Please try again or call us directly.",
+        variant: err instanceof LeadRateLimitError ? "default" : "destructive",
       });
     },
   });
 
   const exitLeadMutation = useMutation({
     mutationFn: async (data: LeadFormData & { source?: string }) => {
-      return await apiRequest("POST", "/api/ppf-leads", { ...data, source: "exit_intent" });
+      return await postLead({ ...data, source: "exit_intent", ...attributionPayload() });
     },
     onSuccess: () => {
       setShowExitPopup(false);
+      trackMetaLead({
+        eventId: `lead-exit-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        service: exitForm.getValues("serviceInterest"),
+        vehicleType: exitForm.getValues("vehicleType"),
+      });
       toast({
         title: "Free Car Wash Confirmed!",
         description: "We'll contact you to schedule your free car wash at our studio.",
       });
       exitForm.reset();
     },
-    onError: () => {
+    onError: (err) => {
+      if (applyServerErrors(err, exitForm.setError, LEAD_FIELDS)) return;
       toast({
-        title: "Error",
-        description: "Failed to submit. Please try again.",
-        variant: "destructive",
+        title: err instanceof LeadRateLimitError ? "Already received" : "Error",
+        description:
+          err instanceof Error && err.message ? err.message : "Failed to submit. Please try again.",
+        variant: err instanceof LeadRateLimitError ? "default" : "destructive",
       });
     },
   });
@@ -530,6 +646,26 @@ export default function PpfCeramicLanding() {
               ) : (
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    {/* Honeypot. Hidden from sight, from screen readers and from the tab
+                        order, so no human can reach it; form-filling bots populate every
+                        input in the DOM. A submission with this filled is discarded by the
+                        server, which replies as though it succeeded.
+
+                        Positioned off-screen rather than display:none — some bots skip
+                        fields that are not rendered at all. */}
+                    <div
+                      aria-hidden="true"
+                      style={{ position: "absolute", left: "-9999px", width: 1, height: 1, overflow: "hidden" }}
+                    >
+                      <label htmlFor="website-url">Website (leave blank)</label>
+                      <input
+                        id="website-url"
+                        type="text"
+                        tabIndex={-1}
+                        autoComplete="off"
+                        {...form.register("website")}
+                      />
+                    </div>
                     <FormField
                       control={form.control}
                       name="name"
@@ -1222,6 +1358,22 @@ export default function PpfCeramicLanding() {
 
           <Form {...exitForm}>
             <form onSubmit={exitForm.handleSubmit(onExitSubmit)} className="space-y-4">
+              {/* Honeypot — see the main form for the reasoning. Distinct id, because two
+                  elements sharing one id makes the label ambiguous and can confuse the
+                  very form-fillers this is meant to catch. */}
+              <div
+                aria-hidden="true"
+                style={{ position: "absolute", left: "-9999px", width: 1, height: 1, overflow: "hidden" }}
+              >
+                <label htmlFor="website-url-exit">Website (leave blank)</label>
+                <input
+                  id="website-url-exit"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  {...exitForm.register("website")}
+                />
+              </div>
               <FormField
                 control={exitForm.control}
                 name="name"
