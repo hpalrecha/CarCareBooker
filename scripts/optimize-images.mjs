@@ -35,9 +35,16 @@ const SRC_DIR = path.join(ROOT, "attached_assets");
 const OUT_DIR = path.join(SRC_DIR, "_opt");
 const MANIFEST = path.join(ROOT, "client", "src", "lib", "image-manifest.json");
 
-/** Widths worth generating. Chosen for the slots this site actually renders:
- *  ~337px cards at 1x/2x/3x, the ~1200px hero, and small logo/avatar boxes. */
-const WIDTHS = [96, 200, 320, 480, 640, 960, 1280, 1600];
+/**
+ * Widths worth generating.
+ *
+ * Trimmed from eight to five after the first container build: eight widths x two formats
+ * x 155 sources was ~2,400 encodes, which took 1,905 SECONDS and then failed the image
+ * export with "no space left on device". Five widths cover every slot the site actually
+ * renders — a 96px logo, ~380px cards at 1x and 2x, and the full-bleed hero — and the
+ * browser scales between them imperceptibly.
+ */
+const WIDTHS = [96, 320, 640, 1280, 1600];
 
 /** Above this, a source image is downscaled outright — nothing here is displayed larger. */
 const MAX_WIDTH = 1600;
@@ -100,6 +107,55 @@ async function collect(dir, prefix) {
   return out;
 }
 
+/**
+ * Narrow the list to images the site can actually render.
+ *
+ * attached_assets is a 169 MB dumping ground: screenshots, "unnamed_(2)_1765537193656.png",
+ * duplicate uploads, files from features that no longer exist. Generating a width ladder
+ * for all 155 of them is what made the first container build take 1,905 seconds and then
+ * die with "no space left on device" while exporting the layer.
+ *
+ * Two ways an image reaches a browser, and nothing else counts:
+ *
+ *   services/ and stock_images/   the service records point at these paths, so they are
+ *                                 selected by DATABASE rows this script cannot read.
+ *                                 Whitelisted wholesale.
+ *   named in client source        a Vite `@assets/...` import. Matching on filename is
+ *                                 exact enough here because these names carry upload
+ *                                 timestamps and are effectively unique.
+ *
+ * Anything else is left untouched and served as-is if some path does reach it — the
+ * component falls back to the original whenever the manifest has no entry, so a
+ * false negative costs bytes, never a broken image.
+ */
+async function onlyReferenced(files) {
+  const ALWAYS = ["services/", "stock_images/"];
+
+  // One pass over the client source; the filenames are distinctive enough to grep for.
+  let source = "";
+  const roots = [path.join(ROOT, "client", "src"), path.join(ROOT, "client", "index.html")];
+  const walk = async (p) => {
+    let stat;
+    try {
+      stat = await fs.stat(p);
+    } catch {
+      return;
+    }
+    if (stat.isDirectory()) {
+      for (const e of await fs.readdir(p)) await walk(path.join(p, e));
+    } else if (/\.(tsx?|jsx?|css|html)$/.test(p)) {
+      source += await fs.readFile(p, "utf8");
+    }
+  };
+  for (const r of roots) await walk(r);
+
+  return files.filter((rel) => {
+    if (ALWAYS.some((prefix) => rel.startsWith(prefix))) return true;
+    const name = rel.split("/").pop();
+    return name ? source.includes(name) : false;
+  });
+}
+
 /** True when `out` exists and is at least as new as `src`. */
 async function isFresh(out, src) {
   if (FORCE || !existsSync(out)) return false;
@@ -140,7 +196,9 @@ async function main() {
   }
   await fs.mkdir(OUT_DIR, { recursive: true });
 
-  const files = await collect(SRC_DIR, "");
+  const all = await collect(SRC_DIR, "");
+  const files = await onlyReferenced(all);
+  log(`${all.length} images on disk, ${files.length} referenced by the site`);
 
   const manifest = {};
   let generated = 0;
