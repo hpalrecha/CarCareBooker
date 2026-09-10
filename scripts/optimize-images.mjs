@@ -129,7 +129,12 @@ async function collect(dir, prefix) {
  * false negative costs bytes, never a broken image.
  */
 async function onlyReferenced(files) {
-  const ALWAYS = ["services/", "stock_images/"];
+  // carousels/ joins the wholesale list for the same reason as services/: the slides are
+  // named 01.jpg .. 11.jpg, which is far too generic to grep the client source for
+  // safely — "01.jpg" would match almost anything. They are referenced by directory in
+  // blog-posts.ts and built into src paths at render time, so no literal filename exists
+  // in the source to find.
+  const ALWAYS = ["services/", "stock_images/", "carousels/"];
 
   // One pass over the client source; the filenames are distinctive enough to grep for.
   let source = "";

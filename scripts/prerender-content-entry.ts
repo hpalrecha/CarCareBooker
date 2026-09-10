@@ -23,3 +23,4 @@ export {
   postsInCategory,
 } from "@/lib/blog-posts";
 export { SEO_PAGES } from "@/lib/seo-pages";
+export { LANDING_PAGES } from "@/lib/landing-pages";

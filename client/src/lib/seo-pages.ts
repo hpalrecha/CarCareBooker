@@ -56,6 +56,21 @@ export interface SeoPage {
   /** The local-context section that gives the page its reason to rank. */
   context: SeoPageSection;
   faqs: SeoPageFaq[];
+  /**
+   * Conversion page this guide should send a ready-to-book reader to.
+   *
+   * These pages serve the INFORMATIONAL intent ("what is ceramic coating"); the campaign
+   * landing pages serve the transactional one ("what does it cost, book it"). Without
+   * this the CTA dropped the reader on the generic catalogue, and the landing pages had
+   * no inbound internal links at all.
+   *
+   * Set ONLY where the mapping is unambiguous. It is derived from primaryServiceSlug,
+   * not guessed: the ceramic guide s primary service is the CAR record, so it points at
+   * the car page. Pages without an obvious single destination leave this unset and keep
+   * the existing /services CTA.
+   */
+  bookHref?: string;
+
   /** Slugs of the other SEO pages linked at the foot. */
   related: string[];
 }
@@ -71,6 +86,7 @@ export const SEO_PAGES: SeoPage[] = [
     lede:
       "Machine paint correction followed by a nano-ceramic layer that resists borewell water staining, repels dirt, and makes every wash after it easier.",
     primaryServiceSlug: "1-year-ceramic-coating",
+    bookHref: "/ceramic-coating/car",
     priceServiceSlugs: [
       "1-year-ceramic-coating",
       "1-year-bike-ceramic-coating",
@@ -120,6 +136,7 @@ export const SEO_PAGES: SeoPage[] = [
     lede:
       "A self-healing urethane layer over your paint, cut to the panel and fitted in a controlled bay — so stone chips, trolleys and kerbs hit the film instead of the clearcoat.",
     primaryServiceSlug: "ppf-sedan",
+    bookHref: "/ppf",
     priceServiceSlugs: [
       "ppf-hatchback",
       "ppf-sedan",

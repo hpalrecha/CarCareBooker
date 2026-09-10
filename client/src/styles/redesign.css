@@ -505,3 +505,55 @@
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
+
+/* ---------- blog: embedded social carousel ---------- */
+.p91x .slide-car { margin: 34px 0; }
+.p91x .slide-car-track {
+  display: flex; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; scroll-behavior: smooth;
+  /* No visible scrollbar: the arrows and the "3 / 9" counter already say it scrolls, and
+     a chunky native bar under the artwork is the one thing that made this look unfinished.
+     The track keeps its own focus ring, so keyboard users are not left without an
+     affordance. */
+  scrollbar-width: none;
+}
+.p91x .slide-car-track::-webkit-scrollbar { display: none; }
+.p91x .slide-car-track:focus-visible { outline: 2px solid var(--neon-green); outline-offset: 4px; border-radius: 14px; }
+.p91x .slide-car--article .slide-car-item {
+  flex: 0 0 min(78%, 420px); scroll-snap-align: center;
+}
+
+/* Hero variant: one slide at a time, filling the column the hero grid gives it.
+   `contain` rather than `cover` is deliberate — every slide is a picture OF TEXT, and
+   cropping to fill would cut the headline off the top or the CTA off the bottom. The
+   letterbox sits on the panel colour so it reads as a frame, not as a mistake. */
+.p91x .slide-car--hero { margin: 0; }
+.p91x .slide-car--hero .slide-car-item { flex: 0 0 100%; scroll-snap-align: center; }
+.p91x .slide-car--hero .slide-car-item img {
+  aspect-ratio: 4 / 5; object-fit: contain; max-height: 620px; margin-inline: auto;
+}
+.p91x .slide-car--hero .slide-car-track { gap: 0; }
+/* The global `picture { display: contents }` rule means the <img> IS the flex child's
+   content box here, so it is sized directly rather than through a wrapper. */
+.p91x .slide-car-item img {
+  display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover;
+  border: 1px solid var(--medium-gray); border-radius: 12px; background: var(--dark-gray);
+}
+.p91x .slide-car-bar {
+  display: flex; align-items: center; gap: 12px; margin-top: 12px;
+}
+.p91x .slide-car-bar figcaption {
+  flex: 1; text-align: center; color: var(--txt-3); font-size: 12.5px; line-height: 1.45;
+}
+.p91x .slide-car-count { color: var(--txt-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.p91x .slide-car-btn {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 999px;
+  background: var(--dark-gray); border: 1px solid var(--medium-gray); color: var(--txt);
+  cursor: pointer; transition: border-color .18s, color .18s;
+}
+.p91x .slide-car-btn:hover:not(:disabled) { border-color: var(--neon-green); color: var(--neon-green); }
+.p91x .slide-car-btn:disabled { opacity: .38; cursor: default; }
+@media (prefers-reduced-motion: reduce) {
+  .p91x .slide-car-track { scroll-behavior: auto; }
+}

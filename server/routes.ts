@@ -358,6 +358,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { loc: "/blog/ppf-vs-ceramic-coating-bangalore", priority: "0.6", changefreq: "yearly" },
         { loc: "/blog/hard-water-spot-removal-bangalore", priority: "0.6", changefreq: "yearly" },
         { loc: "/blog/windshield-heat-rejection-film-summer", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/is-your-ppf-really-made-in-usa", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/how-much-ppf-does-your-car-need", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/monsoon-damage-car-bangalore", priority: "0.6", changefreq: "yearly" },
         // Category listings. Each is a real, prerendered, indexable URL rather than a
         // client-side filter over /blog — otherwise the hub has exactly one crawlable
         // listing page however much gets written. Slugs come from categorySlug() in
@@ -366,7 +369,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { loc: "/blog/category/protection", priority: "0.5", changefreq: "monthly" },
         { loc: "/blog/category/paint-care", priority: "0.5", changefreq: "monthly" },
         { loc: "/blog/category/glass-film", priority: "0.5", changefreq: "monthly" },
-        { loc: "/ppf-ceramic-coating", priority: "0.9", changefreq: "monthly" },
+        // Campaign landing pages — the URLs that go into the advertisements, and the
+        // canonical destination for transactional "PPF price" / "ceramic coating for
+        // bikes" intent. Priority 0.9: these are the pages the business most wants found.
+        // Kept in step with client/src/lib/landing-pages.ts.
+        { loc: "/ceramic-coating/car", priority: "0.9", changefreq: "weekly" },
+        { loc: "/ceramic-coating/bike", priority: "0.9", changefreq: "weekly" },
+        { loc: "/ppf", priority: "0.9", changefreq: "weekly" },
+        // The older combined PPF+ceramic page. Left indexed and untouched — see the
+        // overlap note in the Phase 2D report. Dropped to 0.7 so it no longer outranks
+        // the focused pages above for the same queries.
+        { loc: "/ppf-ceramic-coating", priority: "0.7", changefreq: "monthly" },
         { loc: "/contact", priority: "0.6", changefreq: "yearly" },
         { loc: "/terms-conditions", priority: "0.3", changefreq: "yearly" },
         { loc: "/privacy-policy", priority: "0.3", changefreq: "yearly" },
@@ -1413,16 +1426,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       /**
+       * Vehicle context the customer actually chose on a landing page.
+       *
+       * Client-supplied, so it is allowlisted rather than trusted: an unrecognised value
+       * becomes null instead of creating a silent third category in the admin filters.
+       *
+       * NEVER a pricing input. The SERVICE row already decided the amount — a customer
+       * cannot pay the hatchback price for an SUV by editing this field, because nothing
+       * downstream reads it. It exists so the studio knows what was booked.
+       */
+      const VEHICLE_TYPES = ["car", "bike"];
+      const VEHICLE_CATEGORIES = ["hatchback", "sedan", "suv"];
+      const pickEnum = (value: unknown, allowed: string[]): string | null => {
+        if (typeof value !== "string") return null;
+        const v = value.trim().toLowerCase();
+        return allowed.includes(v) ? v : null;
+      };
+
+      const clientVehicleType = pickEnum(req.body?.vehicleType, VEHICLE_TYPES);
+      const clientVehicleCategory = pickEnum(req.body?.vehicleCategory, VEHICLE_CATEGORIES);
+
+      /**
        * Campaign snapshot written onto every booking.
        *
        * `campaignIdentifier` is a COPY, not a join. An admin renaming or deleting this
        * campaign next month must not change the answer to "which advertisement produced
        * this booking" for a booking taken today.
+       *
+       * Both the campaign and the vehicle context are resolved SERVER-SIDE from the
+       * service the customer is booking. No field in this object can influence the amount:
+       * `resolvedAmount` was computed above, from the catalogue row and the campaign
+       * window, before any of this was assembled.
        */
       const campaignSnapshot = {
         campaignId: activeCampaign?.id ?? null,
         campaignIdentifier: activeCampaign?.identifier ?? null,
-        vehicleType: activeCampaign?.vehicleType === "both" ? null : activeCampaign?.vehicleType ?? null,
+        // The customer's explicit choice wins over the campaign's broader targeting: a
+        // campaign scoped to "both" says nothing useful, and one scoped to "car" is less
+        // specific than a customer who actually clicked "SUV".
+        vehicleType:
+          clientVehicleType ??
+          (activeCampaign?.vehicleType === "both" ? null : activeCampaign?.vehicleType ?? null),
+        vehicleCategory: clientVehicleCategory,
       };
       const bookingFeeAmount = resolvedAmount.amount;
       console.log(

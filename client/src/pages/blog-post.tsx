@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import RichText from "@/components/redesign/rich-text";
+import SlideCarousel from "@/components/redesign/slide-carousel";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
@@ -129,6 +130,16 @@ export default function BlogPost() {
                         </li>
                       ))}
                     </ul>
+                  );
+                case "carousel":
+                  return (
+                    <SlideCarousel
+                      key={i}
+                      dir={block.dir}
+                      caption={block.caption}
+                      slides={block.slides}
+                      testId={`carousel-${block.dir}`}
+                    />
                   );
                 case "cta":
                   return (

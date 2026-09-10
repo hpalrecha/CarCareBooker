@@ -8,7 +8,17 @@
     "module": "ESNext",
     "strict": true,
     "lib": ["esnext", "dom", "dom.iterable"],
-    "jsx": "preserve",
+    // "react-jsx" (the automatic runtime), not "preserve".
+    //
+    // This field has NO effect on the production bundle: @vitejs/plugin-react owns the
+    // JSX transform, and building with "preserve" vs "react-jsx" produces byte-identical
+    // output (all 39 content-hashed assets match), so there is no double transformation.
+    //
+    // It matters for esbuild, which tsx uses in the test runner and which DOES read this
+    // field: under "preserve" it fell back to the classic runtime and emitted
+    // React.createElement into components that never import React, so rendering any
+    // component in a test threw "React is not defined".
+    "jsx": "react-jsx",
     "esModuleInterop": true,
     // image-with-fallback.tsx imports the generated responsive-image manifest.
     "resolveJsonModule": true,

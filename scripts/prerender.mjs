@@ -79,6 +79,39 @@ const STATIC_ROUTES = [
       "Every P91 Car Care service with live pricing — ceramic coating, paint protection " +
       "film, detailing, glass coating and headlight restoration in Indiranagar, Bangalore.",
   },
+  // The three legal pages and the combined PPF/ceramic page were in the SITEMAP but not
+  // here, so serveStatic fell through to 404.html and served them "Page not found" with
+  // noindex — the sitemap asking Google to index a page while the page told it not to.
+  // Their copy is static, so prerendering is the correct fix; /service/:slug is database
+  // driven and is handled at request time instead (see server/vite.ts).
+  {
+    path: "/privacy-policy",
+    title: "Privacy Policy — P91 Car Care",
+    description:
+      "How P91 Car Care collects, uses and stores customer information for bookings, " +
+      "payments and service reminders, and the cookies used on this site.",
+  },
+  {
+    path: "/terms-conditions",
+    title: "Terms & Conditions — P91 Car Care",
+    description:
+      "The terms that apply to booking and paying for detailing, ceramic coating and " +
+      "paint protection film services at P91 Car Care in Indiranagar, Bangalore.",
+  },
+  {
+    path: "/refund-policy",
+    title: "Refund Policy — P91 Car Care",
+    description:
+      "When booking fees are refundable, how cancellations and reschedules are handled, " +
+      "and how to request a refund from P91 Car Care.",
+  },
+  {
+    path: "/ppf-ceramic-coating",
+    title: "Paint Protection Film & Ceramic Coating in Bangalore | P91 Car Care",
+    description:
+      "PPF and 9H ceramic coating for cars and bikes in Bangalore. See real before-and-after " +
+      "work, compare packages, and get a quote from P91 Car Care.",
+  },
   {
     path: "/contact",
     title: "Contact P91 Car Care | Indiranagar, Bangalore",
@@ -145,9 +178,10 @@ async function main() {
   if (!/<\/head>/i.test(shell)) die("the built index.html has no </head> to inject into");
 
   const content = await loadContent();
-  const { BLOG_POSTS, SEO_PAGES, BLOG_INDEX_TITLE, BLOG_INDEX_DESCRIPTION } = content;
+  const { BLOG_POSTS, SEO_PAGES, LANDING_PAGES, BLOG_INDEX_TITLE, BLOG_INDEX_DESCRIPTION } = content;
   if (!Array.isArray(BLOG_POSTS) || !BLOG_POSTS.length) die("BLOG_POSTS is empty");
   if (!Array.isArray(SEO_PAGES) || !SEO_PAGES.length) die("SEO_PAGES is empty");
+  if (!Array.isArray(LANDING_PAGES) || !LANDING_PAGES.length) die("LANDING_PAGES is empty");
 
   const routes = [...STATIC_ROUTES];
 
@@ -224,13 +258,71 @@ async function main() {
     });
   }
 
-  // The shell carries a generic title and description for the SPA. Strip them, or every
-  // prerendered page ships two <title> tags and crawlers pick whichever they like.
-  const stripped = shell
+  // The three Meta Ads destinations. Imported from lib/landing-pages.ts — the same module
+  // the page component reads — so the prerendered <head> CANNOT drift from what
+  // useSeoMeta sets at runtime. No STATIC_ROUTES duplication, so no drift test is needed.
+  //
+  // Deliberately NO Service/Offer JSON-LD here: the price lives in the catalogue and is
+  // fetched at runtime, so a build-time schema would either omit it or hardcode a figure
+  // that could drift from checkout. The component emits the priced Service schema once it
+  // has the live record; this stage emits only what is knowable at build time.
+  for (const p of LANDING_PAGES) {
+    if (!p.path || !p.title || !p.description) die(`Landing page "${p.path}" is missing metadata`);
+    routes.push({
+      path: p.path,
+      title: p.title,
+      description: p.description,
+      jsonLd: [
+        breadcrumbs([
+          ["Home", "/"],
+          ["Services", "/services"],
+          [p.eyebrow || p.h1, p.path],
+        ]),
+      ],
+    });
+  }
+
+  // The shell carries generic SEO tags for the SPA. Strip every tag headFor() re-emits,
+  // or each prerendered page ships TWO of it and a crawler picks whichever it likes.
+  //
+  // The title/description/canonical cases were handled from the start. The Open Graph and
+  // Twitter tags were not, so every prerendered route was shipping the generic
+  // "P91 Car Care — Professional Car Detailing in Bangalore" og:title alongside its own.
+  // Confirmed in the built output before fixing: two og:title tags on /ppf.
+  //
+  // Kept from the shell deliberately: og:site_name, og:locale, twitter:title and
+  // twitter:description — headFor() does not emit those, so stripping them would leave
+  // the page with fewer tags than it has now.
+  const REEMITTED = [
+    ["property", "og:title"],
+    ["property", "og:description"],
+    ["property", "og:url"],
+    ["property", "og:type"],
+    ["property", "og:image"],
+    ["name", "twitter:card"],
+    ["name", "twitter:image"],
+  ];
+
+  let stripped = shell
     .replace(/[ \t]*<title>[\s\S]*?<\/title>\r?\n?/i, "")
     .replace(/[ \t]*<meta\s+name="description"[\s\S]*?\/>\r?\n?/i, "")
     .replace(/[ \t]*<link\s+rel="canonical"[^>]*>\r?\n?/i, "");
+
+  for (const [attr, value] of REEMITTED) {
+    // Anchored on the exact attribute pair so a tag with a similar prefix
+    // (og:image_alt, twitter:card_type) is not removed by accident.
+    stripped = stripped.replace(
+      new RegExp(`[ \\t]*<meta\\s+${attr}="${value.replace(/[:]/g, "\\$&")}"[^>]*>\\r?\\n?`, "gi"),
+      "",
+    );
+  }
+
   if (/<title>/i.test(stripped)) die("could not strip the shell's own <title>");
+  for (const [attr, value] of REEMITTED) {
+    if (new RegExp(`<meta\\s+${attr}="${value}"`, "i").test(stripped)) {
+      die(`could not strip the shell's own ${value} — prerendered pages would ship two`);
+    }
+  }
 
   let written = 0;
   for (const route of routes) {
@@ -281,10 +373,32 @@ async function main() {
   if (!/robots/.test(notFound)) die("404 shell lost its noindex");
   await fs.writeFile(path.join(DIST, "404.html"), notFound);
 
+  /**
+   * app.html — the INDEXABLE shell, for valid routes whose metadata cannot be known at
+   * build time.
+   *
+   * /service/:slug is driven by the services table. The build has no database, so those
+   * 17 URLs cannot be prerendered here — and until now they fell through to 404.html and
+   * were served "Page not found" with noindex while the sitemap asked Google to index
+   * them. That is the defect this file exists to prevent, arriving through the one door
+   * it did not cover.
+   *
+   * This shell carries NO route metadata and NO robots directive: the server injects the
+   * real title, description, canonical and Service schema per request (it has the
+   * database), and useSeoMeta sets the same values again after hydration.
+   *
+   * It is deliberately NOT index.html. Since prerendering, index.html carries the
+   * HOMEPAGE's title, canonical and schema, so serving it for /service/x would tell every
+   * crawler that page is a duplicate of the homepage.
+   */
+  if (/<title>/i.test(stripped)) die("app shell must not carry a title");
+  if (/name="robots"/i.test(stripped)) die("app shell must not carry a robots directive");
+  await fs.writeFile(path.join(DIST, "app.html"), stripped);
+
   console.log(`[prerender] ${written} routes -> dist/public/**/index.html`);
   console.log(`[prerender]   plus 404.html (noindex) for unmatched URLs`);
   console.log(
-    `[prerender]   ${STATIC_ROUTES.length} static, ${BLOG_POSTS.length} posts, ${SEO_PAGES.length} service pages`,
+    `[prerender]   ${STATIC_ROUTES.length} static, ${BLOG_POSTS.length} posts, ${SEO_PAGES.length} service pages, ${LANDING_PAGES.length} campaign pages`,
   );
 }
 

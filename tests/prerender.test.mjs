@@ -94,16 +94,32 @@ describe('prerendered metadata matches the page it represents', () => {
     );
   });
 
-  test('blog posts and SEO pages are imported, never duplicated', () => {
+  test('blog posts, SEO pages and campaign landing pages are imported, never duplicated', () => {
     const entry = read('scripts/prerender-content-entry.ts');
     assert.match(entry, /BLOG_POSTS,/);
     assert.match(entry, /export \{ SEO_PAGES \} from "@\/lib\/seo-pages"/);
+    assert.match(entry, /export \{ LANDING_PAGES \} from "@\/lib\/landing-pages"/);
+
     // The script must read them from the bundle, not carry its own copies.
     assert.match(script, /const content = await loadContent\(\)/);
-    assert.match(script, /const \{ BLOG_POSTS, SEO_PAGES, BLOG_INDEX_TITLE/);
+    // Matched as a SET rather than as one exact line: the destructure grows every time a
+    // content module is added, and pinning its literal text made this test fail for a
+    // reason that had nothing to do with the contract it exists to protect.
+    const destructure = /const \{([^}]*)\} = content;/.exec(script);
+    assert.ok(destructure, 'the script destructures the bundled content');
+    for (const name of ['BLOG_POSTS', 'SEO_PAGES', 'LANDING_PAGES', 'BLOG_INDEX_TITLE']) {
+      assert.ok(destructure[1].includes(name), `${name} must be read from the bundle`);
+    }
+
     assert.ok(
       !/slug:\s*"ppf-vs-ceramic-coating-bangalore"/.test(script),
       'post content must not be copied into the prerender script',
+    );
+    assert.ok(
+      !/path:\s*"\/ceramic-coating\/car"/.test(
+        script.slice(script.indexOf('const STATIC_ROUTES'), script.indexOf('/** Bundle the TS')),
+      ),
+      'campaign page content must not be copied into STATIC_ROUTES',
     );
   });
 });

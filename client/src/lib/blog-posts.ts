@@ -16,6 +16,14 @@
  * the admin uploads and there is no second copy of the photography to go stale.
  */
 
+import {
+  type Carousel,
+  PPF_VS_CERAMIC,
+  PPF_COVERAGE,
+  PPF_ORIGIN,
+  MONSOON_DAMAGE,
+} from "@/lib/carousels";
+
 /** Inline markup allowed in `text`: **bold** and [label](/internal-path). Nothing else. */
 export type BlogBlock =
   | { type: "h2"; text: string }
@@ -23,7 +31,19 @@ export type BlogBlock =
   | { type: "p"; text: string }
   | { type: "ul"; items: string[] }
   /** Mid-article prompt. `text` is the pitch; the button always goes to /services. */
-  | { type: "cta"; text: string; label: string };
+  | { type: "cta"; text: string; label: string }
+  /**
+   * The studio's own social carousel, embedded in the article it illustrates.
+   *
+   * Spread from lib/carousels.ts rather than written here, because the campaign landing
+   * pages render the same carousels in their hero and two copies of 11 lines of alt text
+   * would drift apart within a month.
+   *
+   * The article's prose always says what the slides say. The images are the illustration,
+   * never the only place a claim lives — a picture of a sentence is worth nothing to a
+   * crawler, so a post that leaned on the carousel alone would rank for nothing.
+   */
+  | ({ type: "carousel" } & Carousel);
 
 export interface BlogPost {
   slug: string;
@@ -59,6 +79,7 @@ export const BLOG_POSTS: BlogPost[] = [
     title: "PPF vs Ceramic Coating: Which is Best for Bangalore Traffic & Weather?",
     seoTitle: "PPF vs Ceramic Coating in Bangalore | P91",
     date: "2026-08-21",
+    updated: "2026-09-10",
     readMinutes: 6,
     category: "Protection",
     excerpt:
@@ -78,6 +99,8 @@ export const BLOG_POSTS: BlogPost[] = [
         text:
           "Most cars in Bangalore benefit from both — [PPF](/services/paint-protection-film-bangalore) on the impact zones, [ceramic coating](/services/ceramic-coating-bangalore) over the rest.",
       },
+
+      { type: "carousel", ...PPF_VS_CERAMIC },
 
       { type: "h2", text: "What PPF actually does" },
       {
@@ -302,6 +325,279 @@ export const BLOG_POSTS: BlogPost[] = [
         type: "p",
         text:
           "Sun film manages heat. A [windshield glass coating](/service/windshield-glass-coating-new) makes rain bead and clear at speed, which mostly helps night driving in the monsoon. People ask about them together, but they solve unrelated problems and are priced separately.",
+      },
+    ],
+  },
+
+  {
+    slug: "how-much-ppf-does-your-car-need",
+    title: "Don't Wrap the Whole Car: How Much PPF Your Car Actually Needs",
+    seoTitle: "How Much PPF Does Your Car Need? | P91",
+    date: "2026-09-05",
+    readMinutes: 5,
+    category: "Protection",
+    excerpt:
+      "Full-body film is not the default answer. Coverage is a decision about where damage actually lands.",
+    lede:
+      "More film is not automatically more protection. Cars do not get damaged evenly, and the coverage that suits a daily driver on Outer Ring Road is not the coverage that suits a garaged weekend car.",
+    imageServiceSlug: "partial-ppf-sedan",
+    body: [
+      { type: "h2", text: "Coverage is a decision, not an upsell" },
+      {
+        type: "p",
+        text:
+          "The question people arrive with is *how much does PPF cost*. The question that actually decides the bill is **how much of the car needs it** — and that is answered by where stones, grit and door edges land, not by how much film will fit.",
+      },
+      {
+        type: "p",
+        text:
+          "The front of the car takes the overwhelming majority of road damage. Everything behind the A-pillar lives a much quieter life. Spending equally across both is how a quote doubles without the paint being meaningfully safer.",
+      },
+
+      { type: "carousel", ...PPF_COVERAGE },
+
+      { type: "h2", text: "The three levels, and who each is for" },
+      { type: "h3", text: "Partial front" },
+      {
+        type: "p",
+        text:
+          "Front bumper, part of the bonnet, and the wing mirrors. It covers the panels that collect stone chips first and leaves everything else alone. This is the sensible starting point for a daily-driven hatchback or sedan on a budget.",
+      },
+      { type: "h3", text: "Full front end" },
+      {
+        type: "p",
+        text:
+          "Bumper, the whole bonnet, fenders, headlights and mirrors. The reason people step up to it is the bonnet: a partial wrap leaves a cut line across a panel you look at every day, and a full bonnet has none. It is the most commonly chosen option we fit.",
+      },
+      { type: "h3", text: "Full body" },
+      {
+        type: "p",
+        text:
+          "Every painted panel. It is genuinely the right answer for matte paint — which cannot be polished — and for cars that are kept, shown or driven hard. For a normal city car it is a large amount of money spent on panels that were never at risk.",
+      },
+
+      {
+        type: "cta",
+        text:
+          "Bring the car in and we will tell you which panels on YOUR car are actually taking damage, and quote only those. Live prices for hatchback, sedan and SUV are on the PPF page.",
+        label: "See PPF prices",
+      },
+
+      { type: "h2", text: "Why PPF and ceramic are quoted together" },
+      {
+        type: "p",
+        text:
+          "Film and coating solve different problems, so partial coverage leaves an obvious gap: the panels without film still face UV, borewell water and bird droppings. Putting [ceramic coating](/services/ceramic-coating-bangalore) over the rest of the car closes that gap for a fraction of what full-body film costs.",
+      },
+      {
+        type: "p",
+        text:
+          "Coating over the film matters too — film has its own surface, and an uncoated film holds water spots exactly like paint does. If you want the detail on how the two differ, [we wrote that up separately](/blog/ppf-vs-ceramic-coating-bangalore).",
+      },
+
+      { type: "h2", text: "What to ask before you agree to coverage" },
+      {
+        type: "ul",
+        items: [
+          "**Which panels** are included, named individually — not \"front\"",
+          "Whether the bonnet is **full or partial**, and where the cut line falls if partial",
+          "Whether headlights and mirrors are in the quote or extra",
+          "What the **uncovered** panels are getting instead, if anything",
+          "The film brand and batch, and the warranty card at handover",
+        ],
+      },
+      {
+        type: "p",
+        text:
+          "Prices at P91 are by body type — hatchback, sedan and SUV — for both partial and full coverage. Pick your body type on the [PPF page](/ppf) and the live price for that combination is shown before you book.",
+      },
+    ],
+  },
+
+  {
+    slug: "is-your-ppf-really-made-in-usa",
+    title: "Is Your PPF Really Made in the USA? What the Label Doesn't Tell You",
+    seoTitle: "Is Your PPF Really Made in the USA? | P91",
+    date: "2026-09-08",
+    readMinutes: 5,
+    category: "Protection",
+    excerpt:
+      "Country-of-origin on a PPF box is a marketing line more often than a manufacturing fact. Here is what to ask instead.",
+    lede:
+      "Almost every paint protection film sold in India is described as American. Very few brands make their own film, and fewer still make the raw material it is made from — so the flag on the box is rarely the thing that decides how the film performs.",
+    imageServiceSlug: "ppf-suv",
+    body: [
+      { type: "h2", text: "Why the label is the weakest signal" },
+      {
+        type: "p",
+        text:
+          "PPF is a thermoplastic urethane sheet with an adhesive on one side and a topcoat on the other. A brand may formulate it, cast it, coat it, or simply buy it finished and print its own box — and all four are legally describable in ways that sound like manufacturing.",
+      },
+      {
+        type: "p",
+        text:
+          "So \"made in\" can mean the polymer was synthesised there, or that the roll was slit and boxed there. Those are very different products with the same sticker.",
+      },
+
+      { type: "carousel", ...PPF_ORIGIN },
+
+      { type: "h2", text: "The questions that actually separate films" },
+      { type: "h3", text: "Who made the raw material?" },
+      {
+        type: "p",
+        text:
+          "The polymer grade is where clarity, yellowing resistance and self-healing behaviour are decided. A brand that can tell you which TPU grade its film uses is a brand that knows its own supply chain.",
+      },
+      { type: "h3", text: "What testing has it been through?" },
+      {
+        type: "p",
+        text:
+          "UV and weathering testing is the difference between a film that stays clear for years and one that goes yellow over a bonnet. Ask for the test standard, not the adjective.",
+      },
+      { type: "h3", text: "Who honours the warranty, and where?" },
+      {
+        type: "p",
+        text:
+          "A manufacturer warranty is only worth the process behind it. Ask who you would call, in India, if the film discoloured in year three — and get the answer in writing at handover, not as a verbal assurance at quoting.",
+      },
+
+      {
+        type: "cta",
+        text:
+          "We will show you the film we would put on your car, tell you exactly what it is, and give you the warranty terms before you commit to anything.",
+        label: "Talk to the studio",
+      },
+
+      { type: "h2", text: "Installation is the part nobody advertises" },
+      {
+        type: "p",
+        text:
+          "This is the least glamorous point and the most important one. A premium film fitted badly — stretched at the edges, contaminated under the surface, wrapped where it should have been cut — will fail before a mid-tier film fitted properly.",
+      },
+      {
+        type: "p",
+        text:
+          "Lifted edges, trapped dust and silvering at a corner are installation outcomes, not material defects, and no warranty covers them. When you are comparing two quotes, the film brand is the easy thing to compare and the fitter is the thing that decides the result.",
+      },
+
+      { type: "h2", text: "A short buyer's checklist" },
+      {
+        type: "ul",
+        items: [
+          "Name of the film, the exact product line — not just the brand",
+          "Who supplies the raw polymer, if they will say",
+          "Written warranty terms, and who services them in India",
+          "Photographs of the fitter's own recent work, edges and corners included",
+          "Whether the quote is for [partial or full coverage](/blog/how-much-ppf-does-your-car-need), panel by panel",
+        ],
+      },
+      {
+        type: "p",
+        text:
+          "If a quote is dramatically cheaper than everything around it, the saving is coming from somewhere — usually the film, occasionally the hours. Both show up on the car eventually. Our [paint protection film page](/services/paint-protection-film-bangalore) sets out what we fit and what it costs.",
+      },
+    ],
+  },
+
+  {
+    slug: "monsoon-damage-car-bangalore",
+    title: "5 Things the Monsoon Did to Your Car That You Cannot See Yet",
+    seoTitle: "Monsoon Car Damage in Bangalore | P91",
+    date: "2026-09-02",
+    readMinutes: 4,
+    category: "Paint care",
+    excerpt:
+      "Rain does its damage quietly. Most of what a Bangalore monsoon leaves behind only becomes visible months later.",
+    lede:
+      "A car that came through the monsoon looking fine has usually still collected four or five problems. None of them announce themselves — they surface as dull paint, a musty cabin and a rust bubble a year later.",
+    imageServiceSlug: "exterior-detailing-hard-water-new",
+    body: [
+      { type: "h2", text: "Why rain is worse than it looks" },
+      {
+        type: "p",
+        text:
+          "Rainwater is not clean water. It collects atmospheric pollutants on the way down and picks up road film on the way off the car, then sits on horizontal panels and evaporates — leaving everything it carried behind, concentrated, in the sun.",
+      },
+      {
+        type: "p",
+        text:
+          "That is the mechanism behind almost everything below. The water leaves; the deposits stay.",
+      },
+
+      { type: "carousel", ...MONSOON_DAMAGE },
+
+      { type: "h2", text: "1. Water spots that are already etching" },
+      {
+        type: "p",
+        text:
+          "The white rings left on a bonnet after rain dries are mineral deposits. Left in direct sun they stop sitting on the clearcoat and start biting into it. At that point washing will not remove them — the surface itself is now uneven.",
+      },
+      {
+        type: "p",
+        text:
+          "This is the same failure mode as [borewell hard water](/blog/hard-water-spot-removal-bangalore), and it responds to the same fix: get the deposits off early, and give the surface something they struggle to bond to.",
+      },
+
+      { type: "h2", text: "2. Rust starting where you cannot see it" },
+      {
+        type: "p",
+        text:
+          "Door bottoms, boot lip seams, wheel arch liners and the underbody hold water long after the paint has dried. Corrosion starts at the edges and in the seams, works outward, and is usually only visible once the paint above it lifts.",
+      },
+
+      { type: "h2", text: "3. A cabin that is still damp" },
+      {
+        type: "p",
+        text:
+          "Wet floor mats put moisture into the carpet, and the carpet puts it into the underlay, where it does not dry. That is where the smell comes from, and where mould grows. A vacuum does not reach it — the mats have to come out and the carpet has to be extracted and dried.",
+      },
+      {
+        type: "p",
+        text:
+          "If the car smells musty with the air conditioning on, that is the cue for an [interior detail](/services/interior-detailing-bangalore) rather than an air freshener.",
+      },
+
+      {
+        type: "cta",
+        text:
+          "Post-monsoon is the right time to reset the car — decontaminate the paint, dry the cabin properly, and put protection back on before the next season.",
+        label: "Book a post-monsoon detail",
+      },
+
+      { type: "h2", text: "4. Rubber and trim wearing faster" },
+      {
+        type: "p",
+        text:
+          "Wiper blades take the worst of it: grit sits on the windscreen, the blade drags it across the glass, and the edge goes. Door and window seals harden and craze with constant wet-dry cycling, and once a seal stops sealing it starts letting water into exactly the places in point two.",
+      },
+
+      { type: "h2", text: "5. Whatever protection the paint had is thinner" },
+      {
+        type: "p",
+        text:
+          "Wax and sealants are sacrificial by design, and a monsoon plus the detergent washes that follow it is what they are sacrificed to. The car can look fine and still have nothing left on the surface, which is why paint that survived one monsoon often deteriorates quickly through the next.",
+      },
+      {
+        type: "p",
+        text:
+          "A [ceramic coating](/ceramic-coating/car) is the durable answer here: it is measured in years rather than washes, and it makes the water spotting in point one far easier to remove before it etches.",
+      },
+
+      { type: "h2", text: "What a post-monsoon reset actually involves" },
+      {
+        type: "ul",
+        items: [
+          "A **decontamination wash** — not a regular wash — to lift bonded deposits",
+          "**Paint correction** where water spots have already etched",
+          "Mats out, carpets extracted and **properly dried**, not just vacuumed",
+          "Seals, trim and wiper edges checked and treated",
+          "Protection reapplied, so the next season starts from a surface that has some",
+        ],
+      },
+      {
+        type: "p",
+        text:
+          "None of this is urgent in the way a warning light is urgent. It is the kind of work that costs a little now and a lot later, which is exactly the kind most people skip.",
       },
     ],
   },

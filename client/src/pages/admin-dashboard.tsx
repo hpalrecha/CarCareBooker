@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import AdminServiceForm from "@/components/admin-service-form";
+import AdminCampaigns from "@/components/admin-campaigns";
 import { Plus, Eye, MessageCircle, Edit, Users, Clock, CheckCircle, DollarSign, Settings, Phone, Calendar, Trash2, AlertCircle, Play, Copy } from "lucide-react";
 import { format } from "date-fns";
 
@@ -1048,8 +1049,18 @@ export default function AdminDashboard() {
             >
               PPF Leads
             </Button>
+            <Button
+              variant={activeTab === "campaigns" ? "default" : "ghost"}
+              onClick={() => setActiveTab("campaigns")}
+              className={activeTab === "campaigns" ? "bg-neon-green text-deep-black" : "text-gray-400 hover:text-white"}
+              data-testid="tab-campaigns"
+            >
+              Campaigns
+            </Button>
           </div>
         </div>
+
+        {activeTab === "campaigns" && <AdminCampaigns />}
 
         {activeTab === "bookings" && (
           <>

@@ -204,7 +204,16 @@ export default function SeoServicePage() {
               <p>Hold your slot online. The balance is settled at the studio in Indiranagar.</p>
             </div>
             <div className="article-cta-btns">
-              <Link href="/services" className="cta-lg" data-testid="link-seo-book">Book a service</Link>
+              {/* Send a ready-to-book reader to the matching conversion page rather than
+                  the generic catalogue. Falls back to /services where no single landing
+                  page is the obvious destination — see bookHref in lib/seo-pages.ts. */}
+              <Link
+                href={page.bookHref || "/services"}
+                className="cta-lg"
+                data-testid="link-seo-book"
+              >
+                {page.bookHref ? `Book ${page.crumb.toLowerCase()}` : "Book a service"}
+              </Link>
               <a className="cta-ghost" href="tel:+917406619191">
                 <Phone className="i" aria-hidden="true" /> 74066 19191
               </a>

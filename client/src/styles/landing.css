@@ -1,0 +1,163 @@
+/* ============================================================================
+   Campaign offer + countdown.
+
+   Scoped under `.p91x`, exactly like redesign.css, and for the same reason: the class
+   names here are short (.cd, .offer) and would otherwise collide with the admin screens
+   and the shadcn component library. These rules can only apply inside a page that opts
+   in by rendering <div className="p91x">.
+
+   No new colour tokens. Everything below uses the ones already defined in index.css
+   (--neon-green, --deep-black, --dark-gray, --medium-gray, --txt, --txt-2, --txt-3,
+   --neon-soft, --neon-line) so the offer block reads as part of the existing brand
+   rather than as a bolted-on promotional widget.
+   ============================================================================ */
+
+/* ---------- offer block ---------- */
+.p91x .offer {
+  border: 1px solid var(--neon-line);
+  background: var(--dark-gray);
+  border-radius: 14px;
+  padding: 26px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.p91x .offer-eyebrow {
+  margin: 0;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--neon-green);
+}
+
+.p91x .offer-title {
+  margin: 0;
+  font-size: clamp(22px, 4vw, 30px);
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--txt);
+}
+
+.p91x .offer-desc {
+  margin: 0;
+  color: var(--txt-2);
+  font-size: 15px;
+  max-width: 52ch;
+}
+
+.p91x .offer-until {
+  margin: 0;
+  color: var(--neon-green);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* The price line. Deliberately prominent — it is the sentence that stops "free booking"
+   being read as "free service", so it must not look like fine print. */
+.p91x .offer-price {
+  margin: 4px 0 0;
+  font-size: clamp(16px, 2.6vw, 19px);
+  color: var(--txt);
+}
+.p91x .offer-price strong { color: var(--neon-green); font-weight: 800; }
+.p91x .offer-price-sep { color: var(--txt-3); }
+.p91x .offer-price-amount { font-weight: 600; }
+
+.p91x .offer-fine {
+  margin: 0;
+  color: var(--txt-2);
+  font-size: 13.5px;
+  line-height: 1.55;
+  max-width: 56ch;
+}
+
+.p91x .offer-cta { margin-top: 6px; }
+
+/* ---------- countdown ---------- */
+.p91x .cd {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.p91x .cd-label {
+  margin: 0;
+  font-size: 13px;
+  color: var(--txt-2);
+  letter-spacing: .01em;
+}
+
+.p91x .cd-units {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.p91x .cd-unit {
+  background: var(--deep-black);
+  border: 1px solid var(--medium-gray);
+  border-radius: 10px;
+  padding: 12px 6px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.p91x .cd-num {
+  font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(26px, 7vw, 38px);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--neon-green);
+  /* Tabular figures: without them the digits are proportionally spaced and the whole row
+     jitters horizontally every time a 1 becomes a 2. On a per-second timer that reads as
+     a broken layout. */
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* A visible text label under every number. The unit is never conveyed by position or
+   colour alone, which is what makes the row readable without sight of the whole group. */
+.p91x .cd-unit-label {
+  font-size: 10.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--txt-3);
+}
+
+/* ---------- mobile ---------- */
+@media (max-width: 480px) {
+  .p91x .offer { padding: 20px 16px; border-radius: 12px; }
+  .p91x .cd-units { gap: 7px; max-width: none; }
+  .p91x .cd-unit { padding: 10px 4px 8px; border-radius: 8px; }
+  .p91x .cd-unit-label { font-size: 9.5px; letter-spacing: .07em; }
+}
+
+/* Four units must stay on ONE row at 320px — the narrowest phone still in use. Wrapping
+   to 2x2 breaks the reading order of a single duration. clamp() on .cd-num already
+   scales the digits with the viewport; this only removes the padding that would force a
+   wrap at the very bottom of the range. */
+@media (max-width: 340px) {
+  .p91x .cd-units { gap: 5px; }
+  .p91x .cd-unit { padding: 8px 2px 6px; }
+}
+
+/* ---------- motion ---------- */
+/* There is no animation on the countdown by design — no pulse, no flip, no flash. A
+   timer that draws attention to itself once a second is a distraction on a page whose
+   job is to be read, and flashing content is an accessibility hazard. This block exists
+   to state that explicitly and to neutralise any inherited transition. */
+@media (prefers-reduced-motion: reduce) {
+  .p91x .cd,
+  .p91x .cd-num,
+  .p91x .offer { animation: none !important; transition: none !important; }
+}

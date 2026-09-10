@@ -45,6 +45,8 @@ const Services = lazy(() => import("@/pages/services"));
 const SeoServicePage = lazy(() => import("@/pages/seo-service-page"));
 const BlogIndex = lazy(() => import("@/pages/blog-index"));
 const BlogPost = lazy(() => import("@/pages/blog-post"));
+// The three Meta Ads destinations. One component, three paths — see lib/landing-pages.ts.
+const CampaignLanding = lazy(() => import("@/pages/campaign-landing"));
 
 /**
  * Placeholder shown while a route chunk downloads.
@@ -76,6 +78,18 @@ function Router() {
         <Route path="/service/:slug" component={ServiceLanding} />
         <Route path="/booking-confirmation/:id" component={BookingConfirmation} />
         <Route path="/contact" component={Contact} />
+        {/* Campaign landing pages. Declared BEFORE /ppf-ceramic-coating so neither can
+            shadow the other, and each passes its own path so the template can look up its
+            content. These are the URLs that go into the advertisements. */}
+        <Route path="/ceramic-coating/car">
+          <CampaignLanding path="/ceramic-coating/car" />
+        </Route>
+        <Route path="/ceramic-coating/bike">
+          <CampaignLanding path="/ceramic-coating/bike" />
+        </Route>
+        <Route path="/ppf">
+          <CampaignLanding path="/ppf" />
+        </Route>
         <Route path="/ppf-ceramic-coating" component={PpfCeramicLanding} />
         <Route path="/privacy-policy" component={PrivacyPolicy} />
         <Route path="/terms-conditions" component={TermsConditions} />

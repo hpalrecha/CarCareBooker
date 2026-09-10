@@ -35,9 +35,23 @@ interface BookingModalProps {
   };
   isOpen: boolean;
   onClose: () => void;
+  /**
+   * What the customer actually selected on a campaign landing page.
+   *
+   * Optional, so every existing call site is unchanged. When present it is sent with the
+   * booking so admin sees "PPF, car, SUV" rather than just the service title — the page
+   * knows the body type the customer picked, and that context is lost otherwise.
+   *
+   * NEVER a pricing input. The selected SERVICE row already determines the price; these
+   * are descriptive fields only.
+   */
+  vehicleContext?: {
+    vehicleType?: "car" | "bike";
+    vehicleCategory?: string;
+  };
 }
 
-export default function BookingModal({ service, isOpen, onClose }: BookingModalProps) {
+export default function BookingModal({ service, isOpen, onClose, vehicleContext }: BookingModalProps) {
   const [selectedDate, setSelectedDate] = useState("");
   const [bookingAmount, setBookingAmount] = useState(299);
   const { toast } = useToast();
@@ -139,6 +153,35 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
       customerPhone: "",
     },
   });
+
+  /**
+   * Keep the submitted serviceId in step with the `service` prop.
+   *
+   * ─────────────────────────────────────────────────────────────────────────────────────
+   * THE BUG THIS FIXES, because it is not obvious and it was expensive.
+   *
+   * `defaultValues` is read ONCE, when the form is created. Every caller that mounts this
+   * modal before opening it — which is all of them, since `isOpen` only toggles the
+   * dialog — therefore captures whichever service was current at mount and never updates.
+   *
+   * On the PPF landing page the service changes when the customer picks a body type. The
+   * modal correctly re-rendered its heading, price and includes from the new prop, so it
+   * *displayed* "P91 PPF - SUV" — while the form still submitted serviceId
+   * "ppf-hatchback". A customer who selected SUV, saw ₹65,000 and booked would have been
+   * recorded against the ₹45,000 Hatchback package.
+   *
+   * Caught by intercepting the real POST body in a headless browser; no amount of reading
+   * the render output would have shown it, because the render output was right.
+   *
+   * Harmless for the existing catalogue callers: their `service` never changes identity
+   * while mounted, so this runs once with the value the form already holds.
+   * ─────────────────────────────────────────────────────────────────────────────────────
+   */
+  useEffect(() => {
+    if (form.getValues("serviceId") !== service.id) {
+      form.setValue("serviceId", service.id, { shouldValidate: false, shouldDirty: false });
+    }
+  }, [service.id, form]);
 
   // Static time slots from 10 AM to 7 PM
   const allTimeSlots = [
@@ -256,6 +299,11 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
         // first-touch store instead. Server-side validation is authoritative; nothing here
         // can fail the booking.
         ...attributionPayload(),
+        // Vehicle context from a campaign landing page, when the booking started there.
+        // Spread AFTER attribution so neither can silently overwrite the other, and
+        // omitted entirely on the catalogue booking path.
+        ...(vehicleContext?.vehicleType ? { vehicleType: vehicleContext.vehicleType } : {}),
+        ...(vehicleContext?.vehicleCategory ? { vehicleCategory: vehicleContext.vehicleCategory } : {}),
       };
       const response = await apiRequest("POST", "/api/bookings", bookingData);
       return response.json();
@@ -888,9 +936,19 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                         <FormItem>
                           <FormLabel>Your Name</FormLabel>
                           <FormControl>
-                            <Input 
-                              {...field} 
-                              className="bg-dark-gray border-gray-600 text-white" 
+                            {/*
+                              Browser-native autofill. iOS and Android can fill these from
+                              details the customer already has saved, which matters most for
+                              ad traffic arriving on a phone with no prior intent to type.
+
+                              Nothing is read from the advertisement: Meta does not pass a
+                              visitor name, phone or email to a website, and fbclid is an
+                              opaque click identifier. The attribution model is unchanged.
+                            */}
+                            <Input
+                              {...field}
+                              autoComplete="name"
+                              className="bg-dark-gray border-gray-600 text-white"
                               data-testid="input-name"
                               data-clarity-mask="true"
                             />
@@ -909,8 +967,10 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                           <FormControl>
                             <Input 
                               {...field} 
-                              type="tel" 
-                              className="bg-dark-gray border-gray-600 text-white" 
+                              type="tel"
+                              autoComplete="tel"
+                              inputMode="tel"
+                              className="bg-dark-gray border-gray-600 text-white"
                               data-testid="input-phone"
                               data-clarity-mask="true"
                             />
@@ -930,8 +990,10 @@ export default function BookingModal({ service, isOpen, onClose }: BookingModalP
                         <FormControl>
                           <Input 
                             {...field} 
-                            type="email" 
-                            className="bg-dark-gray border-gray-600 text-white" 
+                            type="email"
+                            autoComplete="email"
+                            inputMode="email"
+                            className="bg-dark-gray border-gray-600 text-white"
                             data-testid="input-email"
                             data-clarity-mask="true"
                           />

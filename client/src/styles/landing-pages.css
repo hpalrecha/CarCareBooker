@@ -1,0 +1,409 @@
+/* ============================================================================
+   Campaign landing pages: /ceramic-coating/car, /ceramic-coating/bike, /ppf
+
+   Scoped under `.p91x .lp`, so nothing here can reach the rest of the site — the same
+   discipline redesign.css uses, and necessary for the same reason: these class names
+   (.lp-price, .blogc, .vsel) are short and would otherwise collide.
+
+   No new colour tokens. Everything uses the ones already in index.css, so these pages
+   read as part of the existing brand rather than as a separate promotional microsite.
+
+   The countdown and offer block live in landing.css (Phase 2C).
+   ============================================================================ */
+
+/* `.p91x.lp`, NOT `.p91x .lp`.
+ *
+ * Both classes sit on ONE element (<div className="p91x lp">), so the descendant form
+ * requires an `.lp` nested inside a `.p91x` and can never match. It failed silently: these
+ * sections simply kept redesign.css's 68px, `lp-tight` never removed the doubled padding
+ * around the offer block, and the pages were ~1.3k pixels longer than intended on mobile.
+ *
+ * Scoped to `.lp` so redesign.css's 68px rhythm is untouched everywhere else. */
+.p91x.lp .section { padding: 56px 0; }
+.p91x.lp .lp-tight { padding-top: 0; }
+
+/* ---------- hero ---------- */
+.p91x .lp-hero { padding-top: 26px; }
+.p91x .lp-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 520px);
+  gap: 40px;
+  align-items: center;
+}
+.p91x .lp-hero-copy h1 {
+  font-size: clamp(30px, 5.2vw, 50px);
+  font-weight: 800;
+  margin: 8px 0 14px;
+}
+.p91x .lp-lede {
+  color: var(--txt-2);
+  font-size: clamp(15px, 2.1vw, 17.5px);
+  max-width: 54ch;
+  margin: 0 0 22px;
+}
+
+/* Price, above the fold. This answers "what does it cost" and is not allowed to be
+   subtle — a customer arriving from an advertisement must not have to hunt for it. */
+.p91x .lp-price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  margin-bottom: 6px;
+}
+.p91x .lp-price-now {
+  font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(30px, 6vw, 42px);
+  font-weight: 800;
+  color: var(--neon-green);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.p91x .lp-price-was {
+  color: var(--txt-3);
+  text-decoration: line-through;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.p91x .lp-price-name {
+  color: var(--txt-2);
+  font-size: 14.5px;
+  flex-basis: 100%;
+}
+.p91x .lp-price-pending { color: var(--txt-2); font-size: 16px; margin: 0 0 10px; }
+.p91x .lp-meta { color: var(--txt-3); font-size: 13.5px; margin: 0 0 20px; }
+
+/* ---------- H1: hero offer strip ----------
+   One line reconciling "free" with the price above it. Deliberately quieter than the
+   price and louder than body copy: it is a qualifier, not a second headline. */
+.p91x .lp-offer-strip {
+  margin: 12px 0 0;
+  padding: 9px 14px;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  border: 1px solid var(--neon-line);
+  border-radius: 8px;
+  background: var(--neon-soft);
+  font-size: 14.5px;
+  line-height: 1.4;
+}
+.p91x .lp-offer-strip-free { color: var(--neon-green); font-weight: 700; }
+.p91x .lp-offer-strip-sep { color: var(--txt-3); }
+.p91x .lp-offer-strip-paid { color: var(--txt); }
+
+.p91x .lp-hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* ---------- M1: the phone CTA is SECONDARY ----------
+   It was a bordered box of the same visual weight as the primary action, so the first
+   screen offered two equally-loud choices. Now it reads as a quiet alternative while
+   keeping a full-width, >=44px tap area — subtle in appearance, not in target size. */
+.p91x .lp-hero-cta .cta-ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--txt-2);
+  font-size: 14.5px;
+  padding: 12px 16px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.p91x .lp-hero-cta .cta-ghost:hover {
+  color: var(--txt);
+  border-color: var(--medium-gray);
+}
+/* One grid item, whatever ImageWithFallback expands to — see the note at the call site. */
+.p91x .lp-hero-media { min-width: 0; }
+.p91x .lp-hero-img {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--medium-gray);
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+}
+
+/* The hero carousel sits in a framed panel so the 4:5 slides read as one deliberate
+   object rather than a stack of loose pictures. The frame is the same border and radius
+   the single hero photograph used, so a page with a carousel and a page without still
+   look like the same site. */
+.p91x .lp-hero-media .slide-car--hero {
+  border: 1px solid var(--medium-gray);
+  border-radius: 14px;
+  background: var(--dark-gray);
+  padding: 10px 10px 4px;
+}
+.p91x .lp-hero-media .slide-car--hero .slide-car-item img { border: 0; border-radius: 9px; }
+.p91x .lp-hero-media .slide-car--hero .slide-car-bar { margin: 8px 2px 4px; }
+
+/* Brand of film or coating actually fitted. Small, quiet, and under the artwork — it is
+   a provenance note, not a second logo competing with the site's own. */
+.p91x .lp-hero-brand {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  margin: 12px 0 0; color: var(--txt-3);
+  font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase;
+}
+.p91x .lp-hero-brand img { width: 116px; height: auto; opacity: .82; }
+
+/* ---------- vehicle selector ---------- */
+.p91x .vsel {
+  border: 1px solid var(--medium-gray);
+  background: var(--dark-gray);
+  border-radius: 14px;
+  padding: 22px;
+}
+.p91x .vsel-q {
+  margin: 0 0 14px;
+  font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+.p91x .vsel-opts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.p91x .vsel-opt {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--medium-gray);
+  background: var(--deep-black);
+  color: var(--txt);
+  cursor: pointer;
+  transition: border-color .12s ease, background-color .12s ease;
+}
+.p91x .vsel-opt:hover { border-color: var(--neon-line); }
+.p91x .vsel-opt.is-on {
+  border-color: var(--neon-green);
+  background: var(--neon-soft);
+}
+/* A second, non-colour cue for the selected option, so the choice survives a greyscale
+   render and a colour-vision difference. aria-checked carries it for assistive tech. */
+.p91x .vsel-opt.is-on .vsel-opt-label::after {
+  content: " \2713";
+  color: var(--neon-green);
+}
+.p91x .vsel-opt-label { font-weight: 700; font-size: 15.5px; }
+.p91x .vsel-opt-eg { color: var(--txt-3); font-size: 12.5px; }
+
+.p91x .vsel-pkg { margin-top: 18px; border-top: 1px solid var(--medium-gray); padding-top: 18px; }
+.p91x .vsel-pkg-name { margin: 0 0 6px; font-weight: 700; font-size: 16px; }
+.p91x .vsel-pkg-price { margin: 0 0 10px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.p91x .vsel-pkg-now {
+  font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(24px, 5vw, 32px);
+  font-weight: 800;
+  color: var(--neon-green);
+  font-variant-numeric: tabular-nums;
+}
+.p91x .vsel-pkg-was { color: var(--txt-3); text-decoration: line-through; font-variant-numeric: tabular-nums; }
+.p91x .vsel-pkg-meta { color: var(--txt-3); font-size: 13px; margin: 0 0 10px; }
+.p91x .vsel-pkg-inc { margin: 0; padding-left: 18px; color: var(--txt-2); font-size: 14.5px; }
+.p91x .vsel-pkg-inc li { margin-bottom: 5px; }
+
+/* ---------- benefits ---------- */
+.p91x .lp-benefits {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 26px 34px;
+}
+/* Deliberately NOT cards. Five bordered boxes in a row is the generic template look the
+   brief rules out; a rule above each heading gives structure at a fraction of the weight. */
+.p91x .lp-benefit { border-top: 2px solid var(--neon-line); padding-top: 14px; }
+.p91x .lp-benefit h3 { font-size: 16.5px; font-weight: 700; margin: 0 0 7px; }
+.p91x .lp-benefit p { margin: 0; color: var(--txt-2); font-size: 14.5px; line-height: 1.6; }
+
+/* ---------- includes / steps / warranty / faqs ---------- */
+.p91x .lp-includes { margin: 0; padding-left: 20px; color: var(--txt-2); font-size: 15px; }
+.p91x .lp-includes li { margin-bottom: 8px; }
+
+.p91x .lp-steps {
+  margin: 0; padding: 0; list-style: none;
+  counter-reset: step;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.p91x .lp-steps li {
+  counter-increment: step;
+  display: grid; grid-template-columns: 30px 1fr; gap: 14px;
+  align-items: start;
+  color: var(--txt-2); font-size: 15px;
+}
+.p91x .lp-steps li::before {
+  content: counter(step);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12.5px;
+  color: var(--neon-green);
+  border: 1px solid var(--neon-line);
+  border-radius: 50%;
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+}
+
+.p91x .lp-warranty {
+  margin: 0; color: var(--txt-3); font-size: 13.5px; line-height: 1.6;
+  border-left: 2px solid var(--medium-gray); padding-left: 14px; max-width: 68ch;
+}
+
+.p91x .lp-faqs { display: flex; flex-direction: column; gap: 20px; }
+.p91x .lp-faq h3 { font-size: 16px; font-weight: 700; margin: 0 0 6px; }
+.p91x .lp-faq p { margin: 0; color: var(--txt-2); font-size: 14.5px; line-height: 1.6; }
+
+/* ---------- blog carousel ---------- */
+.p91x .blogc {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
+}
+.p91x .blogc-card {
+  display: flex; flex-direction: column; height: 100%;
+  border: 1px solid var(--medium-gray); border-radius: 12px; overflow: hidden;
+  background: var(--dark-gray);
+  transition: border-color .12s ease;
+}
+.p91x .blogc-card:hover { border-color: var(--neon-line); }
+.p91x .blogc-img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.p91x .blogc-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.p91x .blogc-cat {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--neon-green);
+}
+.p91x .blogc-title { font-size: 16px; font-weight: 700; margin: 0; line-height: 1.3; }
+.p91x .blogc-ex { margin: 0; color: var(--txt-2); font-size: 13.5px; line-height: 1.55; }
+.p91x .blogc-more { margin-top: auto; color: var(--neon-green); font-size: 13.5px; font-weight: 600; }
+
+/* ---------- final CTA ---------- */
+.p91x .lp-final {
+  border: 1px solid var(--medium-gray); background: var(--dark-gray);
+  border-radius: 14px; padding: 30px 26px; text-align: center;
+}
+.p91x .lp-final h2 { font-size: clamp(22px, 3.4vw, 30px); font-weight: 800; margin: 0 0 10px; }
+.p91x .lp-final p { color: var(--txt-2); margin: 0 auto 20px; max-width: 56ch; font-size: 15px; }
+.p91x .lp-final .lp-hero-cta { justify-content: center; }
+
+.p91x .lp-related { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: center; margin-top: 26px; }
+/* M2: >=44px tap target without inflating the type. Padding does the work; the border
+   sits on an inner span so the underline still hugs the text rather than the padding. */
+.p91x .lp-related a {
+  color: var(--txt-2);
+  font-size: 14px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 4px;
+}
+.p91x .lp-related a span { border-bottom: 1px solid var(--medium-gray); }
+.p91x .lp-related a:hover { color: var(--neon-green); }
+.p91x .lp-related a:hover span { border-bottom-color: var(--neon-line); }
+
+/* ---------- mobile ---------- */
+@media (max-width: 900px) {
+  .p91x .lp-hero-grid { grid-template-columns: 1fr; gap: 26px; }
+  /* Image AFTER the copy on mobile. The headline, price and CTA must own the first
+     screen; a hero image above them pushes the price below the fold on a 360px phone. */
+  .p91x .lp-hero-media { order: 2; }
+  .p91x .lp .section { padding: 40px 0; }
+}
+
+@media (max-width: 720px) {
+  /* The grid becomes a scroll-snap track. No JS carousel, no library, no autoplay —
+     native momentum scrolling, keyboard support and accessibility come for free, and a
+     hand-rolled carousel would ship weight to reimplement all three worse. */
+  .p91x .blogc {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 14px;
+    /* Bleed to the viewport edge so the next card peeks. That is the affordance telling
+       a reader the row scrolls, without needing dots or arrows. */
+    margin: 0 -20px;
+    padding: 2px 20px 14px;
+    scrollbar-width: thin;
+  }
+  .p91x .blogc-item { flex: 0 0 82%; scroll-snap-align: start; }
+}
+
+@media (max-width: 560px) {
+  /* Three body types still fit one row at 320px (~93px per column). Stacking them would
+     push the price below the fold, which is the one thing the hero must not do. */
+  .p91x .vsel { padding: 16px; }
+  .p91x .vsel-opts { gap: 6px; }
+  .p91x .vsel-opt { padding: 10px 8px; }
+  .p91x .vsel-opt-label { font-size: 14px; }
+  .p91x .vsel-opt-eg { font-size: 11px; }
+  .p91x .lp-hero-cta .cta-lg,
+  .p91x .lp-hero-cta .cta-ghost { flex: 1 1 100%; text-align: center; justify-content: center; }
+  .p91x .lp-final { padding: 22px 16px; }
+}
+
+/* ---------- H2: the selector moved INTO the hero ----------
+   Tighter than the standalone card it replaced, because it now shares the first viewport
+   with the headline, the price, the offer strip and the CTA. Same control, same
+   semantics, same catalogue-backed price — only padding and the package treatment change.
+
+   Placed after the mobile media queries deliberately: these rules are more specific than
+   the generic `.p91x .vsel*` mobile overrides, so the compact variant needs to carry its
+   own small-screen sizes rather than inherit them. */
+.p91x .vsel-compact { padding: 16px; border-radius: 12px; }
+.p91x .vsel-compact .vsel-q { font-size: 15px; margin-bottom: 10px; }
+.p91x .vsel-compact .vsel-opt { padding: 10px 12px; }
+.p91x .vsel-compact .vsel-opt-label { font-size: 14.5px; }
+.p91x .vsel-compact .vsel-opt-eg { font-size: 11.5px; }
+.p91x .vsel-compact .vsel-pkg { margin-top: 14px; padding-top: 14px; }
+.p91x .vsel-compact .vsel-pkg-name {
+  font-size: 14.5px;
+  color: var(--txt-2);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+/* The selected price is the hero headline figure now, so it matches .lp-price-now rather
+   than the smaller in-card treatment it had when the selector sat in its own section. */
+.p91x .vsel-compact .vsel-pkg-now { font-size: clamp(30px, 6vw, 42px); line-height: 1; }
+.p91x .vsel-compact .vsel-pkg-price { margin-bottom: 0; }
+
+@media (max-width: 560px) {
+  .p91x .vsel-compact { padding: 14px; }
+  .p91x .vsel-compact .vsel-opt { padding: 9px 6px; }
+  .p91x .vsel-compact .vsel-opt-label { font-size: 13.5px; }
+  .p91x .vsel-compact .vsel-opt-eg { font-size: 10.5px; }
+}
+
+/* ---------- small-screen hero rhythm ----------
+   Measured at 320x640: the hero stack (breadcrumb 48 + eyebrow 40 + h1 118 + lede 118 +
+   price/selector + offer strip) pushed the price and CTA below the fold on the two pages
+   with the longest headline and the selector.
+
+   Nothing here changes content or type size for readability — only the vertical rhythm,
+   which is generous by desktop standards and does not need to be on a 640px-tall screen.
+   Recovers ~70px on the ceramic pages and ~105px on PPF. */
+@media (max-width: 400px) {
+  .p91x .lp-hero { padding-top: 16px; }
+  .p91x.lp .lp-hero.section { padding-top: 16px; }
+
+  .p91x .lp-hero .crumb { margin-bottom: 10px; font-size: 12.5px; }
+  .p91x .lp-hero .eyebrow { margin-bottom: 6px; }
+  .p91x .lp-hero-copy h1 { margin: 4px 0 8px; }
+  .p91x .lp-lede { margin-bottom: 10px; }
+
+  .p91x .lp-price { margin-bottom: 4px; }
+  .p91x .lp-offer-strip { margin-top: 8px; padding: 8px 12px; }
+  .p91x .lp-hero-cta { margin-top: 10px; gap: 8px; }
+
+  /* The selector is the tallest single block in the PPF hero. Trimming its internal
+     padding keeps all three options and their examples — which are what let a customer
+     recognise their own car — while recovering the height. */
+  .p91x .vsel-compact { padding: 12px; }
+  .p91x .vsel-compact .vsel-q { margin-bottom: 8px; }
+  .p91x .vsel-compact .vsel-opt { padding: 8px 6px; gap: 2px; }
+  .p91x .vsel-compact .vsel-opt-eg { font-size: 10px; line-height: 1.25; }
+  .p91x .vsel-compact .vsel-pkg { margin-top: 10px; padding-top: 10px; }
+}
