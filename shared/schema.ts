@@ -164,6 +164,34 @@ export const bookings = pgTable("bookings", {
   landingPage: varchar("landing_page"),         // first path seen, e.g. /ceramic-coating/car
   referrer: varchar("referrer"),                // external referrer only; same-origin is dropped
 
+  // --- Campaign snapshot (added 2026-09) ---
+  //
+  // BOTH columns are written, and that is not redundancy.
+  //
+  //   campaignId          joins to the campaign row while it still exists.
+  //   campaignIdentifier  a SNAPSHOT of that campaign's identifier at booking time.
+  //
+  // The snapshot is what makes the record durable. An admin editing a campaign's
+  // identifier, or deleting it outright, must not silently rewrite the history of which
+  // advertisement produced which booking — a report run next quarter has to give the same
+  // answer it gave last quarter. There is deliberately no foreign key for the same
+  // reason: no cascade can reach these rows.
+  campaignId: varchar("campaign_id"),
+  campaignIdentifier: varchar("campaign_identifier"),
+
+  /** car | bike. Known from the campaign landing page the customer booked through. */
+  vehicleType: varchar("vehicle_type"),
+  /**
+   * hatchback | sedan | suv, for services priced by body category (PPF).
+   *
+   * Recorded separately from the service because "which package did they pick" and "what
+   * shape is the vehicle" are different questions. The catalogue already encodes the
+   * category in the service row itself (ppf-hatchback / ppf-sedan / ppf-suv), so this is
+   * strictly a convenience for the admin view — it must never be used to derive a price.
+   * Null for services where body category is not a pricing input.
+   */
+  vehicleCategory: varchar("vehicle_category"),
+
   // --- Customer-facing confirmation ---
   //
   // Unguessable token that lets a customer read THEIR OWN booking without logging in.
@@ -201,6 +229,63 @@ export const businessHours = pgTable("business_hours", {
   cutoffTime: varchar("cutoff_time").default("18:00").notNull(), // HH:MM format - last booking time
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+/**
+ * Advertising campaigns.
+ *
+ * Replaces hard-coding an offer into page components. One row is everything the frontend
+ * needs to render an offer: what it is called, when it runs, what it says, and where.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────────────
+ * THERE IS DELIBERATELY NO PRICE COLUMN.
+ *
+ * The catalogue (`services.price`) is the sole source of truth for what a service costs,
+ * and site_settings.booking_amount for the booking fee. A campaign controls the OFFER
+ * STATE — whether booking is free right now — and nothing else. Giving a campaign its own
+ * price field would create a second authority on money, which is the failure the
+ * server-authoritative amount work exists to prevent: two places to change, one of which
+ * silently wins, and a customer charged a figure no screen showed them.
+ * ─────────────────────────────────────────────────────────────────────────────────────
+ *
+ * Windows are stored as absolute instants (timestamptz), half-open [startsAt, endsAt).
+ * See shared/campaign.ts for the resolution rules and why the interval is half-open.
+ */
+export const campaigns = pgTable(
+  "campaigns",
+  {
+    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+    /** Human label shown in admin, e.g. "September Ceramic Car Campaign". */
+    name: varchar("name").notNull(),
+    /**
+     * Stable machine key, e.g. "ceramic_car_sep". Unique.
+     * Intended to match the `utm_campaign` on the ad, so a booking's attribution and its
+     * campaign row can be reconciled without a fuzzy title match.
+     */
+    identifier: varchar("identifier").notNull().unique(),
+    /** Catalogue slug this campaign applies to. Validated against live services on write. */
+    serviceSlug: varchar("service_slug").notNull(),
+    vehicleType: varchar("vehicle_type").notNull(), // car | bike | both
+    /** Route the campaign is presented on, e.g. "/ceramic-coating/car". */
+    landingPage: varchar("landing_page").notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    /** EXCLUSIVE end. The campaign is over at this instant, not after it. */
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    /** Paused campaigns are drafts: invisible to customers, free to overlap. */
+    isActive: boolean("is_active").default(true).notNull(),
+    offerType: varchar("offer_type").notNull(), // free_booking | none
+    offerTitle: varchar("offer_title").notNull(),
+    offerDescription: text("offer_description"),
+    ctaText: varchar("cta_text").notNull(),
+    createdBy: varchar("created_by"), // admins.id
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    // Resolution reads by landing page and by active-window; both are indexed.
+    index("IDX_campaigns_landing_page").on(table.landingPage),
+    index("IDX_campaigns_active_window").on(table.isActive, table.startsAt, table.endsAt),
+  ],
+);
 
 // PPF & Ceramic Coating leads
 export const ppfLeads = pgTable("ppf_leads", {
@@ -263,6 +348,9 @@ export type InsertBusinessHour = typeof businessHours.$inferInsert;
 
 export type PpfLead = typeof ppfLeads.$inferSelect;
 export type InsertPpfLead = typeof ppfLeads.$inferInsert;
+
+export type Campaign = typeof campaigns.$inferSelect;
+export type InsertCampaign = typeof campaigns.$inferInsert;
 
 // Zod schemas
 export const insertAdminSchema = createInsertSchema(admins).omit({

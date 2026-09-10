@@ -7,6 +7,7 @@ import {
   blackoutDates,
   ppfLeads,
   businessHours,
+  campaigns,
   type Admin,
   type InsertAdmin,
   type Service,
@@ -22,6 +23,8 @@ import {
   type PpfLead,
   type InsertPpfLead,
   type BusinessHour,
+  type Campaign,
+  type InsertCampaign,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, desc, asc, sql } from "drizzle-orm";
@@ -81,6 +84,13 @@ export interface IStorage {
   getBlackoutDate(date: string): Promise<BlackoutDate | undefined>;
   createBlackoutDate(blackoutDate: InsertBlackoutDate): Promise<BlackoutDate>;
   deleteBlackoutDate(id: string): Promise<void>;
+
+  // Campaign operations
+  getAllCampaigns(): Promise<Campaign[]>;
+  getCampaign(id: string): Promise<Campaign | undefined>;
+  getCampaignByIdentifier(identifier: string): Promise<Campaign | undefined>;
+  createCampaign(values: InsertCampaign): Promise<Campaign>;
+  updateCampaign(id: string, patch: Partial<InsertCampaign>): Promise<Campaign>;
 
   // PPF leads operations
   getAllPpfLeads(): Promise<PpfLead[]>;
@@ -381,6 +391,43 @@ export class DatabaseStorage implements IStorage {
   }
 
   // PPF leads operations
+  // ---------------------------------------------------------------- campaigns
+  //
+  // Reads return EVERY campaign and let shared/campaign.ts decide which is effective.
+  // Filtering "active and in-window" in SQL was the obvious alternative and is worse:
+  // the window rules (half-open interval, paused-is-a-draft, invalid-fails-closed) would
+  // then exist in two languages, and the deterministic tiebreak could not be expressed in
+  // the same place as the rest of the logic. The table holds a handful of rows.
+
+  async getAllCampaigns(): Promise<Campaign[]> {
+    return await db.select().from(campaigns).orderBy(desc(campaigns.startsAt));
+  }
+
+  async getCampaign(id: string): Promise<Campaign | undefined> {
+    const [row] = await db.select().from(campaigns).where(eq(campaigns.id, id));
+    return row;
+  }
+
+  async getCampaignByIdentifier(identifier: string): Promise<Campaign | undefined> {
+    if (!identifier || identifier.trim() === "") return undefined;
+    const [row] = await db.select().from(campaigns).where(eq(campaigns.identifier, identifier));
+    return row;
+  }
+
+  async createCampaign(values: InsertCampaign): Promise<Campaign> {
+    const [row] = await db.insert(campaigns).values(values).returning();
+    return row;
+  }
+
+  async updateCampaign(id: string, patch: Partial<InsertCampaign>): Promise<Campaign> {
+    const [row] = await db
+      .update(campaigns)
+      .set({ ...patch, updatedAt: new Date() })
+      .where(eq(campaigns.id, id))
+      .returning();
+    return row;
+  }
+
   async getAllPpfLeads(): Promise<PpfLead[]> {
     return await db.select().from(ppfLeads).orderBy(desc(ppfLeads.createdAt));
   }

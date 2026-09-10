@@ -20,6 +20,13 @@ import { computeAvailability, generateHourlySlots, istNow } from "./lib/slots";
 import { validateAppointmentSlot } from "./lib/booking-validation";
 import { parseAttribution, deriveSource } from "./lib/attribution";
 import { rateLimit } from "./lib/rate-limit";
+import {
+  validateCampaignInput,
+  findOverlaps,
+  effectiveCampaignForLandingPage,
+  campaignFreeBookingForService,
+} from "./lib/campaign";
+import { campaignState, type CampaignRecord } from "@shared/campaign";
 import { z } from "zod";
 
 /**
@@ -618,6 +625,228 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  /**
+   * Public: the campaign running on a landing page right now.
+   *
+   * The browser never decides this. It returns:
+   *
+   *   campaign   the resolved winner, or null
+   *   serverNow  this server's clock, as an ISO instant
+   *
+   * `serverNow` is what makes the countdown correct on a device whose clock is wrong.
+   * The client measures the offset once and ticks against server time thereafter, so two
+   * phones showing the same campaign show the same remaining seconds even if one of them
+   * is set to the wrong hour. Without it, "consistent across devices" is not achievable
+   * from a static end timestamp alone.
+   *
+   * Fails closed like every other offer surface: any error reports no campaign, so an
+   * outage shows the normal pricing rather than an offer nobody can honour.
+   */
+  app.get("/api/campaigns/active", async (req, res) => {
+    try {
+      const landingPage = typeof req.query.landingPage === "string" ? req.query.landingPage : "";
+      if (!landingPage) {
+        return res.status(400).json({ message: "landingPage is required" });
+      }
+
+      const all = (await storage.getAllCampaigns()) as unknown as CampaignRecord[];
+      const resolved = effectiveCampaignForLandingPage(all, landingPage);
+
+      // Overlapping active campaigns are an admin mistake, not a customer-facing error.
+      // The customer still gets one deterministic offer; the conflict is logged so it can
+      // be found and fixed rather than silently shaping what people are shown.
+      if (resolved.conflicts.length > 0) {
+        console.warn(
+          `[campaigns] CONFLICT on ${landingPage}: serving "${resolved.campaign?.identifier}" ` +
+            `over ${resolved.conflicts.map((c) => `"${c.identifier}"`).join(", ")} — ` +
+            `overlapping active campaigns should be corrected in admin.`,
+        );
+      }
+
+      const c = resolved.campaign;
+      res.json({
+        serverNow: new Date().toISOString(),
+        campaign: c
+          ? {
+              identifier: c.identifier,
+              name: c.name,
+              serviceSlug: c.serviceSlug,
+              vehicleType: c.vehicleType,
+              landingPage: c.landingPage,
+              startsAt: new Date(c.startsAt).toISOString(),
+              endsAt: new Date(c.endsAt).toISOString(),
+              offerType: c.offerType,
+              offerTitle: c.offerTitle,
+              offerDescription: c.offerDescription ?? null,
+              ctaText: c.ctaText,
+            }
+          : null,
+      });
+    } catch (error) {
+      console.error("campaigns/active read failed; reporting no campaign:", error);
+      res.json({ serverNow: new Date().toISOString(), campaign: null });
+    }
+  });
+
+  // ---------------------------------------------------------------- admin campaigns
+  //
+  // Every field is validated server-side by validateCampaignInput; the admin frontend is
+  // not trusted for any of it. Overlap is refused at write time, which is the real fix —
+  // deterministic read-time resolution is the safety net, not a licence to create
+  // ambiguous offers.
+
+  app.get("/api/admin/campaigns", authenticateAdmin, async (_req, res) => {
+    try {
+      const all = (await storage.getAllCampaigns()) as unknown as CampaignRecord[];
+      const now = new Date();
+      res.json(
+        all.map((c) => ({
+          ...c,
+          // Computed, never stored: a stored status is a status that goes stale the
+          // moment the clock moves past it.
+          state: campaignState(c, now),
+        })),
+      );
+    } catch (error) {
+      console.error("List campaigns error:", error);
+      res.status(500).json({ message: "Failed to load campaigns" });
+    }
+  });
+
+  app.post("/api/admin/campaigns", authenticateAdmin, async (req, res) => {
+    try {
+      const parsed = validateCampaignInput(req.body);
+      if (!parsed.ok) {
+        return res.status(400).json({ message: parsed.message, fieldErrors: parsed.fieldErrors });
+      }
+      const input = parsed.value;
+
+      // The service must exist and be bookable. A campaign advertising a service the
+      // catalogue cannot sell sends paid traffic to a dead end.
+      const service = await storage.getServiceBySlug(input.serviceSlug);
+      if (!service || !service.isActive) {
+        return res.status(400).json({
+          message: "Please correct the highlighted fields.",
+          fieldErrors: { serviceSlug: "No active service with this slug" },
+        });
+      }
+
+      const existingByIdentifier = await storage.getCampaignByIdentifier(input.identifier);
+      if (existingByIdentifier) {
+        return res.status(409).json({
+          message: "Please correct the highlighted fields.",
+          fieldErrors: { identifier: "A campaign with this identifier already exists" },
+        });
+      }
+
+      const all = (await storage.getAllCampaigns()) as unknown as CampaignRecord[];
+      const candidate = { ...input, id: "__new__", createdAt: new Date() } as CampaignRecord;
+      const overlaps = findOverlaps(candidate, all);
+      if (overlaps.length > 0) {
+        return res.status(409).json({
+          message:
+            `This campaign overlaps ${overlaps.map((o) => `"${o.name}"`).join(", ")} on ` +
+            `${input.landingPage}. Pause the other campaign or change the dates.`,
+          fieldErrors: { startsAt: "Overlaps an active campaign on this landing page" },
+          conflicts: overlaps.map((o) => ({ id: o.id, name: o.name, identifier: o.identifier })),
+        });
+      }
+
+      const created = await storage.createCampaign({
+        ...input,
+        startsAt: new Date(input.startsAt),
+        endsAt: new Date(input.endsAt),
+        offerDescription: input.offerDescription ?? null,
+        createdBy: (req as any).admin?.id ?? null,
+      });
+      console.log(`[campaigns] created ${created.identifier} by admin ${(req as any).admin?.id}`);
+      res.json({ ...created, state: campaignState(created as unknown as CampaignRecord) });
+    } catch (error) {
+      console.error("Create campaign error:", error);
+      res.status(500).json({ message: "Failed to create campaign" });
+    }
+  });
+
+  app.patch("/api/admin/campaigns/:id", authenticateAdmin, async (req, res) => {
+    try {
+      const existing = await storage.getCampaign(req.params.id);
+      if (!existing) return res.status(404).json({ message: "Campaign not found" });
+
+      // Validate the MERGED record rather than the patch alone. Validating a patch in
+      // isolation cannot check end-after-start when only one of the two is being changed.
+      const merged = {
+        name: req.body.name ?? existing.name,
+        identifier: req.body.identifier ?? existing.identifier,
+        serviceSlug: req.body.serviceSlug ?? existing.serviceSlug,
+        vehicleType: req.body.vehicleType ?? existing.vehicleType,
+        landingPage: req.body.landingPage ?? existing.landingPage,
+        startsAt: req.body.startsAt ?? new Date(existing.startsAt).toISOString(),
+        endsAt: req.body.endsAt ?? new Date(existing.endsAt).toISOString(),
+        isActive: req.body.isActive ?? existing.isActive,
+        offerType: req.body.offerType ?? existing.offerType,
+        offerTitle: req.body.offerTitle ?? existing.offerTitle,
+        offerDescription: req.body.offerDescription ?? existing.offerDescription,
+        ctaText: req.body.ctaText ?? existing.ctaText,
+      };
+
+      const parsed = validateCampaignInput(merged);
+      if (!parsed.ok) {
+        return res.status(400).json({ message: parsed.message, fieldErrors: parsed.fieldErrors });
+      }
+      const input = parsed.value;
+
+      if (input.serviceSlug !== existing.serviceSlug) {
+        const service = await storage.getServiceBySlug(input.serviceSlug);
+        if (!service || !service.isActive) {
+          return res.status(400).json({
+            message: "Please correct the highlighted fields.",
+            fieldErrors: { serviceSlug: "No active service with this slug" },
+          });
+        }
+      }
+
+      if (input.identifier !== existing.identifier) {
+        const clash = await storage.getCampaignByIdentifier(input.identifier);
+        if (clash && clash.id !== existing.id) {
+          return res.status(409).json({
+            message: "Please correct the highlighted fields.",
+            fieldErrors: { identifier: "A campaign with this identifier already exists" },
+          });
+        }
+      }
+
+      const all = (await storage.getAllCampaigns()) as unknown as CampaignRecord[];
+      const candidate = { ...input, id: existing.id, createdAt: existing.createdAt } as CampaignRecord;
+      const overlaps = findOverlaps(candidate, all);
+      if (overlaps.length > 0) {
+        return res.status(409).json({
+          message:
+            `This campaign would overlap ${overlaps.map((o) => `"${o.name}"`).join(", ")} on ` +
+            `${input.landingPage}. Pause the other campaign or change the dates.`,
+          fieldErrors: { startsAt: "Overlaps an active campaign on this landing page" },
+          conflicts: overlaps.map((o) => ({ id: o.id, name: o.name, identifier: o.identifier })),
+        });
+      }
+
+      const updated = await storage.updateCampaign(existing.id, {
+        ...input,
+        startsAt: new Date(input.startsAt),
+        endsAt: new Date(input.endsAt),
+        offerDescription: input.offerDescription ?? null,
+      });
+      console.log(
+        `[campaigns] updated ${updated.identifier} by admin ${(req as any).admin?.id}: ` +
+          Object.keys(req.body ?? {}).join(", "),
+      );
+      // NOTE: bookings already taken under this campaign are NOT touched. They carry a
+      // snapshot of the identifier precisely so an edit here cannot rewrite history.
+      res.json({ ...updated, state: campaignState(updated as unknown as CampaignRecord) });
+    } catch (error) {
+      console.error("Update campaign error:", error);
+      res.status(500).json({ message: "Failed to update campaign" });
+    }
+  });
+
   app.get("/api/booking-offer", async (_req, res) => {
     try {
       const setting = await storage.getSetting("free_booking_until");
@@ -1161,12 +1390,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         freeBookingUntilValue = null;
       }
 
+      // Campaign offer state for THIS service. Read failures become "no campaign", never
+      // "free": an outage must not be able to give the catalogue away, exactly as the
+      // legacy setting above already guarantees.
+      let campaignFree = false;
+      let activeCampaign: CampaignRecord | null = null;
+      try {
+        const all = (await storage.getAllCampaigns()) as unknown as CampaignRecord[];
+        const result = campaignFreeBookingForService(all, service.slug);
+        campaignFree = result.free;
+        activeCampaign = result.campaign;
+      } catch (error) {
+        console.log("campaign read failed; charging normally:", error);
+      }
+
       const resolvedAmount = resolveBookingAmount({
         serviceSlug: service.slug,
         servicePrice: service.price,
         bookingAmountSetting: bookingAmountSettingValue,
         freeBookingUntil: freeBookingUntilValue,
+        campaignFreeBooking: campaignFree,
       });
+
+      /**
+       * Campaign snapshot written onto every booking.
+       *
+       * `campaignIdentifier` is a COPY, not a join. An admin renaming or deleting this
+       * campaign next month must not change the answer to "which advertisement produced
+       * this booking" for a booking taken today.
+       */
+      const campaignSnapshot = {
+        campaignId: activeCampaign?.id ?? null,
+        campaignIdentifier: activeCampaign?.identifier ?? null,
+        vehicleType: activeCampaign?.vehicleType === "both" ? null : activeCampaign?.vehicleType ?? null,
+      };
       const bookingFeeAmount = resolvedAmount.amount;
       console.log(
         `💰 Authoritative amount ₹${bookingFeeAmount} (source: ${resolvedAmount.source}) for ${service.slug}`,
@@ -1210,6 +1467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           amount: "0.00",
           razorpayOrderId: null,
           paymentStatus: "free",
+          ...campaignSnapshot,
           // Attribution + the customer-facing confirmation credential. Applied to every
           // insert path (free, dev and paid) so no route can create a booking that the
           // customer cannot open or that reporting cannot attribute.
@@ -1307,6 +1565,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           amount: bookingFeeAmount.toString(),
           razorpayOrderId: `dev_order_${Date.now()}`,
           paymentStatus: "completed", // Skip payment for development
+          ...campaignSnapshot,
           source: attributionSource,
           ...attribution,
           confirmationToken: generateConfirmationToken(),
@@ -1352,6 +1611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         amount: bookingFeeAmount.toString(),
         razorpayOrderId: paymentOrder.id,
         paymentStatus: "pending",
+        ...campaignSnapshot,
         source: attributionSource,
         ...attribution,
         confirmationToken: generateConfirmationToken(),

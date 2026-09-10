@@ -6,6 +6,7 @@
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';
 import { readFileSync } from 'fs';
+import { splitStatements } from './lib/sql-split.mjs';
 
 neonConfig.webSocketConstructor = ws;
 
@@ -39,13 +40,12 @@ try {
     process.exit(0);
   }
 
-  const statements = sqlText
+  const sqlWithoutComments = sqlText
     .split('\n')
     .filter((l) => !l.trim().startsWith('--'))
-    .join('\n')
-    .split(';')
-    .map((s) => s.trim())
-    .filter(Boolean);
+    .join('\n');
+
+  const statements = splitStatements(sqlWithoutComments);
 
   // One transaction: either every statement lands or none does.
   const client = await pool.connect();

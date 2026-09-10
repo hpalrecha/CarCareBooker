@@ -76,6 +76,18 @@ export interface ResolveBookingAmountInput {
    * IST, NOTHING is charged online: no booking fee, and no full-price package either.
    */
   freeBookingUntil?: string | null;
+  /**
+   * True when a RUNNING campaign waives the booking fee for THIS service.
+   *
+   * Passed in as a plain boolean, already resolved by the caller (see
+   * server/lib/campaign.ts campaignFreeBookingForService). This module deliberately has
+   * no imports: it is the most security-sensitive calculation in the application, it is
+   * loaded by its unit test as bare source with the types stripped, and adding a
+   * dependency would both break that test and make the amount harder to reason about.
+   *
+   * Defaults to false, so every existing caller keeps its exact behaviour.
+   */
+  campaignFreeBooking?: boolean;
   /** Injected so the window is testable without waiting for a calendar. */
   now?: Date;
 }
@@ -85,7 +97,7 @@ export interface ResolvedBookingAmount {
    *  payment is taken and Razorpay is not involved at all. */
   amount: number;
   /** Which rule produced it — surfaced for logging and asserted in tests. */
-  source: "service-price" | "settings" | "default" | "free-offer";
+  source: "service-price" | "settings" | "default" | "free-offer" | "campaign-free-offer";
 }
 
 /** Accepts a value only if it parses to a finite, strictly positive number. */
@@ -97,11 +109,24 @@ function usableAmount(value: string | number | null | undefined): number | null 
 }
 
 export function resolveBookingAmount(input: ResolveBookingAmountInput): ResolvedBookingAmount {
-  // 0. Free-booking offer. Deliberately ahead of the full-price package: the offer is
-  //    "book free", and a customer told the booking is free must not be charged ₹8999
-  //    because of which service they picked. The window fails closed (see above), and
-  //    zero is returned as a first-class result rather than by setting booking_amount to
-  //    "0" — usableAmount() rejects 0, so that route would silently charge ₹299 instead.
+  // 0a. A RUNNING campaign waives the fee for this specific service.
+  //
+  //     Ahead of the legacy window only so the reported `source` names the campaign; both
+  //     produce the same zero, so the order cannot change what anyone is charged. Scoped
+  //     to one service by the caller, unlike rule 0b — a ceramic-coating campaign must
+  //     not make the ₹8,999 Annual Maintenance Package free just because both are
+  //     bookable the same week.
+  if (input.campaignFreeBooking === true) {
+    return { amount: 0, source: "campaign-free-offer" };
+  }
+
+  // 0b. Legacy free-booking offer, applying to EVERY service. Unchanged.
+  //
+  //     Deliberately ahead of the full-price package: the offer is "book free", and a
+  //     customer told the booking is free must not be charged ₹8999 because of which
+  //     service they picked. The window fails closed (see above), and zero is returned as
+  //     a first-class result rather than by setting booking_amount to "0" —
+  //     usableAmount() rejects 0, so that route would silently charge ₹299 instead.
   if (isFreeBookingWindow(input.freeBookingUntil, input.now ?? new Date())) {
     return { amount: 0, source: "free-offer" };
   }
