@@ -837,14 +837,19 @@ export default function ServiceLanding() {
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
               <div className="text-4xl mb-4">{offer.free ? '🎁' : '💰'}</div>
+              {/* "Pay Nothing Now" was ambiguous next to a heading reading "Free Booking
+                  Offer": on a page selling a ₹45,000 service, a customer skimming those
+                  two lines together can reasonably read "the service is free". What is
+                  free is the BOOKING. The service price is named right here so the two
+                  cannot be conflated. */}
               <h3 className="text-xl font-bold mb-2">
                 {offer.free
-                  ? 'Pay Nothing Now'
+                  ? 'Booking Is Free'
                   : service.title === 'Annual Maintenance Package' ? 'Just ₹8999' : 'Just ₹299'}
               </h3>
               <p className="text-gray-300">
                 {offer.free
-                  ? 'Book with just your name, number, email and the slot you want'
+                  ? `Reserve your slot with just your name, number, email and a time — nothing to pay online. The ${service.title.trim()} itself is charged as normal at the studio.`
                   : service.title === 'Annual Maintenance Package'
                     ? 'Complete package payment - no additional charges'
                     : 'Secure your preferred time slot with a small booking fee'
@@ -859,7 +864,13 @@ export default function ServiceLanding() {
             <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
               <div className="text-4xl mb-4">✨</div>
               <h3 className="text-xl font-bold mb-2">Transparent</h3>
-              <p className="text-gray-300">No hidden charges, pay remainder at service time</p>
+              {/* "pay remainder" is wrong during the offer — nothing has been paid, so
+                  there is no remainder. The full service price is due, not a balance. */}
+              <p className="text-gray-300">
+                {offer.free
+                  ? 'No hidden charges — the full service price is payable at the studio'
+                  : 'No hidden charges, pay remainder at service time'}
+              </p>
             </div>
           </div>
           <p className="text-lg text-gray-300 mb-4">

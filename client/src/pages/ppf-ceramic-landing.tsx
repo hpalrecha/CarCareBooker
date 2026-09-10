@@ -246,30 +246,28 @@ export default function PpfCeramicLanding() {
     },
   ];
 
-  const testimonials = [
-    { name: "Deepak Jain", vehicle: "PPF Customer", rating: 5, comment: "Absolute professional in what they do, got PPF job done on my car, has come out amazing. Thank you Hitesh and Nikhil, referred to everyone." },
-    { name: "Syed Najeeb", vehicle: "Car Polishing", rating: 5, comment: "Car polishing has done very good, my car has turned as a showroom one. People must visit!" },
-    { name: "Anto Alex", vehicle: "Windshield Service", rating: 5, comment: "It was an amazing experience, got my scratches from my windshield off. Thank you team." },
-    { name: "Prem Chuluka", vehicle: "Detailing Customer", rating: 5, comment: "Staff and management were extremely professional, the quality of work was great and completed within committed timelines." },
-    { name: "Darshan Raam", vehicle: "Ford Owner", rating: 5, comment: "Had the Windshield Scrubbing and Polishing done to remove the minor scratches and scrubbing marks. Excellent results!" },
-    { name: "malik rehan", vehicle: "Windshield Service", rating: 5, comment: "This place is just awesome, they did more than what I asked for and removed marks from my car's windshield that no other place could. Just awesome!" },
-    { name: "Naveen Kumar", vehicle: "Maruti Baleno", rating: 5, comment: "I have given my Baleno for ceramic coating in P91 car care, the work is excellent with good finishing. Highly recommend P91 car care." },
-    { name: "Manoj Arvind", vehicle: "Detailing Customer", rating: 5, comment: "Awesome place to get your car detailing done. The attention to detail is next level." },
-    { name: "Mahesh Kumar", vehicle: "Regular Customer", rating: 5, comment: "Very professional service and they use genuine products. Totally satisfied with the services." },
-    { name: "Satyam Chaudhary", vehicle: "Glass Coating", rating: 5, comment: "I got my car glass coating and the service was wonderful. Water is flowing down and even without using wiper, road is clearly visible!" },
-    { name: "Mohammed Aahad", vehicle: "Windshield Customer", rating: 5, comment: "Very good experience, staff is very friendly. I got my windshield restoration done and would recommend it to others. Just loved the work!" },
-    { name: "Rohit Rao", vehicle: "Headlight Restoration", rating: 5, comment: "Nikhil & team did a great job in headlight restoration for my car. They were quick enough & gave a pristine new look. Highly recommend!" },
-    { name: "Abhishek Shisodia", vehicle: "PPF & Washing", rating: 5, comment: "Beautiful detailed work! They have the best PPF and washing service in Bangalore!" },
-    { name: "Rinesh Xavier", vehicle: "Audi A4", rating: 5, comment: "One of the best in South India. Had a good experience with my Audi A4 for windshield cleaning and polishing." },
-    { name: "Arya Mohanty", vehicle: "MG Hector", rating: 5, comment: "I took my MG Hector for interior deep cleaning and I am very satisfied with their service. Highly recommended!" },
-    { name: "Arijit Basu", vehicle: "Full Service", rating: 5, comment: "Highly recommended! Very nicely done car external polishing and full interior cleaning. Satisfied with their work and behavior." },
-    { name: "jithu m", vehicle: "PPF Customer", rating: 5, comment: "I got PPF done for my car, must say real professional work at affordable pricing. Contact Mr Hitesh and Mr Vishal, they are amazing!" },
-    { name: "Kamal Gaur", vehicle: "Premium Service", rating: 5, comment: "Exceptional service, thoughtful team — highly recommended." },
-    { name: "Mohan Kumar Dk", vehicle: "Budget Friendly", rating: 5, comment: "Excellent service and value for money, moreover it's budget friendly. I'm really satisfied with their work." },
-    { name: "USDOT Logistics", vehicle: "Impressed Customer", rating: 5, comment: "It's really tough job to maintain 4.9 on Google but they really deserve this!" },
-    { name: "Fuzail Mohammed", vehicle: "Car Service", rating: 5, comment: "I recently had my car serviced at P91 and I'm extremely satisfied with the experience. The staff were professional!" },
-    { name: "Mohammed Asif Suhaib", vehicle: "Regular Customer", rating: 5, comment: "Loved the service! They WhatsApp the status of the wash. Mr. Nikhil was super helpful in doubt clearance." },
-  ];
+  /**
+   * WITHHELD PENDING BUSINESS CONFIRMATION — do not repopulate without sign-off.
+   *
+   * This page previously carried 21 hardcoded testimonials, a "4.9 / 5.0" rating, a
+   * "200+ verified reviews" subtitle and a "Join 500+ Happy Customers" CTA. They read
+   * like genuine Google reviews — real names, specific services, plausible detail — but
+   * none of it is sourced from anything this codebase can verify, and one of the
+   * testimonials even cited the 4.9 figure back at itself.
+   *
+   * This page is about to receive paid Meta traffic. An unverifiable rating or review
+   * count on an ad landing page is not just a brief violation, it is advertising-
+   * standards exposure, so the claims come down until the business confirms them.
+   *
+   * TO RESTORE: confirm the rating, the review count and the testimonial text against
+   * the actual Google Business Profile, confirm the reviews may be reproduced, then
+   * source them from that profile rather than from an array in a source file — a number
+   * hardcoded here silently goes stale the day the profile changes.
+   *
+   * Genuine per-service testimonials entered by an admin (services.testimonials, shown
+   * on /service/:slug) are untouched. Those are real business data with a known author.
+   */
+  const testimonials: { name: string; vehicle: string; rating: number; comment: string }[] = [];
 
   const completedWorks = [
     { vehicle: "Range Rover Evoque", service: "P91 Premium PPF", image: "/attached_assets/Screenshot_2025-12-12_at_4.28.00_PM_1765537183721.png" },
@@ -291,15 +289,31 @@ export default function PpfCeramicLanding() {
     { q: "Can PPF be removed?", a: "Yes, PPF can be professionally removed without damaging the original paint." },
     { q: "What's the difference between PPF and ceramic coating?", a: "PPF is a physical film that protects against scratches and chips. Ceramic coating is a liquid polymer that provides hydrophobic properties and enhanced shine. For maximum protection, we recommend both." },
     { q: "How long does installation take?", a: "PPF installation typically takes 2-5 days depending on coverage. Ceramic coating takes 1-2 days." },
-    { q: "What warranty do you provide?", a: "We provide up to 10-year warranty on PPF with NO QUESTIONS ASKED replacement policy. If the film fails, we replace it FREE!" },
-    { q: "Why choose P91 over others?", a: "We are Bangalore's BIGGEST detailing studio with 500+ cars completed, premium brands, and the best warranty in the industry." },
+    { q: "What warranty do you provide?", a: "We provide up to 10-year warranty on PPF with a no-questions-asked replacement policy. If the film fails, we replace it free." },
+    // Rewritten: the previous answer claimed "Bangalore's BIGGEST detailing studio",
+    // "500+ cars completed" and "the best warranty in the industry" — an unverifiable
+    // statistic wrapped in two comparative superlatives. Replaced with what the page
+    // can actually stand behind: the named films and coatings, and the studio location.
+    { q: "Why choose P91 over others?", a: "We install named-brand films and coatings — STEK, Llumar, 3M and Nasiol, alongside our own P91 Premium PPF — from our studio in Indiranagar, Bangalore, and we back PPF with a written replacement warranty." },
   ];
 
+  /**
+   * Hero trust tiles.
+   *
+   * Was four counters: "500+ Cars Protected", "100+ Bikes Covered", "10+ Years Warranty",
+   * "4.9 Google Rating". Three of those are unverifiable and the fourth restates the
+   * warranty already stated twice above it. Replaced with attributes that are true by
+   * construction and checkable from this site's own content — the films we name, the
+   * vehicles we take, and the confirmed studio address — so the tile row keeps its
+   * layout and its job without asserting a number nobody has verified.
+   *
+   * See the testimonials block above for the restore procedure.
+   */
   const stats = [
-    { value: "500+", label: "Cars Protected" },
-    { value: "100+", label: "Bikes Covered" },
-    { value: "10+", label: "Years Warranty" },
-    { value: "4.9", label: "Google Rating" },
+    { value: "PPF", label: "Films & Coatings" },
+    { value: "Car & Bike", label: "Both Serviced" },
+    { value: "Indiranagar", label: "Bangalore Studio" },
+    { value: "Warranty", label: "Backed Install" },
   ];
 
   return (
@@ -345,8 +359,8 @@ export default function PpfCeramicLanding() {
           <div className="flex items-center gap-3">
             <img src={p91Logo} alt="P91 Car Care" className="h-12 w-auto" />
             <div className="hidden sm:block">
-              <div className="text-sm text-green-400 font-semibold">Bangalore's Biggest</div>
-              <div className="text-xs text-gray-400">Detailing Studio</div>
+              <div className="text-sm text-green-400 font-semibold">P91 Car Care</div>
+              <div className="text-xs text-gray-400">Detailing Studio · Indiranagar</div>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -372,9 +386,12 @@ export default function PpfCeramicLanding() {
                   <Shield className="w-4 h-4" />
                   Premium Protection
                 </div>
+                {/* Was "#1 in Bangalore" — an unverifiable ranking claim. The studio
+                    location is the verifiable fact, and it is the one a local customer
+                    clicking an ad actually wants in the first three seconds. */}
                 <div className="inline-flex items-center gap-2 bg-yellow-500/20 text-yellow-400 px-4 py-2 rounded-full text-sm font-medium">
                   <Award className="w-4 h-4" />
-                  #1 in Bangalore
+                  Indiranagar, Bangalore
                 </div>
               </div>
               
@@ -384,12 +401,17 @@ export default function PpfCeramicLanding() {
               </h1>
 
               <div className="bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border border-yellow-600/50 rounded-xl p-4">
+                {/* Was "BANGALORE'S BIGGEST DETAILING STUDIO" over "500+ vehicles
+                    protected | 10+ years warranty | No questions asked replacement".
+                    The superlative and the vehicle count are unverified; the warranty
+                    terms are a real business commitment and are kept, stated once here
+                    rather than repeated as a statistic. */}
                 <div className="flex items-center gap-2 text-yellow-400 font-bold mb-2">
                   <Zap className="w-5 h-5" />
-                  BANGALORE'S BIGGEST DETAILING STUDIO
+                  PAINT PROTECTION SPECIALISTS
                 </div>
                 <p className="text-gray-300 text-sm">
-                  500+ vehicles protected | 10+ years warranty | No questions asked replacement
+                  STEK · Llumar · 3M · Nasiol · P91 Premium PPF | Up to 10-year PPF warranty with no-questions-asked replacement
                 </p>
               </div>
               
@@ -657,15 +679,20 @@ export default function PpfCeramicLanding() {
               <div className="text-sm font-medium text-white">10 Year Warranty</div>
               <div className="text-xs text-gray-400">No questions asked</div>
             </div>
+            {/* Two tiles here asserted "500+ Happy Customers" and "4.9 Google Rating /
+                200+ reviews". Both are withheld pending confirmation against the actual
+                Google Business Profile — see the testimonials block for the restore
+                procedure. Replaced with the installation facts, so the four-tile row
+                keeps its shape and still answers "why trust these people with my paint". */}
             <div className="flex flex-col items-center gap-2">
               <Users className="w-8 h-8 text-green-400" />
-              <div className="text-sm font-medium text-white">500+ Happy Customers</div>
-              <div className="text-xs text-gray-400">And counting</div>
+              <div className="text-sm font-medium text-white">In-Studio Installation</div>
+              <div className="text-xs text-gray-400">Indiranagar, Bangalore</div>
             </div>
             <div className="flex flex-col items-center gap-2">
               <Star className="w-8 h-8 text-yellow-400" />
-              <div className="text-sm font-medium text-white">4.9 Google Rating</div>
-              <div className="text-xs text-gray-400">200+ reviews</div>
+              <div className="text-sm font-medium text-white">Named-Brand Films</div>
+              <div className="text-xs text-gray-400">STEK · Llumar · 3M · Nasiol</div>
             </div>
             <div className="flex flex-col items-center gap-2">
               <RefreshCcw className="w-8 h-8 text-green-400" />
@@ -682,7 +709,10 @@ export default function PpfCeramicLanding() {
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">Premium Brands We Use</h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
-              Including our exclusive <span className="text-green-400 font-bold">P91 Premium PPF</span> - the best value protection in India
+              {/* "the best value protection in India" was an unverifiable comparative
+                  claim about the whole market. What is true and checkable is that this
+                  is our own film, sold alongside the named third-party brands below. */}
+              Including our own <span className="text-green-400 font-bold">P91 Premium PPF</span>, alongside the brands below
             </p>
           </div>
 
@@ -794,7 +824,8 @@ export default function PpfCeramicLanding() {
           </div>
 
           <div className="text-center mt-8">
-            <p className="text-gray-400 mb-4">And 500+ more vehicles protected!</p>
+            {/* Was "And 500+ more vehicles protected!" — an unverified count. */}
+            <p className="text-gray-400 mb-4">Recent work from our Indiranagar studio.</p>
             <Button
               onClick={scrollToForm}
               className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto"
@@ -1022,19 +1053,19 @@ export default function PpfCeramicLanding() {
         </div>
       </section>
 
-      {/* Reviews Section - 20+ reviews */}
+      {/* Reviews Section.
+          Renders ONLY when there are confirmed reviews to show. `testimonials` is
+          deliberately empty (see its declaration), so today this section is absent
+          rather than showing an empty grid under a heading promising reviews.
+
+          The "4.9 / 5.0" figure and the "200+ verified reviews" subtitle that used to
+          head this section are gone with it — an aggregate rating is exactly the kind of
+          claim that must come from the Google Business Profile, not from markup. */}
+      {testimonials.length > 0 && (
       <section className="py-16 px-4 bg-gray-900">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <Star className="w-8 h-8 text-yellow-400 fill-yellow-400" />
-              <span className="text-4xl font-bold text-white">4.9</span>
-              <span className="text-gray-400 text-lg">/ 5.0</span>
-            </div>
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">What Our Customers Say</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">
-              200+ verified reviews from happy customers across Bangalore
-            </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[800px] overflow-y-auto pr-2">
@@ -1067,12 +1098,13 @@ export default function PpfCeramicLanding() {
               onClick={scrollToForm}
               className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto"
             >
-              Join 500+ Happy Customers
+              Book Your Free Appointment
               <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
             </Button>
           </div>
         </div>
       </section>
+      )}
 
       {/* FAQ Section */}
       <section className="py-16 px-4 bg-black">
@@ -1108,7 +1140,7 @@ export default function PpfCeramicLanding() {
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-yellow-500/20 text-yellow-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
             <Award className="w-4 h-4" />
-            Bangalore's #1 Detailing Studio
+            PPF &amp; Ceramic Coating · Indiranagar
           </div>
           <h2 className="text-3xl lg:text-4xl font-bold mb-4">Ready to Protect Your Vehicle?</h2>
           <p className="text-xl text-gray-300 mb-4">
@@ -1162,7 +1194,7 @@ export default function PpfCeramicLanding() {
               <img src={p91Logo} alt="P91 Car Care" className="h-10 w-auto" />
               <div>
                 <div className="text-sm font-bold text-white">P91 Car Care</div>
-                <div className="text-xs text-gray-400">Bangalore's Biggest Detailing Studio</div>
+                <div className="text-xs text-gray-400">Detailing Studio · Indiranagar, Bangalore</div>
               </div>
             </div>
             <p className="text-gray-500 text-sm text-center">
