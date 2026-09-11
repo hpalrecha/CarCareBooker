@@ -206,12 +206,11 @@ export const LANDING_PAGES: LandingPage[] = [
       },
     ],
     howItWorks: [
-      "Book your appointment online — free during the current offer",
-      "Bring the car to our Indiranagar studio",
-      "Decontamination wash and clay bar treatment",
-      "Machine paint correction to remove swirls and water-spot etching",
-      "Panel wipe, then the coating applied panel by panel",
-      "Controlled curing and a final inspection under inspection lighting",
+      "Choose your service (Ceramic Coating)",
+      "Select your car type",
+      "Check the live price",
+      "Book your appointment free (0 upfront cost)",
+      "Visit P91 Car Care in Indiranagar & pay at studio after work",
     ],
     preferredPostSlugs: ["ppf-vs-ceramic-coating-bangalore", "hard-water-spot-removal-bangalore"],
     related: [
@@ -279,12 +278,11 @@ export const LANDING_PAGES: LandingPage[] = [
       },
     ],
     howItWorks: [
-      "Book your appointment online — free during the current offer",
-      "Bring the bike to our Indiranagar studio",
-      "Full decontamination wash, including the areas behind the fairings",
-      "Paint correction where the finish needs it",
-      "Coating applied by hand across tank, fairings and painted panels",
-      "Controlled curing and a final inspection before handover",
+      "Choose your service (Bike Ceramic Coating)",
+      "Select your motorcycle model",
+      "Check the live price",
+      "Book your appointment free (0 upfront cost)",
+      "Visit P91 Car Care in Indiranagar & pay at studio after work",
     ],
     // No motorcycle-specific article exists yet. Rather than force a false match, the
     // carousel falls back to the most recent posts — see relevantPosts() below.
@@ -374,12 +372,11 @@ export const LANDING_PAGES: LandingPage[] = [
       },
     ],
     howItWorks: [
-      "Choose your body type above for the exact package and price",
-      "Book your appointment online — free during the current offer",
-      "Bring the car to our Indiranagar studio",
-      "Paint inspection and full decontamination before anything is fitted",
-      "Film cut and fitted panel by panel",
-      "Final inspection, then handover with your written warranty terms",
+      "Choose your service (Paint Protection Film)",
+      "Select your car body type (Hatchback, Sedan, SUV)",
+      "Check the live price",
+      "Book your appointment free (0 upfront cost)",
+      "Visit P91 Car Care in Indiranagar & pay at studio after work",
     ],
     // Full PPF rows carry 2 / 3 / 4 in a MINUTES column. Suppressed until corrected.
     hideDuration: true,

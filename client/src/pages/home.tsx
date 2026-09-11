@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
+import HowToGetStarted from "@/components/how-to-get-started";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import TransformationCTA from "@/components/transformation-cta";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
@@ -161,15 +162,18 @@ export default function Home() {
         <div className="wrap copy">
           <span className="eyebrow">● Detailing studio · Indiranagar</span>
           <h1>
-            Car Detailing, PPF &amp; Ceramic Coating Studio in{" "}
-            <span className="gradient-text">Indiranagar, Bangalore</span>
+            Car &amp; Bike Detailing, PPF &amp; Ceramic Coating in{" "}
+            <span className="gradient-text">Indiranagar</span>
           </h1>
           <p className="lede">
-            Ceramic coating, paint protection film and full interior work — done properly,
-            warranty-backed, and bookable online in under a minute.
+            Paint correction, 1-year ceramic coating &amp; PPF. Clear pricing, written warranty, and free online booking.
           </p>
+          <div className="mt-2 mb-4 p-2.5 rounded-lg bg-[var(--dark-gray)]/80 border border-[var(--neon-green)]/30 text-xs text-[var(--txt-1)] flex items-center gap-2">
+            <span className="text-[var(--neon-green)] text-base font-bold">💡</span>
+            <span><b>Booking is 100% Free</b> — Service price paid at the Indiranagar studio after work is done.</span>
+          </div>
           <div className="hero-cta">
-            <Link href="/services" className="cta-lg" data-testid="button-hero-book">Book Now →</Link>
+            <Link href="/services" className="cta-lg" data-testid="button-hero-book">Book Free Appointment →</Link>
             <a className="cta-ghost" href="https://wa.me/917406619191" data-testid="link-hero-whatsapp">WhatsApp us</a>
           </div>
           <div className="hero-facts">
@@ -288,6 +292,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ---------- 5-step How to Get Started ---------- */}
+      <HowToGetStarted />
 
       {/* ---------- before / after ----------
           RESTORED. The first pass of this redesign dropped these four sections because

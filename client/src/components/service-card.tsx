@@ -87,7 +87,7 @@ export default function ServiceCard({ service }: ServiceCardProps) {
               data-testid={`button-view-service-${service.id}`}
               size="sm"
             >
-              View Service
+              Book Free Appointment
               <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>

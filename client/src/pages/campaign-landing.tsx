@@ -388,7 +388,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
       <section className="section lp-tight">
         <div className="wrap narrow">
           <div className="section-head">
-            <h2>How it works</h2>
+            <h2>How to Get Started</h2>
           </div>
           {/* An ordered list because the order is real, not decorative — numbered markers
               here encode an actual sequence the customer moves through. */}
