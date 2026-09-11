@@ -103,8 +103,9 @@ export default function SiteFooter() {
             <h4>Services</h4>
             <ul>
               <li><Link href="/services">All services &amp; booking</Link></li>
-              <li><Link href="/services/paint-protection-film-bangalore">Paint protection film</Link></li>
-              <li><Link href="/services/ceramic-coating-bangalore">Ceramic coating</Link></li>
+              <li><Link href="/ceramic-coating/car">Car Ceramic Coating</Link></li>
+              <li><Link href="/ceramic-coating/bike">Bike Ceramic Coating</Link></li>
+              <li><Link href="/ppf">Paint Protection Film (PPF)</Link></li>
               <li><Link href="/services/interior-detailing-bangalore">Interior detailing</Link></li>
               <li><Link href="/services/glass-sun-control-film-bangalore">Glass &amp; sun film</Link></li>
             </ul>

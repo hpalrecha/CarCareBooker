@@ -206,11 +206,11 @@ export const LANDING_PAGES: LandingPage[] = [
       },
     ],
     howItWorks: [
-      "Choose your service (Ceramic Coating)",
-      "Select your car type",
-      "Check the live price",
-      "Book your appointment free (0 upfront cost)",
-      "Visit P91 Car Care in Indiranagar & pay at studio after work",
+      "Choose your service",
+      "Select your vehicle",
+      "Check the price",
+      "Book your appointment",
+      "Visit P91 (Booking is free — service charges apply at the studio)",
     ],
     preferredPostSlugs: ["ppf-vs-ceramic-coating-bangalore", "hard-water-spot-removal-bangalore"],
     related: [
@@ -278,11 +278,11 @@ export const LANDING_PAGES: LandingPage[] = [
       },
     ],
     howItWorks: [
-      "Choose your service (Bike Ceramic Coating)",
-      "Select your motorcycle model",
-      "Check the live price",
-      "Book your appointment free (0 upfront cost)",
-      "Visit P91 Car Care in Indiranagar & pay at studio after work",
+      "Choose your service",
+      "Select your vehicle",
+      "Check the price",
+      "Book your appointment",
+      "Visit P91 (Booking is free — service charges apply at the studio)",
     ],
     // No motorcycle-specific article exists yet. Rather than force a false match, the
     // carousel falls back to the most recent posts — see relevantPosts() below.
@@ -372,11 +372,11 @@ export const LANDING_PAGES: LandingPage[] = [
       },
     ],
     howItWorks: [
-      "Choose your service (Paint Protection Film)",
-      "Select your car body type (Hatchback, Sedan, SUV)",
-      "Check the live price",
-      "Book your appointment free (0 upfront cost)",
-      "Visit P91 Car Care in Indiranagar & pay at studio after work",
+      "Choose your service",
+      "Select your vehicle",
+      "Check the price",
+      "Book your appointment",
+      "Visit P91 (Booking is free — service charges apply at the studio)",
     ],
     // Full PPF rows carry 2 / 3 / 4 in a MINUTES column. Suppressed until corrected.
     hideDuration: true,

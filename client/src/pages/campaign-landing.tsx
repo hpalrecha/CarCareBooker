@@ -10,6 +10,7 @@ import CampaignOffer from "@/components/campaign-offer";
 import VehicleSelector from "@/components/vehicle-selector";
 import BlogCarousel from "@/components/blog-carousel";
 import HeroOfferStrip from "@/components/hero-offer-strip";
+import ProtectionChallenge from "@/components/protection-challenge";
 import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { useQuery } from "@tanstack/react-query";
@@ -397,6 +398,13 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
               <li key={step}>{step}</li>
             ))}
           </ol>
+        </div>
+      </section>
+
+      {/* ---------- interactive P91 Protection Challenge ---------- */}
+      <section className="section lp-tight">
+        <div className="wrap narrow">
+          <ProtectionChallenge onBookOverride={() => setBookingOpen(true)} />
         </div>
       </section>
 

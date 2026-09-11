@@ -7,6 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { CheckCircle, Star, Clock, Shield, Phone, Mail, MapPin, Play, ArrowRight, Zap } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import BookingModal from "@/components/booking-modal";
+import ProtectionChallenge from "@/components/protection-challenge";
 import { Header } from "@/components/header";
 import Footer from "@/components/footer";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
@@ -956,6 +957,13 @@ export default function ServiceLanding() {
           </div>
         </section>
       )}
+      {/* Interactive P91 Protection Challenge */}
+      <section className="py-12 px-4 bg-black">
+        <div className="max-w-4xl mx-auto">
+          <ProtectionChallenge onBookOverride={() => setBookingModalOpen(true)} />
+        </div>
+      </section>
+
       {/* Gallery Section - Single Video in 16:9 Format */}
       {service.gallery && service.gallery.length > 0 && (
         <section className="py-24 px-4 bg-gray-900">

@@ -14,11 +14,11 @@ export default function HowToGetStarted({
   "data-testid": testId = "how-to-get-started",
 }: HowToGetStartedProps) {
   const steps = [
-    { num: "1", title: "Choose your service", desc: "Ceramic coating, PPF, or deep detailing." },
-    { num: "2", title: "Select your car/bike", desc: "Pick vehicle type for instant price." },
-    { num: "3", title: "Check the price", desc: "100% transparent live pricing." },
-    { num: "4", title: "Book your appointment", desc: "Free booking — zero upfront fee." },
-    { num: "5", title: "Visit P91 Car Care", desc: "Indiranagar studio — pay after work." },
+    { num: "1", title: "Choose your service", desc: "Ceramic coating, PPF, or detailing." },
+    { num: "2", title: "Select your vehicle", desc: "Car or motorcycle." },
+    { num: "3", title: "Check the price", desc: "Clear live catalogue pricing." },
+    { num: "4", title: "Book your appointment", desc: "Booking is free — service charges apply at the studio." },
+    { num: "5", title: "Visit P91", desc: "Indiranagar studio, Bangalore." },
   ];
 
   return (
@@ -30,7 +30,7 @@ export default function HowToGetStarted({
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white">How to Get Started</h2>
           <p className="text-sm text-[var(--txt-2)] mt-1.5 max-w-md mx-auto">
-            Book online in seconds. Free reservation — pay for service at our Indiranagar studio.
+            Book online in seconds. Booking is free — service charges apply at the studio.
           </p>
         </div>
 
@@ -67,11 +67,11 @@ export default function HowToGetStarted({
               className="cta-lg inline-block w-full sm:w-auto text-center"
               data-testid="link-get-started-services"
             >
-              Check Price &amp; Get Started →
+              Check Price →
             </Link>
           )}
           <p className="text-xs text-[var(--txt-2)] mt-2">
-            💡 <b>100% Free Online Booking</b> · Settle service price at the studio after work
+            💡 <b>Booking is free</b> · Service charges apply at the studio
           </p>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import HowToGetStarted from "@/components/how-to-get-started";
+import ProtectionChallenge from "@/components/protection-challenge";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import TransformationCTA from "@/components/transformation-cta";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
@@ -170,11 +171,11 @@ export default function Home() {
           </p>
           <div className="mt-2 mb-4 p-2.5 rounded-lg bg-[var(--dark-gray)]/80 border border-[var(--neon-green)]/30 text-xs text-[var(--txt-1)] flex items-center gap-2">
             <span className="text-[var(--neon-green)] text-base font-bold">💡</span>
-            <span><b>Booking is 100% Free</b> — Service price paid at the Indiranagar studio after work is done.</span>
+            <span><b>Booking is free</b> — Service charges apply at our Indiranagar studio.</span>
           </div>
           <div className="hero-cta">
             <Link href="/services" className="cta-lg" data-testid="button-hero-book">Book Free Appointment →</Link>
-            <a className="cta-ghost" href="https://wa.me/917406619191" data-testid="link-hero-whatsapp">WhatsApp us</a>
+            <a className="cta-ghost" href="https://wa.me/917406619191" data-testid="link-hero-whatsapp">WhatsApp Us</a>
           </div>
           <div className="hero-facts">
             <span>
@@ -295,6 +296,11 @@ export default function Home() {
 
       {/* ---------- 5-step How to Get Started ---------- */}
       <HowToGetStarted />
+
+      {/* ---------- Interactive P91 Protection Challenge ---------- */}
+      <div className="wrap">
+        <ProtectionChallenge />
+      </div>
 
       {/* ---------- before / after ----------
           RESTORED. The first pass of this redesign dropped these four sections because
@@ -450,7 +456,7 @@ export default function Home() {
             <div className="cell"><b>Same-day service</b><span>Most detailing finished the day you book</span></div>
             <div className="cell"><b>Pickup &amp; drop</b><span>Available across Bangalore at cost</span></div>
             <div className="cell">{offer.free
-              ? <><b>Free to book</b><span>No payment to reserve — settle at the store, no hidden charges</span></>
+              ? <><b>Booking is free</b><span>Booking is free — service charges apply at the studio</span></>
               : <><b>Pay {formatINR(bookingFee)} to book</b><span>Balance settled at the store, no hidden charges</span></>}</div>
           </div>
         </div>
