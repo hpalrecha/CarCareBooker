@@ -23,6 +23,11 @@ RUN npm run build
 FROM node:20-bookworm-slim AS runtime
 WORKDIR /app
 
+# Supplied by the deployment script. Keeping the revision in the image makes a
+# running production container traceable to the GitHub commit that built it.
+ARG GIT_SHA=unknown
+LABEL org.opencontainers.image.revision=$GIT_SHA
+
 # Deliberately a FULL install, including devDependencies.
 #
 # esbuild bundles server/vite.ts into dist/index.js, and that file carries
