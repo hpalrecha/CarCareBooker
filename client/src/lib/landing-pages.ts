@@ -206,11 +206,12 @@ export const LANDING_PAGES: LandingPage[] = [
       },
     ],
     howItWorks: [
-      "Choose your service",
-      "Select your vehicle",
-      "Check the price",
-      "Book your appointment",
-      "Visit P91 (Booking is free — service charges apply at the studio)",
+      "Book your appointment online — free during the current offer",
+      "Bring the car to our Indiranagar studio",
+      "Decontamination wash and clay bar treatment",
+      "Machine paint correction to remove swirls and water-spot etching",
+      "Panel wipe, then the coating applied panel by panel",
+      "Controlled curing and a final inspection under inspection lighting",
     ],
     preferredPostSlugs: ["ppf-vs-ceramic-coating-bangalore", "hard-water-spot-removal-bangalore"],
     related: [
@@ -278,11 +279,12 @@ export const LANDING_PAGES: LandingPage[] = [
       },
     ],
     howItWorks: [
-      "Choose your service",
-      "Select your vehicle",
-      "Check the price",
-      "Book your appointment",
-      "Visit P91 (Booking is free — service charges apply at the studio)",
+      "Book your appointment online — free during the current offer",
+      "Bring the bike to our Indiranagar studio",
+      "Full decontamination wash, including the areas behind the fairings",
+      "Paint correction where the finish needs it",
+      "Coating applied by hand across tank, fairings and painted panels",
+      "Controlled curing and a final inspection before handover",
     ],
     // No motorcycle-specific article exists yet. Rather than force a false match, the
     // carousel falls back to the most recent posts — see relevantPosts() below.
@@ -372,11 +374,12 @@ export const LANDING_PAGES: LandingPage[] = [
       },
     ],
     howItWorks: [
-      "Choose your service",
-      "Select your vehicle",
-      "Check the price",
-      "Book your appointment",
-      "Visit P91 (Booking is free — service charges apply at the studio)",
+      "Choose your body type above for the exact package and price",
+      "Book your appointment online — free during the current offer",
+      "Bring the car to our Indiranagar studio",
+      "Paint inspection and full decontamination before anything is fitted",
+      "Film cut and fitted panel by panel",
+      "Final inspection, then handover with your written warranty terms",
     ],
     // Full PPF rows carry 2 / 3 / 4 in a MINUTES column. Suppressed until corrected.
     hideDuration: true,

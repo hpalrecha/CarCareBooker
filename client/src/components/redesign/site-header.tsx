@@ -38,9 +38,6 @@ export default function SiteHeader() {
 
           <nav className={"links" + (open ? " open" : "")} id="navlinks" aria-label="Main">
             <Link href="/services" onClick={() => setOpen(false)} data-testid="link-nav-services">Services</Link>
-            <Link href="/ceramic-coating/car" onClick={() => setOpen(false)} data-testid="link-nav-ceramic-car">Car Ceramic</Link>
-            <Link href="/ceramic-coating/bike" onClick={() => setOpen(false)} data-testid="link-nav-ceramic-bike">Bike Ceramic</Link>
-            <Link href="/ppf" onClick={() => setOpen(false)} data-testid="link-nav-ppf">PPF</Link>
             <Link href="/blog" onClick={() => setOpen(false)} data-testid="link-nav-blog">Blog</Link>
             <Link href="/contact" onClick={() => setOpen(false)} data-testid="link-nav-contact">Contact</Link>
             {/* Under 860px the header hides `.right`, taking the call button with it. The

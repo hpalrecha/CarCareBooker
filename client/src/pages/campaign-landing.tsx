@@ -10,7 +10,6 @@ import CampaignOffer from "@/components/campaign-offer";
 import VehicleSelector from "@/components/vehicle-selector";
 import BlogCarousel from "@/components/blog-carousel";
 import HeroOfferStrip from "@/components/hero-offer-strip";
-import ProtectionChallenge from "@/components/protection-challenge";
 import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { useQuery } from "@tanstack/react-query";
@@ -389,7 +388,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
       <section className="section lp-tight">
         <div className="wrap narrow">
           <div className="section-head">
-            <h2>How to Get Started</h2>
+            <h2>How it works</h2>
           </div>
           {/* An ordered list because the order is real, not decorative — numbered markers
               here encode an actual sequence the customer moves through. */}
@@ -398,13 +397,6 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
               <li key={step}>{step}</li>
             ))}
           </ol>
-        </div>
-      </section>
-
-      {/* ---------- interactive P91 Protection Challenge ---------- */}
-      <section className="section lp-tight">
-        <div className="wrap narrow">
-          <ProtectionChallenge onBookOverride={() => setBookingOpen(true)} />
         </div>
       </section>
 
