@@ -486,25 +486,20 @@ export default function PpfCeramicLanding() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Floating Call & WhatsApp Buttons - Fixed to right side */}
+      {/*
+        Call only. This rail used to carry a WhatsApp button as well, which put TWO
+        WhatsApp controls on screen at once — this one and the site-wide floating button
+        (components/contact-fab.tsx), each opening a different prefilled message. The
+        site-wide one is on every page and is the one people recognise, so it keeps the job.
+      */}
       <div className="fixed right-0 top-32 z-50 flex flex-col gap-0">
-        <a 
-          href="tel:+917406619191" 
+        <a
+          href="tel:+917406619191"
           className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-3 rounded-l-lg shadow-lg flex items-center gap-2 transition-all hover:pr-4"
           data-testid="floating-call-btn"
         >
           <Phone className="w-5 h-5" />
           <span className="hidden md:inline text-sm font-medium">Call Now</span>
-        </a>
-        <a 
-          href="https://wa.me/917406619191?text=Hi%20P91%20Car%20Care!%20I'm%20interested%20in%20PPF%20/%20Ceramic%20Coating.%20Please%20share%20more%20details." 
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-green-600 hover:bg-green-700 text-white px-3 py-3 rounded-l-lg shadow-lg flex items-center gap-2 transition-all hover:pr-4"
-          data-testid="floating-whatsapp-btn"
-        >
-          <SiWhatsapp className="w-5 h-5" />
-          <span className="hidden md:inline text-sm font-medium">WhatsApp</span>
         </a>
       </div>
 

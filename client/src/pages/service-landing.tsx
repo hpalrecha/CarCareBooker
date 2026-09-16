@@ -7,6 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { CheckCircle, Star, Clock, Shield, Phone, Mail, MapPin, Play, ArrowRight, Zap } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import BookingModal from "@/components/booking-modal";
+import QuoteForm from "@/components/quote-form";
 import { Header } from "@/components/header";
 import Footer from "@/components/footer";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
@@ -432,6 +433,39 @@ export default function ServiceLanding() {
           </div>
         </div>
       </section>
+
+      {/*
+        Quote request, directly under the hero.
+
+        Booking stays the primary action above; this catches the visitor who wants a
+        person to call rather than pick a slot now. Same form, same validation and same
+        endpoint as /ppf-ceramic-coating — one implementation, so the two cannot drift.
+      */}
+      <section className="bg-black px-4 py-12">
+        <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2 md:items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-white sm:text-3xl">Not ready to book?</h2>
+            <p className="mt-2 text-gray-300">
+              Leave your number and the studio will call you about {service.title.trim()}. No payment,
+              no obligation.
+            </p>
+            <p className="mt-3 text-sm text-gray-400">
+              Booking is free. Service charges apply at the studio.
+            </p>
+          </div>
+          <QuoteForm
+            serviceTitle={service.title.trim()}
+            serviceSlug={service.slug}
+            serviceInterest={
+              service.slug.includes("ppf") ? "ppf" : service.slug.includes("ceramic") ? "ceramic" : "both"
+            }
+            defaultVehicleType={service.slug.includes("bike") ? "bike" : "car"}
+            heading="Request a callback"
+            testId="service-quote"
+          />
+        </div>
+      </section>
+
       {/* Before & After Section - Moved to 2nd position */}
       {(service.slug === 'headlight-restoration-both' || service.slug === 'windshield-glass-coating-new' || service.slug === 'exterior-detailing-hard-water-new' || service.slug === 'interior-detailing-service' || (service.beforeAfter && service.beforeAfter.length > 0)) && (
         <section className="py-24 px-4 bg-gradient-to-b from-gray-900 to-black">
@@ -1204,9 +1238,12 @@ export default function ServiceLanding() {
                 <div className="text-gray-300 text-xs font-semibold tracking-wide uppercase mb-1">
                   Book Your Service
                 </div>
+                {/* "Free this week — no payment" sat directly under "Book Your Service"
+                    and read as though the SERVICE were free. offer.free only waives the
+                    booking fee, which is what every other string on this page says. */}
                 <div className="text-white text-sm font-semibold">
                   {offer.free
-                    ? 'Free this week — no payment'
+                    ? 'Booking is free this week'
                     : service.title === 'Annual Maintenance Package' ? 'Book now for ₹8999' : 'Book now for ₹299'}
                 </div>
               </div>
