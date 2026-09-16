@@ -114,7 +114,7 @@ PUBLIC_URL="${PUBLIC_URL%/}"
 
 if [[ "$EXECUTE" == "1" ]]; then note "MODE: EXECUTE — production will be changed"; else note "MODE: DRY-RUN — nothing will be changed"; fi
 
-for bin in docker git curl flock tar; do command -v "$bin" >/dev/null || die "missing required command: $bin"; done
+for bin in docker git curl flock tar python3; do command -v "$bin" >/dev/null || die "missing required command: $bin"; done
 docker info >/dev/null 2>&1 || die "cannot talk to Docker (need root or the docker group)"
 
 # git as the checkout's owner, so running under sudo never leaves root-owned objects in .git.
@@ -133,11 +133,18 @@ http_code() { curl -s -o /dev/null -m 10 -w '%{http_code}' "$1" || true; }
 wait_docker_healthy() { # name
   local name="$1" status
   for _ in $(seq 1 50); do
-    status="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$name" 2>/dev/null || echo gone)"
+    # Parsed, not templated: `{{if .State.Health}}` aborts on a Docker that omits empty fields.
+    status="$(docker inspect "$name" 2>/dev/null | python3 -c '
+import json, sys
+doc = json.load(sys.stdin)
+if isinstance(doc, list):
+    doc = doc[0]
+state = doc.get("State") or {}
+print((state.get("Health") or {}).get("Status") or ("running" if state.get("Running") else "stopped"))
+' 2>/dev/null || echo gone)"
     case "$status" in
-      healthy) return 0 ;;
+      healthy|running) return 0 ;;
       unhealthy|gone) echo "container $name is $status" >&2; return 1 ;;
-      none) [[ "$(docker inspect -f '{{.State.Running}}' "$name" 2>/dev/null)" == "true" ]] && return 0 ;;
     esac
     sleep 3
   done
@@ -205,151 +212,196 @@ RESTART_POLICY=""
 UPLOADS_MOUNTED=0
 ENV_FILE=""
 
-# Every container setting that changes runtime behaviour, one "Name=<json>" per line. Each must
-# be at Docker's default; the script reproduces only env, port, restart policy, network, mounts
-# and logging, and stops before touching production if anything else is set.
-readonly SETTINGS_FORMAT='{{/* settings-v1 */}}Privileged={{json .HostConfig.Privileged}}
-SecurityOpt={{json .HostConfig.SecurityOpt}}
-CapAdd={{json .HostConfig.CapAdd}}
-CapDrop={{json .HostConfig.CapDrop}}
-Ulimits={{json .HostConfig.Ulimits}}
-Tmpfs={{json .HostConfig.Tmpfs}}
-Sysctls={{json .HostConfig.Sysctls}}
-Init={{json .HostConfig.Init}}
-Runtime={{json .HostConfig.Runtime}}
-ReadonlyRootfs={{json .HostConfig.ReadonlyRootfs}}
-Devices={{json .HostConfig.Devices}}
-DeviceRequests={{json .HostConfig.DeviceRequests}}
-ExtraHosts={{json .HostConfig.ExtraHosts}}
-Links={{json .HostConfig.Links}}
-Dns={{json .HostConfig.Dns}}
-DnsOptions={{json .HostConfig.DnsOptions}}
-DnsSearch={{json .HostConfig.DnsSearch}}
-VolumesFrom={{json .HostConfig.VolumesFrom}}
-GroupAdd={{json .HostConfig.GroupAdd}}
-StorageOpt={{json .HostConfig.StorageOpt}}
-PidMode={{json .HostConfig.PidMode}}
-UsernsMode={{json .HostConfig.UsernsMode}}
-UTSMode={{json .HostConfig.UTSMode}}
-IpcMode={{json .HostConfig.IpcMode}}
-CgroupnsMode={{json .HostConfig.CgroupnsMode}}
-CgroupParent={{json .HostConfig.CgroupParent}}
-Isolation={{json .HostConfig.Isolation}}
-ShmSize={{json .HostConfig.ShmSize}}
-Memory={{json .HostConfig.Memory}}
-MemoryReservation={{json .HostConfig.MemoryReservation}}
-MemorySwap={{json .HostConfig.MemorySwap}}
-NanoCpus={{json .HostConfig.NanoCpus}}
-CpuShares={{json .HostConfig.CpuShares}}
-CpuQuota={{json .HostConfig.CpuQuota}}
-CpuPeriod={{json .HostConfig.CpuPeriod}}
-CpusetCpus={{json .HostConfig.CpusetCpus}}
-CpusetMems={{json .HostConfig.CpusetMems}}
-BlkioWeight={{json .HostConfig.BlkioWeight}}
-PidsLimit={{json .HostConfig.PidsLimit}}
-OomKillDisable={{json .HostConfig.OomKillDisable}}
-OomScoreAdj={{json .HostConfig.OomScoreAdj}}
-PublishAllPorts={{json .HostConfig.PublishAllPorts}}
-AutoRemove={{json .HostConfig.AutoRemove}}
-StopTimeout={{json .Config.StopTimeout}}
-Domainname={{json .Config.Domainname}}
-Tty={{json .Config.Tty}}
-OpenStdin={{json .Config.OpenStdin}}
-Networks={{len .NetworkSettings.Networks}}
-CustomHostname={{if eq .Config.Hostname (slice .Id 0 12)}}false{{else}}true{{end}}'
+# Container and image facts, read once from `docker inspect` JSON.
+#
+# `docker inspect --format` cannot be trusted for this. On the production host the object is a
+# map whose empty fields are omitted, so `{{json .HostConfig.Tmpfs}}` aborts the whole inspect
+# with `map has no entry for key "Tmpfs"`. Parsing the JSON sidesteps every such version
+# difference: a field Docker omitted is simply not set, which is exactly the default required.
+readonly FACTS_PY='
+import json, sys
 
-# Settings a container inherits from its image: they must still equal the image's own values,
-# otherwise `docker run` overrode them (e.g. --health-cmd, --user, --entrypoint, --label).
-readonly INHERITED_FORMAT='{{/* inherited-v1 */}}Cmd={{json .Config.Cmd}}
-Entrypoint={{json .Config.Entrypoint}}
-WorkingDir={{json .Config.WorkingDir}}
-User={{json .Config.User}}
-Healthcheck={{json .Config.Healthcheck}}
-StopSignal={{json .Config.StopSignal}}
-Labels={{json .Config.Labels}}
-ExposedPorts={{json .Config.ExposedPorts}}
-Volumes={{json .Config.Volumes}}'
+doc = json.load(sys.stdin)
+if isinstance(doc, list):
+    doc = doc[0]
+hc = doc.get("HostConfig") or {}
+cfg = doc.get("Config") or {}
+out = []
 
-unsupported_settings() { # container -> names of settings that are not at their defaults
-  local c="$1" image settings inherited_c inherited_i name value bad=""
-  image="$(docker inspect -f '{{.Image}}' "$c")"
-  settings="$(docker inspect -f "$SETTINGS_FORMAT" "$c")" \
-    || die "could not read the container settings of $c (unsupported Docker version?); refusing to guess"
+# Settings that materially change runtime behaviour. A missing key = an omitted empty value.
+for key in ["Privileged", "SecurityOpt", "CapAdd", "CapDrop", "Ulimits", "Tmpfs", "Sysctls",
+            "Init", "Runtime", "ReadonlyRootfs", "Devices", "DeviceRequests", "ExtraHosts",
+            "Links", "Dns", "DnsOptions", "DnsSearch", "VolumesFrom", "GroupAdd", "StorageOpt",
+            "PidMode", "UsernsMode", "UTSMode", "IpcMode", "CgroupnsMode", "CgroupParent",
+            "Isolation", "ShmSize", "Memory", "MemoryReservation", "MemorySwap", "NanoCpus",
+            "CpuShares", "CpuQuota", "CpuPeriod", "CpusetCpus", "CpusetMems", "BlkioWeight",
+            "PidsLimit", "OomKillDisable", "OomScoreAdj", "PublishAllPorts", "AutoRemove"]:
+    out.append("SETTING %s=%s" % (key, json.dumps(hc.get(key))))
+for key in ["StopTimeout", "Domainname", "Tty", "OpenStdin"]:
+    out.append("SETTING %s=%s" % (key, json.dumps(cfg.get(key))))
+out.append("SETTING Networks=%d" % len((doc.get("NetworkSettings") or {}).get("Networks") or {}))
+hostname = cfg.get("Hostname") or ""
+out.append("SETTING CustomHostname=%s" % ("false" if hostname == (doc.get("Id") or "")[:12] else "true"))
+
+# Inherited from the image: these must still equal the image own values. Empty and absent mean
+# the same thing (Docker omits empty fields on some versions), so both normalise to null —
+# otherwise an omitted User reads as "overridden" against an image that reports "".
+def norm(value):
+    return None if value in (None, "", [], {}) else value
+
+for key in ["Cmd", "Entrypoint", "WorkingDir", "User", "Healthcheck", "StopSignal", "Labels",
+            "ExposedPorts", "Volumes"]:
+    out.append("INHERITED %s=%s" % (key, json.dumps(norm(cfg.get(key)))))
+
+log = hc.get("LogConfig") or {}
+out.append("LOGDRIVER %s" % (log.get("Type") or ""))
+out.append("LOGOPTCOUNT %d" % len(log.get("Config") or {}))
+for key, value in sorted((log.get("Config") or {}).items()):
+    # A newline would split into a line this script cannot map back to its option.
+    if "\n" in key or "\n" in str(value):
+        out.append("UNSAFE log option %s contains a newline" % key)
+    else:
+        out.append("LOGOPT %s=%s" % (key, value))
+
+for port, binds in sorted((hc.get("PortBindings") or {}).items()):
+    for bind in binds or []:
+        out.append("PORT %s %s %s" % (port, bind.get("HostIp") or "", bind.get("HostPort") or ""))
+
+for mount in doc.get("Mounts") or []:
+    source = mount.get("Name") if mount.get("Type") == "volume" else mount.get("Source")
+    out.append("MOUNT %s|%s|%s|%s" % (mount.get("Type") or "", source or "",
+                                      mount.get("Destination") or "",
+                                      "true" if mount.get("RW") else "false"))
+
+env = cfg.get("Env") or []
+out.append("ENVCOUNT %d" % len(env))
+for entry in env:
+    if "\n" in entry:
+        out.append("UNSAFE environment variable %s contains a newline" % entry.split("=")[0])
+    else:
+        out.append("ENV %s" % entry)
+
+out.append("RESTART %s" % ((hc.get("RestartPolicy") or {}).get("Name") or "no"))
+out.append("NETWORKMODE %s" % (hc.get("NetworkMode") or ""))
+out.append("IMAGEID %s" % (doc.get("Image") or ""))
+out.append("IMAGEREF %s" % (cfg.get("Image") or ""))
+out.append("CONTAINERID %s" % (doc.get("Id") or ""))
+print("\n".join(out))
+'
+
+readonly IMAGE_FACTS_PY='
+import json, sys
+
+doc = json.load(sys.stdin)
+if isinstance(doc, list):
+    doc = doc[0]
+cfg = doc.get("Config") or {}
+out = []
+def norm(value):
+    return None if value in (None, "", [], {}) else value
+
+for key in ["Cmd", "Entrypoint", "WorkingDir", "User", "Healthcheck", "StopSignal", "Labels",
+            "ExposedPorts", "Volumes"]:
+    out.append("INHERITED %s=%s" % (key, json.dumps(norm(cfg.get(key)))))
+for entry in cfg.get("Env") or []:
+    out.append("ENV %s" % entry)
+out.append("REVISION %s" % ((cfg.get("Labels") or {}).get("org.opencontainers.image.revision") or ""))
+print("\n".join(out))
+'
+
+FACTS=""   # facts of the container capture_run_config last read
+
+load_facts() { # container
+  FACTS="$(docker inspect "$1" | python3 -c "$FACTS_PY")" \
+    || die "could not inspect $1; refusing to guess its configuration"
+  [[ -n "$FACTS" ]] || die "docker inspect returned nothing for $1"
+}
+image_facts() { # image -> INHERITED/ENV/REVISION lines
+  docker image inspect "$1" | python3 -c "$IMAGE_FACTS_PY" \
+    || die "could not inspect image $1; refusing to guess"
+}
+image_revision() { image_facts "$1" | sed -n 's/^REVISION //p'; }
+# One "KIND value" line per fact; `fact KIND` prints the values of that kind.
+fact()  { sed -n "s/^$1 //p" <<<"$FACTS"; }
+fact1() { fact "$1" | head -1; }
+
+unsupported_settings() { # -> names of settings that are not at their Docker default (reads $FACTS)
+  local image name value line bad="" inherited_image
+  image="$(fact1 IMAGEID)"
   while IFS= read -r line; do
     [[ -z "$line" ]] && continue
     name="${line%%=*}"; value="${line#*=}"
+    # "null" everywhere: Docker omits empty values, and an omitted value IS the default.
     case "$name" in
       SecurityOpt|CapAdd|CapDrop|Ulimits|Tmpfs|Sysctls|Devices|DeviceRequests|ExtraHosts|Links|Dns|DnsOptions|DnsSearch|VolumesFrom|GroupAdd|StorageOpt)
         [[ "$value" == "null" || "$value" == "[]" || "$value" == "{}" ]] || bad+="$name=$value " ;;
-      Privileged|ReadonlyRootfs|PublishAllPorts|AutoRemove|Tty|OpenStdin|CustomHostname)
-        [[ "$value" == "false" ]] || bad+="$name=$value " ;;
-      Init|OomKillDisable)
-        [[ "$value" == "null" || "$value" == "false" ]] || bad+="$name=$value " ;;
+      Privileged|ReadonlyRootfs|PublishAllPorts|AutoRemove|Tty|OpenStdin|CustomHostname|Init|OomKillDisable)
+        [[ "$value" == "false" || "$value" == "null" ]] || bad+="$name=$value " ;;
       Runtime)
-        [[ "$value" == '"runc"' || "$value" == '""' ]] || bad+="$name=$value " ;;
+        [[ "$value" == '"runc"' || "$value" == '""' || "$value" == "null" ]] || bad+="$name=$value " ;;
       PidMode|UsernsMode|UTSMode|CgroupParent|CpusetCpus|CpusetMems|Domainname)
-        [[ "$value" == '""' ]] || bad+="$name=$value " ;;
+        [[ "$value" == '""' || "$value" == "null" ]] || bad+="$name=$value " ;;
       IpcMode)
-        [[ "$value" == '"private"' || "$value" == '"shareable"' || "$value" == '""' ]] || bad+="$name=$value " ;;
+        [[ "$value" == '"private"' || "$value" == '"shareable"' || "$value" == '""' || "$value" == "null" ]] || bad+="$name=$value " ;;
       CgroupnsMode)
-        [[ "$value" == '"private"' || "$value" == '"host"' || "$value" == '""' ]] || bad+="$name=$value " ;;
+        [[ "$value" == '"private"' || "$value" == '"host"' || "$value" == '""' || "$value" == "null" ]] || bad+="$name=$value " ;;
       Isolation)
-        [[ "$value" == '""' || "$value" == '"default"' ]] || bad+="$name=$value " ;;
+        [[ "$value" == '""' || "$value" == '"default"' || "$value" == "null" ]] || bad+="$name=$value " ;;
       ShmSize)
-        [[ "$value" == "0" || "$value" == "67108864" ]] || bad+="$name=$value " ;;
-      Memory|MemoryReservation|MemorySwap|NanoCpus|CpuShares|CpuQuota|CpuPeriod|BlkioWeight|OomScoreAdj)
-        [[ "$value" == "0" ]] || bad+="$name=$value " ;;
-      PidsLimit|StopTimeout)
-        [[ "$value" == "null" || "$value" == "0" ]] || bad+="$name=$value " ;;
+        [[ "$value" == "0" || "$value" == "67108864" || "$value" == "null" ]] || bad+="$name=$value " ;;
+      Memory|MemoryReservation|MemorySwap|NanoCpus|CpuShares|CpuQuota|CpuPeriod|BlkioWeight|OomScoreAdj|PidsLimit|StopTimeout)
+        [[ "$value" == "0" || "$value" == "null" ]] || bad+="$name=$value " ;;
       Networks)
         [[ "$value" == "1" ]] || bad+="attached-networks=$value " ;;
       *) bad+="unrecognised-setting:$name " ;;
     esac
-  done <<<"$settings"
+  done < <(fact SETTING)
 
-  inherited_c="$(docker inspect -f "$INHERITED_FORMAT" "$c")" || die "could not read inherited settings of $c; refusing to guess"
-  inherited_i="$(docker image inspect -f "$INHERITED_FORMAT" "$image")" || die "could not read the settings of image $image; refusing to guess"
+  inherited_image="$(image_facts "$image" | sed -n 's/^INHERITED //p')"
   while IFS= read -r name; do
     [[ -n "$name" ]] && bad+="$name-overridden "
-  done < <(diff <(echo "$inherited_c") <(echo "$inherited_i") | sed -n 's/^< \([A-Za-z]*\)=.*/\1/p')
+  done < <(diff <(fact INHERITED) <(echo "$inherited_image") | sed -n 's/^< \([A-Za-z]*\)=.*/\1/p')
   printf '%s' "$bad"
 }
 
 capture_run_config() { # container, then "deploy" (refuse anything unreproducible) or "rollback" (warn only)
-  local c="$1" purpose="$2" image bindings unsupported mounts line restart network log_driver log_opts
-  image="$(docker inspect -f '{{.Image}}' "$c")"
+  local c="$1" purpose="$2" image bindings unsupported mounts line restart network log_driver log_opts type src dst rw
+  load_facts "$c"
+  # Values the facts reader could not represent safely (a newline in an env value or log option).
+  [[ -z "$(fact UNSAFE)" ]] || die "cannot reproduce $c safely: $(fact UNSAFE | tr '\n' '; ')"
+  image="$(fact1 IMAGEID)"
 
-  bindings="$(docker inspect -f '{{range $p, $b := .HostConfig.PortBindings}}{{range $b}}{{$p}} {{.HostIp}} {{.HostPort}}{{"\n"}}{{end}}{{end}}' "$c" | sed '/^$/d')"
+  bindings="$(fact PORT)"
   PROD_HOST_IP="$(awk '{ if (NF==3) print $2; else print "" }' <<<"$bindings")"
-  [[ "$(wc -l <<<"$bindings")" == "1" && "$bindings" == "$APP_PORT/tcp "*" $PROD_PORT" ]] \
-    || die "unexpected port bindings on $c (need exactly $APP_PORT/tcp -> $PROD_PORT):"$'\n'"$bindings"
+  [[ "$(grep -c . <<<"$bindings" || true)" == "1" && "$bindings" == "$APP_PORT/tcp "*" $PROD_PORT" ]] \
+    || die "unexpected port bindings on $c (need exactly $APP_PORT/tcp -> $PROD_PORT):"$'\n'"${bindings:-none}"
 
   # `|| die`: a failure to READ the settings must stop the script, never look like "none found".
-  unsupported="$(unsupported_settings "$c")" || die "could not verify the settings of $c; refusing before touching production"
+  unsupported="$(unsupported_settings)" || die "could not verify the settings of $c; refusing before touching production"
   if [[ -n "$unsupported" ]]; then
     # A rollback restarts an existing container with its settings intact, so it only warns.
     [[ "$purpose" == "rollback" ]] || die "$c uses settings this script cannot reproduce: $unsupported— refusing before touching production"
     warn "$c has non-default settings (a rollback keeps them, a deploy would refuse): $unsupported"
   fi
 
-  restart="$(docker inspect -f '{{.HostConfig.RestartPolicy.Name}}' "$c")"
+  restart="$(fact1 RESTART)"
   RESTART_POLICY="${restart:-no}"
   RUN_ARGS=()
-  network="$(docker inspect -f '{{.HostConfig.NetworkMode}}' "$c")"
-  [[ "$network" == "default" || "$network" == "bridge" ]] || RUN_ARGS+=(--network "$network")
+  network="$(fact1 NETWORKMODE)"
+  [[ "$network" == "default" || "$network" == "bridge" || -z "$network" ]] || RUN_ARGS+=(--network "$network")
 
   # Logging is reproduced exactly (driver and every option, e.g. max-size), never defaulted.
-  log_driver="$(docker inspect -f '{{/* log-v1 */}}{{.HostConfig.LogConfig.Type}}' "$c")"
+  log_driver="$(fact1 LOGDRIVER)"
   [[ -n "$log_driver" ]] || die "could not read the log driver of $c; refusing to guess"
   RUN_ARGS+=(--log-driver "$log_driver")
-  log_opts="$(docker inspect -f '{{/* log-opts-v1 */}}{{range $k, $v := .HostConfig.LogConfig.Config}}{{$k}}={{$v}}{{"\n"}}{{end}}' "$c" | sed '/^$/d')"
-  [[ "$(sed '/^$/d' <<<"$log_opts" | wc -l)" == "$(docker inspect -f '{{len .HostConfig.LogConfig.Config}}' "$c")" ]] \
+  log_opts="$(fact LOGOPT)"
+  [[ "$(grep -c . <<<"$log_opts" || true)" == "$(fact1 LOGOPTCOUNT)" ]] \
     || die "a log option on $c contains a newline; cannot reproduce it safely"
   while IFS= read -r line; do
     [[ -n "$line" ]] && RUN_ARGS+=(--log-opt "$line")
   done <<<"$log_opts"
 
-  mounts="$(docker inspect -f '{{range .Mounts}}{{.Type}}|{{if eq .Type "volume"}}{{.Name}}{{else}}{{.Source}}{{end}}|{{.Destination}}|{{.RW}}{{"\n"}}{{end}}' "$c" | sed '/^$/d')"
+  mounts="$(fact MOUNT)"
   while IFS='|' read -r type src dst rw; do
     [[ -z "$type" ]] && continue
     [[ "$type" == "bind" || "$type" == "volume" ]] || die "unsupported mount type $type at $dst"
@@ -359,29 +411,27 @@ capture_run_config() { # container, then "deploy" (refuse anything unreproducibl
   done <<<"$mounts"
 
   note "running config of $c:"
-  note "  image $image | restart=$restart | network=$network | port ${PROD_HOST_IP:-0.0.0.0}:$PROD_PORT->$APP_PORT"
+  note "  image $image | restart=$restart | network=${network:-default} | port ${PROD_HOST_IP:-0.0.0.0}:$PROD_PORT->$APP_PORT"
   note "  logging: $log_driver ${log_opts:+($(tr '\n' ' ' <<<"$log_opts"))}"
   note "  mounts: ${mounts:-none}"
-  note "  env vars set on the container (names only): $(env_names "$c" | tr '\n' ' ')"
+  note "  env vars set on the container (names only): $(env_names | tr '\n' ' ')"
 }
 
 # Container env minus the image's own defaults = what was passed at `docker run`.
-container_env() { # container
-  local c="$1" image expected
-  image="$(docker inspect -f '{{.Image}}' "$c")"
-  expected="$(docker inspect -f '{{len .Config.Env}}' "$c")"
-  [[ "$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$c" | sed '/^$/d' | wc -l)" == "$expected" ]] \
-    || die "an environment value on $c contains a newline; cannot reproduce it safely"
-  comm -23 <(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$c" | sed '/^$/d' | sort) \
-           <(docker image inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$image" | sed '/^$/d' | sort)
+container_env() { # reads $FACTS
+  local image
+  image="$(fact1 IMAGEID)"
+  [[ "$(fact ENV | grep -c . || true)" == "$(fact1 ENVCOUNT)" ]] \
+    || die "an environment value contains a newline; cannot reproduce it safely"
+  comm -23 <(fact ENV | sort) <(image_facts "$image" | sed -n 's/^ENV //p' | sort)
 }
-env_names() { container_env "$1" | cut -d= -f1; }
+env_names() { container_env | cut -d= -f1; }
 
 write_env_file() { # container -> ENV_FILE (0600, outside Git, deleted on exit)
   if [[ "$EXECUTE" != "1" ]]; then ENV_FILE="$STATE_DIR/run/env-$TS"; note "[dry-run] would copy the container env into $ENV_FILE (mode 600)"; return; fi
   install -d -m 700 "$STATE_DIR/run"
   ENV_FILE="$STATE_DIR/run/env-$TS"
-  ( umask 077; container_env "$1" > "$ENV_FILE" )
+  ( umask 077; container_env > "$ENV_FILE" )
 }
 
 container_writes() { # container -> changed paths outside uploads/tmp/npm cache
@@ -492,7 +542,7 @@ note "server checkout: $(g rev-parse --short HEAD) on $(g rev-parse --abbrev-ref
 [[ "$(docker inspect -f '{{.State.Running}}' "$APP")" == "true" ]] || die "$APP is not running; this script replaces a running container only"
 OLD_IMAGE_ID="$(docker inspect -f '{{.Image}}' "$APP")"
 OLD_CONTAINER_ID="$(docker inspect -f '{{.Id}}' "$APP")"
-note "current: $APP image $(docker inspect -f '{{.Config.Image}}' "$APP") ($OLD_IMAGE_ID), revision label: $(docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$OLD_IMAGE_ID" 2>/dev/null || true)"
+note "current: $APP image $(docker inspect -f '{{.Config.Image}}' "$APP") ($OLD_IMAGE_ID), revision label: $(image_revision "$OLD_IMAGE_ID" || true)"
 capture_run_config "$APP" deploy
 
 WRITES="$(container_writes "$APP")"
@@ -563,7 +613,7 @@ fi
 
 # 3-4. Clean build tree (exact export of the commit), then the image pinned to the SHA ---
 if docker image inspect "$IMAGE" >/dev/null 2>&1; then
-  [[ "$(docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$IMAGE")" == "$SHA" ]] \
+  [[ "$(image_revision "$IMAGE")" == "$SHA" ]] \
     || die "$IMAGE exists but its revision label is not $SHA"
   note "image $IMAGE already built; reusing it"
 else
