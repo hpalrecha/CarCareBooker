@@ -264,7 +264,12 @@ describe('placement keeps the challenge optional', () => {
   });
 
   test('it adds no route, so it creates no indexable URL', () => {
-    assert.doesNotMatch(read('client/src/App.tsx'), /challenge/i);
+    // Mounting the component in App.tsx is fine; REGISTERING A ROUTE for it is not, and
+    // that is what would produce a thin indexable URL.
+    const app = read('client/src/App.tsx');
+    assert.doesNotMatch(app, /<Route[^>]*challenge/i);
+    const routePaths = [...app.matchAll(/<Route\s+path="([^"]+)"/g)].map((m) => m[1]);
+    assert.equal(routePaths.filter((p) => /challenge/i.test(p)).length, 0, `routes: ${routePaths.join(", ")}`);
     assert.doesNotMatch(read('scripts/prerender.mjs'), /challenge/i);
     assert.doesNotMatch(read('server/routes.ts'), /sitemap[\s\S]{0,4000}challenge/i);
   });

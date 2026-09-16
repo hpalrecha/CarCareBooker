@@ -10,6 +10,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import NotFound from "@/pages/not-found";
 import ContactFab from "@/components/contact-fab";
+import ProtectionChallengeInvite from "@/components/protection-challenge-invite";
 
 /**
  * Route-level code splitting.
@@ -164,6 +165,9 @@ function App() {
           {/* Rendered outside <Router> so it persists across every route rather than
               remounting on navigation. It hides itself on /admin. */}
           <ContactFab />
+          {/* Same reason: the invitation's timer belongs to the VISIT, not to a page, so
+              navigating must not restart it or offer the challenge a second time. */}
+          <ProtectionChallengeInvite />
         </div>
       </TooltipProvider>
     </QueryClientProvider>

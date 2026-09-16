@@ -24,6 +24,7 @@ import {
   recommend,
   type Answers,
 } from "@/lib/protection-challenge";
+import { markChallengeCompleted } from "@/lib/challenge-invite-state";
 import { ChevronLeft } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 
@@ -170,6 +171,9 @@ export function ProtectionChallengeDialog({
     const complete = { ...answers, finish } as Answers;
     setAnswers(complete);
     setStep(4);
+    // Reaching a recommendation counts as done, whichever entry point was used, so the
+    // automatic invitation never asks again. Booking and pricing are untouched by this.
+    markChallengeCompleted();
     const r = recommend(complete);
     trackChallengeComplete({
       eventId: `${sessionId.current}-complete`,
