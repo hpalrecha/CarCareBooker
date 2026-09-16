@@ -2,8 +2,15 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { formatINR, type ServiceRecord } from "@/lib/canonical-services";
+import {
+  PPF_CERAMIC_PRICE_SLUGS,
+  maxDiscountPercent,
+  resolveCataloguePrice,
+  type CataloguePrice,
+} from "@/lib/ppf-ceramic-pricing";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -115,6 +122,53 @@ async function postLead(payload: Record<string, unknown>): Promise<unknown> {
   throw new Error(body?.message ?? `Request failed (${res.status})`);
 }
 
+/**
+ * One hero price tile. Every figure comes from `pricing`, a live catalogue row; when there
+ * is no row the tile says so instead of showing a number the booking flow would not charge.
+ */
+function HeroPriceTile({
+  label,
+  pricing,
+  loading,
+  popular = false,
+  testId,
+}: {
+  label: string;
+  pricing: CataloguePrice | null;
+  loading: boolean;
+  popular?: boolean;
+  testId: string;
+}) {
+  return (
+    <div
+      className={
+        popular
+          ? "bg-green-500/20 rounded-xl p-3 border-2 border-green-500 relative overflow-hidden text-center"
+          : "bg-gray-800/50 rounded-xl p-3 border border-gray-700 relative overflow-hidden text-center"
+      }
+      data-testid={testId}
+    >
+      {popular ? (
+        <div className="absolute top-0 right-0 bg-green-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg">POPULAR</div>
+      ) : pricing && pricing.discountPercent > 0 ? (
+        <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg">{pricing.discountPercent}% OFF</div>
+      ) : null}
+      {pricing?.originalPrice ? (
+        <div className="text-xs text-gray-400 line-through" data-testid={`${testId}-was`}>
+          {formatINR(pricing.originalPrice)}
+        </div>
+      ) : (
+        // Holds the row height so tiles with and without a struck-through price stay aligned.
+        <div className="text-xs" aria-hidden="true">{" "}</div>
+      )}
+      <div className="text-xl font-bold text-green-400" data-testid={`${testId}-price`}>
+        {pricing ? formatINR(pricing.price) : loading ? "…" : "Quote"}
+      </div>
+      <div className="text-xs text-gray-400">{label}</div>
+    </div>
+  );
+}
+
 
 export default function PpfCeramicLanding() {
   const [showExitPopup, setShowExitPopup] = useState(false);
@@ -133,6 +187,14 @@ export default function PpfCeramicLanding() {
       "work, compare packages, and get a quote from P91 Car Care.",
     image: "/Car Care (4)_1753951564515.png",
   });
+
+  // Same query, same rows as the campaign landing pages and BookingModal. Nothing on this
+  // page carries its own rupee figure; see lib/ppf-ceramic-pricing.ts.
+  const { data: services, isLoading: pricesLoading } = useQuery<ServiceRecord[]>({
+    queryKey: ["/api/services"],
+  });
+  const priceFor = (slug: string | null) => (slug ? resolveCataloguePrice(services, slug) : null);
+  const bestDiscount = maxDiscountPercent(Object.values(PPF_CERAMIC_PRICE_SLUGS).map(priceFor));
 
   const form = useForm<LeadFormData>({
     resolver: zodResolver(leadFormSchema),
@@ -293,72 +355,62 @@ export default function PpfCeramicLanding() {
     { icon: Clock, title: "Long-lasting Shine", description: "Maintains showroom finish for years" },
   ];
 
+  // `slug` names the catalogue row behind each card's price and "% off" badge. Bike PPF has
+  // no catalogue service, so it carries no slug and shows no price rather than an invented one.
   const pricingCards = [
     {
       title: "PPF - Hatchback",
-      price: "₹45,000",
-      originalPrice: "₹65,000",
+      slug: PPF_CERAMIC_PRICE_SLUGS.ppfHatchback,
       priceNote: "Full Body",
       warranty: "5-10 Year Warranty",
       features: ["Full body coverage", "Self-healing film", "Stone chip protection", "UV protection", "Hydrophobic surface"],
       icon: Car,
       popular: false,
-      discount: "30% OFF"
     },
     {
       title: "PPF - Sedan",
-      price: "₹55,000",
-      originalPrice: "₹75,000",
+      slug: PPF_CERAMIC_PRICE_SLUGS.ppfSedan,
       priceNote: "Full Body",
       warranty: "5-10 Year Warranty",
       features: ["Full body coverage", "Self-healing film", "Stone chip protection", "UV protection", "Hydrophobic surface"],
       icon: Car,
       popular: true,
-      discount: "27% OFF"
     },
     {
       title: "PPF - SUV",
-      price: "₹65,000",
-      originalPrice: "₹90,000",
+      slug: PPF_CERAMIC_PRICE_SLUGS.ppfSuv,
       priceNote: "Full Body",
       warranty: "5-10 Year Warranty",
       features: ["Full body coverage", "Self-healing film", "Stone chip protection", "UV protection", "Hydrophobic surface"],
       icon: Car,
       popular: false,
-      discount: "28% OFF"
     },
     {
       title: "PPF for Bikes",
-      price: "₹5,000",
-      originalPrice: "₹8,000",
+      slug: null,
       priceNote: "Starting from",
       warranty: "5 Year Warranty",
       features: ["Tank & fairing protection", "Self-healing film", "Scratch resistance", "Easy maintenance", "Showroom finish"],
       icon: Bike,
       popular: false,
-      discount: "37% OFF"
     },
     {
       title: "Ceramic Coating - Cars",
-      price: "₹6,000",
-      originalPrice: "₹9,000",
+      slug: PPF_CERAMIC_PRICE_SLUGS.ceramicCar,
       priceNote: "Starting from",
       warranty: "1 Year Warranty",
       features: ["9H hardness coating", "Hydrophobic effect", "UV protection", "Easy cleaning", "Enhanced gloss"],
       icon: Car,
       popular: false,
-      discount: "33% OFF"
     },
     {
       title: "Ceramic Coating - Bikes",
-      price: "₹3,000",
-      originalPrice: "₹5,000",
+      slug: PPF_CERAMIC_PRICE_SLUGS.ceramicBike,
       priceNote: "Starting from",
       warranty: "1 Year Warranty",
       features: ["Full body coating", "Water beading effect", "Dust repellent", "Color enhancement", "Easy maintenance"],
       icon: Bike,
       popular: false,
-      discount: "40% OFF"
     },
   ];
 
@@ -564,44 +616,14 @@ export default function PpfCeramicLanding() {
               <div className="space-y-3">
                 <h3 className="text-lg font-bold text-white">PPF Pricing (Full Body) <span className="text-green-400 text-sm font-normal">- Starts at</span></h3>
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700 relative overflow-hidden text-center">
-                    <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg">30% OFF</div>
-                    <div className="text-xs text-gray-400 line-through">₹65,000</div>
-                    <div className="text-xl font-bold text-green-400">₹45,000</div>
-                    <div className="text-xs text-gray-400">Hatchback</div>
-                  </div>
-                  <div className="bg-green-500/20 rounded-xl p-3 border-2 border-green-500 relative overflow-hidden text-center">
-                    <div className="absolute top-0 right-0 bg-green-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg">POPULAR</div>
-                    <div className="text-xs text-gray-400 line-through">₹75,000</div>
-                    <div className="text-xl font-bold text-green-400">₹55,000</div>
-                    <div className="text-xs text-gray-400">Sedan</div>
-                  </div>
-                  <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700 relative overflow-hidden text-center">
-                    <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg">28% OFF</div>
-                    <div className="text-xs text-gray-400 line-through">₹90,000</div>
-                    <div className="text-xl font-bold text-green-400">₹65,000</div>
-                    <div className="text-xs text-gray-400">SUV</div>
-                  </div>
+                  <HeroPriceTile label="Hatchback" pricing={priceFor(PPF_CERAMIC_PRICE_SLUGS.ppfHatchback)} loading={pricesLoading} testId="tile-price-ppf-hatchback" />
+                  <HeroPriceTile label="Sedan" pricing={priceFor(PPF_CERAMIC_PRICE_SLUGS.ppfSedan)} loading={pricesLoading} popular testId="tile-price-ppf-sedan" />
+                  <HeroPriceTile label="SUV" pricing={priceFor(PPF_CERAMIC_PRICE_SLUGS.ppfSuv)} loading={pricesLoading} testId="tile-price-ppf-suv" />
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700 relative overflow-hidden text-center">
-                    <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg">37% OFF</div>
-                    <div className="text-xs text-gray-400 line-through">₹8,000</div>
-                    <div className="text-xl font-bold text-green-400">₹5,000</div>
-                    <div className="text-xs text-gray-400">Bikes PPF</div>
-                  </div>
-                  <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700 relative overflow-hidden text-center">
-                    <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg">33% OFF</div>
-                    <div className="text-xs text-gray-400 line-through">₹9,000</div>
-                    <div className="text-xl font-bold text-green-400">₹6,000</div>
-                    <div className="text-xs text-gray-400">Ceramic Cars</div>
-                  </div>
-                  <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700 relative overflow-hidden text-center">
-                    <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg">40% OFF</div>
-                    <div className="text-xs text-gray-400 line-through">₹5,000</div>
-                    <div className="text-xl font-bold text-green-400">₹3,000</div>
-                    <div className="text-xs text-gray-400">Ceramic Bikes</div>
-                  </div>
+                  <HeroPriceTile label="Bikes PPF" pricing={null} loading={false} testId="tile-price-ppf-bike" />
+                  <HeroPriceTile label="Ceramic Cars" pricing={priceFor(PPF_CERAMIC_PRICE_SLUGS.ceramicCar)} loading={pricesLoading} testId="tile-price-ceramic-car" />
+                  <HeroPriceTile label="Ceramic Bikes" pricing={priceFor(PPF_CERAMIC_PRICE_SLUGS.ceramicBike)} loading={pricesLoading} testId="tile-price-ceramic-bike" />
                 </div>
               </div>
 
@@ -1084,7 +1106,7 @@ export default function PpfCeramicLanding() {
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-red-500/20 text-red-400 px-4 py-2 rounded-full text-sm font-medium mb-4">
               <Timer className="w-4 h-4" />
-              Limited Time Offer - Up to 40% OFF
+              Limited Time Offer{bestDiscount > 0 ? ` - Up to ${bestDiscount}% OFF` : ""}
             </div>
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">Transparent Pricing</h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
@@ -1093,7 +1115,9 @@ export default function PpfCeramicLanding() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {pricingCards.map((card) => (
+            {pricingCards.map((card) => {
+              const pricing = priceFor(card.slug);
+              return (
               <div
                 key={card.title}
                 className={`relative rounded-2xl p-6 border ${
@@ -1110,19 +1134,31 @@ export default function PpfCeramicLanding() {
                   </div>
                 )}
 
-                <div className="absolute top-3 right-3">
-                  <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
-                    {card.discount}
-                  </span>
-                </div>
-                
+                {pricing && pricing.discountPercent > 0 && (
+                  <div className="absolute top-3 right-3">
+                    <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+                      {pricing.discountPercent}% OFF
+                    </span>
+                  </div>
+                )}
+
                 <div className="text-center mb-6 pt-4">
                   <card.icon className={`w-12 h-12 mx-auto mb-4 ${card.popular ? "text-green-400" : "text-gray-400"}`} />
                   <h3 className="text-xl font-bold text-white">{card.title}</h3>
-                  <div className="mt-4">
-                    <span className="text-lg text-gray-500 line-through">{card.originalPrice}</span>
-                    <span className="text-3xl font-bold text-green-400 ml-2">{card.price}</span>
-                    <span className="text-sm text-gray-400 block">{card.priceNote}</span>
+                  <div className="mt-4" data-testid={`price-card-${card.title.toLowerCase().replace(/\s+/g, "-")}`}>
+                    {pricing ? (
+                      <>
+                        {pricing.originalPrice !== null && (
+                          <span className="text-lg text-gray-500 line-through">{formatINR(pricing.originalPrice)}</span>
+                        )}
+                        <span className="text-3xl font-bold text-green-400 ml-2">{formatINR(pricing.price)}</span>
+                        <span className="text-sm text-gray-400 block">{card.priceNote}</span>
+                      </>
+                    ) : (
+                      <span className="text-2xl font-bold text-green-400 block">
+                        {card.slug && pricesLoading ? "…" : "Price on request"}
+                      </span>
+                    )}
                   </div>
                   <div className="text-sm text-green-400 mt-2 flex items-center justify-center gap-1">
                     <BadgeCheck className="w-4 h-4" />
@@ -1151,7 +1187,8 @@ export default function PpfCeramicLanding() {
                   Get Quote
                 </Button>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
