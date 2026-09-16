@@ -30,7 +30,7 @@ function load({ session = {}, local = {}, pathname = '/', openDialog = false, th
   const api = new Function(
     'window', 'document',
     stateSrc +
-      '; return { mayInvite, inviteAlreadyShown, challengeAlreadyCompleted, markInviteShown, markChallengeCompleted, isAdminRoute, aDialogIsOpen, INVITE_DELAY_MS, INVITE_RETRY_MS, INVITE_MAX_WAIT_MS, INVITE_SEEN_KEY, CHALLENGE_DONE_KEY };',
+      '; return { mayInvite, canShowNow, INVITE_SNOOZE_MS, INVITE_MAX_SNOOZES, inviteAlreadyShown, challengeAlreadyCompleted, markInviteShown, markChallengeCompleted, isAdminRoute, aDialogIsOpen, INVITE_DELAY_MS, INVITE_RETRY_MS, INVITE_MAX_WAIT_MS, INVITE_SEEN_KEY, CHALLENGE_DONE_KEY };',
   )(win, doc);
   return { api, session, local };
 }
@@ -84,6 +84,22 @@ describe('when the invitation may appear', () => {
     assert.doesNotThrow(() => api.markChallengeCompleted());
   });
 
+  test('canShowNow ignores the once-per-visit flag, so a snooze can return', () => {
+    const { api } = load({ session: { p91_challenge_invite_seen: '1' } });
+    assert.equal(api.mayInvite(), false, 'no NEW invitation once shown this visit');
+    assert.equal(api.canShowNow(), true, 'but a snoozed one may come back');
+    // The other guards still apply to a returning invitation.
+    assert.equal(load({ session: { p91_challenge_invite_seen: '1' }, openDialog: true }).api.canShowNow(), false);
+    assert.equal(load({ session: { p91_challenge_invite_seen: '1' }, local: { p91_challenge_completed: '1' } }).api.canShowNow(), false);
+    assert.equal(load({ session: { p91_challenge_invite_seen: '1' }, pathname: '/admin' }).api.canShowNow(), false);
+  });
+
+  test('"maybe later" returns after five seconds, and is capped', () => {
+    const { api } = load();
+    assert.equal(api.INVITE_SNOOZE_MS, 5000);
+    assert.equal(api.INVITE_MAX_SNOOZES, 1, 'a popup that always returns cannot be dismissed');
+  });
+
   test('the delay is about five seconds, and waiting for a dialog is bounded', () => {
     const { api } = load();
     assert.equal(api.INVITE_DELAY_MS, 5000);
@@ -107,6 +123,23 @@ describe('the invitation component', () => {
 
   test('marks the visit only when it actually appears', () => {
     assert.match(invite, /markInviteShown\(\);\s*setVisible\(true\)/);
+  });
+
+  test('"Maybe later" snoozes; X, Escape and click-away end the visit', () => {
+    // "Maybe later" is the only control wired to the snooze.
+    assert.match(invite, /onClick=\{later\}/);
+    assert.match(invite, /data-testid="button-invite-later"/);
+    // The X and Escape use the permanent dismissal, not the snooze.
+    assert.match(invite, /onClick=\{dismiss\}[\s\S]{0,300}data-testid="button-invite-close"/);
+    assert.match(invite, /e\.key === "Escape"\) dismiss\(\)/);
+    assert.match(invite, /snoozes\.current >= INVITE_MAX_SNOOZES/);
+    assert.match(invite, /setTimeout\(retry, INVITE_SNOOZE_MS\)/);
+    assert.match(invite, /canShowNow\(\)/, 'a returning invitation still checks for open dialogs');
+  });
+
+  test('a pending snooze cannot fire after navigation or once the challenge opens', () => {
+    assert.match(invite, /clearTimeout\(snoozeTimer\.current\)/);
+    assert.match(invite, /const accept = \(\) => \{\s*clearTimeout\(snoozeTimer\.current\)/);
   });
 
   test('offers the three ways out the brief asked for, plus Escape', () => {

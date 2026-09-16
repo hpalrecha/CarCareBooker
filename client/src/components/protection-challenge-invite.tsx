@@ -4,9 +4,11 @@ import { X } from "lucide-react";
 import { ProtectionChallengeDialog } from "@/components/protection-challenge";
 import {
   INVITE_DELAY_MS,
+  INVITE_MAX_SNOOZES,
   INVITE_MAX_WAIT_MS,
   INVITE_RETRY_MS,
-  aDialogIsOpen,
+  INVITE_SNOOZE_MS,
+  canShowNow,
   challengeAlreadyCompleted,
   inviteAlreadyShown,
   isAdminRoute,
@@ -39,6 +41,8 @@ export default function ProtectionChallengeInvite() {
   const [visible, setVisible] = useState(false);
   const [challengeOpen, setChallengeOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const snoozes = useRef(0);
+  const snoozeTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     // Cheap exits first: nothing to schedule for staff, repeat visitors of this session,
@@ -64,7 +68,39 @@ export default function ProtectionChallengeInvite() {
     return () => clearTimeout(timer);
   }, []);
 
+  /**
+   * Closed for good this visit: the X, Escape, or clicking away. No return.
+   */
   const dismiss = useCallback(() => setVisible(false), []);
+
+  /**
+   * "Maybe later" — bring it back once, after a short pause.
+   *
+   * Capped by INVITE_MAX_SNOOZES so a visitor who keeps saying later is not trapped in a
+   * loop; after the cap this behaves exactly like dismiss().
+   */
+  const later = useCallback(() => {
+    setVisible(false);
+    if (snoozes.current >= INVITE_MAX_SNOOZES) return;
+    snoozes.current += 1;
+
+    let waited = 0;
+    const retry = () => {
+      if (!canShowNow()) {
+        // A dialog opened in the meantime. Wait for it, within the same bounded limit.
+        waited += INVITE_RETRY_MS;
+        if (waited >= INVITE_MAX_WAIT_MS) return;
+        snoozeTimer.current = setTimeout(retry, INVITE_RETRY_MS);
+        return;
+      }
+      setVisible(true);
+    };
+    snoozeTimer.current = setTimeout(retry, INVITE_SNOOZE_MS);
+  }, []);
+
+  // A pending "later" must not fire after the visitor has navigated away or started the
+  // challenge from somewhere else.
+  useEffect(() => () => clearTimeout(snoozeTimer.current), []);
 
   // Escape closes it, like any other overlay.
   useEffect(() => {
@@ -78,6 +114,7 @@ export default function ProtectionChallengeInvite() {
   }, [visible, dismiss]);
 
   const accept = () => {
+    clearTimeout(snoozeTimer.current); // no popup arriving mid-challenge
     setVisible(false);
     setChallengeOpen(true);
   };
@@ -134,7 +171,7 @@ export default function ProtectionChallengeInvite() {
               </Button>
               <Button
                 variant="outline"
-                onClick={dismiss}
+                onClick={later}
                 className="min-h-[44px] flex-1 border-gray-700 text-white hover:bg-gray-800"
                 data-testid="button-invite-later"
               >

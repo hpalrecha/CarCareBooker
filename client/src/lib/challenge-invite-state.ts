@@ -30,6 +30,17 @@ export const INVITE_DELAY_MS = 5000;
 export const INVITE_RETRY_MS = 3000;
 export const INVITE_MAX_WAIT_MS = 30000;
 
+/**
+ * "Maybe later" means later, so the invitation returns once after this delay.
+ *
+ * Deliberately capped at one return. A popup that comes back every time it is dismissed
+ * cannot be got rid of, and that costs more trust than the extra leads are worth — so the
+ * second dismissal ends it for the visit. The X, Escape and clicking away are NOT "later":
+ * they dismiss for the whole visit at the first press.
+ */
+export const INVITE_SNOOZE_MS = 5000;
+export const INVITE_MAX_SNOOZES = 1;
+
 function readFlag(storage: "sessionStorage" | "localStorage", key: string): boolean {
   try {
     return window[storage].getItem(key) === "1";
@@ -87,7 +98,20 @@ export function aDialogIsOpen(): boolean {
   }
 }
 
-/** Everything that must be true before the invitation is allowed to appear. */
+/**
+ * Conditions that hold for every appearance, first or repeat: not staff, not already done,
+ * and nothing else on screen to cover.
+ */
+export function canShowNow(): boolean {
+  return !isAdminRoute() && !challengeAlreadyCompleted() && !aDialogIsOpen();
+}
+
+/**
+ * Everything that must be true before the FIRST appearance of a visit.
+ *
+ * A snoozed invitation deliberately does not go through here: it has already been shown,
+ * so `inviteAlreadyShown()` is true and would block its own return.
+ */
 export function mayInvite(): boolean {
-  return !isAdminRoute() && !inviteAlreadyShown() && !challengeAlreadyCompleted() && !aDialogIsOpen();
+  return canShowNow() && !inviteAlreadyShown();
 }
