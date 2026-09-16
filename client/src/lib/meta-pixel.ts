@@ -204,6 +204,49 @@ export function trackBooking(args: {
   return true;
 }
 
+/**
+ * Protection Challenge events.
+ *
+ * `trackCustom`, not `track`: these are not standard Meta events, and sending them as
+ * standard ones would put them in columns that mean something else. They exist so the
+ * funnel — started, finished, enquired — can be read separately from the booking numbers.
+ *
+ * Deliberately NO Purchase and NO value: nothing is bought here, and a stream of zero-value
+ * purchases would corrupt ROAS exactly as it would for a free booking (see trackBooking).
+ *
+ * Deduplicated through the same `reportedEvents` set as every other event, so a React
+ * re-render that calls one of these again is a no-op rather than a second conversion.
+ */
+function trackCustom(name: string, eventId: string, params: Record<string, unknown>): boolean {
+  if (!pixelId || isAdminRoute()) return false;
+  if (!eventId || reportedEvents.has(eventId)) return false;
+  reportedEvents.add(eventId);
+  call("trackCustom", name, params, { eventID: eventId });
+  return true;
+}
+
+/** The customer actually began the challenge. Once per challenge session. */
+export function trackChallengeStart(args: { eventId: string; placement?: string }): boolean {
+  return trackCustom("ChallengeStart", args.eventId, { content_category: args.placement ?? undefined });
+}
+
+/** The customer reached the recommendation. Once per challenge session. */
+export function trackChallengeComplete(args: {
+  eventId: string;
+  service?: string;
+  vehicleType?: string;
+}): boolean {
+  return trackCustom("ChallengeComplete", args.eventId, {
+    content_name: args.service ?? undefined,
+    content_category: args.vehicleType ?? undefined,
+  });
+}
+
+/** The customer opened WhatsApp from the result. Only on the actual click. */
+export function trackWhatsAppContinuation(args: { eventId: string; service?: string }): boolean {
+  return trackCustom("WhatsAppContinuation", args.eventId, { content_name: args.service ?? undefined });
+}
+
 /** Test-only reset so the dedupe guard does not leak between cases. */
 export function __resetMetaPixelForTests(): void {
   reportedEvents.clear();

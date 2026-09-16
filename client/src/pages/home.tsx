@@ -5,6 +5,7 @@ import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import TransformationCTA from "@/components/transformation-cta";
+import ProtectionChallengeCTA from "@/components/protection-challenge";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { localBusinessSchema } from "@/lib/local-business";
 import { resolveServiceImage, formatINR, TRANSFORMATION_CTAS, type ServiceRecord } from "@/lib/canonical-services";
@@ -446,6 +447,13 @@ export default function Home() {
               ? <><b>Free to book</b><span>No payment to reserve — settle at the store, no hidden charges</span></>
               : <><b>Pay {formatINR(bookingFee)} to book</b><span>Balance settled at the store, no hidden charges</span></>}</div>
           </div>
+        </div>
+      </section>
+
+      {/* ---------- protection challenge: help deciding, never a gate ---------- */}
+      <section className="section">
+        <div className="wrap narrow">
+          <ProtectionChallengeCTA placement="home" variant="teaser" />
         </div>
       </section>
 
