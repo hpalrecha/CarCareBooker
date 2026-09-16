@@ -219,6 +219,13 @@ describe('Meta events', () => {
   test('WhatsApp is reported on the click, not on render', () => {
     assert.match(component, /onClick=\{\(\) =>\s*trackWhatsAppContinuation\(/);
   });
+
+  test('the WhatsApp message names the recommended service, never a generic greeting', () => {
+    assert.match(component, /I completed the Protection Challenge and I'm interested in \$\{service\?\.title\?\.trim\(\) \?\? rec\.headline\}/);
+    // A fixed message would tell the studio nothing about what was recommended.
+    assert.doesNotMatch(component, /know more about your detailing services/);
+    assert.match(component, /wa\.me\/\$\{WHATSAPP_NUMBER\}\?text=\$\{encodeURIComponent\(/);
+  });
 });
 
 describe('booking stays in step with the recommendation', () => {

@@ -406,8 +406,13 @@ export function ProtectionChallengeDialog({
                     </Button>
                   )}
                   <a
+                    /*
+                      Names the recommended catalogue service, so the studio opens the chat
+                      already knowing what was suggested. Falls back to the recommendation
+                      headline for bike film, which has no catalogue row to name.
+                    */
                     href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-                      `Hi P91, the Protection Challenge suggested ${service?.title?.trim() ?? rec.headline} for my ${rec.vehicleType}.`,
+                      `Hi P91 Car Care, I completed the Protection Challenge and I'm interested in ${service?.title?.trim() ?? rec.headline}.`,
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
