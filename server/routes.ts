@@ -1034,7 +1034,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       message: z.string().trim().max(2000).optional().nullable(),
       // Which FORM produced this. Not client-defined: an arbitrary value here would
       // pollute the only column that distinguishes the main form from the exit popup.
-      source: z.enum(["landing_page", "exit_intent"]).optional(),
+      source: z.enum(["landing_page", "exit_intent", "protection_challenge"]).optional(),
       /**
        * Honeypot. Rendered in the form, visually hidden, never focusable, and left empty
        * by every human. Bots fill inputs they can see in the DOM.
