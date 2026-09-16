@@ -400,8 +400,10 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
 });
 
 export const adminLoginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+  // Messages live here rather than on the login screen, so the client and the server
+  // reject the same input with the same words.
+  email: z.string().email("Enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 export const bookingFormSchema = z.object({
