@@ -17,7 +17,10 @@ uploads
 .env.*
 *.env
 cookies.txt
+# Both spellings: the file on the host is .githubtoken, and the dotless pattern below
+# never matched it — a credential was only ever excluded by the build context on paper.
 githubtoken
+.githubtoken
 .local
 .replit
 
