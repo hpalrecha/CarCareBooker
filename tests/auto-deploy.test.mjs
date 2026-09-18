@@ -43,6 +43,8 @@ function sandbox({
   inUse = [],
   // What the container runs AFTER the deploy script returns — a silent no-op leaves it alone.
   runningAfterDeploy = null,
+  // Docker renamed `docker builder prune --keep-storage` to `--reserved-space`.
+  modernBuilder = true,
 }) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'p91-auto-'));
   const bin = path.join(dir, 'bin');
@@ -168,7 +170,14 @@ case "$1" in
       t="\${row%% *}"
       for p in "\${pats[@]:-}"; do [[ -n "$p" && "$t" == $p ]] && { printf '%s\\n' "$row"; break; }; done
     done < <(printf '%b\\n' "${imageRows}") ;;
-  rm|rmi|builder) exit 0 ;;
+  builder)
+    # builder prune --help is how the script decides which flag name this docker takes.
+    if [[ "$*" == *--help* ]]; then
+      echo "Usage:  docker builder prune [OPTIONS]"
+      echo "      ${modernBuilder ? "--reserved-space bytes" : "--keep-storage bytes"}   disk space to keep for cache"
+    fi
+    exit 0 ;;
+  rm|rmi) exit 0 ;;
   *) exit 0 ;;
 esac`);
 
@@ -323,7 +332,7 @@ describe('disk cleanup keeps what a rollback needs', () => {
     assert.match(calls, new RegExp(`DOCKER rmi carcarebooker:git-${'d'.repeat(40)}`));
     assert.match(calls, new RegExp(`DOCKER rmi carcarebooker:git-${'e'.repeat(40)}`));
     // Build cache capped, not emptied: an empty cache means a full rebuild next time.
-    assert.match(calls, /DOCKER builder prune -f --keep-storage 2GB/);
+    assert.match(calls, /DOCKER builder prune -f --reserved-space 2GB/);
   });
 
   test('KEEP_PREV=2 keeps two rollback targets', () => {
@@ -443,5 +452,25 @@ describe('what the first run on the real host exposed', () => {
     const calls = s.readCalls();
     assert.doesNotMatch(calls, /DOCKER rmi carcarebooker:rollback-20260917T100000Z/, 'deploy-manual.sh rollback needs it');
     assert.match(calls, /DOCKER rmi carcarebooker:rollback-20260801T100000Z/);
+  });
+});
+
+describe('the build-cache flag matches the installed Docker', () => {
+  const base = { target: SHA_NEW, running: SHA_NEW, images: [{ tag: `carcarebooker:git-${SHA_NEW}`, id: 'sha256:liveimage' }] };
+
+  test('a Docker that takes --reserved-space is given --reserved-space', () => {
+    const s = sandbox({ ...base, modernBuilder: true });
+    const r = run(GC, ['--execute'], s);
+    assert.equal(r.code, 0, r.out);
+    assert.match(s.readCalls(), /DOCKER builder prune -f --reserved-space 2GB/);
+    assert.doesNotMatch(s.readCalls(), /--keep-storage/, 'the deprecated name warns and will stop working');
+  });
+
+  test('an older Docker still gets --keep-storage', () => {
+    const s = sandbox({ ...base, modernBuilder: false });
+    const r = run(GC, ['--execute'], s);
+    assert.equal(r.code, 0, r.out);
+    assert.match(s.readCalls(), /DOCKER builder prune -f --keep-storage 2GB/);
+    assert.doesNotMatch(s.readCalls(), /--reserved-space/);
   });
 });

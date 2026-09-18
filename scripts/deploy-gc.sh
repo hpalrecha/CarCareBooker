@@ -156,7 +156,13 @@ fi
 
 # ------------------------------------------------------------------ build cache
 # Capped rather than emptied: an empty cache makes the next deploy a full rebuild.
-act docker builder prune -f --keep-storage "${BUILD_CACHE_GB}GB"
+# Docker renamed --keep-storage to --reserved-space; the old name still works but
+# warns, and will eventually stop working. Ask this docker which one it takes.
+if docker builder prune --help 2>&1 | grep -q -- '--reserved-space'; then
+  act docker builder prune -f --reserved-space "${BUILD_CACHE_GB}GB"
+else
+  act docker builder prune -f --keep-storage "${BUILD_CACHE_GB}GB"
+fi
 act docker image prune -f   # dangling layers only
 
 AFTER_FREE="$(disk_free)"
