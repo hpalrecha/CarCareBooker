@@ -91,9 +91,9 @@ function BlackoutDatesTab() {
 
   return (
     <div className="space-y-6">
-      <Card className="glass-effect border-medium-gray">
+      <Card className="glass-effect border-[var(--medium-gray)]">
         <CardHeader>
-          <CardTitle className="text-xl text-neon-green flex items-center gap-2">
+          <CardTitle className="text-xl text-[var(--neon-green)] flex items-center gap-2">
             <Calendar className="h-5 w-5" />
             Add Blackout Date
           </CardTitle>
@@ -127,7 +127,7 @@ function BlackoutDatesTab() {
           <Button
             onClick={handleAddBlackout}
             disabled={createBlackoutMutation.isPending}
-            className="mt-4 bg-neon-green text-deep-black hover:bg-neon-green/80"
+            className="mt-4 bg-neon-green text-[var(--deep-black)] hover:bg-neon-green/80"
             data-testid="button-add-blackout"
           >
             <Plus className="mr-2 h-4 w-4" />
@@ -136,9 +136,9 @@ function BlackoutDatesTab() {
         </CardContent>
       </Card>
 
-      <Card className="glass-effect border-medium-gray">
+      <Card className="glass-effect border-[var(--medium-gray)]">
         <CardHeader>
-          <CardTitle className="text-xl text-neon-green">Blocked Dates</CardTitle>
+          <CardTitle className="text-xl text-[var(--neon-green)]">Blocked Dates</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -159,7 +159,7 @@ function BlackoutDatesTab() {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
-                      <Calendar className="h-5 w-5 text-neon-green" />
+                      <Calendar className="h-5 w-5 text-[var(--neon-green)]" />
                       <div>
                         <div className="font-semibold text-white" data-testid={`blackout-date-${blackout.id}`}>
                           {format(new Date(blackout.date + 'T00:00:00'), 'MMMM d, yyyy')}
@@ -259,9 +259,9 @@ function BusinessHoursTab() {
 
   return (
     <div className="space-y-6">
-      <Card className="glass-effect border-medium-gray">
+      <Card className="glass-effect border-[var(--medium-gray)]">
         <CardHeader>
-          <CardTitle className="text-xl text-neon-green flex items-center gap-2">
+          <CardTitle className="text-xl text-[var(--neon-green)] flex items-center gap-2">
             <Clock className="h-5 w-5" />
             Business Hours & Daily Cutoff Times
           </CardTitle>
@@ -280,7 +280,7 @@ function BusinessHoursTab() {
               <Button
                 onClick={() => initializeMutation.mutate()}
                 disabled={initializeMutation.isPending}
-                className="bg-neon-green text-deep-black hover:bg-neon-green/80"
+                className="bg-neon-green text-[var(--deep-black)] hover:bg-neon-green/80"
                 data-testid="button-initialize-hours"
               >
                 {initializeMutation.isPending ? "Setting up..." : "Set Up Business Hours"}
@@ -349,9 +349,9 @@ function BusinessHoursTab() {
         </CardContent>
       </Card>
 
-      <Card className="glass-effect border-medium-gray">
+      <Card className="glass-effect border-[var(--medium-gray)]">
         <CardHeader>
-          <CardTitle className="text-lg text-neon-green">How It Works</CardTitle>
+          <CardTitle className="text-lg text-[var(--neon-green)]">How It Works</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-gray-300 space-y-2 text-sm">
@@ -427,9 +427,9 @@ function PpfLeadsTab() {
 
   return (
     <div className="space-y-6">
-      <Card className="glass-effect border-medium-gray">
+      <Card className="glass-effect border-[var(--medium-gray)]">
         <CardHeader>
-          <CardTitle className="text-xl text-neon-green flex items-center gap-2">
+          <CardTitle className="text-xl text-[var(--neon-green)] flex items-center gap-2">
             <Users className="h-5 w-5" />
             PPF & Ceramic Coating Leads
           </CardTitle>
@@ -443,7 +443,7 @@ function PpfLeadsTab() {
               <p>No leads yet.</p>
               <p className="text-sm mt-2">Leads from the PPF landing page will appear here.</p>
               <p className="text-xs mt-4 text-gray-500">
-                Share this link: <span className="text-neon-green">/ppf-ceramic-coating</span>
+                Share this link: <span className="text-[var(--neon-green)]">/ppf-ceramic-coating</span>
               </p>
             </div>
           ) : (
@@ -535,9 +535,9 @@ function PpfLeadsTab() {
         </CardContent>
       </Card>
 
-      <Card className="glass-effect border-medium-gray">
+      <Card className="glass-effect border-[var(--medium-gray)]">
         <CardHeader>
-          <CardTitle className="text-lg text-neon-green">Quick Stats</CardTitle>
+          <CardTitle className="text-lg text-[var(--neon-green)]">Quick Stats</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-4 gap-4">
@@ -935,7 +935,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-deep-black text-white">
       {/* Header */}
-      <div className="glass-effect border-b border-medium-gray">
+      <div className="glass-effect border-b border-[var(--medium-gray)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
@@ -961,7 +961,7 @@ export default function AdminDashboard() {
               </Button>
               <Button
                 onClick={() => setShowServiceForm(true)}
-                className="bg-neon-green text-deep-black hover:bg-neon-green/90"
+                className="bg-neon-green text-[var(--deep-black)] hover:bg-neon-green/90"
                 data-testid="button-new-service"
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -969,7 +969,7 @@ export default function AdminDashboard() {
               </Button>
               <div className="flex items-center space-x-2 text-gray-400">
                 <div className="w-8 h-8 bg-neon-green rounded-full flex items-center justify-center">
-                  <span className="text-deep-black font-semibold text-sm">{admin?.name?.[0] || 'A'}</span>
+                  <span className="text-[var(--deep-black)] font-semibold text-sm">{admin?.name?.[0] || 'A'}</span>
                 </div>
                 <span data-testid="text-admin-name">{admin?.name || 'Admin'}</span>
               </div>
@@ -994,7 +994,7 @@ export default function AdminDashboard() {
             <Button
               variant={activeTab === "bookings" ? "default" : "ghost"}
               onClick={() => setActiveTab("bookings")}
-              className={activeTab === "bookings" ? "bg-neon-green text-deep-black" : "text-gray-400 hover:text-white"}
+              className={activeTab === "bookings" ? "bg-neon-green text-[var(--deep-black)]" : "text-gray-400 hover:text-white"}
               data-testid="tab-bookings"
             >
               Bookings
@@ -1002,7 +1002,7 @@ export default function AdminDashboard() {
             <Button
               variant={activeTab === "services" ? "default" : "ghost"}
               onClick={() => setActiveTab("services")}
-              className={activeTab === "services" ? "bg-neon-green text-deep-black" : "text-gray-400 hover:text-white"}
+              className={activeTab === "services" ? "bg-neon-green text-[var(--deep-black)]" : "text-gray-400 hover:text-white"}
               data-testid="tab-services"
             >
               Services
@@ -1010,7 +1010,7 @@ export default function AdminDashboard() {
             <Button
               variant={activeTab === "settings" ? "default" : "ghost"}
               onClick={() => setActiveTab("settings")}
-              className={activeTab === "settings" ? "bg-neon-green text-deep-black" : "text-gray-400 hover:text-white"}
+              className={activeTab === "settings" ? "bg-neon-green text-[var(--deep-black)]" : "text-gray-400 hover:text-white"}
               data-testid="tab-settings"
             >
               Settings
@@ -1018,7 +1018,7 @@ export default function AdminDashboard() {
             <Button
               variant={activeTab === "scheduler" ? "default" : "ghost"}
               onClick={() => setActiveTab("scheduler")}
-              className={activeTab === "scheduler" ? "bg-neon-green text-deep-black" : "text-gray-400 hover:text-white"}
+              className={activeTab === "scheduler" ? "bg-neon-green text-[var(--deep-black)]" : "text-gray-400 hover:text-white"}
               data-testid="tab-scheduler"
             >
               <Clock className="mr-2 h-4 w-4" />
@@ -1027,7 +1027,7 @@ export default function AdminDashboard() {
             <Button
               variant={activeTab === "blackout" ? "default" : "ghost"}
               onClick={() => setActiveTab("blackout")}
-              className={activeTab === "blackout" ? "bg-neon-green text-deep-black" : "text-gray-400 hover:text-white"}
+              className={activeTab === "blackout" ? "bg-neon-green text-[var(--deep-black)]" : "text-gray-400 hover:text-white"}
               data-testid="tab-blackout"
             >
               Blackout Dates
@@ -1035,7 +1035,7 @@ export default function AdminDashboard() {
             <Button
               variant={activeTab === "business-hours" ? "default" : "ghost"}
               onClick={() => setActiveTab("business-hours")}
-              className={activeTab === "business-hours" ? "bg-neon-green text-deep-black" : "text-gray-400 hover:text-white"}
+              className={activeTab === "business-hours" ? "bg-neon-green text-[var(--deep-black)]" : "text-gray-400 hover:text-white"}
               data-testid="tab-business-hours"
             >
               <Clock className="mr-2 h-4 w-4" />
@@ -1044,7 +1044,7 @@ export default function AdminDashboard() {
             <Button
               variant={activeTab === "ppf-leads" ? "default" : "ghost"}
               onClick={() => setActiveTab("ppf-leads")}
-              className={activeTab === "ppf-leads" ? "bg-neon-green text-deep-black" : "text-gray-400 hover:text-white"}
+              className={activeTab === "ppf-leads" ? "bg-neon-green text-[var(--deep-black)]" : "text-gray-400 hover:text-white"}
               data-testid="tab-ppf-leads"
             >
               PPF Leads
@@ -1052,7 +1052,7 @@ export default function AdminDashboard() {
             <Button
               variant={activeTab === "campaigns" ? "default" : "ghost"}
               onClick={() => setActiveTab("campaigns")}
-              className={activeTab === "campaigns" ? "bg-neon-green text-deep-black" : "text-gray-400 hover:text-white"}
+              className={activeTab === "campaigns" ? "bg-neon-green text-[var(--deep-black)]" : "text-gray-400 hover:text-white"}
               data-testid="tab-campaigns"
             >
               Campaigns
@@ -1066,17 +1066,17 @@ export default function AdminDashboard() {
           <>
             {/* Stats Cards */}
             <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <Card className="glass-effect border-medium-gray">
+          <Card className="glass-effect border-[var(--medium-gray)]">
             <CardContent className="p-6 text-center">
-              <Users className="h-8 w-8 mx-auto mb-2 text-neon-green" />
-              <div className="text-3xl font-bold text-neon-green mb-2" data-testid="stat-total-bookings">
+              <Users className="h-8 w-8 mx-auto mb-2 text-[var(--neon-green)]" />
+              <div className="text-3xl font-bold text-[var(--neon-green)] mb-2" data-testid="stat-total-bookings">
                 {stats.totalBookings}
               </div>
               <div className="text-gray-400">Total Bookings</div>
             </CardContent>
           </Card>
 
-          <Card className="glass-effect border-medium-gray">
+          <Card className="glass-effect border-[var(--medium-gray)]">
             <CardContent className="p-6 text-center">
               <Clock className="h-8 w-8 mx-auto mb-2 text-yellow-400" />
               <div className="text-3xl font-bold text-yellow-400 mb-2" data-testid="stat-pending-bookings">
@@ -1086,7 +1086,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="glass-effect border-medium-gray">
+          <Card className="glass-effect border-[var(--medium-gray)]">
             <CardContent className="p-6 text-center">
               <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-400" />
               <div className="text-3xl font-bold text-green-400 mb-2" data-testid="stat-paid-bookings">
@@ -1096,7 +1096,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="glass-effect border-medium-gray">
+          <Card className="glass-effect border-[var(--medium-gray)]">
             <CardContent className="p-6 text-center">
               <DollarSign className="h-8 w-8 mx-auto mb-2 text-blue-400" />
               <div className="text-3xl font-bold text-blue-400 mb-2" data-testid="stat-revenue">
@@ -1108,10 +1108,10 @@ export default function AdminDashboard() {
         </div>
 
             {/* Bookings Table */}
-            <Card className="glass-effect border-medium-gray">
+            <Card className="glass-effect border-[var(--medium-gray)]">
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle className="text-xl text-neon-green">Recent Bookings</CardTitle>
+              <CardTitle className="text-xl text-[var(--neon-green)]">Recent Bookings</CardTitle>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-56 bg-medium-gray border-gray-600 text-white" data-testid="select-status-filter">
                   <SelectValue placeholder="Filter by status" />
@@ -1192,7 +1192,7 @@ export default function AdminDashboard() {
                         </div>
                       </TableCell>
                       <TableCell data-testid={`text-booking-amount-${booking.id}`}>
-                        <div className="font-semibold text-neon-green">₹{booking.amount}</div>
+                        <div className="font-semibold text-[var(--neon-green)]">₹{booking.amount}</div>
                         <div className="text-xs text-gray-500">
                           {booking.paymentId ? `ID: ${booking.paymentId.slice(-6)}` : "No Payment ID"}
                         </div>
@@ -1217,7 +1217,7 @@ export default function AdminDashboard() {
                           <Button 
                             size="sm" 
                             variant="ghost" 
-                            className="text-neon-green hover:text-green-300" 
+                            className="text-[var(--neon-green)] hover:text-green-300" 
                             data-testid={`button-whatsapp-${booking.id}`}
                             onClick={() => handleSendWhatsApp(booking)}
                           >
@@ -1257,16 +1257,16 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === "services" && (
-          <Card className="glass-effect border-medium-gray">
+          <Card className="glass-effect border-[var(--medium-gray)]">
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle className="text-xl text-neon-green">Manage Services</CardTitle>
+                <CardTitle className="text-xl text-[var(--neon-green)]">Manage Services</CardTitle>
                 <Button
                   onClick={() => {
                     setEditingService(null);
                     setShowServiceForm(true);
                   }}
-                  className="bg-neon-green text-deep-black hover:bg-neon-green/90"
+                  className="bg-neon-green text-[var(--deep-black)] hover:bg-neon-green/90"
                   data-testid="button-add-service"
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -1305,7 +1305,7 @@ export default function AdminDashboard() {
                             {service.description}
                           </p>
                           <div className="flex items-center gap-4 text-sm">
-                            <span className="text-neon-green font-semibold" data-testid={`text-service-price-${service.id}`}>
+                            <span className="text-[var(--neon-green)] font-semibold" data-testid={`text-service-price-${service.id}`}>
                               ₹{service.price}
                             </span>
                             <span className={`px-2 py-1 rounded text-xs ${service.isActive ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}`} data-testid={`badge-service-status-${service.id}`}>
@@ -1388,13 +1388,13 @@ export default function AdminDashboard() {
 
         {activeTab === "settings" && (
           <div className="space-y-6">
-            <Card className="glass-effect border-medium-gray">
+            <Card className="glass-effect border-[var(--medium-gray)]">
               <CardHeader>
-                <CardTitle className="text-xl text-neon-green">Booking Settings</CardTitle>
+                <CardTitle className="text-xl text-[var(--neon-green)]">Booking Settings</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2 p-4 rounded-lg border border-neon-green/40 bg-green-900/10">
+                  <div className="md:col-span-2 p-4 rounded-lg border border-[var(--neon-green)]/40 bg-green-900/10">
                     <Label className="text-white text-lg font-semibold mb-1 block">
                       🎁 Free Booking Offer
                     </Label>
@@ -1415,7 +1415,7 @@ export default function AdminDashboard() {
                       <Button
                         onClick={() => handleUpdateFreeBooking(settings.freeBookingUntil)}
                         disabled={updateSettingMutation.isPending}
-                        className="bg-neon-green text-deep-black hover:bg-neon-green/90"
+                        className="bg-neon-green text-[var(--deep-black)] hover:bg-neon-green/90"
                         data-testid="button-update-free-booking"
                       >
                         {updateSettingMutation.isPending ? "Saving..." : "Save offer"}
@@ -1457,7 +1457,7 @@ export default function AdminDashboard() {
                       <Button
                         onClick={() => handleUpdateBookingAmount(settings.bookingAmount)}
                         disabled={updateSettingMutation.isPending}
-                        className="bg-neon-green text-deep-black hover:bg-neon-green/90"
+                        className="bg-neon-green text-[var(--deep-black)] hover:bg-neon-green/90"
                         data-testid="button-update-booking-amount"
                       >
                         {updateSettingMutation.isPending ? "Updating..." : "Update"}
@@ -1478,7 +1478,7 @@ export default function AdminDashboard() {
                     <div className="space-y-3">
                       <div className="p-4 bg-medium-gray rounded-lg">
                         <div className="text-sm text-gray-400">Current Booking Fee</div>
-                        <div className="text-2xl font-bold text-neon-green">₹{settings.bookingAmount}</div>
+                        <div className="text-2xl font-bold text-[var(--neon-green)]">₹{settings.bookingAmount}</div>
                       </div>
                       <div className="p-4 bg-medium-gray rounded-lg">
                         <div className="text-sm text-gray-400">Payment Gateway</div>
@@ -1494,9 +1494,9 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="glass-effect border-medium-gray">
+            <Card className="glass-effect border-[var(--medium-gray)]">
               <CardHeader>
-                <CardTitle className="text-xl text-neon-green">Site Settings</CardTitle>
+                <CardTitle className="text-xl text-[var(--neon-green)]">Site Settings</CardTitle>
               </CardHeader>
               <CardContent>
                 {settingsLoading ? (
@@ -1509,7 +1509,7 @@ export default function AdminDashboard() {
                           <div className="flex-1">
                             <h3 className="font-semibold text-white mb-1">{setting.key.replace(/_/g, ' ').toUpperCase()}</h3>
                             <p className="text-gray-400 text-sm mb-2">{setting.description}</p>
-                            <div className="text-neon-green font-mono">{setting.value}</div>
+                            <div className="text-[var(--neon-green)] font-mono">{setting.value}</div>
                           </div>
                           <div className="flex items-center gap-2 ml-4">
                             <Badge className={`${setting.category === 'booking' ? 'bg-blue-900 text-blue-300' : 'bg-gray-700 text-gray-300'}`}>
@@ -1536,9 +1536,9 @@ export default function AdminDashboard() {
 
         {activeTab === "scheduler" && (
           <div className="space-y-6">
-            <Card className="glass-effect border-medium-gray">
+            <Card className="glass-effect border-[var(--medium-gray)]">
               <CardHeader>
-                <CardTitle className="text-xl text-neon-green flex items-center gap-2">
+                <CardTitle className="text-xl text-[var(--neon-green)] flex items-center gap-2">
                   <Clock className="h-5 w-5" />
                   Reminder Scheduler
                 </CardTitle>
@@ -1562,7 +1562,7 @@ export default function AdminDashboard() {
                         </div>
                         <div>
                           <Label className="text-gray-300">Next Reminder Time</Label>
-                          <div className="mt-1 text-neon-green font-mono">
+                          <div className="mt-1 text-[var(--neon-green)] font-mono">
                             {schedulerStatus?.nextReminderTime || "Not scheduled"}
                           </div>
                         </div>
@@ -1673,7 +1673,7 @@ export default function AdminDashboard() {
 
       {/* Booking detail (View) */}
       <Dialog open={!!viewingBooking} onOpenChange={(o) => !o && setViewingBooking(null)}>
-        <DialogContent className="max-w-lg bg-dark-gray border-medium-gray text-white max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-lg bg-dark-gray border-[var(--medium-gray)] text-white max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Booking details</DialogTitle></DialogHeader>
           {viewingBooking && (() => {
             const b = viewingBooking;
@@ -1714,7 +1714,7 @@ export default function AdminDashboard() {
 
       {/* Edit booking */}
       <Dialog open={!!editingBooking} onOpenChange={(o) => !o && setEditingBooking(null)}>
-        <DialogContent className="max-w-lg bg-dark-gray border-medium-gray text-white">
+        <DialogContent className="max-w-lg bg-dark-gray border-[var(--medium-gray)] text-white">
           <DialogHeader><DialogTitle>Edit booking</DialogTitle></DialogHeader>
           {editingBooking && (
             <div className="space-y-3">

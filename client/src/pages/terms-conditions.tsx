@@ -27,7 +27,7 @@ export default function TermsConditions() {
           
           <div className="space-y-8 text-gray-300 leading-relaxed">
             <section>
-              <h2 className="text-2xl font-semibold text-neon-green mb-4">1. Business Information</h2>
+              <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">1. Business Information</h2>
               <p><strong>Company Name:</strong> Plus Nine One Inc</p>
               <p><strong>GST Number:</strong> 29AMIPP3288M1Z6</p>
               <p><strong>Business Type:</strong> Car Detailing and Maintenance Services</p>
@@ -35,7 +35,7 @@ export default function TermsConditions() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-neon-green mb-4">2. Service Agreement</h2>
+              <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">2. Service Agreement</h2>
               <p>By booking our services through P91 Car Care portal, you agree to these terms and conditions. Our services include:</p>
               {/* Read from the live active-service records rather than restated here.
                   This list previously named a "Premium Car Wash - ₹599" that does not
@@ -55,7 +55,7 @@ export default function TermsConditions() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-neon-green mb-4">3. Booking and Payment Terms</h2>
+              <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">3. Booking and Payment Terms</h2>
               <p>A booking fee of ₹299 is required to secure your appointment. This amount will be adjusted against the total service cost. All prices are listed in Indian Rupees (INR) and include applicable taxes.</p>
               {/* Kept as a standing clause rather than rewritten: the fee is the normal terms,
                   and the offer is a temporary waiver of it. Without this sentence the page
@@ -65,22 +65,22 @@ export default function TermsConditions() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-neon-green mb-4">4. Service Delivery</h2>
+              <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">4. Service Delivery</h2>
               <p>Services are provided at your designated location in Bangalore. Our team will arrive within the scheduled time slot. Please ensure vehicle accessibility and availability of water connection if required.</p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-neon-green mb-4">5. Liability and Insurance</h2>
+              <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">5. Liability and Insurance</h2>
               <p>Plus Nine One Inc maintains comprehensive insurance coverage for all services. We are not liable for pre-existing damage to vehicles. Any concerns should be reported before service commencement.</p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-neon-green mb-4">6. Modification of Terms</h2>
+              <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">6. Modification of Terms</h2>
               <p>We reserve the right to modify these terms at any time. Changes will be effective immediately upon posting on our website. Continued use of our services constitutes acceptance of modified terms.</p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-neon-green mb-4">7. Contact Information</h2>
+              <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">7. Contact Information</h2>
               <p>For any questions regarding these terms, please contact us through our booking portal or customer service channels.</p>
             </section>
 

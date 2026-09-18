@@ -58,7 +58,7 @@ export default function ServiceDetail() {
           <div className="text-center">
             <h1 className="text-2xl font-bold text-red-400 mb-4">Service Not Found</h1>
             <Link href="/">
-              <Button className="bg-neon-green text-deep-black hover:bg-neon-green/90">
+              <Button className="bg-neon-green text-[var(--deep-black)] hover:bg-neon-green/90">
                 Back to Home
               </Button>
             </Link>
@@ -89,7 +89,7 @@ export default function ServiceDetail() {
       <div className="pt-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <div className="mb-6">
-          <Link href="/" className="inline-flex items-center text-gray-400 hover:text-neon-green transition-colors" data-testid="link-back-home">
+          <Link href="/" className="inline-flex items-center text-gray-400 hover:text-[var(--neon-green)] transition-colors" data-testid="link-back-home">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Services
           </Link>
@@ -102,7 +102,7 @@ export default function ServiceDetail() {
           </h1>
           <div className="flex items-center space-x-6 text-gray-400">
             <div className="flex items-center space-x-2">
-              <Clock className="w-4 h-4 text-neon-green" />
+              <Clock className="w-4 h-4 text-[var(--neon-green)]" />
               <span data-testid="text-service-duration">{durationText}</span>
             </div>
             <div className="flex items-center space-x-2">
@@ -111,7 +111,7 @@ export default function ServiceDetail() {
                   ₹{serviceData.originalPrice}
                 </span>
               )}
-              <span className="text-neon-green font-bold text-xl" data-testid="text-current-price">
+              <span className="text-[var(--neon-green)] font-bold text-xl" data-testid="text-current-price">
                 ₹{serviceData.price}
               </span>
             </div>
@@ -134,7 +134,7 @@ export default function ServiceDetail() {
             {/* Description */}
             {serviceData.description && (
               <div>
-                <h2 className="text-2xl font-semibold text-neon-green mb-4">Service Overview</h2>
+                <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">Service Overview</h2>
                 <p className="text-gray-300 leading-relaxed" data-testid="text-service-description">
                   {serviceData.description}
                 </p>
@@ -143,7 +143,7 @@ export default function ServiceDetail() {
 
             {/* Before & After Results */}
             <div>
-              <h2 className="text-2xl font-semibold text-neon-green mb-6">Before & After Results</h2>
+              <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-6">Before & After Results</h2>
               <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-800 mb-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   <div className="relative">
@@ -204,7 +204,7 @@ export default function ServiceDetail() {
             {/* Why Choose This Service */}
             {serviceData.whyChoose && (
               <div>
-                <h2 className="text-2xl font-semibold text-neon-green mb-4">Why Choose This Service?</h2>
+                <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">Why Choose This Service?</h2>
                 <p className="text-gray-300 leading-relaxed" data-testid="text-why-choose">
                   {serviceData.whyChoose}
                 </p>
@@ -214,12 +214,12 @@ export default function ServiceDetail() {
             {/* What's Included */}
             {serviceData.whatIncluded && serviceData.whatIncluded.length > 0 && (
               <div>
-                <h2 className="text-2xl font-semibold text-neon-green mb-4">What You Get</h2>
+                <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">What You Get</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   <ul className="space-y-3 text-gray-300">
                     {serviceData.whatIncluded.slice(0, Math.ceil(serviceData.whatIncluded.length / 2)).map((item: string, index: number) => (
                       <li key={index} className="flex items-center" data-testid={`text-included-${index}`}>
-                        <Check className="w-5 h-5 text-neon-green mr-3 flex-shrink-0" />
+                        <Check className="w-5 h-5 text-[var(--neon-green)] mr-3 flex-shrink-0" />
                         {item}
                       </li>
                     ))}
@@ -227,7 +227,7 @@ export default function ServiceDetail() {
                   <ul className="space-y-3 text-gray-300">
                     {serviceData.whatIncluded.slice(Math.ceil(serviceData.whatIncluded.length / 2)).map((item: string, index: number) => (
                       <li key={index} className="flex items-center" data-testid={`text-included-${index + Math.ceil(serviceData.whatIncluded.length / 2)}`}>
-                        <Check className="w-5 h-5 text-neon-green mr-3 flex-shrink-0" />
+                        <Check className="w-5 h-5 text-[var(--neon-green)] mr-3 flex-shrink-0" />
                         {item}
                       </li>
                     ))}
@@ -253,7 +253,7 @@ export default function ServiceDetail() {
                     {serviceData.originalPrice && (
                       <div className="text-gray-500 line-through text-sm">₹{serviceData.originalPrice}</div>
                     )}
-                    <div className="text-neon-green font-bold text-xl" data-testid="text-sidebar-price">
+                    <div className="text-[var(--neon-green)] font-bold text-xl" data-testid="text-sidebar-price">
                       ₹{serviceData.price}
                     </div>
                   </div>
@@ -261,7 +261,7 @@ export default function ServiceDetail() {
               </div>
 
               <Button
-                className="w-full bg-neon-green text-deep-black hover:bg-neon-green/90 neon-glow font-semibold text-lg py-3"
+                className="w-full bg-neon-green text-[var(--deep-black)] hover:bg-neon-green/90 neon-glow font-semibold text-lg py-3"
                 onClick={() => setIsBookingModalOpen(true)}
                 data-testid="button-book-now"
               >
@@ -279,7 +279,7 @@ export default function ServiceDetail() {
           {/* Mobile Floating Button */}
           <div className="lg:hidden fixed bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-deep-black via-deep-black/95 to-transparent z-40">
             <Button
-              className="w-full bg-neon-green text-deep-black hover:bg-neon-green/90 font-bold text-sm sm:text-lg py-4 shadow-2xl rounded-2xl border-2 border-neon-green/30 relative overflow-hidden"
+              className="w-full bg-neon-green text-[var(--deep-black)] hover:bg-neon-green/90 font-bold text-sm sm:text-lg py-4 shadow-2xl rounded-2xl border-2 border-[var(--neon-green)]/30 relative overflow-hidden"
               onClick={() => setIsBookingModalOpen(true)}
               data-testid="button-mobile-book-now"
             >

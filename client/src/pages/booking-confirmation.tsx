@@ -1,7 +1,7 @@
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import Navbar from "@/components/navbar";
+import { BrandHeader, BrandFooter } from "@/components/redesign/brand-chrome";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,14 +51,14 @@ export default function BookingConfirmation() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-deep-black text-white">
-        <Navbar />
-        <div className="pt-16 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <BrandHeader />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center mb-8">
             <Skeleton className="w-16 h-16 mx-auto mb-4 bg-medium-gray rounded-full" />
             <Skeleton className="w-64 h-8 mx-auto mb-2 bg-medium-gray" />
             <Skeleton className="w-48 h-6 mx-auto bg-medium-gray" />
           </div>
-          <Card className="glass-effect border-medium-gray">
+          <Card className="glass-effect border-[var(--medium-gray)]">
             <CardContent className="p-8 space-y-6">
               <Skeleton className="w-full h-32 bg-medium-gray" />
               <Skeleton className="w-full h-24 bg-medium-gray" />
@@ -66,6 +66,7 @@ export default function BookingConfirmation() {
             </CardContent>
           </Card>
         </div>
+        <BrandFooter />
       </div>
     );
   }
@@ -73,8 +74,8 @@ export default function BookingConfirmation() {
   if (error || !booking) {
     return (
       <div className="min-h-screen bg-deep-black text-white">
-        <Navbar />
-        <div className="pt-16 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <BrandHeader />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-red-400 mb-4" data-testid="text-error-title">
               Booking Not Found
@@ -83,12 +84,13 @@ export default function BookingConfirmation() {
               The booking you're looking for doesn't exist or you don't have permission to view it.
             </p>
             <Link href="/">
-              <Button className="bg-neon-green text-deep-black hover:bg-neon-green/90" data-testid="button-back-home">
+              <Button className="bg-neon-green text-[var(--deep-black)] hover:bg-neon-green/90" data-testid="button-back-home">
                 Back to Home
               </Button>
             </Link>
           </div>
         </div>
+        <BrandFooter />
       </div>
     );
   }
@@ -119,9 +121,9 @@ export default function BookingConfirmation() {
 
   return (
     <div className="min-h-screen bg-deep-black text-white">
-      <Navbar />
+      <BrandHeader />
       
-      <div className="pt-16 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="text-center mb-8">
           <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${isConfirmed ? 'bg-green-900' : 'bg-yellow-900'}`}>
@@ -139,10 +141,10 @@ export default function BookingConfirmation() {
         </div>
 
         {/* Booking Details Card */}
-        <Card className="glass-effect border-medium-gray mb-8">
+        <Card className="glass-effect border-[var(--medium-gray)] mb-8">
           <CardHeader>
             <CardTitle className="flex justify-between items-center">
-              <span className="text-neon-green">Booking Details</span>
+              <span className="text-[var(--neon-green)]">Booking Details</span>
               <span data-testid="status-badge">{getStatusBadge(booking.paymentStatus)}</span>
             </CardTitle>
           </CardHeader>
@@ -166,7 +168,7 @@ export default function BookingConfirmation() {
                   </div>
                   <div className="flex justify-between">
                     <span>Amount:</span>
-                    <span className="text-neon-green font-bold" data-testid="text-booking-amount">
+                    <span className="text-[var(--neon-green)] font-bold" data-testid="text-booking-amount">
                       ₹{booking.amount}
                     </span>
                   </div>
@@ -177,13 +179,13 @@ export default function BookingConfirmation() {
                 <h3 className="font-semibold text-white mb-3">Appointment Details</h3>
                 <div className="space-y-2 text-gray-300">
                   <div className="flex items-center space-x-2">
-                    <Calendar className="w-4 h-4 text-neon-green" />
+                    <Calendar className="w-4 h-4 text-[var(--neon-green)]" />
                     <span data-testid="text-appointment-date">
                       {booking.timeSlot?.date ? formatDate(booking.timeSlot.date) : "Date unavailable"}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Clock className="w-4 h-4 text-neon-green" />
+                    <Clock className="w-4 h-4 text-[var(--neon-green)]" />
                     <span data-testid="text-appointment-time">
                       {booking.timeSlot?.startTime || "Time unavailable"}
                     </span>
@@ -230,15 +232,15 @@ export default function BookingConfirmation() {
         </Card>
 
         {/* Location & Contact Card */}
-        <Card className="glass-effect border-medium-gray mb-8">
+        <Card className="glass-effect border-[var(--medium-gray)] mb-8">
           <CardHeader>
-            <CardTitle className="text-neon-green">Service Center Location</CardTitle>
+            <CardTitle className="text-[var(--neon-green)]">Service Center Location</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="flex items-start space-x-3">
-                  <MapPin className="w-5 h-5 text-neon-green mt-1" />
+                  <MapPin className="w-5 h-5 text-[var(--neon-green)] mt-1" />
                   <div>
                     <h4 className="font-semibold text-white mb-1">P91 Car Care Center</h4>
                     <p className="text-gray-300" data-testid="text-service-center-address">
@@ -251,7 +253,7 @@ export default function BookingConfirmation() {
               
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <Phone className="w-5 h-5 text-neon-green" />
+                  <Phone className="w-5 h-5 text-[var(--neon-green)]" />
                   <div>
                     <h4 className="font-semibold text-white mb-1">Contact</h4>
                     <p className="text-gray-300" data-testid="text-contact-phone">
@@ -261,7 +263,7 @@ export default function BookingConfirmation() {
                 </div>
                 
                 <div className="flex items-center space-x-3">
-                  <MessageCircle className="w-5 h-5 text-neon-green" />
+                  <MessageCircle className="w-5 h-5 text-[var(--neon-green)]" />
                   <div>
                     <h4 className="font-semibold text-white mb-1">WhatsApp</h4>
                     <p className="text-gray-300" data-testid="text-whatsapp-number">
@@ -276,26 +278,26 @@ export default function BookingConfirmation() {
 
         {/* Important Information */}
         {isConfirmed && (
-          <Card className="glass-effect border-medium-gray mb-8">
+          <Card className="glass-effect border-[var(--medium-gray)] mb-8">
             <CardHeader>
-              <CardTitle className="text-neon-green">Important Information</CardTitle>
+              <CardTitle className="text-[var(--neon-green)]">Important Information</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3 text-gray-300">
                 <div className="flex items-start space-x-2">
-                  <CheckCircle className="w-5 h-5 text-neon-green mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-[var(--neon-green)] mt-0.5 flex-shrink-0" />
                   <p>Please arrive 10 minutes before your scheduled appointment time.</p>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <CheckCircle className="w-5 h-5 text-neon-green mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-[var(--neon-green)] mt-0.5 flex-shrink-0" />
                   <p>Bring a valid ID and your vehicle registration documents.</p>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <CheckCircle className="w-5 h-5 text-neon-green mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-[var(--neon-green)] mt-0.5 flex-shrink-0" />
                   <p>If you need to reschedule, please contact us at least 2 hours in advance.</p>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <CheckCircle className="w-5 h-5 text-neon-green mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-[var(--neon-green)] mt-0.5 flex-shrink-0" />
                   <p>You will receive WhatsApp and email confirmations shortly.</p>
                 </div>
               </div>
@@ -308,7 +310,7 @@ export default function BookingConfirmation() {
           <Link href="/">
             <Button 
               variant="outline" 
-              className="border-2 border-neon-green text-neon-green hover:bg-neon-green hover:text-deep-black"
+              className="border-2 border-[var(--neon-green)] text-[var(--neon-green)] hover:bg-neon-green hover:text-[var(--deep-black)]"
               data-testid="button-back-home"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -318,7 +320,7 @@ export default function BookingConfirmation() {
           
           {isConfirmed && (
             <Button 
-              className="bg-neon-green text-deep-black hover:bg-neon-green/90 neon-glow"
+              className="bg-neon-green text-[var(--deep-black)] hover:bg-neon-green/90 neon-glow"
               onClick={() => {
                 const mapUrl = `https://maps.google.com/?q=P91+Car+Care+Adugodi+Bangalore`;
                 window.open(mapUrl, '_blank');
@@ -340,7 +342,7 @@ export default function BookingConfirmation() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button 
               variant="ghost" 
-              className="text-neon-green hover:bg-neon-green/10"
+              className="text-[var(--neon-green)] hover:bg-neon-green/10"
               onClick={() => window.open(`tel:+917406619191`)}
               data-testid="button-call-support"
             >
@@ -349,7 +351,7 @@ export default function BookingConfirmation() {
             </Button>
             <Button 
               variant="ghost" 
-              className="text-neon-green hover:bg-neon-green/10"
+              className="text-[var(--neon-green)] hover:bg-neon-green/10"
               onClick={() => window.open(`https://wa.me/917406619191?text=Hi, I need help with my booking ${booking.id}`)}
               data-testid="button-whatsapp-support"
             >
@@ -358,7 +360,7 @@ export default function BookingConfirmation() {
             </Button>
             <Button 
               variant="ghost" 
-              className="text-neon-green hover:bg-neon-green/10"
+              className="text-[var(--neon-green)] hover:bg-neon-green/10"
               onClick={() => window.open(`mailto:support@p91carcare.com?subject=Booking Support - ${booking.id}`)}
               data-testid="button-email-support"
             >
@@ -368,6 +370,7 @@ export default function BookingConfirmation() {
           </div>
         </div>
       </div>
+      <BrandFooter />
     </div>
   );
 }

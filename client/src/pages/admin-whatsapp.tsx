@@ -120,7 +120,7 @@ export default function AdminWhatsApp() {
     <div className="min-h-screen bg-deep-black text-white p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center gap-3 mb-8">
-          <MessageCircle className="w-8 h-8 text-neon-green" />
+          <MessageCircle className="w-8 h-8 text-[var(--neon-green)]" />
           <h1 className="text-3xl font-bold">WhatsApp Business Configuration</h1>
         </div>
 
@@ -385,7 +385,7 @@ export default function AdminWhatsApp() {
             <div>
               <h3 className="text-white font-semibold mb-2">1. Get Your WhatsApp Business API Credentials</h3>
               <ul className="list-disc list-inside space-y-1 text-sm">
-                <li>Go to <a href="https://developers.facebook.com/" target="_blank" className="text-neon-green hover:underline">Meta for Developers</a></li>
+                <li>Go to <a href="https://developers.facebook.com/" target="_blank" className="text-[var(--neon-green)] hover:underline">Meta for Developers</a></li>
                 <li>Create a new app or select existing WhatsApp Business app</li>
                 <li>Copy the Access Token from your app dashboard</li>
                 <li>Copy Phone Number ID and Business Account ID from WhatsApp Business API section</li>
