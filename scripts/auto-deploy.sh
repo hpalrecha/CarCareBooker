@@ -93,16 +93,39 @@ g fetch --quiet origin "$BRANCH" || die "git fetch failed (network or credential
 TARGET="$(g rev-parse "origin/$BRANCH")"
 [[ "$TARGET" =~ ^[0-9a-f]{40}$ ]] || die "could not read origin/$BRANCH"
 
-# What is actually running: the image tag carries the SHA it was built from.
-RUNNING=""
-if docker inspect "$APP" >/dev/null 2>&1; then
-  image="$(docker inspect -f '{{.Config.Image}}' "$APP")"
-  [[ "$image" =~ git-([0-9a-f]{40})$ ]] && RUNNING="${BASH_REMATCH[1]}"
-fi
-note "origin/$BRANCH = ${TARGET:0:7}   running = ${RUNNING:0:7}${RUNNING:+ }${RUNNING:-unknown}"
+# What commit is actually running. The revision label is authoritative: deploy-manual.sh
+# stamps every image it builds with org.opencontainers.image.revision. The tag is only a
+# fallback, because images built by hand before that script existed carry tags like
+# `carcarebooker:0f99f7b` or `carcarebooker:20260910` that say nothing reliable.
+running_revision() {
+  local img ref rev
+  docker inspect "$APP" >/dev/null 2>&1 || return 0
+  img="$(docker inspect -f '{{.Image}}' "$APP" 2>/dev/null || true)"
+  rev="$(docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$img" 2>/dev/null || true)"
+  if [[ "$rev" =~ ^[0-9a-f]{40}$ ]]; then printf '%s' "$rev"; return 0; fi
+  ref="$(docker inspect -f '{{.Config.Image}}' "$APP" 2>/dev/null || true)"
+  [[ "$ref" =~ git-([0-9a-f]{40})$ ]] && printf '%s' "${BASH_REMATCH[1]}"
+  return 0
+}
+
+RUNNING="$(running_revision)"
+note "origin/$BRANCH = ${TARGET:0:7}   running = ${RUNNING:0:7}${RUNNING:-unknown}"
 
 if [[ "$TARGET" == "$RUNNING" ]]; then
   note "already deployed; nothing to do"
+  exit 0
+fi
+
+# Unknown is NOT a reason to deploy. If it were, every tick would find a mismatch and
+# start another full rebuild, forever. The first deploy on a host whose image predates
+# deploy-manual.sh has to be run by hand; after that the image carries a revision label
+# and this can take over.
+if [[ -z "$RUNNING" ]]; then
+  note "cannot tell which commit the running container was built from:"
+  note "  image $(docker inspect -f '{{.Config.Image}}' "$APP" 2>/dev/null || echo 'none') has no revision label."
+  note "refusing to deploy automatically — that would rebuild the site on every tick."
+  note "run one deploy by hand first:"
+  note "  sudo bash scripts/deploy-manual.sh deploy $TARGET --execute"
   exit 0
 fi
 
@@ -129,7 +152,17 @@ fi
 
 note "deploying ${TARGET:0:7} — building and health-checking a candidate before production is touched"
 if "$DEPLOY_SH" deploy "$TARGET" --execute --repo "$REPO_DIR" --public-url "$PUBLIC_URL"; then
-  note "deployed ${TARGET:0:7}"
+  # Exit 0 is not proof. Confirm the container really is running the target commit
+  # before believing it, or a silent no-op would be reported as a deploy and repeat
+  # on every tick.
+  NOW_RUNNING="$(running_revision)"
+  if [[ "$NOW_RUNNING" != "$TARGET" ]]; then
+    printf '%s' "$TARGET" > "$FAILED"
+    note "deploy reported success but the running container is ${NOW_RUNNING:-unknown}, not ${TARGET:0:7}."
+    note "treating that as a failure and stopping. Nothing was cleaned up."
+    exit 1
+  fi
+  note "deployed ${TARGET:0:7} (verified from the running container)"
   rm -f "$FAILED"
   if [[ -n "$GC_SH" ]]; then
     note "reclaiming disk"

@@ -26,7 +26,24 @@ const AUTO = path.join(repoRoot, 'scripts/auto-deploy.sh');
 const GC = path.join(repoRoot, 'scripts/deploy-gc.sh');
 
 /** A sandbox with fake git/docker/flock on PATH. */
-function sandbox({ target, running, deployExit = 0, prevs = [], images = [], disabled = false, failed = null }) {
+function sandbox({
+  target,
+  running,
+  deployExit = 0,
+  prevs = [],
+  images = [],
+  disabled = false,
+  failed = null,
+  // The tag the live container was created from. On the real host this was
+  // `carcarebooker:0f99f7b` — a hand-built tag, not git-<sha>.
+  liveRef = null,
+  // Whether the live image carries org.opencontainers.image.revision.
+  labelled = true,
+  // Containers (any name) holding an image, as `docker ps -aq` + inspect would report.
+  inUse = [],
+  // What the container runs AFTER the deploy script returns — a silent no-op leaves it alone.
+  runningAfterDeploy = null,
+}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'p91-auto-'));
   const bin = path.join(dir, 'bin');
   const state = path.join(dir, 'state');
@@ -44,8 +61,24 @@ function sandbox({ target, running, deployExit = 0, prevs = [], images = [], dis
     fs.writeFileSync(p, `#!/usr/bin/env bash\n${body}\n`, { mode: 0o755 });
   };
 
-  // The deploy and gc scripts that `git show` hands back: they only record their args.
-  const deployStub = `#!/usr/bin/env bash\necho "DEPLOY $*" >> ${JSON.stringify(calls)}\nexit ${deployExit}\n`;
+  // What `docker inspect` reports for the live container, kept in files so the fake
+  // deploy can change it the way a real deploy would.
+  const refFile = path.join(dir, 'live-ref');
+  const revFile = path.join(dir, 'live-rev');
+  fs.writeFileSync(refFile, running ? (liveRef ?? `carcarebooker:git-${running}`) : '');
+  fs.writeFileSync(revFile, running && labelled ? running : '');
+
+  // The deploy and gc scripts that `git show` hands back: they record their args, and
+  // the deploy moves the live container on unless the test says it silently did nothing.
+  const after = runningAfterDeploy === null ? target : runningAfterDeploy;
+  const deployStub = `#!/usr/bin/env bash
+echo "DEPLOY $*" >> ${JSON.stringify(calls)}
+if [[ "${deployExit}" == "0" && -n "${after}" ]]; then
+  printf '%s' "${after}" > ${JSON.stringify(revFile)}
+  printf '%s' "carcarebooker:git-${after}" > ${JSON.stringify(refFile)}
+fi
+exit ${deployExit}
+`;
   const gcStub = `#!/usr/bin/env bash\necho "GC $*" >> ${JSON.stringify(calls)}\nexit 0\n`;
 
   sh('git', `
@@ -68,25 +101,74 @@ ${gcStub}STUB
 esac`);
 
   const prevLines = prevs.map((p) => p.name).join('\\n');
-  const imageLines = images.map((i) => `${i.tag} ${i.size || '500MB'}`).join('\\n');
-  const inspectCases = [
-    running ? `carcarebooker) echo "carcarebooker:git-${running}" ;;` : `carcarebooker) exit 1 ;;`,
-    ...prevs.map((p) => `${p.name}) echo "${p.image}" ;;`),
+  const imageRows = images.map((i) => `${i.tag} ${i.id || `id-${i.tag.replace(/[^a-z0-9]/gi, '')}`} ${i.size || '500MB'}`).join('\\n');
+  const psIds = inUse.map((c) => c.id).join('\\n');
+  // id -> "<image id>|<image reference>", for every container the fakes know about.
+  const facts = [
+    ...prevs.map((p) => `${p.name}) IDVAL="id-${p.name}"; REFVAL="${p.image}" ;;`),
+    ...inUse.map((c) => `${c.id}) IDVAL="${c.image}"; REFVAL="${c.ref || c.image}" ;;`),
   ].join('\n    ');
 
   sh('docker', `
 echo "DOCKER $*" >> ${JSON.stringify(calls)}
+
+emit() { # $1=id $2=ref $3=format
+  if [[ "$3" == *'
+'* ]]; then printf '%s\\n%s\\n' "$1" "$2"
+  elif [[ "$3" == *Config.Image* ]]; then printf '%s\\n' "$2"
+  else printf '%s\\n' "$1"; fi
+}
+
 case "$1" in
   info) exit 0 ;;
-  inspect)
-    name="\${@: -1}"
-    case "$name" in
-    ${inspectCases}
-    *) exit 1 ;;
+  image)
+    case "$2" in
+      inspect)
+        shift 2; fmt=""; id=""
+        while [[ $# -gt 0 ]]; do case "$1" in -f|--format) fmt="$2"; shift 2 ;; *) id="$1"; shift ;; esac; done
+        # Only the live image carries a revision label, and only when the test says so.
+        if [[ "$id" == "sha256:liveimage" ]]; then cat ${JSON.stringify(revFile)}; echo; else echo; fi ;;
+      prune) exit 0 ;;
+      *) exit 0 ;;
     esac ;;
-  ps) printf '%b\\n' "${prevLines}" | sed '/^$/d' ;;
-  images) printf '%b\\n' "${imageLines}" | sed '/^$/d' ;;
-  rm|rmi|builder|image) exit 0 ;;
+  inspect)
+    shift; fmt=""; ids=()
+    while [[ $# -gt 0 ]]; do case "$1" in -f|--format) fmt="$2"; shift 2 ;; *) ids+=("$1"); shift ;; esac; done
+    rc=1
+    for name in "\${ids[@]}"; do
+      IDVAL=""; REFVAL=""
+      case "$name" in
+        carcarebooker)
+          ref="$(cat ${JSON.stringify(refFile)})"
+          [[ -n "$ref" ]] || continue          # no such container
+          IDVAL="sha256:liveimage"; REFVAL="$ref" ;;
+        ${facts}
+        *) continue ;;
+      esac
+      emit "$IDVAL" "$REFVAL" "$fmt"; rc=0
+    done
+    exit $rc ;;
+  ps)
+    if [[ "$*" == *-aq* ]]; then printf '%b\\n' "${psIds}" | sed '/^$/d'
+    else printf '%b\\n' "${prevLines}" | sed '/^$/d'; fi ;;
+  images)
+    shift; pats=(); repo=""
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --filter) [[ "$2" == reference=* ]] && pats+=("\${2#reference=}"); shift 2 ;;
+        --format) shift 2 ;;
+        -*) shift ;;
+        *) repo="$1"; shift ;;
+      esac
+    done
+    # A positional repository argument is an OR, not an AND, exactly as Docker treats it.
+    [[ -n "$repo" ]] && pats+=("$repo:*")
+    while IFS= read -r row; do
+      [[ -z "$row" ]] && continue
+      t="\${row%% *}"
+      for p in "\${pats[@]:-}"; do [[ -n "$p" && "$t" == $p ]] && { printf '%s\\n' "$row"; break; }; done
+    done < <(printf '%b\\n' "${imageRows}") ;;
+  rm|rmi|builder) exit 0 ;;
   *) exit 0 ;;
 esac`);
 
@@ -262,5 +344,104 @@ describe('disk cleanup keeps what a rollback needs', () => {
     run(GC, ['--execute'], s, { KEEP_BACKUPS: '2' });
     const left = fs.readdirSync(backups).sort();
     assert.deepEqual(left, ['20260910T0Z', '20260917T0Z'], 'the two newest uploads backups survive');
+  });
+});
+
+/**
+ * Regressions from the first real run on the Lightsail host (2026-09-18).
+ *
+ * That host still runs an image built by hand before deploy-manual.sh existed, tagged
+ * `carcarebooker:0f99f7b`. Three things went wrong, and each is pinned here.
+ */
+describe('what the first run on the real host exposed', () => {
+  const HAND_TAG = 'carcarebooker:0f99f7b';
+
+  test('an unlabelled hand-built image is not treated as "some other commit"', () => {
+    // Bug: the SHA was read from the tag, so a hand-built tag parsed as "unknown",
+    // which differs from origin/main — so every single tick would start a full rebuild.
+    const s = sandbox({ target: SHA_NEW, running: SHA_OLD, liveRef: HAND_TAG, labelled: false });
+    const r = run(AUTO, ['--execute'], s);
+    assert.equal(r.code, 0);
+    assert.match(r.out, /refusing to deploy automatically/);
+    assert.match(r.out, /run one deploy by hand first/);
+    assert.match(r.out, new RegExp(`deploy-manual\.sh deploy ${SHA_NEW} --execute`), 'tells you the exact command');
+    assert.doesNotMatch(s.readCalls(), /DEPLOY deploy/, 'no rebuild loop');
+  });
+
+  test('the revision label is used when the tag is not a SHA', () => {
+    const s = sandbox({ target: SHA_NEW, running: SHA_NEW, liveRef: HAND_TAG, labelled: true });
+    const r = run(AUTO, ['--execute'], s);
+    assert.equal(r.code, 0);
+    assert.match(r.out, /already deployed; nothing to do/);
+    assert.doesNotMatch(s.readCalls(), /DEPLOY deploy/);
+  });
+
+  test('a deploy that exits 0 without moving the container is a failure, not a success', () => {
+    // Bug: exit 0 was taken as proof, so a silent no-op reported "deployed" and ran cleanup.
+    const s = sandbox({ target: SHA_NEW, running: SHA_OLD, runningAfterDeploy: SHA_OLD });
+    const r = run(AUTO, ['--execute'], s);
+    assert.equal(r.code, 1);
+    assert.match(r.out, /reported success but the running container is bbbbbbb/);
+    assert.doesNotMatch(s.readCalls(), /GC --execute/, 'nothing is cleaned up on a bogus success');
+    assert.equal(fs.readFileSync(path.join(s.state, 'auto-deploy.failed'), 'utf8'), SHA_NEW);
+  });
+
+  test('cleanup leaves hand-built image tags alone', () => {
+    // Bug: `docker images REPO --filter reference=REPO:git-*` ORs the two, so it listed
+    // the whole repository. It deleted carcarebooker:20260910 and tried to delete the
+    // live carcarebooker:0f99f7b, which Docker refused because a container held it.
+    const s = sandbox({
+      target: SHA_NEW,
+      running: SHA_NEW,
+      liveRef: HAND_TAG,
+      images: [
+        { tag: HAND_TAG, id: 'sha256:hand' },
+        { tag: 'carcarebooker:20260910', id: 'sha256:dated' },
+        { tag: 'carcarebooker:latest', id: 'sha256:latest' },
+        { tag: `carcarebooker:git-${SHA_OLD}`, id: 'sha256:old' },
+      ],
+    });
+    const r = run(GC, ['--execute'], s);
+    assert.equal(r.code, 0, r.out);
+    const calls = s.readCalls();
+    for (const tag of [HAND_TAG, 'carcarebooker:20260910', 'carcarebooker:latest']) {
+      assert.doesNotMatch(calls, new RegExp(`DOCKER rmi ${tag.replace('.', '\.')}`), `${tag} was built by hand and is not ours to remove`);
+    }
+    assert.match(calls, new RegExp(`DOCKER rmi carcarebooker:git-${SHA_OLD}`), 'a stale git- build is still removed');
+  });
+
+  test('an image any container still holds is never a candidate', () => {
+    const orphanSha = 'f'.repeat(40);
+    const s = sandbox({
+      target: SHA_NEW,
+      running: SHA_NEW,
+      images: [
+        { tag: `carcarebooker:git-${SHA_NEW}`, id: 'sha256:liveimage' },
+        { tag: `carcarebooker:git-${orphanSha}`, id: 'sha256:held' },
+      ],
+      // Not a carcarebooker-prev-* container, so the keep-list alone would miss it.
+      inUse: [{ id: '7c2f615aea3a', image: 'sha256:held', ref: `carcarebooker:git-${orphanSha}` }],
+    });
+    const r = run(GC, ['--execute'], s);
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /used by a container/);
+    assert.doesNotMatch(s.readCalls(), new RegExp(`DOCKER rmi carcarebooker:git-${orphanSha}`));
+  });
+
+  test('the newest rollback- reference survives, older ones do not', () => {
+    const s = sandbox({
+      target: SHA_NEW,
+      running: SHA_NEW,
+      images: [
+        { tag: `carcarebooker:git-${SHA_NEW}`, id: 'sha256:liveimage' },
+        { tag: 'carcarebooker:rollback-20260917T100000Z', id: 'sha256:rb1' },
+        { tag: 'carcarebooker:rollback-20260801T100000Z', id: 'sha256:rb2' },
+      ],
+    });
+    const r = run(GC, ['--execute'], s);
+    assert.equal(r.code, 0, r.out);
+    const calls = s.readCalls();
+    assert.doesNotMatch(calls, /DOCKER rmi carcarebooker:rollback-20260917T100000Z/, 'deploy-manual.sh rollback needs it');
+    assert.match(calls, /DOCKER rmi carcarebooker:rollback-20260801T100000Z/);
   });
 });

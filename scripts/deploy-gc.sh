@@ -85,20 +85,45 @@ for i in "${!PREVS[@]}"; do
 done
 
 # ------------------------------------------------------------------ images
-# Only this project's tagged builds, never anything else on the host.
-mapfile -t IMAGES < <(docker images "$IMAGE_REPO" --filter "reference=${IMAGE_REPO}:git-*" --format '{{.Repository}}:{{.Tag}} {{.Size}}')
+# Every image any container references, running or stopped, by ID and by the tag it
+# was created from. Nothing in this set is ever a candidate: `docker rmi` would refuse
+# anyway, and asking is how we find out before trying.
+mapfile -t IN_USE < <(docker ps -aq 2>/dev/null | xargs -r docker inspect -f '{{.Image}}
+{{.Config.Image}}' 2>/dev/null | sort -u)
+
+# Only tags this project's deploy script creates: git-<sha> builds and rollback-<ts>
+# references. Images tagged any other way were built by hand before deploy-manual.sh
+# existed — this host has several — and are left alone, because nothing here knows
+# what they are for. Note the two reference filters: Docker ORs them, which is why
+# passing the repository as a positional argument as well would match the whole
+# repository and put those hand-built tags back in scope.
+mapfile -t IMAGES < <(docker images \
+  --filter "reference=${IMAGE_REPO}:git-*" \
+  --filter "reference=${IMAGE_REPO}:rollback-*" \
+  --format '{{.Repository}}:{{.Tag}} {{.ID}} {{.Size}}' | sort -r)
+
+# Rollback references are what `deploy-manual.sh rollback` retags from; keep the newest.
+rollbacks_kept=0
 removed_images=0
 for row in "${IMAGES[@]:-}"; do
   [[ -z "$row" ]] && continue
-  tag="${row%% *}"; size="${row#* }"
-  keep=0
-  for k in "${KEEP_IMAGES[@]}"; do [[ -n "$k" && "$tag" == "$k" ]] && keep=1; done
-  if [[ "$keep" == "1" ]]; then
-    note "keep  image $tag ($size)"
+  read -r tag id size <<<"$row"
+  keep=""
+  for k in "${KEEP_IMAGES[@]}"; do [[ -n "$k" && "$tag" == "$k" ]] && keep="live or rollback container"; done
+  if [[ -z "$keep" ]]; then
+    for u in "${IN_USE[@]:-}"; do
+      [[ -n "$u" && ( "$tag" == "$u" || "$id" == "$u" || "$u" == "$id"* ) ]] && keep="used by a container"
+    done
+  fi
+  if [[ -z "$keep" && "$tag" == "$IMAGE_REPO:rollback-"* ]] && (( rollbacks_kept < KEEP_PREV )); then
+    keep="newest rollback reference"
+    rollbacks_kept=$((rollbacks_kept + 1))
+  fi
+  if [[ -n "$keep" ]]; then
+    note "keep  image $tag ($size) — $keep"
   else
     note "stale image $tag ($size)"
-    # `docker rmi` refuses while a container still references it, which is the
-    # backstop for the keep-list above.
+    # `docker rmi` still refuses while a container references it: the last backstop.
     act docker rmi "$tag"
     removed_images=$((removed_images + 1))
   fi
