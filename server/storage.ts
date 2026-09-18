@@ -91,6 +91,7 @@ export interface IStorage {
   getCampaignByIdentifier(identifier: string): Promise<Campaign | undefined>;
   createCampaign(values: InsertCampaign): Promise<Campaign>;
   updateCampaign(id: string, patch: Partial<InsertCampaign>): Promise<Campaign>;
+  deleteCampaign(id: string): Promise<void>;
 
   // PPF leads operations
   getAllPpfLeads(): Promise<PpfLead[]>;
@@ -426,6 +427,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(campaigns.id, id))
       .returning();
     return row;
+  }
+
+  async deleteCampaign(id: string): Promise<void> {
+    // Hard delete: campaigns.id has no foreign key from bookings (bookings snapshot
+    // campaignIdentifier as plain text), so removing a campaign row cannot orphan a
+    // booking or corrupt attribution history — see the schema comment on
+    // bookings.campaignIdentifier.
+    await db.delete(campaigns).where(eq(campaigns.id, id));
   }
 
   async getAllPpfLeads(): Promise<PpfLead[]> {

@@ -896,6 +896,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/admin/campaigns/:id", authenticateAdmin, async (req, res) => {
+    try {
+      const existing = await storage.getCampaign(req.params.id);
+      if (!existing) return res.status(404).json({ message: "Campaign not found" });
+
+      await storage.deleteCampaign(req.params.id);
+      console.log(`[campaigns] deleted ${existing.identifier} by admin ${(req as any).admin?.id}`);
+      // Bookings already taken under this campaign keep their campaignIdentifier snapshot
+      // regardless — see the schema comment on bookings.campaignIdentifier for why there
+      // is no foreign key to break here.
+      res.json({ message: "Campaign deleted" });
+    } catch (error) {
+      console.error("Delete campaign error:", error);
+      res.status(500).json({ message: "Failed to delete campaign" });
+    }
+  });
+
   app.get("/api/booking-offer", async (_req, res) => {
     try {
       const setting = await storage.getSetting("free_booking_until");

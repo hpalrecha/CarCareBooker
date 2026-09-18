@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
-import { Plus, Edit, Pause, Play, AlertCircle, Megaphone } from "lucide-react";
+import { Plus, Edit, Pause, Play, AlertCircle, Megaphone, Trash2 } from "lucide-react";
 import { istLocalToInstant, instantToIstLocal, formatIst, browserIsOutsideIst, IST_LABEL } from "@/lib/ist-time";
 
 /**
@@ -132,6 +132,8 @@ export default function AdminCampaigns() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   /** Campaign awaiting an explicit activation confirmation. See the summary dialog below. */
   const [confirming, setConfirming] = useState<Campaign | null>(null);
+  /** Campaign awaiting an explicit delete confirmation — deletion is permanent. */
+  const [deleting, setDeleting] = useState<Campaign | null>(null);
 
   const { data: campaigns = [], isLoading } = useQuery<Campaign[]>({
     queryKey: ["/api/admin/campaigns"],
@@ -223,6 +225,36 @@ export default function AdminCampaigns() {
     onError: (err) => {
       setConfirming(null);
       reportError(err);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (c: Campaign) => {
+      const res = await fetch(`/api/admin/campaigns/${c.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const parsed = await res.json().catch(() => null);
+        throw new Error(parsed?.message || `Request failed (${res.status})`);
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/campaigns"] });
+      setDeleting(null);
+      toast({
+        title: "Campaign deleted",
+        description: "Bookings already taken under this campaign keep their record of it.",
+      });
+    },
+    onError: (err: any) => {
+      setDeleting(null);
+      toast({
+        title: "Could not delete campaign",
+        description: err?.message || "Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -372,6 +404,15 @@ export default function AdminCampaigns() {
                               data-testid={`button-toggle-${c.identifier}`}
                             >
                               {c.isActive ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setDeleting(c)}
+                              className="text-red-400 hover:text-red-300"
+                              data-testid={`button-delete-${c.identifier}`}
+                            >
+                              <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
                         </TableCell>
@@ -649,6 +690,49 @@ export default function AdminCampaigns() {
               data-testid="button-activate-confirm"
             >
               {toggleMutation.isPending ? "Activating…" : "Activate"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ---------------- delete confirmation ----------------
+          Deletion is permanent (unlike Pause, which is reversible), so this asks once,
+          plainly, before removing the row. Bookings already taken under the campaign are
+          unaffected — they hold their own snapshot of the identifier, not a link to this
+          row. */}
+      <Dialog open={deleting !== null} onOpenChange={(open) => !open && setDeleting(null)}>
+        <DialogContent className="bg-dark-gray border-medium-gray">
+          <DialogHeader>
+            <DialogTitle className="text-red-400 flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              Delete this campaign?
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              {deleting && (
+                <>
+                  <span className="text-white">"{deleting.name}"</span> ({deleting.identifier}) will be
+                  permanently removed. This cannot be undone — if you might need it again, use Pause
+                  instead.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <p className="text-xs text-gray-500">
+            Bookings already taken under this campaign are not affected.
+          </p>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleting(null)} data-testid="button-delete-cancel">
+              Cancel
+            </Button>
+            <Button
+              onClick={() => deleting && deleteMutation.mutate(deleting)}
+              disabled={deleteMutation.isPending}
+              className="bg-red-600 text-white hover:bg-red-700"
+              data-testid="button-delete-confirm"
+            >
+              {deleteMutation.isPending ? "Deleting…" : "Delete permanently"}
             </Button>
           </DialogFooter>
         </DialogContent>
