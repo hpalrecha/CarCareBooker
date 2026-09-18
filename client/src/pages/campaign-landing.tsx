@@ -270,7 +270,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
                   onClick={() => setBookingOpen(true)}
                   data-testid="button-hero-book"
                 >
-                  Book Free Appointment
+                  Book Now
                 </button>
                 <a className="cta-ghost" href="tel:+917406619191" data-testid="link-hero-call">
                   <Phone className="i" aria-hidden="true" /> 74066 19191
@@ -463,7 +463,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
                 onClick={() => setBookingOpen(true)}
                 data-testid="button-final-book"
               >
-                Book Free Appointment
+                Book Now
               </button>
               <a className="cta-ghost" href="tel:+917406619191">
                 <Phone className="i" aria-hidden="true" /> 74066 19191

@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Header } from "@/components/header";
-import Footer from "@/components/footer";
+import { BrandHeader, BrandFooter } from "@/components/redesign/brand-chrome";
 import ServiceCard from "@/components/service-card";
 import ServiceFilter from "@/components/service-filter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { type ServiceRecord } from "@/lib/canonical-services";
+import { SERVICES_SEO } from "@/lib/static-seo";
 
 /**
  * The service catalogue as its own page.
@@ -31,22 +31,21 @@ export default function Services() {
   });
 
   useSeoMeta({
-    title: "All Car Detailing Services in Bangalore | P91 Car Care",
-    description:
-      "Browse every P91 Car Care service: ceramic coating, paint protection film, interior " +
-      "and exterior detailing, glass and sun-control film, headlight restoration and the " +
-      "annual maintenance package. Filter by vehicle and book online.",
+    // Shared with scripts/prerender.mjs. The description here was 228 characters and
+    // different from the one crawlers received.
+    title: SERVICES_SEO.title,
+    description: SERVICES_SEO.description,
     image: "/Car Care (4)_1753951564515.png",
   });
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <Header />
+    <div className="p91-brand min-h-screen bg-black text-white">
+      <BrandHeader />
 
-      <section className="pt-28 pb-20 bg-gradient-to-b from-black to-gray-900">
+      <section className="pt-12 pb-20 sm:pt-16 bg-gradient-to-b from-black to-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-10">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-4">
               <span className="text-white">All </span>
               <span className="bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
                 Services
@@ -123,7 +122,7 @@ export default function Services() {
         </div>
       </section>
 
-      <Footer />
+      <BrandFooter />
     </div>
   );
 }

@@ -9,12 +9,10 @@
  *
  * Two failure modes are worth a permanent test:
  *
- *   1. DRIFT. Four routes have their copy in a page component (useSeoMeta) and duplicated
- *      in the prerender script's STATIC_ROUTES table. Duplication is a deliberate,
- *      narrow trade — extracting strings from nine TSX files is a bigger change than the
- *      phase justifies — but it rots silently. These tests fail the moment a title is
- *      edited in one place and not the other. Blog posts and SEO pages are NOT duplicated;
- *      the script imports those modules directly, so they cannot drift.
+ *   1. DRIFT. Nothing is duplicated any more: the hand-written pages read their copy from
+ *      lib/static-seo.ts, and blog posts, guides and campaign pages from their content
+ *      modules, and the script imports the same modules. These tests fail if a literal copy
+ *      comes back.
  *
  *   2. WIRING. Prerendered files on disk do nothing unless the server prefers them over
  *      the SPA catch-all, and the build must actually run the script. Both are asserted
@@ -31,53 +29,42 @@ const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 
 const script = read('scripts/prerender.mjs');
 
-/** The `title:` value STATIC_ROUTES declares for a path. */
-function prerenderTitle(routePath) {
-  const table = script.slice(script.indexOf('const STATIC_ROUTES'), script.indexOf('/** Bundle the TS'));
-  const idx = table.indexOf(`path: "${routePath}"`);
-  assert.ok(idx > -1, `no STATIC_ROUTES entry for ${routePath}`);
-  const after = table.slice(idx);
-  const m = /title:\s*\n?\s*"((?:[^"\\]|\\.)*)"/.exec(after);
-  assert.ok(m, `no title for ${routePath}`);
-  return m[1];
-}
-
-/** The first string literal passed as `title:` to useSeoMeta in a component. */
-function componentTitle(file) {
-  const src = read(file);
-  const idx = src.indexOf('useSeoMeta({');
-  assert.ok(idx > -1, `${file} does not call useSeoMeta`);
-  const m = /title:\s*\n?\s*"((?:[^"\\]|\\.)*)"/.exec(src.slice(idx));
-  assert.ok(m, `${file} has no literal title`);
-  return m[1];
-}
-
+/*
+ * The hand-written pages' SEO copy now lives in client/src/lib/static-seo.ts, imported by
+ * BOTH the page components and the prerender script. It used to be duplicated in a
+ * STATIC_ROUTES table here and compared by TITLE only — which is how the /services and
+ * /ppf-ceramic-coating descriptions drifted apart unnoticed.
+ */
 describe('prerendered metadata matches the page it represents', () => {
   const PAIRS = [
-    ['/', 'client/src/pages/home.tsx'],
-    ['/contact', 'client/src/pages/contact.tsx'],
-    ['/services', 'client/src/pages/services.tsx'],
+    ['HOME_SEO', 'client/src/pages/home.tsx'],
+    ['CONTACT_SEO', 'client/src/pages/contact.tsx'],
+    ['SERVICES_SEO', 'client/src/pages/services.tsx'],
+    ['PPF_CERAMIC_SEO', 'client/src/pages/ppf-ceramic-landing.tsx'],
   ];
 
-  for (const [routePath, file] of PAIRS) {
-    test(`${routePath} title is identical in the component and the prerender table`, () => {
-      assert.equal(
-        prerenderTitle(routePath),
-        componentTitle(file),
-        `${routePath}: the prerendered <title> and the one useSeoMeta sets have diverged. ` +
-          `A crawler would index one and a visitor would see the other.`,
+  for (const [constant, file] of PAIRS) {
+    test(`${file.split('/').pop()} reads its title AND description from ${constant}`, () => {
+      const src = read(file);
+      const call = src.slice(src.indexOf('useSeoMeta({'));
+      assert.ok(call.includes(`title: ${constant}.title`), 'title must come from the shared constant');
+      assert.ok(
+        call.includes(`description: ${constant}.description`),
+        'description must come from the shared constant — descriptions are what drifted',
       );
     });
   }
 
+  test('the prerender script carries no copy of its own', () => {
+    assert.ok(!script.includes('const STATIC_ROUTES'), 'the duplicated table must not come back');
+    assert.match(script, /STATIC_SEO_PAGES\.map\(/);
+    assert.match(read('scripts/prerender-content-entry.ts'), /export \{ STATIC_SEO_PAGES/);
+  });
+
   test('the blog index title is a shared constant, not duplicated', () => {
     // It used to live in STATIC_ROUTES and in the component. Both now read one export,
     // so there is nothing left to drift.
-    const table = script.slice(
-      script.indexOf('const STATIC_ROUTES'),
-      script.indexOf('/** Bundle the TS'),
-    );
-    assert.ok(!table.includes('path: "/blog"'), '/blog must not be duplicated in STATIC_ROUTES');
+    assert.ok(!/path:\s*"\/blog",\s*\n\s*title:\s*"/.test(script), '/blog title must not be a literal copy');
     assert.match(script, /title: BLOG_INDEX_TITLE/);
     assert.match(read('client/src/pages/blog-index.tsx'), /BLOG_INDEX_TITLE/);
   });
@@ -116,10 +103,8 @@ describe('prerendered metadata matches the page it represents', () => {
       'post content must not be copied into the prerender script',
     );
     assert.ok(
-      !/path:\s*"\/ceramic-coating\/car"/.test(
-        script.slice(script.indexOf('const STATIC_ROUTES'), script.indexOf('/** Bundle the TS')),
-      ),
-      'campaign page content must not be copied into STATIC_ROUTES',
+      !/path:\s*"\/ceramic-coating\/car"/.test(script),
+      'campaign page content must not be copied into the prerender script',
     );
   });
 });

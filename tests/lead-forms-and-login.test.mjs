@@ -179,7 +179,17 @@ describe('the service-page quote form', () => {
   });
 
   test('never implies the service itself is free', () => {
-    assert.match(quote, /Booking is free\. Service charges apply at the studio\./);
+    assert.match(quote, /The service is paid at the studio\./);
+  });
+
+  test('does not contradict a ₹299 booking fee on the same page', () => {
+    // "Booking is free" sat beside "Pay ₹299 & Get FREE Voucher" on service pages.
+    assert.doesNotMatch(quote, /Booking is free/);
+    assert.match(quote, /No payment to send this — we'll call to confirm your slot\./);
+  });
+
+  test('a single-vehicle page can hide the car/bike picker', () => {
+    assert.match(quote, /lockVehicleType \? "hidden" : undefined/);
   });
 
   test('accepts exactly a ten digit mobile, using the shared check', () => {

@@ -97,8 +97,9 @@ describe('branded 404', () => {
     assert.match(nf, /button-404-home/);
     assert.match(nf, /button-404-services/);
     assert.match(nf, /link-404-contact/);
-    assert.match(nf, /<Header \/>/);
-    assert.match(nf, /<Footer \/>/);
+    // The site's shared header and footer (Phase 2), not the retired page-specific ones.
+    assert.match(nf, /<BrandHeader \/>/);
+    assert.match(nf, /<BrandFooter \/>/);
   });
   test('exactly one h1', () => {
     assert.equal((nf.match(/<h1/g) || []).length, 1);
@@ -474,7 +475,15 @@ describe('bike ceramic coating content', () => {
   test('the SEO hook drives title/OG/JSON-LD from the service record', () => {
     const landing = read('client/src/pages/service-landing.tsx');
     assert.match(landing, /useSeoMeta/);
-    assert.match(landing, /"@type": "Service"/);
+    // The schema is built in one shared module, used by the page AND the server's
+    // crawler-facing HTML, so the two cannot drift again.
+    const seo = read('client/src/lib/service-seo.ts');
+    assert.match(seo, /"@type": "Service"/);
+    assert.match(seo, /"@type": "FAQPage"/);
+    assert.match(seo, /localBusinessSchema\(/, 'business with confirmed address and live hours');
+    assert.match(seo, /provider: \{ "@id": business\["@id"\] \}/);
+    assert.match(landing, /serviceStructuredData\(service/);
+    assert.match(read('server/vite.ts'), /serviceStructuredData\(/);
     // The old inline <title>/<meta> JSX is inert in React 18 and must be gone.
     assert.ok(!landing.includes('<title>{service.metaTitle'));
   });

@@ -19,6 +19,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
+import { PPF_CERAMIC_SEO } from "@/lib/static-seo";
+import { BrandHeader, BrandFooter } from "@/components/redesign/brand-chrome";
+import InstagramReels from "@/components/instagram-reels";
+import { REELS_FOR_PPF_CERAMIC_PAGE } from "@/lib/instagram-reels";
 import { attributionPayload } from "@/lib/attribution";
 import { trackLead as trackMetaLead } from "@/lib/meta-pixel";
 import { 
@@ -162,7 +166,7 @@ function HeroPriceTile({
         <div className="text-xs" aria-hidden="true">{" "}</div>
       )}
       <div className="text-xl font-bold text-green-400" data-testid={`${testId}-price`}>
-        {pricing ? formatINR(pricing.price) : loading ? "…" : "Quote"}
+        {pricing ? formatINR(pricing.price) : loading ? "…" : "On request"}
       </div>
       <div className="text-xs text-gray-400">{label}</div>
     </div>
@@ -181,10 +185,9 @@ export default function PpfCeramicLanding() {
   // results and shared links it was indistinguishable from the homepage. Its own title and
   // description let it compete for PPF and ceramic-coating queries on its own terms.
   useSeoMeta({
-    title: "Paint Protection Film & Ceramic Coating in Bangalore | P91 Car Care",
-    description:
-      "PPF and 9H ceramic coating for cars and bikes in Bangalore. See real before-and-after " +
-      "work, compare packages, and get a quote from P91 Car Care.",
+    // Shared with scripts/prerender.mjs, whose copy had drifted ("get a quote").
+    title: PPF_CERAMIC_SEO.title,
+    description: PPF_CERAMIC_SEO.description,
     image: "/Car Care (4)_1753951564515.png",
   });
 
@@ -340,8 +343,6 @@ export default function PpfCeramicLanding() {
   const ppfBrands = [
     { name: "P91 Premium PPF", description: "Our in-house premium self-healing film", warranty: "5 Years", highlight: true, badge: "EXCLUSIVE" },
     { name: "STEK", description: "Premium self-healing PPF from USA", warranty: "10 Years", highlight: false },
-    { name: "Llumar", description: "Industry leader in paint protection", warranty: "10 Years", highlight: false },
-    { name: "3M", description: "Trusted worldwide protection", warranty: "7 Years", highlight: false },
   ];
 
   const ceramicBrands = [
@@ -453,7 +454,7 @@ export default function PpfCeramicLanding() {
   ];
 
   const faqs = [
-    { q: "How long does PPF last?", a: "High-quality PPF from brands like STEK, Llumar, and P91 can last 7-10 years with proper care." },
+    { q: "How long does PPF last?", a: "High-quality PPF from brands like STEK and P91 can last 7-10 years with proper care." },
     { q: "Can PPF be removed?", a: "Yes, PPF can be professionally removed without damaging the original paint." },
     { q: "What's the difference between PPF and ceramic coating?", a: "PPF is a physical film that protects against scratches and chips. Ceramic coating is a liquid polymer that provides hydrophobic properties and enhanced shine. For maximum protection, we recommend both." },
     { q: "How long does installation take?", a: "PPF installation typically takes 2-5 days depending on coverage. Ceramic coating takes 1-2 days." },
@@ -462,7 +463,7 @@ export default function PpfCeramicLanding() {
     // "500+ cars completed" and "the best warranty in the industry" — an unverifiable
     // statistic wrapped in two comparative superlatives. Replaced with what the page
     // can actually stand behind: the named films and coatings, and the studio location.
-    { q: "Why choose P91 over others?", a: "We install named-brand films and coatings — STEK, Llumar, 3M and Nasiol, alongside our own P91 Premium PPF — from our studio in Indiranagar, Bangalore, and we back PPF with a written replacement warranty." },
+    { q: "Why choose P91 over others?", a: "We install named-brand films and coatings — STEK and Nasiol, alongside our own P91 Premium PPF — from our studio in Indiranagar, Bangalore, and we back PPF with a written replacement warranty." },
   ];
 
   /**
@@ -485,58 +486,14 @@ export default function PpfCeramicLanding() {
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="p91-brand min-h-screen bg-black text-white">
       {/*
-        Call only. This rail used to carry a WhatsApp button as well, which put TWO
-        WhatsApp controls on screen at once — this one and the site-wide floating button
-        (components/contact-fab.tsx), each opening a different prefilled message. The
-        site-wide one is on every page and is the one people recognise, so it keeps the job.
+        The site header, shared with every other page (components/redesign/brand-chrome).
+        Replaced three pieces of page-only chrome: a fixed blue "Call Now" tab on the right
+        edge (the header carries the phone number), a green announcement bar, and this page's
+        own header. Book Now still takes the visitor to this page's enquiry form.
       */}
-      <div className="fixed right-0 top-32 z-50 flex flex-col gap-0">
-        <a
-          href="tel:+917406619191"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-3 rounded-l-lg shadow-lg flex items-center gap-2 transition-all hover:pr-4"
-          data-testid="floating-call-btn"
-        >
-          <Phone className="w-5 h-5" />
-          <span className="hidden md:inline text-sm font-medium">Call Now</span>
-        </a>
-      </div>
-
-      {/* This banner carried a countdown seeded from `new Date() + 3 days` at page load,
-          so the "offer" always expired three days from whenever you happened to visit.
-          Countdown removed; restore it only against a real offer end time held in
-          configuration. */}
-      <div className="bg-gradient-to-r from-green-700 to-green-800 py-3 px-4">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-white font-bold">
-            <Timer className="w-5 h-5" />
-            <span>Professional PPF &amp; Ceramic Coating — request a quote today</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Header with Logo */}
-      <header className="py-4 px-4 bg-black/90 border-b border-gray-800 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={p91Logo} alt="P91 Car Care" className="h-12 w-auto" />
-            <div className="hidden sm:block">
-              <div className="text-sm text-green-400 font-semibold">P91 Car Care</div>
-              <div className="text-xs text-gray-400">Detailing Studio · Indiranagar</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <a href="tel:+917406619191" className="hidden md:flex items-center gap-2 text-green-400 hover:text-green-300">
-              <Phone className="w-4 h-4" />
-              +91 74066 19191
-            </a>
-            <Button onClick={scrollToForm} className="bg-green-500 hover:bg-green-600 text-black font-bold">
-              Get Quote
-            </Button>
-          </div>
-        </div>
-      </header>
+      <BrandHeader onBookNow={scrollToForm} />
 
       {/* Hero Section with Form */}
       <section className="relative py-12 lg:py-20 px-4 bg-gradient-to-br from-gray-900 via-black to-gray-900">
@@ -552,13 +509,21 @@ export default function PpfCeramicLanding() {
                 {/* Was "#1 in Bangalore" — an unverifiable ranking claim. The studio
                     location is the verifiable fact, and it is the one a local customer
                     clicking an ad actually wants in the first three seconds. */}
-                <div className="inline-flex items-center gap-2 bg-yellow-500/20 text-yellow-400 px-4 py-2 rounded-full text-sm font-medium">
-                  <Award className="w-4 h-4" />
+                {/* The location is the one fact a local customer checks first, so it opens
+                    the studio on Google Maps rather than just sitting there as a label. */}
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Indiranagar+Bengaluru"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-yellow-500/20 px-4 py-2 text-sm font-medium text-yellow-400 transition-colors hover:bg-yellow-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-yellow-400"
+                  data-testid="link-studio-map"
+                >
+                  <MapPin className="h-4 w-4" aria-hidden="true" />
                   Indiranagar, Bangalore
-                </div>
+                </a>
               </div>
               
-              <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
+              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold leading-tight">
                 <span className="text-green-400">PPF</span> & <span className="text-green-400">Ceramic Coating</span>
                 <br />for Cars & Bikes
               </h1>
@@ -574,14 +539,14 @@ export default function PpfCeramicLanding() {
                   PAINT PROTECTION SPECIALISTS
                 </div>
                 <p className="text-gray-300 text-sm">
-                  STEK · Llumar · 3M · Nasiol · P91 Premium PPF | Up to 10-year PPF warranty with no-questions-asked replacement
+                  STEK · Nasiol · P91 Premium PPF | Up to 10-year PPF warranty with no-questions-asked replacement
                 </p>
               </div>
               
               <p className="text-xl text-gray-300 leading-relaxed">
                 Protect your investment with world-class paint protection. 
                 We use premium brands including our exclusive <strong className="text-green-400">P91 Premium PPF</strong>, 
-                plus STEK, Llumar, 3M, and Nasiol ceramic coating.
+                plus STEK and Nasiol ceramic coating.
               </p>
 
               {/* Warranty Highlight */}
@@ -591,18 +556,36 @@ export default function PpfCeramicLanding() {
                     <BadgeCheck className="w-6 h-6 text-black" />
                   </div>
                   <div>
-                    <div className="font-bold text-green-400 text-lg">NO QUESTIONS ASKED WARRANTY</div>
-                    <div className="text-gray-300 text-sm">PPF fails? We REPLACE it FREE. Up to 10 years coverage.</div>
+                    {/* Sentence case. Two words in caps read as emphasis; a whole line of
+                        it reads as shouting, and the claim is strong enough plainly. */}
+                    <div className="text-lg font-bold text-green-400">No-questions-asked warranty</div>
+                    <div className="text-sm text-gray-300">
+                      If the PPF fails we replace it at no charge, up to 10 years coverage.
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Stats Counter */}
-              <div className="grid grid-cols-4 gap-2 py-4">
+              {/*
+                These tiles hold WORDS, not numbers, and the numeric-stat styling they
+                inherited broke on a phone: four columns at text-2xl gave each tile 64px at
+                320px wide, while "Indiranagar" needs 131px. It spilled 67px out of its card.
+
+                Two fixes, both needed. `min-w-0` because a grid item defaults to
+                min-width:auto and refuses to shrink below its content, and two columns on
+                mobile so the longest word has room before the type scales up.
+              */}
+              <div className="grid grid-cols-2 gap-2 py-4 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
                 {stats.map((stat, idx) => (
-                  <div key={idx} className="text-center bg-gray-800/50 rounded-lg p-3 border border-gray-700">
-                    <div className="text-2xl lg:text-3xl font-bold text-green-400">{stat.value}</div>
-                    <div className="text-xs text-gray-400">{stat.label}</div>
+                  <div
+                    key={idx}
+                    className="min-w-0 rounded-lg border border-gray-700 bg-gray-800/50 p-3 text-center"
+                  >
+                    <div className="break-words text-lg font-bold leading-tight text-green-400 sm:text-xl">
+                      {stat.value}
+                    </div>
+                    <div className="mt-0.5 text-xs text-gray-400">{stat.label}</div>
                   </div>
                 ))}
               </div>
@@ -641,7 +624,7 @@ export default function PpfCeramicLanding() {
                   <Timer className="w-3 h-3" />
                   Limited Slots Available
                 </div>
-                <h2 className="text-2xl font-bold text-white">Get a Free Quote</h2>
+                <h2 className="text-2xl font-bold text-white">Book Now</h2>
                 <p className="text-gray-400 mt-2">Our expert will contact you within 24 hours</p>
               </div>
 
@@ -802,13 +785,19 @@ export default function PpfCeramicLanding() {
                       )}
                     />
 
+                    {/*
+                      whitespace-normal: Button's base class sets whitespace-nowrap, so a
+                      label this long could not wrap and set a min-content width of 350px
+                      on the whole hero column — which is what pushed a 320px phone into
+                      horizontal scroll. h-auto lets the button grow instead.
+                    */}
                     <Button
                       type="submit"
-                      className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-6 text-lg"
+                      className="bg-[var(--neon-green)] hover:brightness-95 h-auto w-full whitespace-normal py-4 text-base font-bold text-black sm:py-6 sm:text-lg rounded-[10px]"
                       disabled={submitLeadMutation.isPending}
                       data-testid="button-submit-lead"
                     >
-                      {submitLeadMutation.isPending ? "Submitting..." : "Get Free Quote Now"}
+                      {submitLeadMutation.isPending ? "Submitting..." : "Book Now"}
                       <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
                     </Button>
 
@@ -845,7 +834,7 @@ export default function PpfCeramicLanding() {
             <div className="flex flex-col items-center gap-2">
               <Star className="w-8 h-8 text-yellow-400" />
               <div className="text-sm font-medium text-white">Named-Brand Films</div>
-              <div className="text-xs text-gray-400">STEK · Llumar · 3M · Nasiol</div>
+              <div className="text-xs text-gray-400">STEK · Nasiol</div>
             </div>
             <div className="flex flex-col items-center gap-2">
               <RefreshCcw className="w-8 h-8 text-green-400" />
@@ -860,7 +849,7 @@ export default function PpfCeramicLanding() {
       <section className="py-16 px-4 bg-gray-900">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Premium Brands We Use</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Premium Brands We Use</h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
               {/* "the best value protection in India" was an unverifiable comparative
                   claim about the whole market. What is true and checkable is that this
@@ -933,10 +922,10 @@ export default function PpfCeramicLanding() {
           <div className="text-center mt-8">
             <Button
               onClick={scrollToForm}
-              className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto"
+              className="bg-[var(--neon-green)] hover:brightness-95 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto rounded-[10px]"
               data-testid="button-cta-brands"
             >
-              Get Quote for Your Vehicle
+              Book Now
               <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
             </Button>
           </div>
@@ -947,7 +936,7 @@ export default function PpfCeramicLanding() {
       <section className="py-16 px-4 bg-black">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Our Recent Work</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Our Recent Work</h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
               Check out some of the premium vehicles we've protected at our studio
             </p>
@@ -981,7 +970,7 @@ export default function PpfCeramicLanding() {
             <p className="text-gray-400 mb-4">Recent work from our Indiranagar studio.</p>
             <Button
               onClick={scrollToForm}
-              className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto"
+              className="bg-[var(--neon-green)] hover:brightness-95 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto rounded-[10px]"
             >
               Get Your Vehicle Protected
               <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
@@ -990,110 +979,17 @@ export default function PpfCeramicLanding() {
         </div>
       </section>
 
-      {/* Video Section - PPF & Ceramic Benefits */}
-      <section className="py-16 px-4 bg-gray-900">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">See PPF & Ceramic in Action</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">
-              Watch real-world demonstrations of how PPF and ceramic coating protect your vehicle
-            </p>
-          </div>
-
-          {/* PPF Benefits Videos */}
-          <div className="mb-12">
-            <h3 className="text-2xl font-bold text-green-400 mb-6 flex items-center gap-2">
-              <Shield className="w-6 h-6" />
-              PPF Protection - Visual Benefits
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="aspect-[9/16] rounded-xl overflow-hidden border border-gray-700 hover:border-green-500 transition-all">
-                <iframe 
-                  src="https://www.youtube.com/embed/q1YKI4JCqsY" 
-                  title="PPF Protection Demo 1"
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-              <div className="aspect-[9/16] rounded-xl overflow-hidden border border-gray-700 hover:border-green-500 transition-all">
-                <iframe 
-                  src="https://www.youtube.com/embed/AhjRUqE6lPc" 
-                  title="PPF Protection Demo 2"
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-              <div className="aspect-[9/16] rounded-xl overflow-hidden border border-gray-700 hover:border-green-500 transition-all">
-                <iframe 
-                  src="https://www.youtube.com/embed/8KQfzSqS4IM" 
-                  title="PPF Protection Demo 3"
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-              <div className="aspect-[9/16] rounded-xl overflow-hidden border border-gray-700 hover:border-green-500 transition-all">
-                <iframe 
-                  src="https://www.youtube.com/embed/bMoHlh6W3Sg" 
-                  title="PPF Protection Demo 4"
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Ceramic Coating Videos */}
-          <div>
-            <h3 className="text-2xl font-bold text-green-400 mb-6 flex items-center gap-2">
-              <Sparkles className="w-6 h-6" />
-              Ceramic Coating - Long-lasting Effects
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
-              <div className="aspect-[9/16] rounded-xl overflow-hidden border border-gray-700 hover:border-green-500 transition-all">
-                <iframe 
-                  src="https://www.youtube.com/embed/kzQ5kqFbogY" 
-                  title="Ceramic Coating Demo 1"
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-              <div className="aspect-[9/16] rounded-xl overflow-hidden border border-gray-700 hover:border-green-500 transition-all">
-                <iframe 
-                  src="https://www.youtube.com/embed/IdbBrF7VQ1Q" 
-                  title="Ceramic Coating Demo 2"
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-              <div className="aspect-[9/16] rounded-xl overflow-hidden border border-gray-700 hover:border-green-500 transition-all">
-                <iframe 
-                  src="https://www.youtube.com/embed/Do6CQefTRC0" 
-                  title="Ceramic Coating Demo 3"
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="text-center mt-10">
-            <Button
-              onClick={scrollToForm}
-              className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto"
-            >
-              Get This Protection for Your Vehicle
-              <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
-            </Button>
-          </div>
-        </div>
-      </section>
+      {/*
+        Was seven YouTube shorts ("PPF Protection Demo 1"…) that were never confirmed to be the
+        studio's own work. The studio asked for its own Instagram videos instead; these are
+        its reels, verified in lib/instagram-reels.ts.
+      */}
+      <InstagramReels
+        reels={REELS_FOR_PPF_CERAMIC_PAGE}
+        heading="See PPF & Ceramic in Action"
+        intro="Real work from our Indiranagar studio, straight from our Instagram."
+        className="bg-gray-900"
+      />
 
       {/* Pricing Section */}
       <section className="py-16 px-4 bg-gray-900">
@@ -1103,7 +999,7 @@ export default function PpfCeramicLanding() {
               <Timer className="w-4 h-4" />
               Limited Time Offer{bestDiscount > 0 ? ` - Up to ${bestDiscount}% OFF` : ""}
             </div>
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Transparent Pricing</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Transparent Pricing</h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
               All prices include professional installation and warranty. These are DISCOUNTED rates for a limited time only!
             </p>
@@ -1146,7 +1042,7 @@ export default function PpfCeramicLanding() {
                         {pricing.originalPrice !== null && (
                           <span className="text-lg text-gray-500 line-through">{formatINR(pricing.originalPrice)}</span>
                         )}
-                        <span className="text-3xl font-bold text-green-400 ml-2">{formatINR(pricing.price)}</span>
+                        <span className="text-2xl sm:text-3xl font-bold text-green-400 ml-2">{formatINR(pricing.price)}</span>
                         <span className="text-sm text-gray-400 block">{card.priceNote}</span>
                       </>
                     ) : (
@@ -1174,12 +1070,12 @@ export default function PpfCeramicLanding() {
                   onClick={scrollToForm}
                   className={`w-full ${
                     card.popular
-                      ? "bg-green-500 hover:bg-green-600 text-black"
+                      ? "bg-[var(--neon-green)] hover:brightness-95 text-black rounded-[10px]"
                       : "bg-gray-700 hover:bg-gray-600 text-white"
                   }`}
                   data-testid={`button-pricing-${card.title.toLowerCase().replace(/\s+/g, "-")}`}
                 >
-                  Get Quote
+                  Book Now
                 </Button>
               </div>
               );
@@ -1192,7 +1088,7 @@ export default function PpfCeramicLanding() {
       <section className="py-16 px-4 bg-black">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Why PPF & Ceramic Coating?</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Why PPF & Ceramic Coating?</h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
               Protect your vehicle's paint from daily wear and tear while maintaining that showroom shine
             </p>
@@ -1211,7 +1107,7 @@ export default function PpfCeramicLanding() {
           <div className="text-center mt-8">
             <Button
               onClick={scrollToForm}
-              className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto"
+              className="bg-[var(--neon-green)] hover:brightness-95 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto rounded-[10px]"
               data-testid="button-cta-features"
             >
               Protect Your Vehicle Today
@@ -1233,7 +1129,7 @@ export default function PpfCeramicLanding() {
       <section className="py-16 px-4 bg-gray-900">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">What Our Customers Say</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">What Our Customers Say</h2>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[800px] overflow-y-auto pr-2">
@@ -1264,9 +1160,9 @@ export default function PpfCeramicLanding() {
           <div className="text-center mt-8">
             <Button
               onClick={scrollToForm}
-              className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto"
+              className="bg-[var(--neon-green)] hover:brightness-95 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto rounded-[10px]"
             >
-              Book Your Free Appointment
+              Book Now
               <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
             </Button>
           </div>
@@ -1278,7 +1174,7 @@ export default function PpfCeramicLanding() {
       <section className="py-16 px-4 bg-black">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Frequently Asked Questions</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Frequently Asked Questions</h2>
           </div>
 
           <div className="space-y-4">
@@ -1293,7 +1189,7 @@ export default function PpfCeramicLanding() {
           <div className="text-center mt-8">
             <Button
               onClick={scrollToForm}
-              className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto"
+              className="bg-[var(--neon-green)] hover:brightness-95 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto rounded-[10px]"
               data-testid="button-cta-faq"
             >
               Still Have Questions? Get Expert Advice
@@ -1310,43 +1206,52 @@ export default function PpfCeramicLanding() {
             <Award className="w-4 h-4" />
             PPF &amp; Ceramic Coating · Indiranagar
           </div>
-          <h2 className="text-3xl lg:text-4xl font-bold mb-4">Ready to Protect Your Vehicle?</h2>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Ready to Protect Your Vehicle?</h2>
           <p className="text-xl text-gray-300 mb-4">
-            Get a free quote today. Our experts are ready to help you choose the right protection.
+            Book your appointment today. Our team will help you choose the right protection.
           </p>
-          <div className="bg-green-500/10 border border-green-500 rounded-xl p-4 mb-8 inline-block">
-            <div className="flex items-center gap-3">
-              <BadgeCheck className="w-6 h-6 text-green-400" />
-              <span className="text-green-400 font-bold">NO QUESTIONS ASKED WARRANTY - We Replace FREE if PPF Fails!</span>
-            </div>
+          {/* Sentence case, not shouting. The claim is unchanged. */}
+          <div className="mx-auto mb-8 inline-flex max-w-xl items-center gap-3 rounded-xl border border-green-500 bg-green-500/10 p-4 text-left">
+            <BadgeCheck className="h-6 w-6 shrink-0 text-green-400" aria-hidden="true" />
+            <span className="text-sm font-semibold text-green-400 sm:text-base">
+              No-questions-asked warranty — if the PPF fails, we replace it at no charge.
+            </span>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
+          {/*
+            Was three buttons in three different colours at three different heights — a
+            tall green one, a blue outline and a second, darker green — none of which read
+            as the primary action. Now one primary and two equal secondaries, all the same
+            height (items-stretch plus min-h), so the row lines up.
+          */}
+          <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap">
             <Button
               onClick={scrollToForm}
-              className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto"
+              className="bg-[var(--neon-green)] hover:brightness-95 min-h-[52px] whitespace-normal px-8 text-base font-bold text-black sm:text-lg rounded-[10px]"
               data-testid="button-final-cta"
             >
-              Get Free Quote
-              <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
+              Book Now
+              <ChevronRight className="ml-2 h-5 w-5 shrink-0" />
             </Button>
-            <a href="tel:+917406619191">
+            <a href="tel:+917406619191" className="sm:w-auto">
               <Button
                 variant="outline"
-                className="border-blue-500 text-blue-400 hover:bg-blue-500/10 px-8 py-6 text-lg w-full sm:w-auto"
+                className="min-h-[52px] w-full border-gray-600 px-8 text-base text-white hover:bg-gray-800 sm:text-lg"
               >
-                <Phone className="mr-2 w-5 h-5" />
+                <Phone className="mr-2 h-5 w-5" aria-hidden="true" />
                 Call Now
               </Button>
             </a>
-            <a 
-              href="https://wa.me/917406619191?text=Hi%20P91%20Car%20Care!%20I'm%20interested%20in%20PPF%20/%20Ceramic%20Coating.%20Please%20share%20more%20details." 
+            <a
+              href="https://wa.me/917406619191?text=Hi%20P91%20Car%20Care!%20I'm%20interested%20in%20PPF%20/%20Ceramic%20Coating.%20Please%20share%20more%20details."
               target="_blank"
               rel="noopener noreferrer"
+              className="sm:w-auto"
             >
               <Button
-                className="bg-green-600 hover:bg-green-700 text-white px-8 py-6 text-lg w-full sm:w-auto"
+                variant="outline"
+                className="min-h-[52px] w-full border-gray-600 px-8 text-base text-white hover:bg-gray-800 sm:text-lg"
               >
-                <SiWhatsapp className="mr-2 w-5 h-5" />
+                <SiWhatsapp className="mr-2 h-5 w-5" aria-hidden="true" />
                 WhatsApp Us
               </Button>
             </a>
@@ -1354,26 +1259,7 @@ export default function PpfCeramicLanding() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-8 px-4 bg-black border-t border-gray-800">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <img src={p91Logo} alt="P91 Car Care" className="h-10 w-auto" />
-              <div>
-                <div className="text-sm font-bold text-white">P91 Car Care</div>
-                <div className="text-xs text-gray-400">Detailing Studio · Indiranagar, Bangalore</div>
-              </div>
-            </div>
-            <p className="text-gray-500 text-sm text-center">
-              © 2025 P91 Car Care. Premium PPF & Ceramic Coating Services in Bangalore.
-            </p>
-            <Link href="/" className="text-green-400 hover:underline text-sm">
-              Back to P91 Car Care Home
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <BrandFooter />
 
       {/* Exit Intent Popup */}
       <Dialog open={showExitPopup} onOpenChange={setShowExitPopup}>
@@ -1497,7 +1383,7 @@ export default function PpfCeramicLanding() {
 
               <Button
                 type="submit"
-                className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-6"
+                className="bg-[var(--neon-green)] hover:brightness-95 w-full text-black font-bold py-6 rounded-[10px]"
                 disabled={exitLeadMutation.isPending}
                 data-testid="button-exit-submit"
               >

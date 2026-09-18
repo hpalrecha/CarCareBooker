@@ -40,10 +40,10 @@ import type { BusinessHour } from "@shared/schema";
  */
 export const ADDRESS_CONFIRMED = true;
 
-const STREET_ADDRESS = "100 Feet Road, HAL 2nd Stage, Indiranagar";
-const POSTAL_CODE = "560038";
+export const STREET_ADDRESS = "100 Feet Road, HAL 2nd Stage, Indiranagar";
+export const POSTAL_CODE = "560038";
 
-const PHONE = "+917406619191";
+export const PHONE = "+917406619191";
 
 /** schema.org day names, indexed by JS getDay(). */
 const SCHEMA_DAY = [

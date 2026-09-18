@@ -5,6 +5,19 @@ import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
 import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
+import {
+  serviceSeoTitle,
+  serviceSeoDescription,
+  serviceStructuredData,
+  servicesItemListSchema,
+} from "../client/src/lib/service-seo";
+import {
+  injectRootContent,
+  servicePageContent,
+  servicesListContent,
+  type CrawlableService,
+} from "../client/src/lib/crawlable-content";
+import { SERVICES_SEO } from "../client/src/lib/static-seo";
 
 const viteLogger = createLogger();
 
@@ -122,6 +135,36 @@ export function serveStatic(app: Express, distPathOverride?: string) {
     // Never serve outside the build directory, whatever the URL contains.
     if (candidate !== distPath && !candidate.startsWith(distPath + path.sep)) return next();
     if (!fs.existsSync(candidate)) return next();
+
+    // /services: the build knows the heading and intro but not the catalogue, so the
+    // prerendered file is enriched per request with every active service (linked, priced)
+    // and an ItemList schema. Any failure serves the prerendered file unchanged — the page
+    // still works and still has its heading, it just lacks the list for that request.
+    if (pathname === "/services" || pathname === "/services/") {
+      return void (async () => {
+        try {
+          const { storage } = await import("./storage");
+          const services = (await storage.getAllServices()).filter((s: any) => s?.slug && s?.title);
+          if (!services.length) return res.sendFile(candidate);
+          const origin = process.env.PUBLIC_SITE_ORIGIN || "https://p91carcare.com";
+          const itemList = servicesItemListSchema(services as CrawlableService[], origin);
+          const html = fs
+            .readFileSync(candidate, "utf8")
+            .replace(
+              /<div id="root">[\s\S]*?<\/div>(\s*<!--)/,
+              `<div id="root">${servicesListContent(SERVICES_SEO, services as CrawlableService[])}</div>$1`,
+            )
+            .replace(
+              /<\/head>/i,
+              `    <script type="application/ld+json" data-seo="prerender">${JSON.stringify(itemList).replace(/</g, "\\u003c")}</script>\n  </head>`,
+            );
+          return res.type("html").send(html);
+        } catch (error) {
+          console.error("services list injection failed:", error);
+          return res.sendFile(candidate);
+        }
+      })();
+    }
     return res.sendFile(candidate);
   });
 
@@ -165,11 +208,8 @@ export function serveStatic(app: Express, distPathOverride?: string) {
       if (!service || !service.isActive) return next();
 
       const origin = process.env.PUBLIC_SITE_ORIGIN || "https://p91carcare.com";
-      const name = String(service.title || "").trim();
-      const generated = `${name} in Bangalore | P91 Car Care`;
-      const title =
-        service.metaTitle || (generated.length <= 60 ? generated : `${name} | P91 Car Care`);
-      const description = service.metaDescription || service.description || "";
+      const title = serviceSeoTitle(service);
+      const description = serviceSeoDescription(service);
       const canonical = `${origin}/service/${service.slug}`;
       const images = Array.isArray(service.images) ? service.images : [];
       const rawImage = typeof images[0] === "string" && images[0].trim() ? images[0] : null;
@@ -180,33 +220,15 @@ export function serveStatic(app: Express, distPathOverride?: string) {
       const esc = (s: string) =>
         String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-      const schema: Record<string, unknown> = {
-        "@context": "https://schema.org",
-        "@type": "Service",
-        name,
-        description,
-        image,
-        provider: {
-          "@type": "AutoRepair",
-          name: "P91 Car Care",
-          telephone: "+91-7406619191",
-          areaServed: "Bangalore",
-          address: {
-            "@type": "PostalAddress",
-            addressLocality: "Bengaluru",
-            addressRegion: "Karnataka",
-            addressCountry: "IN",
-          },
-        },
-        offers: {
-          "@type": "Offer",
-          // Live price from the record, never a literal — the same rule the page follows.
-          price: service.price,
-          priceCurrency: "INR",
-          availability: "https://schema.org/InStock",
-          url: canonical,
-        },
-      };
+      // Same builder the page uses after hydration (client/src/lib/service-seo.ts): the
+      // business with its confirmed address and live hours, the Service, and FAQPage when
+      // the record has questions. This copy used to omit FAQPage and the street address,
+      // so a crawler that does not run JavaScript saw neither.
+      const businessHours = await storage.getAllBusinessHours().catch(() => undefined);
+      const schemas = serviceStructuredData(service as Parameters<typeof serviceStructuredData>[0], {
+        origin,
+        businessHours,
+      });
 
       const head = [
         `    <title>${esc(title)}</title>`,
@@ -219,11 +241,22 @@ export function serveStatic(app: Express, distPathOverride?: string) {
         `    <meta property="og:image" content="${esc(image)}" />`,
         `    <meta name="twitter:card" content="summary_large_image" />`,
         `    <meta name="twitter:image" content="${esc(image)}" />`,
-        `    <script type="application/ld+json">${JSON.stringify(schema).replace(/</g, "\\u003c")}</script>`,
+        // data-seo="prerender": the page's useSeoMeta removes these when it sets the same
+        // schema itself, so a JavaScript-running browser does not end up with two copies.
+        ...schemas.map(
+          (schema) =>
+            `    <script type="application/ld+json" data-seo="prerender">${JSON.stringify(schema).replace(/</g, "\\u003c")}</script>`,
+        ),
         "  </head>",
       ].join("\n");
 
-      const html = fs.readFileSync(appShell, "utf8").replace(/<\/head>/i, head);
+      // The page's real content (title, description, price, included items, FAQ) inside
+      // #root, so crawlers that do not run JavaScript can read it. React's createRoot
+      // replaces it on load — see client/src/lib/crawlable-content.ts.
+      const html = injectRootContent(
+        fs.readFileSync(appShell, "utf8").replace(/<\/head>/i, head),
+        servicePageContent(service as CrawlableService),
+      );
       return res.type("html").send(html);
     } catch (error) {
       // A database hiccup must not turn a real page into a 404. Fall through to the SPA

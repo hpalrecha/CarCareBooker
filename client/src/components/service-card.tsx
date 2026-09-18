@@ -1,8 +1,8 @@
 import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
 import { Clock, ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "@/components/image-with-fallback";
-import { resolveServiceImage } from "@/lib/canonical-services";
+import { resolveServiceImage, formatINR } from "@/lib/canonical-services";
+import { formatServiceTime } from "@/lib/service-time";
 
 interface ServiceCardProps {
   service: {
@@ -18,78 +18,88 @@ interface ServiceCardProps {
   };
 }
 
+/**
+ * A service in the /services catalogue grid.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────────────
+ * WHAT CHANGED (Phase 2, same data and link):
+ *   - The red photo badge showed the record's free-text `discountText` ("Limited Time -
+ *     50% OFF!", "🔥 MEGA SAVINGS: ₹9,000 OFF!"). It repeated the discount already shown
+ *     beside the price, and "limited time" named no end date. Removed; the quiet "% off"
+ *     tag beside the price, computed from the real prices, stays.
+ *   - `text-neon-green`, `hover:border-neon-green`, `text-deep-black` generate NO CSS in
+ *     this project (see tailwind.config.ts). The price rendered white instead of green, and
+ *     the "View Service" label rendered near-white on the green button — unreadable. Colours
+ *     now read the CSS variable directly.
+ *   - Prices were printed raw ("₹6000.00"); now formatted ("₹6,000").
+ *   - Duration assumed minutes, so the full-body PPF records (which hold 2, 3, 4) showed
+ *     "2 minutes". It now uses the shared formatter, which omits an implausible value.
+ * ─────────────────────────────────────────────────────────────────────────────────────
+ */
 export default function ServiceCard({ service }: ServiceCardProps) {
-  const durationInHours = Math.floor(service.duration / 60);
-  const durationMinutes = service.duration % 60;
-  const durationText = durationInHours > 0 
-    ? `${durationInHours}${durationMinutes > 0 ? `.${Math.round((durationMinutes / 60) * 10)}` : ''} hours`
-    : `${durationMinutes} minutes`;
-
-  const discountPercent = service.originalPrice 
-    ? Math.round(((parseFloat(service.originalPrice) - parseFloat(service.price)) / parseFloat(service.originalPrice)) * 100)
-    : 0;
+  const time = formatServiceTime(service);
+  const price = parseFloat(service.price);
+  const original = service.originalPrice ? parseFloat(service.originalPrice) : NaN;
+  const discountPercent =
+    Number.isFinite(original) && original > price ? Math.round(((original - price) / original) * 100) : 0;
 
   return (
     <Link href={`/service/${service.slug}`}>
-      <div className="group glass-effect rounded-2xl overflow-hidden hover:border-neon-green transition-all duration-300 hover:shadow-lg hover:shadow-neon-green/20 cursor-pointer relative">
-        {/* Discount Badge */}
-        {service.discountText && (
-          <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-semibold z-10">
-            {service.discountText}
-          </div>
-        )}
-        
+      <div className="group relative cursor-pointer overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/60 transition-colors duration-300 hover:border-[var(--neon-green)]">
         {/* One 2:1 image band on every card. aspect-ratio (not a fixed height) reserves
             the box from the card's width alone, so the row height is known before the
-            image loads and the grid never shifts. The intrinsic width/height attributes
-            match that ratio, so there is no reflow even before the stylesheet applies. */}
+            image loads and the grid never shifts. */}
         <ImageWithFallback
           src={resolveServiceImage(service)}
           alt={`${service.title} being carried out at P91 Car Care`}
           width={1600}
           height={800}
-          className="block w-full aspect-[2/1] object-cover object-center bg-[#1a1a1a] group-hover:scale-105 transition-transform duration-300"
+          className="block w-full aspect-[2/1] object-cover object-center bg-[#1a1a1a] transition-transform duration-300 group-hover:scale-105"
           data-testid={`img-service-${service.id}`}
         />
         <div className="p-6">
-          <div className="flex justify-between items-start mb-3">
-            <h3 className="text-xl font-semibold group-hover:text-neon-green transition-colors" data-testid={`text-service-title-${service.id}`}>
+          <div className="mb-3 flex items-start justify-between gap-4">
+            <h3
+              className="text-xl font-semibold transition-colors group-hover:text-[var(--neon-green)]"
+              data-testid={`text-service-title-${service.id}`}
+            >
               {service.title}
             </h3>
-            <div className="text-right">
-              {service.originalPrice && (
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-gray-500 line-through text-sm" data-testid={`text-original-price-${service.id}`}>
-                    ₹{service.originalPrice}
+            <div className="shrink-0 text-right">
+              {discountPercent > 0 && (
+                <div className="mb-1 flex items-center justify-end gap-2">
+                  <span className="text-sm text-gray-500 line-through" data-testid={`text-original-price-${service.id}`}>
+                    {formatINR(service.originalPrice)}
                   </span>
-                  {discountPercent > 0 && (
-                    <span className="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">
-                      {discountPercent}% OFF
-                    </span>
-                  )}
+                  <span className="rounded border border-white/15 px-1.5 py-0.5 text-xs font-semibold text-[var(--neon-green)]">
+                    {discountPercent}% off
+                  </span>
                 </div>
               )}
-              <span className="text-neon-green font-bold text-lg block" data-testid={`text-price-${service.id}`}>
-                ₹{service.price}
+              <span className="block text-lg font-bold text-[var(--neon-green)]" data-testid={`text-price-${service.id}`}>
+                {formatINR(service.price)}
               </span>
             </div>
           </div>
-          <p className="text-gray-400 mb-4 line-clamp-2" data-testid={`text-description-${service.id}`}>
+          <p className="mb-4 line-clamp-2 text-gray-300" data-testid={`text-description-${service.id}`}>
             {service.description}
           </p>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-500 flex items-center" data-testid={`text-duration-${service.id}`}>
-              <Clock className="w-4 h-4 mr-1" />
-              {durationText}
-            </span>
-            <Button 
-              className="bg-neon-green text-deep-black hover:bg-neon-green/90 neon-glow font-semibold group-hover:shadow-lg"
+          <div className="flex items-center justify-between gap-3">
+            {time ? (
+              <span className="flex items-center text-sm text-gray-400" data-testid={`text-duration-${service.id}`}>
+                <Clock className="mr-1 h-4 w-4" aria-hidden="true" />
+                {time}
+              </span>
+            ) : (
+              <span />
+            )}
+            <span
+              className="inline-flex min-h-[40px] items-center rounded-[10px] bg-[var(--neon-green)] px-4 text-sm font-bold text-black transition group-hover:brightness-95"
               data-testid={`button-view-service-${service.id}`}
-              size="sm"
             >
               View Service
-              <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-            </Button>
+              <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+            </span>
           </div>
         </div>
       </div>

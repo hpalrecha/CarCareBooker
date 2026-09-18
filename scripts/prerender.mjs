@@ -56,70 +56,11 @@ const esc = (s) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-/**
- * Routes whose copy lives in a page component rather than a data module.
- *
- * Duplicated deliberately and narrowly — extracting the strings out of nine TSX files
- * would be a far larger change than this phase justifies. tests/prerender.test.mjs asserts
- * each of these still matches the useSeoMeta call in its component, so the duplication
- * cannot rot silently.
+/*
+ * STATIC PAGES. The title, description, h1 and lede of the hand-written pages used to be
+ * copied here (STATIC_ROUTES) and compared to the components by TITLE only, so descriptions
+ * drifted. They now come from client/src/lib/static-seo.ts, which the components import too.
  */
-const STATIC_ROUTES = [
-  {
-    path: "/",
-    title: "P91 Car Care — Car Detailing, PPF & Ceramic Coating in Indiranagar, Bangalore",
-    description:
-      "Ceramic coating, paint protection film and full interior detailing in Indiranagar, " +
-      "Bangalore — warranty-backed and bookable online in under a minute.",
-  },
-  {
-    path: "/services",
-    title: "All Car Detailing Services in Bangalore | P91 Car Care",
-    description:
-      "Every P91 Car Care service with live pricing — ceramic coating, paint protection " +
-      "film, detailing, glass coating and headlight restoration in Indiranagar, Bangalore.",
-  },
-  // The three legal pages and the combined PPF/ceramic page were in the SITEMAP but not
-  // here, so serveStatic fell through to 404.html and served them "Page not found" with
-  // noindex — the sitemap asking Google to index a page while the page told it not to.
-  // Their copy is static, so prerendering is the correct fix; /service/:slug is database
-  // driven and is handled at request time instead (see server/vite.ts).
-  {
-    path: "/privacy-policy",
-    title: "Privacy Policy — P91 Car Care",
-    description:
-      "How P91 Car Care collects, uses and stores customer information for bookings, " +
-      "payments and service reminders, and the cookies used on this site.",
-  },
-  {
-    path: "/terms-conditions",
-    title: "Terms & Conditions — P91 Car Care",
-    description:
-      "The terms that apply to booking and paying for detailing, ceramic coating and " +
-      "paint protection film services at P91 Car Care in Indiranagar, Bangalore.",
-  },
-  {
-    path: "/refund-policy",
-    title: "Refund Policy — P91 Car Care",
-    description:
-      "When booking fees are refundable, how cancellations and reschedules are handled, " +
-      "and how to request a refund from P91 Car Care.",
-  },
-  {
-    path: "/ppf-ceramic-coating",
-    title: "Paint Protection Film & Ceramic Coating in Bangalore | P91 Car Care",
-    description:
-      "PPF and 9H ceramic coating for cars and bikes in Bangalore. See real before-and-after " +
-      "work, compare packages, and get a quote from P91 Car Care.",
-  },
-  {
-    path: "/contact",
-    title: "Contact P91 Car Care | Indiranagar, Bangalore",
-    description:
-      "Call, WhatsApp or visit the P91 Car Care detailing studio in Indiranagar, Bangalore. " +
-      "Opening hours, directions and enquiry form.",
-  },
-];
 
 /** Bundle the TS content modules so their real data drives the output. */
 async function loadContent() {
@@ -163,8 +104,10 @@ function headFor(route) {
   for (const block of route.jsonLd || []) {
     // JSON-LD is data, not markup: only "<" needs neutralising so a value can never
     // close the script element early.
+    // data-seo="prerender": useSeoMeta removes these when the page sets its own schema, so a
+    // browser that runs JavaScript does not end up with every block twice.
     tags.push(
-      `<script type="application/ld+json">${JSON.stringify(block).replace(/</g, "\\u003c")}</script>`,
+      `<script type="application/ld+json" data-seo="prerender">${JSON.stringify(block).replace(/</g, "\\u003c")}</script>`,
     );
   }
   return tags.map((t) => "    " + t).join("\n");
@@ -183,13 +126,29 @@ async function main() {
   if (!Array.isArray(SEO_PAGES) || !SEO_PAGES.length) die("SEO_PAGES is empty");
   if (!Array.isArray(LANDING_PAGES) || !LANDING_PAGES.length) die("LANDING_PAGES is empty");
 
-  const routes = [...STATIC_ROUTES];
+  const { STATIC_SEO_PAGES } = content;
+  if (!Array.isArray(STATIC_SEO_PAGES) || !STATIC_SEO_PAGES.length) die("STATIC_SEO_PAGES is empty");
+
+  // Every route carries `content`: the page's real text, baked into <div id="root"> so a
+  // crawler that does not run JavaScript still reads the page (see lib/crawlable-content.ts).
+  const routes = STATIC_SEO_PAGES.map((page) => ({
+    path: page.path,
+    title: page.title,
+    description: page.description,
+    content: content.staticPageContent(page),
+    // The homepage and /contact set the business schema at runtime; the raw HTML carried
+    // none, so a crawler without JavaScript never saw the address, phone or hours. Emitted
+    // here without opening hours — those are live data the build cannot know; the page
+    // replaces this block with the full one (hours included) once it loads.
+    jsonLd: page.path === "/" || page.path === "/contact" ? [content.localBusinessSchema(ORIGIN)] : [],
+  }));
 
   // /blog — title and description come from the shared constants, not a copy here.
   routes.push({
     path: "/blog",
     title: BLOG_INDEX_TITLE,
     description: BLOG_INDEX_DESCRIPTION,
+    content: content.blogListContent(BLOG_POSTS),
     jsonLd: [breadcrumbs([["Home", "/"], ["Blog", "/blog"]])],
   });
 
@@ -204,6 +163,7 @@ async function main() {
       path: `/blog/category/${slug}`,
       title: content.categoryTitle(category),
       description: content.categoryDescription(category),
+      content: content.blogListContent(posts, category),
       jsonLd: [
         breadcrumbs([["Home", "/"], ["Blog", "/blog"], [category, `/blog/category/${slug}`]]),
       ],
@@ -217,6 +177,7 @@ async function main() {
       title: p.seoTitle,
       description: p.excerpt,
       ogType: "article",
+      content: content.blogPostContent(p),
       jsonLd: [
         {
           "@context": "https://schema.org",
@@ -248,6 +209,7 @@ async function main() {
       path: `/services/${p.slug}`,
       title: p.title,
       description: p.description,
+      content: content.seoGuideContent(p),
       jsonLd: [
         breadcrumbs([
           ["Home", "/"],
@@ -272,6 +234,7 @@ async function main() {
       path: p.path,
       title: p.title,
       description: p.description,
+      content: content.landingPageContent(p),
       jsonLd: [
         breadcrumbs([
           ["Home", "/"],
@@ -326,7 +289,19 @@ async function main() {
 
   let written = 0;
   for (const route of routes) {
-    const html = stripped.replace(/<\/head>/i, headFor(route) + "\n  </head>");
+    if (!route.content) die(`${route.path}: no crawlable content built`);
+    const html = content.injectRootContent(
+      stripped.replace(/<\/head>/i, headFor(route) + "\n  </head>"),
+      route.content,
+    );
+
+    // The body must now carry the page: an empty root is exactly the defect this fixes, and
+    // one <h1> is what every page renders.
+    const root = (html.match(/<div id="root">([\s\S]*?)<\/div>\s*(?:<script|<!--)/) || [])[1] || "";
+    if (!root.includes('data-prerender="content"')) die(`${route.path}: crawlable content missing from #root`);
+    if ((html.match(/<h1\b/g) || []).length !== 1) {
+      die(`${route.path}: ${(html.match(/<h1\b/g) || []).length} <h1> tags in the HTML — expected exactly 1`);
+    }
 
     // Validate the OUTPUT, not the input. A silently mangled shell would otherwise ship.
     if (!/<title>[^<]{10,}<\/title>/.test(html)) die(`${route.path}: no usable <title> emitted`);
@@ -398,7 +373,7 @@ async function main() {
   console.log(`[prerender] ${written} routes -> dist/public/**/index.html`);
   console.log(`[prerender]   plus 404.html (noindex) for unmatched URLs`);
   console.log(
-    `[prerender]   ${STATIC_ROUTES.length} static, ${BLOG_POSTS.length} posts, ${SEO_PAGES.length} service pages, ${LANDING_PAGES.length} campaign pages`,
+    `[prerender]   ${STATIC_SEO_PAGES.length} static, ${BLOG_POSTS.length} posts, ${SEO_PAGES.length} service pages, ${LANDING_PAGES.length} campaign pages — each with crawlable body content`,
   );
 }
 

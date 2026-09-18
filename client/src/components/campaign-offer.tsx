@@ -128,7 +128,7 @@ export default function CampaignOffer({
       </p>
 
       <button type="button" className="cta-lg offer-cta" onClick={onBook} data-testid={`${testId}-cta`}>
-        {showCampaign ? campaign!.ctaText : "Book Free Appointment"}
+        {showCampaign ? campaign!.ctaText : "Book Now"}
       </button>
     </section>
   );

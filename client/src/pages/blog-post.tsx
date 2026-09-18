@@ -9,6 +9,8 @@ import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { resolveServiceImage, type ServiceRecord } from "@/lib/canonical-services";
 import { getPost, formatPostDate, BLOG_POSTS, BLOG_AUTHOR } from "@/lib/blog-posts";
+import InstagramReels from "@/components/instagram-reels";
+import { REELS_BY_POST } from "@/lib/instagram-reels";
 
 /**
  * A single blog article, in the approved redesign.
@@ -155,6 +157,15 @@ export default function BlogPost() {
               }
             })}
           </div>
+
+          {/* The studio's own reels on this article's subject (lib/instagram-reels.ts).
+              Posts without a matching reel render nothing here. */}
+          <InstagramReels
+            reels={REELS_BY_POST[post.slug] ?? []}
+            heading="Watch it on Instagram"
+            variant="inline"
+            className="my-10"
+          />
 
           <div className="article-cta">
             <div>

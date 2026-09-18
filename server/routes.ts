@@ -8,6 +8,7 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import { storage } from "./storage";
+import { buildLlmsTxt } from "../client/src/lib/llms-txt";
 import { SlotFullError } from "./storage";
 import { authenticateAdmin, hashPassword, comparePassword } from "./middleware/auth";
 import { createPaymentOrder, verifyPaymentSignature } from "./services/payment";
@@ -328,6 +329,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `\n` +
         `Sitemap: ${origin}/sitemap.xml\n`,
     );
+  });
+
+  // llms.txt — a plain-text map of the site for AI answer engines (llmstxt.org). Production
+  // answered 404. Built per request from the same sources as the pages: confirmed business
+  // details, the live services and opening hours, and the guide/article content modules.
+  // Non-canonical origins get a minimal file, for the same reason robots.txt blocks them.
+  app.get("/llms.txt", async (_req, res) => {
+    const origin = process.env.PUBLIC_SITE_ORIGIN || "https://p91carcare.com";
+    if (origin !== "https://p91carcare.com") {
+      res.type("text/plain").send(`# P91 Car Care\n\n> Non-production origin (${origin}).\n`);
+      return;
+    }
+    try {
+      const [services, businessHours] = await Promise.all([
+        storage.getAllServices(),
+        storage.getAllBusinessHours().catch(() => undefined),
+      ]);
+      const { SEO_PAGES } = await import("../client/src/lib/seo-pages");
+      const { BLOG_POSTS } = await import("../client/src/lib/blog-posts");
+      const { LANDING_PAGES } = await import("../client/src/lib/landing-pages");
+      const body = buildLlmsTxt({
+        origin,
+        services: services as any,
+        businessHours,
+        // No description for the booking pages: theirs end "book your appointment free",
+        // an offer that switches on and off without a deploy. The title and link are stable.
+        campaignPages: LANDING_PAGES.map((p) => ({ title: p.h1, path: p.path })),
+        guides: SEO_PAGES.map((p) => ({ title: p.h1, path: `/services/${p.slug}`, note: p.description })),
+        articles: BLOG_POSTS.map((p) => ({ title: p.title, path: `/blog/${p.slug}`, note: p.excerpt })),
+      });
+      res.type("text/plain; charset=utf-8").send(body);
+    } catch (error) {
+      console.error("llms.txt error:", error);
+      res.status(500).type("text/plain").send("Failed to build llms.txt");
+    }
   });
 
   // sitemap.xml — generated from the live active-service rows rather than a checked-in

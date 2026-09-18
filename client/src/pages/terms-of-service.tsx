@@ -7,7 +7,7 @@ export default function TermsOfService() {
       <Header />
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-4xl font-bold text-center mb-8">Terms of Service</h1>
+        <h1 className="text-2xl sm:text-4xl font-bold text-center mb-8">Terms of Service</h1>
         <div className="text-gray-300 space-y-6">
           <p className="text-sm text-gray-400 text-center">Last updated: January 2024</p>
           

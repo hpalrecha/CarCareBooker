@@ -13,7 +13,7 @@ import { trackLead } from "@/lib/meta-pixel";
 import { isValidMobile } from "@/lib/protection-challenge";
 
 /**
- * "Get a quote" — the enquiry form for someone who is not ready to pick a slot.
+ * "Get your appointment" — the enquiry form for someone not ready to pick a slot online.
  *
  * It sits BESIDE booking, never instead of it: a customer who knows what they want books
  * in one click, and this catches the rest rather than losing them.
@@ -40,19 +40,48 @@ const quoteSchema = z.object({
 });
 type QuoteValues = z.infer<typeof quoteSchema>;
 
+/**
+ * What sending this form costs and what happens next.
+ *
+ * Was "Booking is free. Service charges apply at the studio." — true of the form, but on
+ * a service page it sat beside "Secure your slot for ₹299" and "Pay ₹299 & Get FREE
+ * Voucher", so a reader could not tell whether booking cost ₹299 or nothing. This form
+ * takes no payment and books nothing by itself; the studio calls to fix the slot. Say
+ * exactly that, and say the service is paid for at the studio.
+ */
+const FORM_NOTE = "No payment to send this — we'll call to confirm your slot. The service is paid at the studio.";
+
 export default function QuoteForm({
   serviceTitle,
   serviceSlug,
   serviceInterest = "ceramic",
   defaultVehicleType = "car",
-  heading = "Get a quote",
+  heading = "Book Now",
   testId = "quote-form",
+  lockVehicleType = false,
+  subheading,
+  columns = false,
+  onSubmitted,
 }: {
+  /** Called once the server has accepted the lead (e.g. so a popup stops re-offering itself). */
+  onSubmitted?: () => void;
+  /** One line under the heading. Service pages use it to say this is the no-payment path. */
+  subheading?: string;
+  /**
+   * Two-column fields from `sm` up (name | mobile, email | model), so the form reads as a
+   * compact centred block in a page section rather than a tall narrow column.
+   */
+  columns?: boolean;
   serviceTitle?: string;
   serviceSlug?: string;
   /** How the studio files this lead: the server accepts ppf | ceramic | both. */
   serviceInterest?: "ppf" | "ceramic" | "both";
   defaultVehicleType?: "car" | "bike";
+  /**
+   * Hide the car/bike picker and send defaultVehicleType. A page that is about ONE kind
+   * of vehicle (every /service/* page is) should not ask a biker whether they own a car.
+   */
+  lockVehicleType?: boolean;
   heading?: string;
   testId?: string;
 }) {
@@ -96,6 +125,7 @@ export default function QuoteForm({
     // Lead fires only once the server has accepted the row, never on button press.
     onSuccess: () => {
       setSubmitted(true);
+      onSubmitted?.();
       trackLead({
         eventId: `quote-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
         service: serviceSlug ?? serviceInterest,
@@ -111,7 +141,7 @@ export default function QuoteForm({
         <p className="mt-1 text-sm text-gray-300">
           The studio will call you about {serviceTitle ?? "your enquiry"}.
         </p>
-        <p className="mt-3 text-xs text-gray-400">Booking is free. Service charges apply at the studio.</p>
+        <p className="mt-3 text-xs text-gray-400">{FORM_NOTE}</p>
       </div>
     );
   }
@@ -119,7 +149,11 @@ export default function QuoteForm({
   return (
     <div className="rounded-2xl border border-gray-800 bg-gray-900/70 p-5 sm:p-6" data-testid={testId}>
       <h3 className="text-lg font-bold text-white">{heading}</h3>
-      {serviceTitle && <p className="mt-1 text-sm text-gray-400">About {serviceTitle}</p>}
+      {subheading ? (
+        <p className="mt-1 text-sm text-gray-300">{subheading}</p>
+      ) : (
+        serviceTitle && <p className="mt-1 text-sm text-gray-400">About {serviceTitle}</p>
+      )}
 
       <Form {...form}>
         {/*
@@ -127,7 +161,7 @@ export default function QuoteForm({
           cancels the submit event, so zod never runs and our messages never appear. Here
           validation is zod's job, and its messages are the ones people read.
         */}
-        <form onSubmit={form.handleSubmit((v) => submit.mutate(v))} noValidate className="mt-4 space-y-3">
+        <form onSubmit={form.handleSubmit((v) => submit.mutate(v))} noValidate className={columns ? "mt-4 grid gap-3 sm:grid-cols-2" : "mt-4 space-y-3"}>
           <FormField
             control={form.control}
             name="name"
@@ -175,12 +209,12 @@ export default function QuoteForm({
               </FormItem>
             )}
           />
-          <div className="grid grid-cols-2 gap-3">
+          <div className={lockVehicleType ? "grid gap-3" : "grid grid-cols-2 gap-3"}>
             <FormField
               control={form.control}
               name="vehicleType"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className={lockVehicleType ? "hidden" : undefined}>
                   <FormLabel className="text-gray-300">Vehicle</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
@@ -204,20 +238,21 @@ export default function QuoteForm({
                 <FormItem>
                   <FormLabel className="text-gray-300">Model (optional)</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="e.g. Creta" className="min-h-[44px] border-gray-700 bg-gray-800" data-testid={`input-${testId}-model`} />
+                    <Input {...field} placeholder={form.watch("vehicleType") === "bike" ? "e.g. Royal Enfield Classic" : "e.g. Creta"} className="min-h-[44px] border-gray-700 bg-gray-800" data-testid={`input-${testId}-model`} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
-          {/* Honeypot. Hidden from people, not from form-filling bots. */}
+          {/* Honeypot. Hidden from people and screen readers, not from form-filling bots,
+              which key on name="website". No visible label: page-reading tools reported a
+              "Website" field as if customers were being asked for one. */}
           <FormField
             control={form.control}
             name="website"
             render={({ field }) => (
               <FormItem className="sr-only" aria-hidden="true">
-                <FormLabel>Website</FormLabel>
                 <FormControl>
                   <Input {...field} tabIndex={-1} autoComplete="off" />
                 </FormControl>
@@ -227,13 +262,14 @@ export default function QuoteForm({
           <Button
             type="submit"
             disabled={submit.isPending}
-            className="min-h-[44px] w-full bg-green-500 font-bold text-black hover:bg-green-600"
+            className={`min-h-[44px] w-full rounded-[10px] bg-[var(--neon-green)] font-bold text-black hover:brightness-95${columns ? " sm:col-span-2" : ""}`}
             data-testid={`button-${testId}-submit`}
           >
-            {submit.isPending ? "Sending…" : "Request a callback"}
+            {submit.isPending ? "Sending…" : "Book Now"}
           </Button>
-          <p className="text-xs text-gray-400">
-            Booking is free. Service charges apply at the studio.
+          {/* The subheading already says "no payment now" when one is given; do not repeat it. */}
+          <p className={`text-xs text-gray-400${columns ? " sm:col-span-2" : ""}`}>
+            {subheading ? "The service is paid at the studio." : FORM_NOTE}
           </p>
         </form>
       </Form>

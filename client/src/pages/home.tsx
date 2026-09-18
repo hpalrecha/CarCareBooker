@@ -8,6 +8,7 @@ import TransformationCTA from "@/components/transformation-cta";
 import ProtectionChallengeCTA from "@/components/protection-challenge";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { localBusinessSchema } from "@/lib/local-business";
+import { HOME_SEO } from "@/lib/static-seo";
 import { resolveServiceImage, formatINR, TRANSFORMATION_CTAS, type ServiceRecord } from "@/lib/canonical-services";
 import { deriveCategory } from "@/lib/service-taxonomy";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
@@ -95,10 +96,9 @@ export default function Home() {
   const offer = useBookingOffer();
 
   useSeoMeta({
-    title: "P91 Car Care — Car Detailing, PPF & Ceramic Coating in Indiranagar, Bangalore",
-    description:
-      "Ceramic coating, paint protection film and full interior detailing in Indiranagar, " +
-      "Bangalore — warranty-backed and bookable online in under a minute.",
+    // Shared with scripts/prerender.mjs so the crawler HTML and the page cannot disagree.
+    title: HOME_SEO.title,
+    description: HOME_SEO.description,
     image: "/Car Care (4)_1753951564515.png",
     canonicalPath: "/",
     structuredData: localBusinessSchema({
@@ -424,8 +424,6 @@ export default function Home() {
           <h2 className="brands-h">Films and coatings we fit</h2>
           <ul className="brand-row">
             <li>STEK</li>
-            <li>Llumar</li>
-            <li>3M</li>
             <li>Nasiol</li>
             <li>P91 Premium PPF</li>
           </ul>

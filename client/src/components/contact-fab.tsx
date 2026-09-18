@@ -1,4 +1,6 @@
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { formatINR } from "@/lib/canonical-services";
 import { SiWhatsapp } from "react-icons/si";
 
 /**
@@ -29,24 +31,40 @@ import { SiWhatsapp } from "react-icons/si";
 
 const PHONE_DIGITS = "917406619191";
 
-const WHATSAPP_MESSAGE = encodeURIComponent(
-  "Hi P91 Car Care, I'd like to know more about your detailing services.",
-);
+const GENERIC_MESSAGE = "Hi P91 Car Care, I'd like to know more about your detailing services.";
 
 export function ContactFab() {
   const [location] = useLocation();
-
-  // Staff do not need to WhatsApp themselves, and the button would sit over the
-  // dashboard's own controls.
-  if (location.startsWith("/admin")) return null;
 
   // Clear the service page's own sticky booking CTA instead of covering the payment
   // entry point.
   const onServicePage = location.startsWith("/service/");
 
+  // On a service page the message names that service, so the studio knows what the chat
+  // is about before replying. Same query key as the page, so React Query shares its one
+  // request instead of making a second. (Hooks run before the /admin return below.)
+  const slug = onServicePage ? decodeURIComponent(location.split("/")[2] || "") : "";
+  const { data: service } = useQuery<{ title?: string; price?: string }>({
+    queryKey: ["/api/services", slug],
+    enabled: Boolean(slug),
+  });
+  const serviceTitle = service?.title?.trim();
+  // Two-wheeler and car owners often prefer to message rather than fill a form, so the
+  // message is ready to send as a booking request: the service, its live price from the
+  // record, and a place for the model — the first thing the studio would ask.
+  const price = service?.price ? formatINR(service.price) : "";
+  const noun = /\bbike\b|\bmotorcycle\b/i.test(serviceTitle || "") ? "bike" : "car";
+  const message = serviceTitle
+    ? `Hi P91 Car Care, I'd like to book ${serviceTitle}${price ? ` (${price})` : ""} for my ${noun}. Model: `
+    : GENERIC_MESSAGE;
+
+  // Staff do not need to WhatsApp themselves, and the button would sit over the
+  // dashboard's own controls.
+  if (location.startsWith("/admin")) return null;
+
   return (
     <a
-      href={`https://wa.me/${PHONE_DIGITS}?text=${WHATSAPP_MESSAGE}`}
+      href={`https://wa.me/${PHONE_DIGITS}?text=${encodeURIComponent(message)}`}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with P91 Car Care on WhatsApp"

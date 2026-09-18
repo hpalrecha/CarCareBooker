@@ -15,7 +15,12 @@ import { ImageWithFallback } from "@/components/image-with-fallback";
  *   prototype ./contact/ -> /contact
  * The phone number and WhatsApp number are the ones already used across the live site.
  */
-export default function SiteHeader() {
+/**
+ * `onBookNow`: on a page that has its own booking flow (a service page's booking form, the
+ * PPF/ceramic enquiry form), "Book Now" should start it there rather than navigate away to
+ * /services. Omitted everywhere else, where the link to /services is the right behaviour.
+ */
+export default function SiteHeader({ onBookNow }: { onBookNow?: () => void } = {}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -70,7 +75,13 @@ export default function SiteHeader() {
               </svg>
               74066 19191
             </a>
-            <Link href="/services" className="btn-book" data-testid="button-nav-book-now">Book Now</Link>
+            {onBookNow ? (
+              <button type="button" className="btn-book" onClick={onBookNow} data-testid="button-nav-book-now">
+                Book Now
+              </button>
+            ) : (
+              <Link href="/services" className="btn-book" data-testid="button-nav-book-now">Book Now</Link>
+            )}
           </div>
         </div>
       </div>

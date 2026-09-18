@@ -24,3 +24,16 @@ export {
 } from "@/lib/blog-posts";
 export { SEO_PAGES } from "@/lib/seo-pages";
 export { LANDING_PAGES } from "@/lib/landing-pages";
+
+// Phase 1 SEO/GEO: static page copy (shared with the components) and the builders that
+// bake each page's real content into the initial HTML.
+export { STATIC_SEO_PAGES, SERVICES_SEO } from "@/lib/static-seo";
+export {
+  staticPageContent,
+  seoGuideContent,
+  blogPostContent,
+  blogListContent,
+  landingPageContent,
+  injectRootContent,
+} from "@/lib/crawlable-content";
+export { localBusinessSchema } from "@/lib/local-business";

@@ -1,17 +1,16 @@
 import { usePageTitle } from "@/hooks/use-page-title";
-import { Header } from "@/components/header";
-import Footer from "@/components/footer";
+import { BrandHeader, BrandFooter } from "@/components/redesign/brand-chrome";
 import { LEGAL_LAST_UPDATED, COMPANY_NAME, copyrightYear } from "@/lib/legal-metadata";
 
 export default function PrivacyPolicy() {
   usePageTitle("Privacy Policy — P91 Car Care");
   return (
-    <div className="min-h-screen bg-deep-black text-white">
-      <Header />
+    <div className="p91-brand min-h-screen bg-deep-black text-white">
+      <BrandHeader />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="prose prose-invert max-w-none">
-          <h1 className="text-4xl font-bold gradient-text mb-8" data-testid="text-privacy-title">
+          <h1 className="text-2xl sm:text-4xl font-bold gradient-text mb-8" data-testid="text-privacy-title">
             Privacy Policy
           </h1>
           
@@ -140,7 +139,7 @@ export default function PrivacyPolicy() {
           </div>
         </div>
       </div>
-      <Footer />
+      <BrandFooter />
     </div>
   );
 }

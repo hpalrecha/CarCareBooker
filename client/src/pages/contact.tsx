@@ -8,6 +8,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { z } from "zod";
 import { Phone } from "lucide-react";
 import SiteHeader from "@/components/redesign/site-header";
+import { CONTACT_SEO } from "@/lib/static-seo";
 import SiteFooter from "@/components/redesign/site-footer";
 import { localBusinessSchema } from "@/lib/local-business";
 import type { BusinessHour } from "@shared/schema";
@@ -101,10 +102,9 @@ export default function Contact() {
   });
 
   useSeoMeta({
-    title: "Contact P91 Car Care | Indiranagar, Bangalore",
-    description:
-      "Call, WhatsApp or visit the P91 Car Care detailing studio in Indiranagar, Bangalore. " +
-      "Opening hours, directions and enquiry form.",
+    // Shared with scripts/prerender.mjs so the crawler HTML and the page cannot disagree.
+    title: CONTACT_SEO.title,
+    description: CONTACT_SEO.description,
     image: "/Car Care (4)_1753951564515.png",
     canonicalPath: "/contact",
     structuredData: localBusinessSchema({

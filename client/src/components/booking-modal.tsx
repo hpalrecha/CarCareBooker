@@ -18,7 +18,8 @@ import { trackBooking as trackMetaBooking } from "@/lib/meta-pixel";
 import { useBookingOffer, formatOfferEnd } from "@/hooks/use-booking-offer";
 import { bookingFormSchema, type BlackoutDate, type BusinessHour } from "@shared/schema";
 import { ImageWithFallback } from "@/components/image-with-fallback";
-import { resolveServiceImage } from "@/lib/canonical-services";
+import { resolveServiceImage, formatINR } from "@/lib/canonical-services";
+import { formatServiceTime } from "@/lib/service-time";
 import { Check } from "lucide-react";
 
 interface BookingModalProps {
@@ -128,6 +129,8 @@ export default function BookingModal({ service, isOpen, onClose, vehicleContext 
   const offer = useBookingOffer();
   const isFreeBooking = offer.free;
   const offerEnds = formatOfferEnd(offer.until);
+  const isAnnualPackage = service?.title === 'Annual Maintenance Package';
+  const serviceTime = service ? formatServiceTime(service) : null;
 
   useEffect(() => {
     console.log("Booking amount setting changed:", bookingAmountSetting);
@@ -657,7 +660,7 @@ export default function BookingModal({ service, isOpen, onClose, vehicleContext 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto bg-dark-gray text-white border-medium-gray p-4 sm:p-6">
+      <DialogContent className="max-w-3xl w-[95vw] max-h-[90vh] overflow-y-auto bg-dark-gray text-white border-gray-800 p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold gradient-text pr-14" data-testid="text-booking-modal-title">
             {service.title}
@@ -669,7 +672,7 @@ export default function BookingModal({ service, isOpen, onClose, vehicleContext 
               trigger, which the hand-rolled Button did not. */}
         </DialogHeader>
 
-        <div className="space-y-8">
+        <div className="space-y-5">
           {/* Service image — same resolver and framing as the corrected service cards:
               images[0] straight off the canonical record, a 2:1 box reserved before load
               so the modal never jumps, cover/center so it never stretches, and the shared
@@ -686,152 +689,56 @@ export default function BookingModal({ service, isOpen, onClose, vehicleContext 
             />
           </div>
           
-          {/* Service Details */}
-          <div className="space-y-6">
-            {service.whyChoose && (
-              <div>
-                <h3 className="text-xl font-semibold text-neon-green mb-4">Why Choose This Service?</h3>
-                <p className="text-gray-300 leading-relaxed" data-testid="text-why-choose">
-                  {service.whyChoose}
-                </p>
+          {/*
+            Booking summary — three tiles. This replaced roughly 300 words that sat between
+            the photo and the date picker: the full "why choose" paragraph, every included
+            item, two offer cards, a four-point "how it works" box and a price line. The
+            service page already says all of that; someone who opened this came to pick a
+            slot. Every figure below is the same one the old block showed.
+          */}
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" data-testid="booking-summary">
+            <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-3">
+              <div className="text-xs text-gray-400">To reserve</div>
+              <div className="mt-0.5 text-xl font-bold text-green-400">
+                {isFreeBooking ? 'No fee' : `₹${bookingAmount}`}
               </div>
-            )}
-            
-            {service.whatIncluded && (
-              <div>
-                <h3 className="text-xl font-semibold text-neon-green mb-4">What You Get</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <ul className="space-y-3 text-gray-300">
-                    {service.whatIncluded.slice(0, Math.ceil(service.whatIncluded.length / 2)).map((item, index) => (
-                      <li key={index} className="flex items-center" data-testid={`text-included-${index}`}>
-                        <Check className="w-4 h-4 text-neon-green mr-3 flex-shrink-0" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                  <ul className="space-y-3 text-gray-300">
-                    {service.whatIncluded?.slice(Math.ceil(service.whatIncluded.length / 2)).map((item, index) => (
-                      <li key={index} className="flex items-center" data-testid={`text-included-${index + Math.ceil(service.whatIncluded?.length || 0 / 2)}`}>
-                        <Check className="w-4 h-4 text-neon-green mr-3 flex-shrink-0" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {/* Booking Fee Structure */}
-          <div className="bg-gradient-to-r from-green-900/30 to-blue-900/30 rounded-xl p-6 border border-green-500/30">
-            {/* During the free-booking window this block is the same for EVERY service,
-                including the annual package — the offer is "book free", so the copy must
-                not still quote ₹8,999 for one service while the server charges nothing. */}
-            {isFreeBooking ? (
-              <div className="text-center mb-4">
-                <h3 className="text-2xl font-bold text-neon-green mb-2">🎉 Free Booking!</h3>
-                <p className="text-gray-300">
-                  No payment needed — just your name, number, email and the slot you want
-                  {offerEnds ? `. Offer ends ${offerEnds}.` : "."}
-                </p>
-              </div>
-            ) : service.title === 'Annual Maintenance Package' ? (
-              <div className="text-center mb-4">
-                <h3 className="text-2xl font-bold text-neon-green mb-2">💳 Complete Package Payment!</h3>
-                <p className="text-gray-300">Pay full package price of ₹{bookingAmount} and get started</p>
-              </div>
-            ) : (
-              <div className="text-center mb-4">
-                <h3 className="text-2xl font-bold text-neon-green mb-2">🎉 Special Booking Offer!</h3>
-                <p className="text-gray-300">Secure your slot with just ₹{bookingAmount} booking fee</p>
-              </div>
-            )}
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
-              <div className="text-center p-4 bg-dark-gray rounded-lg">
-                <div className="text-3xl font-bold text-white mb-2">
-                  {isFreeBooking ? '₹0' : `₹${bookingAmount}`}
-                </div>
-                <div className="text-sm text-gray-400 mb-2">
-                  {isFreeBooking
-                    ? 'Pay Nothing Now'
-                    : service.title === 'Annual Maintenance Package' ? 'Full Package Price' : 'Booking Fee Only'}
-                </div>
-                <div className="text-xs text-green-400">
-                  {isFreeBooking
-                    ? '✓ Slot held on your details alone'
-                    : service.title === 'Annual Maintenance Package'
-                      ? '✓ Complete payment - no more charges'
-                      : '✓ Secures your preferred slot'
-                  }
-                </div>
-              </div>
-              {service.title === 'Annual Maintenance Package' ? (
-                <div className="text-center p-4 bg-dark-gray rounded-lg">
-                  <div className="text-3xl font-bold text-neon-green mb-2">ALL</div>
-                  <div className="text-sm text-gray-400 mb-2">Services Included</div>
-                  <div className="text-xs text-green-400">✓ Worth ₹18,000 - Save ₹9,001</div>
-                </div>
-              ) : (
-                <div className="text-center p-4 bg-dark-gray rounded-lg">
-                  <div className="text-3xl font-bold text-neon-green mb-2">FREE</div>
-                  <div className="text-sm text-gray-400 mb-2">Gift Voucher</div>
-                  <div className="text-xs text-green-400">✓ Worth ₹500 - On your 2nd visit</div>
-                </div>
-              )}
-            </div>
-
-            <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 mb-4">
-              <div className="flex items-start gap-3">
-                <div className="text-yellow-400">💡</div>
-                <div>
-                  <div className="font-semibold text-yellow-300 mb-1">How it works:</div>
-                  {isFreeBooking ? (
-                    <ul className="text-sm text-gray-300 space-y-1">
-                      <li>• No booking fee — enter your details and pick a slot</li>
-                      <li>• Get a gift voucher worth ₹500 on your 2nd visit</li>
-                      <li>• Pay for the service itself at the studio after the work</li>
-                      <li>• Show your booking confirmation at our store to claim</li>
-                    </ul>
-                  ) : service.title === 'Annual Maintenance Package' ? (
-                    <ul className="text-sm text-gray-300 space-y-1">
-                      <li>• Pay full package price of ₹8,999 to secure your annual plan</li>
-                      <li>• Valid for 12 months from purchase date</li>
-                      <li>• Schedule services as per your convenience</li>
-                      <li>• Pickup & drop available at cost</li>
-                    </ul>
-                  ) : (
-                    <ul className="text-sm text-gray-300 space-y-1">
-                      <li>• Pay ₹299 booking fee to reserve your slot</li>
-                      <li>• Get a gift voucher worth ₹500 on your 2nd visit</li>
-                      <li>• Show your booking confirmation at our store to claim</li>
-                      <li>• No hidden charges - transparent pricing</li>
-                    </ul>
-                  )}
-                </div>
+              <div className="text-xs text-gray-400">
+                {isFreeBooking
+                  ? offerEnds ? `Booking fee waived until ${offerEnds}` : 'Booking fee waived'
+                  : isAnnualPackage ? 'Full package price' : 'Booking fee'}
               </div>
             </div>
-
-            <div className="text-center">
-              <div className="text-sm text-gray-400 mb-2">Full Service Price: 
+            <div className="rounded-xl border border-gray-800 bg-black/40 p-3">
+              <div className="text-xs text-gray-400">Service price</div>
+              <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2">
+                <span className="text-xl font-bold text-white" data-testid="text-current-price">
+                  {formatINR(service.price)}
+                </span>
                 {service.originalPrice && (
-                  <span className="text-gray-500 line-through ml-2" data-testid="text-original-price">
-                    ₹{service.originalPrice}
+                  <span className="text-xs text-gray-500 line-through" data-testid="text-original-price">
+                    {formatINR(service.originalPrice)}
                   </span>
                 )}
-                <span className="text-neon-green font-bold text-lg ml-2" data-testid="text-current-price">
-                  ₹{service.price}
-                </span>
               </div>
-              <div className="text-xs text-gray-500">Duration: {Math.floor(service.duration / 60)} hours</div>
+              <div className="text-xs text-gray-400">
+                Paid at the studio{serviceTime ? ` · ${serviceTime}` : ''}
+              </div>
+            </div>
+            <div className="col-span-2 rounded-xl border border-gray-800 bg-black/40 p-3 sm:col-span-1">
+              <div className="text-xs text-gray-400">{isAnnualPackage ? 'Valid for' : 'Bonus'}</div>
+              <div className="mt-0.5 text-xl font-bold text-white">
+                {isAnnualPackage ? '12 months' : '₹500 voucher'}
+              </div>
+              <div className="text-xs text-gray-400">
+                {isAnnualPackage ? 'All services included' : 'On your 2nd visit'}
+              </div>
             </div>
           </div>
 
           {/* Booking Form */}
-          <div className="bg-medium-gray rounded-xl p-6">
-            
-            <div className="border-t border-gray-600 pt-4">
-              <h4 className="font-semibold mb-4">Book Your Appointment</h4>
+          <div className="rounded-xl border border-gray-800 bg-gray-900/60 p-4 sm:p-6">
+            <div>
+              <h4 className="mb-4 text-lg font-semibold">Pick your date &amp; time</h4>
               
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

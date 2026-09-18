@@ -1,5 +1,8 @@
 import { useEffect } from "react";
 
+/** The URL the server rendered: prerendered schema belongs to this path only. */
+const INITIAL_PATH = typeof window === "undefined" ? "" : window.location.pathname;
+
 interface SeoMeta {
   title: string;
   description?: string;
@@ -103,6 +106,29 @@ export function useSeoMeta({ title, description, image, structuredData, canonica
         ? structuredData
         : [structuredData]
       : [];
+    // Schema baked into the initial HTML (scripts/prerender.mjs, server/vite.ts) is marked
+    // data-seo="prerender". It used to be left in place while this hook appended its own,
+    // so blocks appeared twice once the page loaded (BlogPosting, Service, AutoRepair...).
+    //
+    // Only a prerendered block of a TYPE this page sets itself is removed — the page's
+    // version replaces it. Blocks the page does not re-emit (the BreadcrumbList on blog
+    // posts, guides and campaign pages) are kept, or JavaScript-running crawlers would lose
+    // them. After an in-app navigation every prerendered block is stale and all are removed.
+    const pageTypes = new Set(blocks.map((b) => String((b as Record<string, unknown>)["@type"])));
+    const navigatedAway = window.location.pathname !== INITIAL_PATH;
+    document.head
+      .querySelectorAll<HTMLScriptElement>('script[type="application/ld+json"][data-seo="prerender"]')
+      .forEach((node) => {
+        let type = "";
+        try {
+          type = String(JSON.parse(node.textContent || "{}")["@type"]);
+        } catch {
+          /* unparseable: treat as stale */
+          type = "";
+        }
+        if (navigatedAway || !type || pageTypes.has(type)) node.remove();
+      });
+
     const ldNodes = blocks.map((block) => {
       const ld = document.createElement("script");
       ld.type = "application/ld+json";

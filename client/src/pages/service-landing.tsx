@@ -3,16 +3,20 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CheckCircle, Star, Clock, Shield, Phone, Mail, MapPin, Play, ArrowRight, Zap } from "lucide-react";
+import { CheckCircle, Star, Clock, Shield, Phone, Mail, MapPin, Play, ArrowRight, Zap, Timer } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import BookingModal from "@/components/booking-modal";
-import QuoteForm from "@/components/quote-form";
-import { Header } from "@/components/header";
-import Footer from "@/components/footer";
+import CallbackPopup from "@/components/callback-popup";
+import InstagramReels from "@/components/instagram-reels";
+import { INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, REELS_BY_SERVICE } from "@/lib/instagram-reels";
+import { SiInstagram } from "react-icons/si";
+import { BrandHeader, BrandFooter } from "@/components/redesign/brand-chrome";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
-import { resolveServiceImage } from "@/lib/canonical-services";
+import { resolveServiceImage, formatINR } from "@/lib/canonical-services";
 import { useBookingOffer, formatOfferEnd } from "@/hooks/use-booking-offer";
+import { formatServiceTime } from "@/lib/service-time";
+import { serviceSeoTitle, serviceSeoDescription, serviceStructuredData } from "@/lib/service-seo";
+import type { BusinessHour } from "@shared/schema";
 
 // Import before/after images
 import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029992282.webp";
@@ -62,6 +66,33 @@ interface Service {
   guaranteeText: string;
 }
 
+/** Drops the "✓ " some records prefix to each item — the list already draws a tick. */
+function cleanIncluded(item: string) {
+  return item.replace(/^\s*[✓✔]\s*/, '').trim();
+}
+
+/**
+ * An included item cut to its headline clause, so it fits one line:
+ * "Multi-stage clay bar treatment to remove embedded contaminants" -> "Multi-stage clay bar
+ * treatment". Only ever shortens the studio's own wording; if no clean break exists the
+ * item is left whole (and the list truncates it visually, full text in the title).
+ */
+function shortIncluded(item: string) {
+  const text = cleanIncluded(item);
+  // Hyphen, en dash and em dash all introduce an explanation ("6 Hybrid Washes – exterior
+  // foam wash…"), so each is a break; a trailing dash or colon left by a cut is stripped.
+  const cut = text.search(/\s+[-–—]\s+|,|\s+(to|for|before|with|on|that|which)\s+/i);
+  const head = cut > 5 ? text.slice(0, cut).trim() : text;
+  return head.replace(/\s*[-–—:]+$/, '');
+}
+
+/** The first sentence of a paragraph — "why choose" is a single line, not an essay. */
+function firstSentence(text: string) {
+  const t = text.trim();
+  const m = t.match(/^[\s\S]*?[.!?](?=\s|$)/);
+  return (m ? m[0] : t).trim();
+}
+
 export default function ServiceLanding() {
   const { slug } = useParams();
   const [, setLocation] = useLocation();
@@ -106,7 +137,9 @@ export default function ServiceLanding() {
     const el = finalCtaRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
     const observer = new IntersectionObserver(
-      ([entry]) => setFinalCtaVisible(entry.isIntersecting),
+      // Hidden from the bottom CTA onwards, not only while it is on screen: the site footer
+      // now sits below it, and the bar would otherwise reappear over the footer's contacts.
+      ([entry]) => setFinalCtaVisible(entry.isIntersecting || entry.boundingClientRect.top < 0),
       { rootMargin: "0px 0px -10% 0px", threshold: 0.01 },
     );
     observer.observe(el);
@@ -126,11 +159,11 @@ export default function ServiceLanding() {
   // CTAs landed, because they pointed at inactive slugs.
   if (!service) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col">
-        <Header />
+      <div className="p91-brand min-h-screen bg-black text-white flex flex-col">
+        <BrandHeader />
         <main className="flex-1 flex items-center justify-center px-4 py-20">
           <div className="max-w-xl w-full text-center">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">We couldn't find that service</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">We couldn't find that service</h1>
             <p className="text-gray-300 text-lg mb-10">
               It may have been renamed or is no longer offered. All of our current services
               are listed on the homepage.
@@ -139,7 +172,7 @@ export default function ServiceLanding() {
               <a href="/#services">
                 <Button
                   size="lg"
-                  className="w-full sm:w-auto bg-green-400 hover:bg-green-500 text-black font-bold"
+                  className="bg-[var(--neon-green)] hover:brightness-95 w-full sm:w-auto text-black font-bold rounded-[10px]"
                   data-testid="button-service-not-found-services"
                 >
                   Browse All Services
@@ -163,7 +196,7 @@ export default function ServiceLanding() {
             </p>
           </div>
         </main>
-        <Footer />
+        <BrandFooter />
       </div>
     );
   }
@@ -173,6 +206,7 @@ export default function ServiceLanding() {
     : 0;
 
   const showTestimonials = !TESTIMONIALS_SUPPRESSED.has(service.slug);
+  const isAnnualPackage = service.title === 'Annual Maintenance Package';
 
   // This template is shared by every service, and its fixed copy said "car"
   // throughout — which read wrong on the bike ceramic-coating page ("transform your
@@ -186,289 +220,215 @@ export default function ServiceLanding() {
   return (
     <>
     <ServiceSeo service={service} />
-    <div className="min-h-screen bg-black text-white">
-      {/* Header with Logo */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-gray-800">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center">
-            <img
-              src="/Car Care (4)_1753951564515.png"
-              alt="P91 Car Care"
-              width={42}
-              height={32}
-              decoding="async"
-              className="h-8 w-auto"
-              data-testid="img-logo"
-            />
-          </div>
-          {/* Now points at the real /services catalogue page rather than the homepage
-              anchor — the grid does not exist on this page, so #services was a no-op here.
+    <div className="p91-brand min-h-screen bg-black text-white">
+      {/*
+        The site header, shared with every other page (components/redesign/brand-chrome).
+        This page used to carry its own green announcement bar and header — a different logo
+        size, nav and button from the rest of the site. Book Now still opens this service's
+        booking form in place rather than sending the visitor away to /services.
+      */}
+      <BrandHeader onBookNow={() => setBookingModalOpen(true)} />
 
-              The label shortens under 640px on purpose. The logo is `h-8 w-auto`, which
-              renders about 203px wide; with the full 150px nowrap label that is 353px of
-              content in the 328px box a 360px phone gives, and the 25px difference became
-              horizontal page scroll (the deployed site does this too — pre-existing). */}
-          <a href="/services" className="shrink-0">
-            <Button
-              variant="ghost"
-              className="text-green-400 hover:text-green-300 px-2 sm:px-4"
-              data-testid="button-back-home"
-            >
-              <span className="sm:hidden">← Back</span>
-              <span className="hidden sm:inline">← Back to Services</span>
-            </Button>
-          </a>
-        </div>
-      </header>
-      {/* Hero Section — pt clears the fixed header with margin so the card/callout
-          isn't clipped behind it on shorter viewports. */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-12">
-        {/* Background Image/Video */}
-        <div className="absolute inset-0 z-0">
-          {service.heroVideo && showVideo ? (
-            <div className="w-full h-full">
-              <iframe
-                className="w-full h-full object-cover"
-                src={`${service.heroVideo}?autoplay=1&mute=1&loop=1&playlist=${service.heroVideo.split('/').pop()}`}
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-              />
-            </div>
-          ) : (
-            <div 
-              className="w-full h-full bg-cover bg-center bg-no-repeat"
-              // Same resolver as the card and the booking modal, so all three show the
-              // same picture. No remote stand-in: if a service somehow has no image the
-              // hero is just the dark gradient.
-              style={{
-                backgroundImage: [
-                  'linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7))',
-                  heroImage ? `url(${heroImage})` : null,
-                ].filter(Boolean).join(', '),
-              }}
-            />
-          )}
-        </div>
+      {/* Hero: copy left, enquiry form right — the /ppf-ceramic-coating shape. */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900 px-4 py-10 lg:py-16">
+        {/* The service photo stays, now as a quiet backdrop rather than a full-bleed
+            image the text has to fight for contrast against. */}
+        {heroImage && (
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 z-0 bg-cover bg-center opacity-50"
+            style={{ backgroundImage: `url(${heroImage})` }}
+          />
+        )}
+        {/* Stronger on phones, where the copy spans the full width of the photo. */}
+        <div className="absolute inset-0 z-0 bg-black/70 lg:bg-transparent lg:bg-gradient-to-r lg:from-black lg:via-black/80 lg:to-black/20" aria-hidden="true" />
 
-        {/* Hero Content */}
-        {/* `w-full min-w-0` is required, not cosmetic: the parent <section> is a flex
-            container, so this is a flex item, and a flex item defaults to
-            `min-width: auto` — it refuses to shrink below its content's min-content
-            width. That measured 394px against a 360px viewport, giving the page 25px of
-            horizontal scroll on narrow Android devices (the deployed site does the same;
-            this is a pre-existing bug, not one the redesign introduced). */}
-        <div className="relative z-10 text-center max-w-5xl w-full min-w-0 mx-auto px-4 py-8">
-          {discountPercent > 0 && (
-            <Badge className="mb-6 bg-red-600 hover:bg-red-700 text-white text-lg px-6 py-3 rounded-full">
-              <Zap className="w-5 h-5 mr-2" />
-              {discountPercent}% OFF - Limited Time!
-            </Badge>
-          )}
-          
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent leading-tight">
-            {service.title}
-          </h1>
-          
-          <p className="text-lg md:text-xl lg:text-2xl mb-8 text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            {service.description}
-          </p>
+        <div className="relative z-10 mx-auto max-w-7xl">
+          {/* items-center: with the form moved out, the offer card lines up with the middle of
+              the copy instead of hanging from the top of the column. */}
+          <div className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-12">
+            {/* ---------------------------------------------------------------- copy */}
+            {/* 60/40 split on desktop: value proposition left, the offer right. */}
+            <div className="min-w-0 space-y-5 lg:col-span-7">
+              {/* Plain type, not gradient-clipped: bg-clip-text was cutting the descenders. */}
+              <h1 className="text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
+                {service.title.trim()}
+              </h1>
 
-          {/* Booking Fee Pricing */}
-          <div className="mb-10">
-            <div className="bg-gradient-to-r from-green-900/40 to-blue-900/40 rounded-2xl p-8 border border-green-500/30 max-w-2xl mx-auto">
-              <div className="text-center">
-                {/* The free-booking window applies to EVERY service, so it is checked before
-                    the package/standard split. Leaving the split first is how this card kept
-                    advertising ₹299 while the server was charging nothing. */}
-                {offer.free ? (
-                  <>
-                    <div className="mb-4">
-                      <span className="text-sm text-gray-400 uppercase tracking-wider">Book Your Slot For</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-6 mb-6">
-                      <span className="text-6xl font-bold text-green-400">FREE</span>
-                      <div className="text-left">
-                        <div className="text-sm text-gray-400">No Booking Fee</div>
-                        <div className="text-sm text-green-400 font-semibold">+ FREE ₹500 Voucher</div>
-                      </div>
-                    </div>
-                    <div className="text-base text-gray-300 mb-4">
-                      {service.title === 'Annual Maintenance Package' ? 'Package Value:' : 'Full Service Value:'}
-                      <span className="text-green-400 font-bold ml-2 text-xl">₹{service.price}</span>
-                      {service.originalPrice && (
-                        <span className="text-gray-500 line-through ml-2 text-lg">₹{service.originalPrice}</span>
-                      )}
-                      <span className="block text-sm text-gray-400 mt-1">Settled at the studio after the work</span>
-                    </div>
-                    <div className="text-sm text-yellow-400 bg-yellow-500/20 rounded-lg px-4 py-2 inline-block">
-                      🎁 Free booking{offerEnds ? ` until ${offerEnds}` : ''} · ₹500 voucher on your 2nd visit
-                    </div>
-                  </>
-                ) : service.title === 'Annual Maintenance Package' ? (
-                  <>
-                    <div className="mb-4">
-                      <span className="text-sm text-gray-400 uppercase tracking-wider">Complete Package Price</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-6 mb-6">
-                      <span className="text-6xl font-bold text-green-400">₹8999</span>
-                      <div className="text-left">
-                        <div className="text-sm text-gray-400">Full Payment</div>
-                        <div className="text-sm text-green-400 font-semibold">All Services Included</div>
-                      </div>
-                    </div>
-                    <div className="text-base text-gray-300 mb-4">
-                      Package Value:
-                      <span className="text-green-400 font-bold ml-2 text-xl">₹{service.price}</span>
-                      {service.originalPrice && (
-                        <span className="text-gray-500 line-through ml-2 text-lg">₹{service.originalPrice}</span>
-                      )}
-                    </div>
-                    <div className="text-sm text-yellow-400 bg-yellow-500/20 rounded-lg px-4 py-2 inline-block">
-                      💎 Save ₹9,001 with Complete Package
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="mb-4">
-                      <span className="text-sm text-gray-400 uppercase tracking-wider">Secure Your Slot For Just</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-6 mb-6">
-                      <span className="text-6xl font-bold text-green-400">₹299</span>
-                      <div className="text-left">
-                        <div className="text-sm text-gray-400">Booking Fee</div>
-                        <div className="text-sm text-green-400 font-semibold">+ FREE ₹500 Voucher</div>
-                      </div>
-                    </div>
-                    <div className="text-base text-gray-300 mb-4">
-                      Full Service Value:
-                      <span className="text-green-400 font-bold ml-2 text-xl">₹{service.price}</span>
-                      {service.originalPrice && (
-                        <span className="text-gray-500 line-through ml-2 text-lg">₹{service.originalPrice}</span>
-                      )}
-                    </div>
-                    <div className="text-sm text-yellow-400 bg-yellow-500/20 rounded-lg px-4 py-2 inline-block">
-                      🎁 Get FREE ₹500 Gift Voucher on 2nd Visit
-                    </div>
-                  </>
+              <p className="max-w-xl text-base leading-relaxed text-gray-200 sm:text-lg">
+                {service.description}
+              </p>
+
+              {/*
+                Three trust pills, every one a fact: the service's own first included item,
+                its duration from the record, and the studio (which opens Google Maps).
+              */}
+              <ul className="flex flex-wrap gap-2" data-testid="trust-pills">
+                {service.whatIncluded?.[0] && (
+                  <li className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-2 text-sm text-gray-100">
+                    <CheckCircle className="h-4 w-4 shrink-0 text-green-400" aria-hidden="true" />
+                    {shortIncluded(service.whatIncluded[0])}
+                  </li>
                 )}
-              </div>
-            </div>
-          </div>
+                {formatServiceTime(service) && (
+                  <li className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-2 text-sm text-gray-100">
+                    <Clock className="h-4 w-4 shrink-0 text-green-400" aria-hidden="true" />
+                    About {formatServiceTime(service)}
+                  </li>
+                )}
+                <li>
+                  <a
+                    href="https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Indiranagar+Bengaluru"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-500/10 px-3.5 py-2 text-sm text-yellow-300 transition-colors hover:bg-yellow-500/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-yellow-400"
+                    data-testid="link-studio-map"
+                  >
+                    <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    Indiranagar studio
+                  </a>
+                </li>
+              </ul>
 
-          {/* 24-Hour Studio Requirement Warning - Only for Glass Coating */}
-          {service.slug === 'windshield-glass-coating-new' && (
-            <div className="mb-10">
-              <div className="bg-gradient-to-r from-amber-900/40 to-orange-900/40 rounded-2xl p-6 border border-amber-500/50 max-w-3xl mx-auto">
-                <div className="text-center">
-                  <div className="flex items-center justify-center mb-4">
-                    <Clock className="w-8 h-8 text-amber-400 mr-3" />
-                    <h3 className="text-2xl font-bold text-amber-400">IMPORTANT NOTICE</h3>
-                  </div>
-                  <div className="bg-amber-500/20 rounded-xl p-4 mb-4">
-                    <p className="text-lg font-semibold text-white mb-2">
-                      🚗 Vehicle Must Stay at Studio for 24 Hours
-                    </p>
-                    <p className="text-amber-100 text-sm leading-relaxed">
-                      The ceramic coating requires a full 24-hour curing period in our controlled environment 
-                      to achieve maximum durability and water repellency. This ensures proper bonding and 
-                      long-lasting protection.
-                    </p>
-                  </div>
-                  <div className="text-amber-300 text-sm font-medium">
-                    ⚠️ Please plan accordingly - Early pickup will compromise coating quality
+              {/* Glass coating needs the vehicle overnight. */}
+              {service.slug === 'windshield-glass-coating-new' && (
+                <div className="rounded-xl border border-amber-500/50 bg-amber-500/10 p-4">
+                  <div className="flex items-start gap-3">
+                    <Clock className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" aria-hidden="true" />
+                    <div>
+                      <div className="font-bold text-amber-400">Vehicle stays 24 hours</div>
+                      <p className="mt-1 text-sm leading-relaxed text-amber-100">
+                        The coating needs a full 24-hour cure in our controlled environment to bond
+                        properly. Please plan for this — an early pickup compromises the finish.
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          )}
+              )}
 
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
-            <Button
-              size="lg"
-              onClick={() => setBookingModalOpen(true)}
-              className="bg-green-400 hover:bg-green-500 text-black font-bold px-6 sm:px-10 py-4 text-base sm:text-lg rounded-full transform hover:scale-105 transition-all duration-200 max-w-full whitespace-normal h-auto"
-              data-testid="button-book-now-hero"
-            >
-              {/* During the free-booking offer every service reads the same, including the
-                  annual package — the label must never quote a price the server will not
-                  charge. `free` comes from the same server that decides the amount. */}
-              {offer.free
-                ? 'Book Free — Get FREE ₹500 Voucher'
-                : service.title === 'Annual Maintenance Package'
-                  ? 'Pay ₹8999 Complete Package'
-                  : 'Pay ₹299 & Get FREE Voucher'
-              }
-              <ArrowRight className="ml-2 w-5 h-5 shrink-0" />
-            </Button>
-            
-            {service.heroVideo && !showVideo && (
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => setShowVideo(true)}
-                className="border-green-400 text-green-400 hover:bg-green-400 hover:text-black px-8 py-4 text-lg rounded-full"
-                data-testid="button-watch-video"
+              {service.heroVideo && !showVideo && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => setShowVideo(true)}
+                  className="min-h-[48px] border-gray-600 px-6 text-base text-white hover:bg-gray-800"
+                  data-testid="button-watch-video"
+                >
+                  <Play className="mr-2 h-5 w-5" aria-hidden="true" />
+                  Watch Video
+                </Button>
+              )}
+            </div>
+
+            {/* ------------------------------------------------------- offer + form */}
+            <section aria-label="Pricing and booking" className="min-w-0 space-y-4 lg:col-span-5">
+              {/*
+                ─────────────────────────────────────────────────────────────────────────
+                The offer card: the whole online booking journey in one container — price,
+                what paying today does, what is included, one button, and the real refund
+                terms. It replaced a plain price table.
+
+                Deliberately NOT on it, although a design review suggested them:
+                  - "Limited time": the discount has no end date, so none is claimed;
+                  - "3-stage paint correction", "certified": the checklist is the service's
+                    OWN stored included items, not marketing lines written here;
+                  - "balance at shop": whether the ₹299 is deducted is unconfirmed;
+                  - "zero risk, cancel up to 24h": the refund terms below are quoted from
+                    /refund-policy, which is the policy that governs the ₹299 fee.
+                ─────────────────────────────────────────────────────────────────────────
+              */}
+              <div
+                className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.7)] backdrop-blur-md sm:p-7"
+                data-testid="offer-card"
               >
-                <Play className="mr-2 w-5 h-5" />
-                Watch Video
-              </Button>
-            )}
-          </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-green-400">
+                    {isAnnualPackage ? 'Annual package' : 'In-studio offer'}
+                  </span>
+                  {discountPercent > 0 && (
+                    <span className="rounded-full bg-red-600 px-2.5 py-1 text-xs font-bold text-white">
+                      {discountPercent}% OFF
+                    </span>
+                  )}
+                </div>
 
-          {/* Trust Indicators */}
-          <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm text-gray-400">
-            <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-green-400" />
-              100% Satisfaction Guaranteed
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-green-400" />
-              {service.slug === 'windshield-glass-coating-new' ? '24 Hours Service' : `${service.duration} Minutes Service`}
-            </div>
-            <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-green-400" />
-              5-Star Rated Service
-            </div>
-          </div>
-        </div>
-      </section>
+                <p className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <ins
+                    className="text-4xl font-extrabold leading-none tracking-tight text-white no-underline sm:text-[42px]"
+                    data-testid="text-offer-price"
+                  >
+                    {formatINR(service.price)}
+                  </ins>
+                  {service.originalPrice && (
+                    <del className="text-lg text-gray-500">{formatINR(service.originalPrice)}</del>
+                  )}
+                </p>
+                <p className="mt-1 text-sm text-gray-300">
+                  {isAnnualPackage ? 'Package value' : 'Offer price · paid at the studio after the work'}
+                </p>
 
-      {/*
-        Quote request, directly under the hero.
+                <p className="mt-4 rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2.5 text-sm font-medium text-green-300">
+                  {offer.free
+                    ? 'No booking fee — reserve your slot online free.'
+                    : isAnnualPackage
+                      ? 'Pay ₹8,999 online for the full annual package.'
+                      : 'Pay just ₹299 online today to hold your slot.'}
+                </p>
 
-        Booking stays the primary action above; this catches the visitor who wants a
-        person to call rather than pick a slot now. Same form, same validation and same
-        endpoint as /ppf-ceramic-coating — one implementation, so the two cannot drift.
-      */}
-      <section className="bg-black px-4 py-12">
-        <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2 md:items-center">
-          <div>
-            <h2 className="text-2xl font-bold text-white sm:text-3xl">Not ready to book?</h2>
-            <p className="mt-2 text-gray-300">
-              Leave your number and the studio will call you about {service.title.trim()}. No payment,
-              no obligation.
-            </p>
-            <p className="mt-3 text-sm text-gray-400">
-              Booking is free. Service charges apply at the studio.
-            </p>
+                <ul className="mt-5 space-y-2.5 border-t border-white/10 pt-5 text-sm text-gray-100">
+                  {/* Items 2–4: the first is already the lead trust pill beside the title. */}
+                  {Array.from(new Set((service.whatIncluded || []).map(cleanIncluded)))
+                    .slice(1, 4)
+                    .map((item, i) => (
+                      <li key={i} className="flex items-start gap-2.5">
+                        <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-green-400" aria-hidden="true" />
+                        <span>{shortIncluded(item)}</span>
+                      </li>
+                    ))}
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-green-400" aria-hidden="true" />
+                    <span>₹500 voucher on your 2nd visit</span>
+                  </li>
+                </ul>
+
+                <Button
+                  onClick={() => setBookingModalOpen(true)}
+                  className="bg-[var(--neon-green)] hover:brightness-95 mt-6 h-auto min-h-[56px] w-full whitespace-normal rounded-xl py-4 text-base font-bold text-black sm:text-lg"
+                  data-testid="button-book-now-hero"
+                >
+                  {/* Never quote a price the server will not charge: `free` comes from the
+                      same server that decides the amount. */}
+                  {offer.free
+                    ? 'Reserve your slot — no fee'
+                    : isAnnualPackage
+                      ? 'Book the package — ₹8,999'
+                      : 'Reserve your slot for ₹299'}
+                  <ArrowRight className="ml-2 h-5 w-5 shrink-0" aria-hidden="true" />
+                </Button>
+
+                <p className="mt-3 text-center text-xs text-gray-400">
+                  {offer.free
+                    ? 'Nothing to pay online, so nothing to cancel — just call or message us.'
+                    : isAnnualPackage
+                      // The package is paid in full, so the ₹299-fee refund rule does not apply.
+                      ? 'Paid in full online — cancellation terms apply.'
+                      : 'Full refund of the booking fee if you cancel 24+ hours ahead.'}{' '}
+                  <a href="/refund-policy" className="underline underline-offset-2 hover:text-gray-200">
+                    Refund policy
+                  </a>
+                </p>
+              </div>
+              {/* The "Prefer a call?" form used to sit under this card. It made the right
+                  column far taller than the left and read as an odd one out beside the
+                  title, so it now has its own centred section lower down the page. */}
+            </section>
           </div>
-          <QuoteForm
-            serviceTitle={service.title.trim()}
-            serviceSlug={service.slug}
-            serviceInterest={
-              service.slug.includes("ppf") ? "ppf" : service.slug.includes("ceramic") ? "ceramic" : "both"
-            }
-            defaultVehicleType={service.slug.includes("bike") ? "bike" : "car"}
-            heading="Request a callback"
-            testId="service-quote"
-          />
         </div>
       </section>
 
       {/* Before & After Section - Moved to 2nd position */}
       {(service.slug === 'headlight-restoration-both' || service.slug === 'windshield-glass-coating-new' || service.slug === 'exterior-detailing-hard-water-new' || service.slug === 'interior-detailing-service' || (service.beforeAfter && service.beforeAfter.length > 0)) && (
-        <section className="py-24 px-4 bg-gradient-to-b from-gray-900 to-black">
+        <section className="py-16 px-4 bg-gradient-to-b from-gray-900 to-black">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               {/* Starts at text-3xl, not text-5xl. "Transformations" is a single
@@ -478,7 +438,7 @@ export default function ServiceLanding() {
                   stretched to match, which is why the header looked like the culprit.
                   This section only renders for services that have before/after content,
                   which is why some service pages overflowed and others did not. */}
-              <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
+              <h2 className="text-2xl sm:text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
                 Dramatic Transformations
               </h2>
               <p className="text-xl text-gray-300 max-w-3xl mx-auto">
@@ -851,7 +811,7 @@ export default function ServiceLanding() {
                 <Button
                   size="lg"
                   onClick={() => setBookingModalOpen(true)}
-                  className="bg-green-400 hover:bg-green-500 text-black font-bold px-6 sm:px-8 py-4 text-base sm:text-lg max-w-full whitespace-normal h-auto"
+                  className="bg-[var(--neon-green)] hover:brightness-95 text-black font-bold px-6 sm:px-8 py-4 text-base sm:text-lg max-w-full whitespace-normal h-auto rounded-[10px]"
                   data-testid="button-book-transformation"
                 >
                   Book Your Transformation
@@ -862,140 +822,85 @@ export default function ServiceLanding() {
           </div>
         </section>
       )}
-      {/* Booking Fee Explanation Section */}
-      <section className="py-16 px-4 bg-gradient-to-r from-green-900/20 to-blue-900/20">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-6 text-green-400">
-            {offer.free ? '🎉 Free Booking Offer' : '🎉 Special Booking Offer'}
-          </h2>
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
-              <div className="text-4xl mb-4">{offer.free ? '🎁' : '💰'}</div>
-              {/* "Pay Nothing Now" was ambiguous next to a heading reading "Free Booking
-                  Offer": on a page selling a ₹45,000 service, a customer skimming those
-                  two lines together can reasonably read "the service is free". What is
-                  free is the BOOKING. The service price is named right here so the two
-                  cannot be conflated. */}
-              <h3 className="text-xl font-bold mb-2">
-                {offer.free
-                  ? 'Booking Is Free'
-                  : service.title === 'Annual Maintenance Package' ? 'Just ₹8999' : 'Just ₹299'}
-              </h3>
-              <p className="text-gray-300">
-                {offer.free
-                  ? `Reserve your slot with just your name, number, email and a time — nothing to pay online. The ${service.title.trim()} itself is charged as normal at the studio.`
-                  : service.title === 'Annual Maintenance Package'
-                    ? 'Complete package payment - no additional charges'
-                    : 'Secure your preferred time slot with a small booking fee'
-                }
-              </p>
-            </div>
-            <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
-              <div className="text-4xl mb-4">🎁</div>
-              <h3 className="text-xl font-bold mb-2">FREE ₹500 Voucher</h3>
-              <p className="text-gray-300">Get a gift voucher worth ₹500 on 2nd visit</p>
-            </div>
-            <div className="bg-gray-900/50 rounded-xl p-6 border border-green-500/30">
-              <div className="text-4xl mb-4">✨</div>
-              <h3 className="text-xl font-bold mb-2">Transparent</h3>
-              {/* "pay remainder" is wrong during the offer — nothing has been paid, so
-                  there is no remainder. The full service price is due, not a balance. */}
-              <p className="text-gray-300">
-                {offer.free
-                  ? 'No hidden charges — the full service price is payable at the studio'
-                  : 'No hidden charges, pay remainder at service time'}
-              </p>
-            </div>
-          </div>
-          <p className="text-lg text-gray-300 mb-4">
-            {offer.free
-              ? `Book free${offerEnds ? ` until ${offerEnds}` : ''} — no payment to reserve your slot, and you still receive a gift voucher worth ₹500 on your 2nd visit. Show your booking confirmation at our store to claim your bonus!`
-              : service.title === 'Annual Maintenance Package'
-                ? 'Pay just ₹8999 now for the complete package and receive a gift voucher worth ₹500 on your 2nd visit. Show your booking confirmation at our store to claim your bonus!'
-                : 'Pay just ₹299 now to reserve your slot and receive a gift voucher worth ₹500 on your 2nd visit. Show your booking confirmation at our store to claim your bonus!'
-            }
-          </p>
-          <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 inline-block">
-            <p className="text-yellow-300 text-sm">
-              💡 <strong>Smart booking system:</strong> No wasted slots, guaranteed service, plus amazing bonus value!
-            </p>
-          </div>
-        </div>
-      </section>
-      {/* What's Included Section */}
+      {/*
+        ─────────────────────────────────────────────────────────────────────────────────
+        What's Included, Why Choose and Our Process — deliberately SHORT.
+
+        The studio asked for these to be one line each. The words still come from the
+        service record; nothing is rewritten or invented here. The display trims them:
+          - included items keep their headline clause ("UV protection to prevent paint
+            fading" -> "UV protection"), one line each;
+          - "why choose" shows its first sentence only;
+          - the process shows step titles, not the paragraph under each one.
+        ─────────────────────────────────────────────────────────────────────────────────
+      */}
       {service.whatIncluded && service.whatIncluded.length > 0 && (
-        <section className="py-20 px-4">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl font-bold text-center mb-12">What's Included</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {service.whatIncluded.map((item, index) => (
-                <Card key={index} className="bg-gray-900 border-gray-800">
-                  <CardContent className="p-6 flex items-center gap-4">
-                    <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
-                    <span className="text-lg">{item}</span>
-                  </CardContent>
-                </Card>
+        <section className="bg-black px-4 py-16">
+          <div className="mx-auto max-w-5xl">
+            <h2 className="mb-8 text-center text-2xl font-bold sm:text-3xl lg:text-4xl">What's Included</h2>
+            <ul className="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from(new Set(service.whatIncluded.map(cleanIncluded))).map((item, index) => (
+                <li
+                  key={index}
+                  className="flex min-w-0 items-center gap-3 rounded-lg border border-gray-800 bg-gray-900/60 px-4 py-3"
+                >
+                  <CheckCircle className="h-5 w-5 shrink-0 text-green-400" aria-hidden="true" />
+                  <span className="truncate text-sm text-gray-200 sm:text-base" title={cleanIncluded(item)}>
+                    {shortIncluded(item)}
+                  </span>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         </section>
       )}
-      {/* Why Choose Us Section */}
+      {/* The studio's own reels of this service, when there are any (lib/instagram-reels.ts).
+          Pages without a matching reel render nothing here rather than an unrelated one. */}
+      <InstagramReels
+        reels={REELS_BY_SERVICE[service.slug] ?? []}
+        heading="See it on Instagram"
+        intro={`Real ${service.title.trim().toLowerCase()} work from our Indiranagar studio.`}
+        className="bg-black"
+      />
       {service.whyChoose && (
-        <section className="py-20 px-4 bg-gray-900">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-bold mb-8">Why Choose P91 Car Care?</h2>
-            <p className="text-xl text-gray-300 leading-relaxed">{service.whyChoose}</p>
+        <section className="bg-gray-900 px-4 py-16">
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="mb-4 text-2xl font-bold sm:text-3xl lg:text-4xl">Why P91 Car Care in Indiranagar?</h2>
+            <p className="text-base leading-relaxed text-gray-300 sm:text-lg">{firstSentence(service.whyChoose)}</p>
           </div>
         </section>
       )}
-      {/* Process Section */}
       {service.process && service.process.length > 0 && (
-        <section className="py-20 px-4">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl font-bold text-center mb-12">Our Process</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <section className="bg-black px-4 py-16">
+          <div className="mx-auto max-w-5xl">
+            <h2 className="mb-8 text-center text-2xl font-bold sm:text-3xl lg:text-4xl">Our Process</h2>
+            <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {service.process.map((step, index) => (
-                <Card key={index} className="bg-gray-900 border-gray-800 text-center overflow-hidden">
-                  <CardContent className="p-0">
-                    {step.image && (
-                      <div className="relative h-48 w-full overflow-hidden">
-                        <img
-                          src={step.image}
-                          alt={`${step.title} — step ${step.step} of the ${service.title.trim()} process at P91 Car Care`}
-                          width={800}
-                          height={600}
-                          loading="lazy"
-                          decoding="async"
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute top-4 left-4 w-12 h-12 bg-green-400 text-black rounded-full flex items-center justify-center text-xl font-bold shadow-lg">
-                          {step.step}
-                        </div>
-                      </div>
-                    )}
-                    <div className={step.image ? "p-6" : "p-8"}>
-                      {!step.image && (
-                        <div className="w-16 h-16 bg-green-400 text-black rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-                          {step.step}
-                        </div>
-                      )}
-                      <h3 className="text-xl font-bold mb-4">{step.title}</h3>
-                      <p className="text-gray-300">{step.description}</p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <li
+                  key={index}
+                  className="flex min-w-0 items-center gap-3 rounded-lg border border-gray-800 bg-gray-900/60 px-4 py-3"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-400 text-sm font-bold text-black">
+                    {step.step ?? index + 1}
+                  </span>
+                  <span className="truncate text-sm font-medium text-gray-200 sm:text-base" title={step.title}>
+                    {step.title}
+                  </span>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
         </section>
       )}
-      {/* Gallery Section - Single Video in 16:9 Format */}
-      {service.gallery && service.gallery.length > 0 && (
-        <section className="py-24 px-4 bg-gray-900">
+      {/* Gallery Section — shown only when the service has a VIDEO. A lone image here
+          repeated the hero photo (bike ceramic) or was a stock banner (car ceramic); the
+          hero now carries the service photo instead. Restore image galleries once the
+          studio supplies real work photos or Instagram reels. */}
+      {service.gallery && service.gallery.some(item => item.type === 'video') && (
+        <section className="py-16 px-4 bg-gray-900">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
                 Inside the Studio
               </h2>
               <p className="text-xl text-gray-300 max-w-3xl mx-auto">
@@ -1079,7 +984,7 @@ export default function ServiceLanding() {
                 <Button
                   size="lg"
                   onClick={() => setBookingModalOpen(true)}
-                  className="bg-green-400 hover:bg-green-500 text-black font-bold px-8 py-4"
+                  className="bg-[var(--neon-green)] hover:brightness-95 text-black font-bold px-8 py-4 rounded-[10px]"
                   data-testid="button-book-gallery"
                 >
                   Book Your Service
@@ -1092,9 +997,9 @@ export default function ServiceLanding() {
       )}
       {/* Testimonials Section */}
       {showTestimonials && service.testimonials && service.testimonials.length > 0 && (
-        <section className="py-20 px-4">
+        <section className="py-16 px-4">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl font-bold text-center mb-12">What Our Customers Say</h2>
+            <h2 className="text-2xl sm:text-4xl font-bold text-center mb-12">What Our Customers Say</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {service.testimonials.map((testimonial, index) => (
                 <Card key={index} className="bg-gray-900 border-gray-800">
@@ -1130,38 +1035,54 @@ export default function ServiceLanding() {
       )}
       {/* FAQ Section */}
       {service.faq && service.faq.length > 0 && (
-        <section className="py-20 px-4 bg-gray-900">
+        <section className="py-16 px-4 bg-gray-900">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-4xl font-bold text-center mb-12">Frequently Asked Questions</h2>
-            <Accordion type="single" collapsible>
-              {service.faq.map((item, index) => (
-                <AccordionItem key={index} value={`item-${index}`} className="border-gray-800">
-                  <AccordionTrigger className="text-left text-lg font-semibold hover:text-green-400">
-                    {item.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-gray-300 text-base leading-relaxed">
-                    {item.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+            <h2 className="mb-8 text-center text-2xl font-bold sm:text-3xl lg:text-4xl">
+              {service.title.trim()} in Indiranagar, Bangalore: FAQs
+            </h2>
+            {/*
+              Every answer is visible text, not a collapsed accordion. The Radix accordion
+              UNMOUNTS closed panels, so the answers were not in the page at all until
+              someone clicked — search engines and AI answer engines only ever saw the
+              questions (plus the FAQPage schema). Question = h3, answer = the paragraph
+              under it, which is the shape those engines quote from.
+            */}
+            <dl className="grid gap-x-8 gap-y-6 md:grid-cols-2" data-testid="faq-list">
+              {service.faq
+                .filter((item) => item?.question?.trim() && item?.answer?.trim())
+                .map((item, index) => (
+                  <div key={index} className="border-t border-gray-800 pt-4">
+                    <dt>
+                      <h3 className="text-base font-semibold text-white sm:text-lg">{item.question.trim()}</h3>
+                    </dt>
+                    <dd className="mt-1.5 text-sm leading-relaxed text-gray-200 sm:text-base">{item.answer.trim()}</dd>
+                  </div>
+                ))}
+            </dl>
           </div>
         </section>
       )}
+      {/* "Prefer a call?" is a popup now (components/callback-popup.tsx): it was an inline
+          section, then a card under the price, and both read as out of place on the page. */}
+      <CallbackPopup
+        serviceTitle={service.title.trim()}
+        serviceSlug={service.slug}
+        isBikeService={isBikeService}
+      />
       {/* Guarantee Section */}
       {service.guaranteeText && (
-        <section className="py-20 px-4">
+        <section className="py-16 px-4">
           <div className="max-w-4xl mx-auto text-center">
             <Shield className="w-16 h-16 text-green-400 mx-auto mb-6" />
-            <h2 className="text-3xl font-bold mb-6">Our Guarantee</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-6">Our Guarantee</h2>
             <p className="text-xl text-gray-300 leading-relaxed">{service.guaranteeText}</p>
           </div>
         </section>
       )}
       {/* Final CTA Section */}
-      <section ref={finalCtaRef} className="py-20 px-4 bg-gradient-to-r from-green-600 to-green-800">
+      <section ref={finalCtaRef} className="py-16 px-4 bg-gradient-to-r from-green-600 to-green-800">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-6">Ready to Transform Your {vehicleNounTitle}?</h2>
+          <h2 className="text-2xl sm:text-4xl font-bold mb-6">Ready to Transform Your {vehicleNounTitle}?</h2>
           <p className="text-xl mb-8 opacity-90">
             Book your {service.title.toLowerCase()} today and experience the P91 difference!
           </p>
@@ -1171,7 +1092,7 @@ export default function ServiceLanding() {
                 are five figures ("₹65000.00" beside "₹95000.00" and the Save badge),
                 which is 2px wider than a 360px phone allows on one line. */}
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mb-4">
-              <span className="text-4xl font-bold">₹{service.price}</span>
+              <span className="text-2xl sm:text-4xl font-bold">₹{service.price}</span>
               {service.originalPrice && (
                 <>
                   <span className="text-2xl opacity-75 line-through">₹{service.originalPrice}</span>
@@ -1184,14 +1105,17 @@ export default function ServiceLanding() {
             )}
           </div>
 
+          {/* ctaText comes from the record and its length is not ours to predict, so this
+              wraps rather than forcing the page wider than a 320px phone. */}
           <Button
             size="lg"
             onClick={() => setBookingModalOpen(true)}
-            className="bg-black hover:bg-gray-900 text-green-400 font-bold px-12 py-4 text-xl"
+            className="h-auto max-w-full whitespace-normal bg-black px-6 py-4 text-lg font-bold text-green-400 hover:bg-gray-900 sm:px-12 sm:text-xl"
             data-testid="button-book-now-final"
           >
-            {service.ctaText || "Book Now"}
-            <ArrowRight className="ml-2 w-6 h-6" />
+            {/* One booking phrase site-wide. ctaText ("Get Protected Now"...) varied per record. */}
+            Book Now
+            <ArrowRight className="ml-2 h-6 w-6 shrink-0" />
           </Button>
 
           {/* Contact Info */}
@@ -1208,58 +1132,68 @@ export default function ServiceLanding() {
               <MapPin className="w-4 h-4" />
               Bangalore, Karnataka
             </div>
+            <a
+              href={INSTAGRAM_PROFILE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:underline"
+              data-testid="link-service-instagram"
+            >
+              <SiInstagram className="w-4 h-4" aria-hidden="true" />
+              @{INSTAGRAM_HANDLE}
+            </a>
           </div>
         </div>
       </section>
-      {/* Floating FOMO CTA Button — hidden while the real bottom CTA is on screen so it
-          never covers the Book Now button or the footer contact info. */}
+      <BrandFooter />
+      {/*
+        Sticky booking bar. Full width along the bottom on phones — price, what paying
+        today does, and one Reserve button, reachable however far down the customer has
+        scrolled — and a compact card at bottom-right from sm up. Hidden while the page's
+        own bottom CTA or the booking modal is on screen. The site-wide WhatsApp button
+        lifts above it on /service/* (components/contact-fab.tsx), so the two never touch.
+      */}
       {showFloatingCTA && !finalCtaVisible && !bookingModalOpen && !floatingCtaDismissed && (
         <div
-          className="fixed right-4 z-[45] transition-all duration-500 ease-in-out translate-y-0 opacity-100"
-          // Sits above the iOS/Android home indicator instead of under it.
-          style={{ pointerEvents: 'auto', bottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
+          className="fixed inset-x-0 bottom-0 z-[45] sm:inset-x-auto sm:right-4 sm:bottom-4"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
           data-testid="floating-cta-button"
         >
-          <div className="bg-gray-900 rounded-2xl shadow-2xl px-4 py-3 mr-1 max-w-xs relative border border-green-500/40">
+          <div className="relative flex items-center gap-3 border-t border-green-500/40 bg-gray-950/95 px-4 py-3 shadow-2xl backdrop-blur-md sm:max-w-sm sm:rounded-2xl sm:border">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline gap-2">
+                <span className="text-lg font-extrabold text-white">{formatINR(service.price)}</span>
+                {service.originalPrice && (
+                  <del className="text-xs text-gray-500">{formatINR(service.originalPrice)}</del>
+                )}
+              </div>
+              <div className="truncate text-xs text-green-300">
+                {offer.free
+                  ? 'No booking fee'
+                  : isAnnualPackage ? 'Full package, paid online' : 'Pay ₹299 now to hold your slot'}
+              </div>
+            </div>
+            <Button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setBookingModalOpen(true);
+              }}
+              className="bg-[var(--neon-green)] hover:brightness-95 min-h-[44px] shrink-0 rounded-xl px-4 text-sm font-bold text-black"
+              data-testid="button-floating-book-now"
+            >
+              Reserve slot
+            </Button>
             {/* Persistent bar, so it needs a way out. 44x44 touch target. */}
             <button
               type="button"
               onClick={() => setFloatingCtaDismissed(true)}
               aria-label="Dismiss booking bar"
-              className="absolute -top-3 -right-3 inline-flex h-11 w-11 items-center justify-center rounded-full bg-gray-800 border border-gray-600 text-gray-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
+              className="inline-flex h-11 w-9 shrink-0 items-center justify-center rounded-full text-gray-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
               data-testid="button-dismiss-floating-cta"
             >
-              <span aria-hidden="true" className="text-lg leading-none">×</span>
+              <span aria-hidden="true" className="text-xl leading-none">×</span>
             </button>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex-1">
-                {/* Was an "LIMITED SLOTS" pill with a pulsing dot. No slot count is
-                    calculated anywhere, so the claim was fabricated. */}
-                <div className="text-gray-300 text-xs font-semibold tracking-wide uppercase mb-1">
-                  Book Your Service
-                </div>
-                {/* "Free this week — no payment" sat directly under "Book Your Service"
-                    and read as though the SERVICE were free. offer.free only waives the
-                    booking fee, which is what every other string on this page says. */}
-                <div className="text-white text-sm font-semibold">
-                  {offer.free
-                    ? 'Booking is free this week'
-                    : service.title === 'Annual Maintenance Package' ? 'Book now for ₹8999' : 'Book now for ₹299'}
-                </div>
-              </div>
-              <Button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setBookingModalOpen(true);
-                }}
-                className="bg-green-400 hover:bg-green-500 text-black font-bold px-4 py-2 rounded-xl shadow-lg transition-colors flex items-center gap-2 min-w-fit relative z-10"
-                data-testid="button-floating-book-now"
-              >
-                <Zap className="w-4 h-4" />
-                <span className="text-sm font-bold">BOOK</span>
-              </Button>
-            </div>
           </div>
         </div>
       )}
@@ -1280,74 +1214,18 @@ export default function ServiceLanding() {
  * og:title and structured data that say "Bike" too.
  */
 function ServiceSeo({ service }: { service: Service }) {
-  const name = service.title.trim();
+  // Opening hours come from the same live table the homepage schema and footer use.
+  const { data: businessHours } = useQuery<BusinessHour[]>({ queryKey: ["/api/business-hours"] });
+  const origin = typeof window === "undefined" ? "https://p91carcare.com" : window.location.origin;
 
-  // Search results truncate around 60 characters, so an admin-set metaTitle is used as
-  // given (they chose it) but the generated fallback keeps the brand suffix and drops the
-  // location only when the service name is already long. "1 Year Bike Ceramic Coating -
-  // Motorcycle Paint Protection | P91 Car Care Bangalore" was 82 characters and got cut
-  // mid-phrase.
-  const generated = `${name} in Bangalore | P91 Car Care`;
-  const title = service.metaTitle || (generated.length <= 60 ? generated : `${name} | P91 Car Care`);
-
-  const description = service.metaDescription || service.description;
-  // Separate component, so resolve here rather than reaching for the page's local.
-  const seoImage = resolveServiceImage(service);
-
-  const provider = {
-    "@type": "AutoRepair",
-    name: "P91 Car Care",
-    telephone: "+91-7406619191",
-    areaServed: "Bangalore",
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: "Bengaluru",
-      addressRegion: "Karnataka",
-      addressCountry: "IN",
-    },
-  };
-
-  const schemas: Record<string, unknown>[] = [
-    {
-      "@context": "https://schema.org",
-      "@type": "Service",
-      name,
-      description,
-      image: seoImage,
-      provider,
-      offers: {
-        "@type": "Offer",
-        // Live price from the record. Never a literal — a schema price that disagrees with
-        // the page is a Merchant-listing violation as well as a lie to the customer.
-        price: service.price,
-        priceCurrency: "INR",
-        availability: "https://schema.org/InStock",
-        url: `${typeof window === "undefined" ? "https://p91carcare.com" : window.location.origin}/service/${service.slug}`,
-      },
-    },
-  ];
-
-  // FAQPage only when the record actually has questions — an empty FAQPage is a
-  // structured-data error, and inventing questions to fill it would be worse.
-  const faqs = (service.faq || []).filter((f) => f?.question?.trim() && f?.answer?.trim());
-  if (faqs.length > 0) {
-    schemas.push({
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: faqs.map((f) => ({
-        "@type": "Question",
-        name: f.question.trim(),
-        acceptedAnswer: { "@type": "Answer", text: f.answer.trim() },
-      })),
-    });
-  }
-
+  // Built by the same function the server uses for the crawler-facing HTML
+  // (client/src/lib/service-seo.ts), so the two heads cannot drift apart again.
   useSeoMeta({
-    title,
-    description,
-    image: seoImage,
+    title: serviceSeoTitle(service),
+    description: serviceSeoDescription(service),
+    image: resolveServiceImage(service),
     canonicalPath: `/service/${service.slug}`,
-    structuredData: schemas,
+    structuredData: serviceStructuredData(service, { origin, businessHours }),
   });
   return null;
 }

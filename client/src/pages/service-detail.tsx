@@ -97,7 +97,7 @@ export default function ServiceDetail() {
 
         {/* Service Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold gradient-text mb-4" data-testid="text-service-title">
+          <h1 className="text-2xl sm:text-4xl font-bold gradient-text mb-4" data-testid="text-service-title">
             {serviceData.title}
           </h1>
           <div className="flex items-center space-x-6 text-gray-400">

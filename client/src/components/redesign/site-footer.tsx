@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { BusinessHour } from "@shared/schema";
 import logoPath from "@assets/Car Care (4)_1753951564515.png";
 import { ImageWithFallback } from "@/components/image-with-fallback";
+import { INSTAGRAM_PROFILE_URL } from "@/lib/instagram-reels";
 
 /**
  * Site footer in the approved redesign.
@@ -96,6 +97,16 @@ export default function SiteFooter() {
             <div className="foot-actions">
               <a className="foot-btn" href="tel:+917406619191" data-testid="link-footer-call">☎&nbsp; 74066 19191</a>
               <a className="foot-btn is-wa" href="https://wa.me/917406619191" data-testid="link-footer-whatsapp">WhatsApp</a>
+              {/* The studio's Instagram, where its work videos are posted. */}
+              <a
+                className="foot-btn"
+                href={INSTAGRAM_PROFILE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="link-footer-instagram"
+              >
+                Instagram
+              </a>
             </div>
           </div>
 

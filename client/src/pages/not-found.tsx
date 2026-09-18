@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
-import { Header } from "@/components/header";
-import Footer from "@/components/footer";
+import { BrandHeader, BrandFooter } from "@/components/redesign/brand-chrome";
 import { Button } from "@/components/ui/button";
 import { Compass, Home as HomeIcon, LifeBuoy } from "lucide-react";
 
@@ -11,12 +10,12 @@ export default function NotFound() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
-      <Header />
+    <div className="p91-brand min-h-screen bg-black text-white flex flex-col">
+      <BrandHeader />
       <main className="flex-1 flex items-center justify-center px-4 py-20">
         <div className="max-w-xl w-full text-center">
           <p className="text-sm font-semibold tracking-widest text-green-400 mb-3">ERROR 404</p>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Page not found</h1>
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-4">Page not found</h1>
           <p className="text-gray-300 text-lg mb-10">
             The page you were looking for doesn't exist, or it may have moved. Our services
             and booking pages are all still here.
@@ -60,7 +59,7 @@ export default function NotFound() {
           </p>
         </div>
       </main>
-      <Footer />
+      <BrandFooter />
     </div>
   );
 }

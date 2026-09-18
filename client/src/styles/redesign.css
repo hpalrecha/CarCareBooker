@@ -93,7 +93,7 @@
     linear-gradient(to right, rgba(6,7,8,.90) 0%, rgba(6,7,8,.74) 32%, rgba(6,7,8,.28) 62%, transparent 100%),
     linear-gradient(to top, rgba(6,7,8,.55) 0%, rgba(6,7,8,.20) 34%, transparent 62%);
 }
-.p91x .hero-bg .copy { position: relative; z-index: 2; width: 100%; padding: 24px 0; }
+.p91x .hero-bg .copy { position: relative; z-index: 2; width: 100%; padding-block: 24px; }
 .p91x .hero-bg .copy::before {
   content: ""; position: absolute; z-index: -1;
   inset: -28px -32px -28px -40px;
@@ -105,12 +105,12 @@
     inset: -20px -24px;
     background: linear-gradient(to right, rgba(4,5,6,.86) 0%, rgba(4,5,6,.66) 62%, rgba(4,5,6,.30) 100%);
   }
-  .p91x .hero-bg { min-height: calc(100svh - var(--chrome, 120px)); }
-  .p91x .hero-bg .copy { padding: 18px 0; }
+  .p91x .hero-bg { min-height: 74svh; }
+  .p91x .hero-bg .copy { padding-block: 18px; }
   .p91x .hero-bg .hero-cta .cta-lg, .p91x .hero-bg .hero-cta .cta-ghost { flex: 1 1 100%; text-align: center; }
 }
 .p91x .hero-bg h1 {
-  font-size: clamp(32px, 6.2vw, 60px); font-weight: 800; letter-spacing: -.035em;
+  font-size: clamp(27px, 6.2vw, 60px); font-weight: 800; letter-spacing: -.035em;
   max-width: 16ch; margin-bottom: 14px; text-shadow: 0 2px 24px rgba(0,0,0,.6);
 }
 .p91x .hero-bg .lede {
@@ -138,6 +138,13 @@
 
 /* ---------- sections ---------- */
 .p91x .section { padding: 68px 0; }
+@media (max-width: 640px) {
+  /* The homepage used a 24px gutter while every other page used 16px, and 68px of
+     section padding made it scroll forever on a phone. Both matched to the site. */
+  .p91x .wrap { padding: 0 16px; }
+  .p91x .section { padding: 40px 0; }
+  .p91x .section-head { margin-bottom: 20px; }
+}
 .p91x .section-head { margin-bottom: 28px; }
 .p91x .section-head h2 { font-size: clamp(24px, 4vw, 36px); font-weight: 800; }
 .p91x .section-head p { color: var(--txt-2); margin: 14px 0 0; max-width: 58ch; }
@@ -556,4 +563,29 @@
 .p91x .slide-car-btn:disabled { opacity: .38; cursor: default; }
 @media (prefers-reduced-motion: reduce) {
   .p91x .slide-car-track { scroll-behavior: auto; }
+}
+
+/* ---------- button variant of the header CTA ----------
+   On pages with their own booking flow the header's Book Now is a <button> (it opens the
+   booking form in place) rather than a link. Reset the UA button chrome so it is visually
+   identical to the link version. */
+.p91x button.btn-book { border: 0; cursor: pointer; font-family: inherit; line-height: inherit; }
+
+/* ============================================================================
+   .p91-brand — the redesign's TYPE on pages that cannot opt into .p91x.
+
+   The service pages, /services, /ppf-ceramic-coating and the policy pages are laid out
+   with Tailwind utilities, including `grid`. .p91x styles generic class names such as
+   .grid, .card and .section, so wrapping those pages in .p91x would rewrite their layouts.
+   This class carries only the typography, so their headings and body text match the
+   homepage without touching layout. Header and footer come from the shared components
+   (components/redesign/brand-chrome.tsx), each in its own .p91x scope.
+   ============================================================================ */
+.p91-brand {
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.p91-brand h1, .p91-brand h2, .p91-brand h3, .p91-brand h4 {
+  font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -.02em;
 }
