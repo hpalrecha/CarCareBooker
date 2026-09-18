@@ -101,7 +101,7 @@ export default function ServiceFilter<T extends ServiceLike>({ services, childre
                   onClick={() => setVehicle(v.key)}
                   data-testid={`filter-vehicle-${v.key}`}
                   className={
-                    "rounded-full border px-4 py-1.5 text-[13px] whitespace-nowrap transition-colors " +
+                    "inline-flex items-center justify-center min-h-[40px] rounded-full border px-4 py-1.5 text-[13px] whitespace-nowrap transition-colors " +
                     (active
                       ? "border-[var(--neon-green)] text-[var(--neon-green)] font-bold shadow-[inset_0_0_0_1px_var(--neon-green)] bg-transparent"
                       : "border-[var(--medium-gray)] bg-[var(--deep-black)] text-[var(--txt-2)] hover:border-[var(--neon-line)] hover:text-[var(--txt)]")
@@ -133,7 +133,7 @@ export default function ServiceFilter<T extends ServiceLike>({ services, childre
                 onClick={() => setCategory(c)}
                 data-testid={`filter-category-${c}`}
                 className={
-                  "rounded-full border px-3.5 py-1.5 text-[13px] whitespace-nowrap transition-colors " +
+                  "inline-flex items-center justify-center min-h-[40px] rounded-full border px-3.5 py-1.5 text-[13px] whitespace-nowrap transition-colors " +
                   (active
                     ? "bg-[var(--neon-green)] border-[var(--neon-green)] text-[#04120A] font-bold"
                     : "border-[var(--medium-gray)] text-[var(--txt-2)] hover:border-[var(--neon-line)] hover:text-[var(--txt)]")
@@ -171,7 +171,7 @@ export default function ServiceFilter<T extends ServiceLike>({ services, childre
               type="button"
               onClick={clearAll}
               data-testid="filter-clear"
-              className="ml-3 inline-flex items-center gap-1 text-[var(--neon-green)] hover:underline"
+              className="ml-3 inline-flex items-center min-h-[40px] gap-1 text-[var(--neon-green)] hover:underline"
             >
               <X className="w-3 h-3" aria-hidden="true" />
               Clear filters
@@ -188,7 +188,7 @@ export default function ServiceFilter<T extends ServiceLike>({ services, childre
           <b className="block text-lg text-[var(--txt)] mb-2">Nothing matches that</b>
           <p className="text-[var(--txt-2)]">
             Try another category, or{" "}
-            <button type="button" onClick={clearAll} className="text-[var(--neon-green)] hover:underline">
+            <button type="button" onClick={clearAll} className="inline-flex items-center min-h-[40px] text-[var(--neon-green)] hover:underline">
               clear the filters
             </button>{" "}
             to see all {services.length} services.

@@ -16,7 +16,7 @@ export default function RefundPolicy() {
           
           <div className="space-y-8 text-gray-300 leading-relaxed">
             <section>
-              <h2 className="text-2xl font-semibold text-neon-green mb-4">1. Booking Fee Refund Policy</h2>
+              <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">1. Booking Fee Refund Policy</h2>
               <p>Plus Nine One Inc charges a booking fee of ₹299 to secure your appointment. This policy outlines our refund terms:</p>
               {/* A refund policy has to say what happens when there is nothing to refund. */}
               <p className="mt-3"><strong className="text-white">During a free-booking offer</strong> no fee is charged, so there is nothing to refund — cancel any time at no cost by calling or messaging us. The cancellation terms below apply only to bookings where a fee was actually paid.</p>
@@ -33,21 +33,21 @@ export default function RefundPolicy() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-neon-green mb-4">2. Service-Specific Refund Terms</h2>
+              <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">2. Service-Specific Refund Terms</h2>
               
               <div className="space-y-4">
                 <div className="bg-medium-gray p-4 rounded-lg">
-                  <h3 className="text-white font-semibold">Premium Car Wash (₹599)</h3>
+                  <h3 className="text-white font-semibold">Premium Car Wash Special (₹999)</h3>
                   <p>Full service refund if not satisfied within 2 hours of completion</p>
                 </div>
                 
                 <div className="bg-medium-gray p-4 rounded-lg">
-                  <h3 className="text-white font-semibold">Interior Detailing (₹2,499)</h3>
+                  <h3 className="text-white font-semibold">Interior Detailing (₹2,999)</h3>
                   <p>Partial refund available if service standards not met</p>
                 </div>
                 
                 <div className="bg-medium-gray p-4 rounded-lg">
-                  <h3 className="text-white font-semibold">Exterior Detailing (₹1,999)</h3>
+                  <h3 className="text-white font-semibold">Exterior Detailing (₹3,499)</h3>
                   <p>Warranty-backed service with satisfaction guarantee</p>
                 </div>
                 
@@ -57,14 +57,14 @@ export default function RefundPolicy() {
                 </div>
                 
                 <div className="bg-medium-gray p-4 rounded-lg">
-                  <h3 className="text-white font-semibold">Headlight Restoration (₹1,199)</h3>
+                  <h3 className="text-white font-semibold">Headlight Restoration (₹1,499)</h3>
                   <p>Warranty-backed with quality guarantee</p>
                 </div>
               </div>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-neon-green mb-4">3. Refund Processing Timeline</h2>
+              <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">3. Refund Processing Timeline</h2>
               <div className="bg-blue-900/20 border border-blue-700 p-6 rounded-lg">
                 <h3 className="text-white font-semibold mb-3">Refunds are processed within:</h3>
                 <ul className="list-disc ml-6 space-y-2">
@@ -79,7 +79,7 @@ export default function RefundPolicy() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-neon-green mb-4">4. Weather-Related Cancellations</h2>
+              <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">4. Weather-Related Cancellations</h2>
               <p>In case of adverse weather conditions that prevent service delivery:</p>
               <ul className="list-disc ml-6 space-y-2">
                 <li>Full refund or rescheduling at no extra cost</li>
@@ -89,7 +89,7 @@ export default function RefundPolicy() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-neon-green mb-4">5. Service Quality Guarantee</h2>
+              <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">5. Service Quality Guarantee</h2>
               <p>We stand behind our work quality:</p>
               <ul className="list-disc ml-6 space-y-2">
                 <li>100% satisfaction guarantee on all services</li>
@@ -100,7 +100,7 @@ export default function RefundPolicy() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-neon-green mb-4">6. How to Request a Refund</h2>
+              <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">6. How to Request a Refund</h2>
               <p>To request a refund:</p>
               <ol className="list-decimal ml-6 space-y-2">
                 <li>Contact our customer service within 24 hours of service</li>
@@ -111,7 +111,7 @@ export default function RefundPolicy() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-neon-green mb-4">7. Non-Refundable Situations</h2>
+              <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">7. Non-Refundable Situations</h2>
               <p>Refunds will not be provided in the following cases:</p>
               <ul className="list-disc ml-6 space-y-2">
                 <li>Customer unavailability during scheduled time</li>
@@ -122,7 +122,7 @@ export default function RefundPolicy() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-neon-green mb-4">8. Contact Information</h2>
+              <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">8. Contact Information</h2>
               <p><strong>Business Name:</strong> Plus Nine One Inc</p>
               <p><strong>GST Number:</strong> 29AMIPP3288M1Z6</p>
               <p>For refund requests or questions, please contact us through our customer service channels.</p>

@@ -324,9 +324,12 @@
     -webkit-overflow-scrolling: touch;
     gap: 14px;
     /* Bleed to the viewport edge so the next card peeks. That is the affordance telling
-       a reader the row scrolls, without needing dots or arrows. */
-    margin: 0 -20px;
-    padding: 2px 20px 14px;
+       a reader the row scrolls, without needing dots or arrows.
+       Must match .wrap's mobile padding (redesign.css, 16px at <=640px) exactly — a
+       wider bleed here than the container's inset pushes the whole page's scroll width
+       past the viewport, causing a permanent 4px horizontal scrollbar on phones. */
+    margin: 0 -16px;
+    padding: 2px 16px 14px;
     scrollbar-width: thin;
   }
   .p91x .blogc-item { flex: 0 0 82%; scroll-snap-align: start; }
