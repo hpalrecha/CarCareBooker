@@ -69,11 +69,13 @@ describe('item 14 — refund policy no longer promises a nonexistent ₹599 serv
   });
 
   test('the other three Section 2 prices match the current admin/catalogue values, not the old stale ones', () => {
-    assert.match(src, /Interior Detailing \(₹2,999\)/);
+    assert.match(src, /Interior Detailing \(₹4,000\)/);
     assert.doesNotMatch(src, /Interior Detailing \(₹2,499\)/);
+    assert.doesNotMatch(src, /Interior Detailing \(₹2,999\)/);
 
-    assert.match(src, /Exterior Detailing \(₹3,499\)/);
+    assert.match(src, /Exterior Detailing \(₹5,999\)/);
     assert.doesNotMatch(src, /Exterior Detailing \(₹1,999\)/);
+    assert.doesNotMatch(src, /Exterior Detailing \(₹3,499\)/);
 
     assert.match(src, /Headlight Restoration \(₹1,499\)/);
     assert.doesNotMatch(src, /Headlight Restoration \(₹1,199\)/);

@@ -29,7 +29,7 @@
  *
  * The two rules differ in SCOPE, deliberately. The legacy setting is a blunt
  * everything-is-free switch, which is what it was built as. A campaign is scoped to the
- * service it advertises: a ceramic-coating campaign must not silently make the ₹8,999
+ * service it advertises: a ceramic-coating campaign must not silently make the ₹18,000
  * Annual Maintenance Package free just because both are bookable that week.
  * ─────────────────────────────────────────────────────────────────────────────────────
  */

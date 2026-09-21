@@ -42,12 +42,12 @@ export default function RefundPolicy() {
                 </div>
                 
                 <div className="bg-medium-gray p-4 rounded-lg">
-                  <h3 className="text-white font-semibold">Interior Detailing (₹2,999)</h3>
+                  <h3 className="text-white font-semibold">Interior Detailing (₹4,000)</h3>
                   <p>Partial refund available if service standards not met</p>
                 </div>
                 
                 <div className="bg-medium-gray p-4 rounded-lg">
-                  <h3 className="text-white font-semibold">Exterior Detailing (₹3,499)</h3>
+                  <h3 className="text-white font-semibold">Exterior Detailing (₹5,999)</h3>
                   <p>Warranty-backed service with satisfaction guarantee</p>
                 </div>
                 

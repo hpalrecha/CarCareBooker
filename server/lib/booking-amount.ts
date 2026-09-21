@@ -114,7 +114,7 @@ export function resolveBookingAmount(input: ResolveBookingAmountInput): Resolved
   //     Ahead of the legacy window only so the reported `source` names the campaign; both
   //     produce the same zero, so the order cannot change what anyone is charged. Scoped
   //     to one service by the caller, unlike rule 0b — a ceramic-coating campaign must
-  //     not make the ₹8,999 Annual Maintenance Package free just because both are
+  //     not make the ₹18,000 Annual Maintenance Package free just because both are
   //     bookable the same week.
   if (input.campaignFreeBooking === true) {
     return { amount: 0, source: "campaign-free-offer" };
@@ -123,7 +123,7 @@ export function resolveBookingAmount(input: ResolveBookingAmountInput): Resolved
   // 0b. Legacy free-booking offer, applying to EVERY service. Unchanged.
   //
   //     Deliberately ahead of the full-price package: the offer is "book free", and a
-  //     customer told the booking is free must not be charged ₹8999 because of which
+  //     customer told the booking is free must not be charged ₹18000 because of which
   //     service they picked. The window fails closed (see above), and zero is returned as
   //     a first-class result rather than by setting booking_amount to "0" —
   //     usableAmount() rejects 0, so that route would silently charge ₹299 instead.
@@ -136,7 +136,7 @@ export function resolveBookingAmount(input: ResolveBookingAmountInput): Resolved
     const fromService = usableAmount(input.servicePrice);
     if (fromService !== null) return { amount: fromService, source: "service-price" };
     // A corrupt price on the package row must not fall through to the booking fee, which
-    // would charge ₹299 for a ₹8999 package. The server default is the safe floor and the
+    // would charge ₹299 for a ₹18000 package. The server default is the safe floor and the
     // mismatch is visible in the response.
     return { amount: DEFAULT_BOOKING_FEE, source: "default" };
   }

@@ -371,7 +371,7 @@ export default function ServiceLanding() {
                   {offer.free
                     ? 'No booking fee — reserve your slot online free.'
                     : isAnnualPackage
-                      ? 'Pay ₹8,999 online for the full annual package.'
+                      ? `Pay ${formatINR(service.price)} online for the full annual package.`
                       : 'Pay just ₹299 online today to hold your slot.'}
                 </p>
 
@@ -401,7 +401,7 @@ export default function ServiceLanding() {
                   {offer.free
                     ? 'Reserve your slot — no fee'
                     : isAnnualPackage
-                      ? 'Book the package — ₹8,999'
+                      ? `Book the package — ${formatINR(service.price)}`
                       : 'Reserve your slot for ₹299'}
                   <ArrowRight className="ml-2 h-5 w-5 shrink-0" aria-hidden="true" />
                 </Button>
