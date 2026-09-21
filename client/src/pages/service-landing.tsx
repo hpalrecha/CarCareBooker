@@ -278,14 +278,14 @@ export default function ServiceLanding() {
                 )}
                 <li>
                   <a
-                    href="https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Indiranagar+Bengaluru"
+                    href="https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Adugodi+Bengaluru"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-500/10 px-3.5 py-2 text-sm text-yellow-300 transition-colors hover:bg-yellow-500/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-yellow-400"
                     data-testid="link-studio-map"
                   >
                     <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    Indiranagar studio
+                    Adugodi studio
                   </a>
                 </li>
               </ul>
@@ -859,13 +859,13 @@ export default function ServiceLanding() {
       <InstagramReels
         reels={REELS_BY_SERVICE[service.slug] ?? []}
         heading="See it on Instagram"
-        intro={`Real ${service.title.trim().toLowerCase()} work from our Indiranagar studio.`}
+        intro={`Real ${service.title.trim().toLowerCase()} work from our Adugodi studio.`}
         className="bg-black"
       />
       {service.whyChoose && (
         <section className="bg-gray-900 px-4 py-16">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="mb-4 text-2xl font-bold sm:text-3xl lg:text-4xl">Why P91 Car Care in Indiranagar?</h2>
+            <h2 className="mb-4 text-2xl font-bold sm:text-3xl lg:text-4xl">Why P91 Car Care in Adugodi?</h2>
             <p className="text-base leading-relaxed text-gray-300 sm:text-lg">{firstSentence(service.whyChoose)}</p>
           </div>
         </section>
@@ -950,7 +950,7 @@ export default function ServiceLanding() {
                     src={service.gallery.find(item => item.type === 'image')?.url}
                     alt={
                       service.gallery.find(item => item.type === 'image')?.caption ||
-                      `${service.title.trim()} being carried out at the P91 Car Care studio in Indiranagar, Bangalore`
+                      `${service.title.trim()} being carried out at the P91 Car Care studio in Adugodi, Bangalore`
                     }
                     width={1600}
                     height={1000}
@@ -1038,7 +1038,7 @@ export default function ServiceLanding() {
         <section className="py-16 px-4 bg-gray-900">
           <div className="max-w-4xl mx-auto">
             <h2 className="mb-8 text-center text-2xl font-bold sm:text-3xl lg:text-4xl">
-              {service.title.trim()} in Indiranagar, Bangalore: FAQs
+              {service.title.trim()} in Adugodi, Bangalore: FAQs
             </h2>
             {/*
               Every answer is visible text, not a collapsed accordion. The Radix accordion

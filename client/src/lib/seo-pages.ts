@@ -2,7 +2,7 @@
  * Content for the four local-intent SEO landing pages.
  *
  * These target the searches a Bangalore customer actually types — "ceramic coating
- * bangalore", "ppf indiranagar" — which the per-service pages at /service/:slug cannot
+ * bangalore", "ppf adugodi" — which the per-service pages at /service/:slug cannot
  * rank for on their own, because they are named after catalogue rows rather than intent.
  *
  * ADDITIVE. Nothing here replaces or redirects /service/:slug. Those 17 URLs are indexed
@@ -78,10 +78,10 @@ export interface SeoPage {
 export const SEO_PAGES: SeoPage[] = [
   {
     slug: "ceramic-coating-bangalore",
-    h1: "Ceramic Coating in Indiranagar, Bangalore",
+    h1: "Ceramic Coating in Adugodi, Bangalore",
     title: "Ceramic Coating in Bangalore | P91 Car Care",
     description:
-      "Nano-ceramic coating with machine paint correction in Indiranagar, Bangalore. Resists borewell water staining and makes every wash easier.",
+      "Nano-ceramic coating with machine paint correction in Adugodi, Bangalore. Resists borewell water staining and makes every wash easier.",
     crumb: "Ceramic coating",
     lede:
       "Machine paint correction followed by a nano-ceramic layer that resists borewell water staining, repels dirt, and makes every wash after it easier.",
@@ -102,7 +102,7 @@ export const SEO_PAGES: SeoPage[] = [
     context: {
       heading: "How Bangalore borewell water damages clearcoats",
       paragraphs: [
-        "Most of Indiranagar and the surrounding areas run on borewell supply with a high dissolved mineral content. When a droplet dries on a hot panel, the water leaves and the calcium and magnesium stay — sitting as a concentrated alkaline deposit directly on your clearcoat.",
+        "Most of Adugodi and the surrounding areas run on borewell supply with a high dissolved mineral content. When a droplet dries on a hot panel, the water leaves and the calcium and magnesium stay — sitting as a concentrated alkaline deposit directly on your clearcoat.",
         "In shade that washes off. In direct sun it begins etching a crater within days, and at that point no chemical will fix it — the panel needs machine polishing. A coating does not make paint immune, but it widens the window between the water landing and the damage starting.",
       ],
     },
@@ -128,10 +128,10 @@ export const SEO_PAGES: SeoPage[] = [
 
   {
     slug: "paint-protection-film-bangalore",
-    h1: "Paint Protection Film (PPF) in Indiranagar, Bangalore",
+    h1: "Paint Protection Film (PPF) in Adugodi, Bangalore",
     title: "Paint Protection Film in Bangalore | P91 Car Care",
     description:
-      "Self-healing paint protection film fitted in Indiranagar, Bangalore. Full-body and partial coverage for stone chips and kerb damage.",
+      "Self-healing paint protection film fitted in Adugodi, Bangalore. Full-body and partial coverage for stone chips and kerb damage.",
     crumb: "Paint protection film",
     lede:
       "A self-healing urethane layer over your paint, cut to the panel and fitted in a controlled bay — so stone chips, trolleys and kerbs hit the film instead of the clearcoat.",
@@ -181,10 +181,10 @@ export const SEO_PAGES: SeoPage[] = [
 
   {
     slug: "interior-detailing-bangalore",
-    h1: "Car Interior Detailing in Indiranagar, Bangalore",
+    h1: "Car Interior Detailing in Adugodi, Bangalore",
     title: "Car Interior Detailing in Bangalore | P91 Car Care",
     description:
-      "Deep interior cleaning in Indiranagar, Bangalore: seat shampoo, dashboard and vents, leather conditioning and odour removal.",
+      "Deep interior cleaning in Adugodi, Bangalore: seat shampoo, dashboard and vents, leather conditioning and odour removal.",
     crumb: "Interior detailing",
     lede:
       "Seats shampooed, vents cleared, leather conditioned and the cabin deodorised — a full reset of the space you actually sit in.",
@@ -229,7 +229,7 @@ export const SEO_PAGES: SeoPage[] = [
     h1: "Windshield Glass Coating & Sun Control Film in Bangalore",
     title: "Sun Control Film & Glass Coating Bangalore | P91",
     description:
-      "Heat-rejection sun control film and rain-repellent windshield glass coating fitted in Indiranagar, Bangalore.",
+      "Heat-rejection sun control film and rain-repellent windshield glass coating fitted in Adugodi, Bangalore.",
     crumb: "Glass & sun film",
     lede:
       "Heat-rejection film for the cabin and a rain-repellent coating for the windshield — two different jobs that people usually ask about together.",

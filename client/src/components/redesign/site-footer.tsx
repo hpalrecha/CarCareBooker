@@ -93,7 +93,7 @@ export default function SiteFooter() {
         <div className="foot-grid">
           <div className="foot-brand">
             <ImageWithFallback src={logoPath} alt="P91 Car Care" width={140} height={34} sizes="140px" />
-            <p>Detailing, ceramic coating and paint protection film, done properly — in Indiranagar, Bangalore.</p>
+            <p>Detailing, ceramic coating and paint protection film, done properly — in Adugodi, Bangalore.</p>
             <div className="foot-actions">
               <a className="foot-btn" href="tel:+917406619191" data-testid="link-footer-call">☎&nbsp; 74066 19191</a>
               <a className="foot-btn is-wa" href="https://wa.me/917406619191" data-testid="link-footer-whatsapp">WhatsApp</a>
@@ -134,9 +134,9 @@ export default function SiteFooter() {
             <h4>Studio</h4>
             {/* Kept in step with the contact page and lib/local-business.ts. */}
             <address>
-              100 Feet Road, HAL 2nd Stage<br />
-              Indiranagar<br />
-              Bengaluru 560038
+              49, 13th Cross, Ayappa Garden<br />
+              Adugodi<br />
+              Bengaluru 560030
             </address>
             {hourRows.length > 0 && (
               <dl className="foot-hours" data-testid="footer-hours">

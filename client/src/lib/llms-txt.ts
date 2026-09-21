@@ -65,13 +65,13 @@ export function buildLlmsTxt(input: {
 
   const address = ADDRESS_CONFIRMED
     ? `${STREET_ADDRESS}, Bengaluru, Karnataka ${POSTAL_CODE}, India`
-    : "Indiranagar, Bengaluru, Karnataka, India";
+    : "Bengaluru, Karnataka, India";
   const phone = PHONE.replace(/^\+91(\d{5})(\d{5})$/, "+91 $1 $2");
 
   const out: string[] = [
     "# P91 Car Care",
     "",
-    "> Car and bike detailing studio in Indiranagar, Bangalore: ceramic coating, paint " +
+    "> Car and bike detailing studio in Adugodi, Bangalore: ceramic coating, paint " +
       "protection film (PPF), interior and exterior detailing, glass coating and sun-control " +
       "film, and headlight restoration. Services are booked online and carried out at the studio.",
     "",

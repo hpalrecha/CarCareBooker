@@ -154,7 +154,7 @@ export const LANDING_PAGES: LandingPage[] = [
     vehicle: "car",
     title: "Car Ceramic Coating Price in Bangalore | P91 Car Care",
     description:
-      "1-year nano-ceramic coating for cars in Indiranagar, Bangalore. See the live price, " +
+      "1-year nano-ceramic coating for cars in Adugodi, Bangalore. See the live price, " +
       "what the job includes, and book your appointment free.",
     eyebrow: "Ceramic coating · Cars",
     h1: "Ceramic Coating for Your Car",
@@ -163,7 +163,7 @@ export const LANDING_PAGES: LandingPage[] = [
       "repels water and dirt, and makes every wash after it easier.",
     primaryServiceSlug: "1-year-ceramic-coating",
     heroAlt:
-      "A car being ceramic coated panel by panel at the P91 Car Care studio in Indiranagar, Bangalore",
+      "A car being ceramic coated panel by panel at the P91 Car Care studio in Adugodi, Bangalore",
     // The ceramic buyer's real question is what coating does and does not do — this is the
     // carousel that answers it, and it is honest about the limit (ceramic will not stop a
     // stone chip) rather than overselling the product the page is here to sell.
@@ -173,7 +173,7 @@ export const LANDING_PAGES: LandingPage[] = [
       {
         title: "Resists Bangalore's borewell water",
         body:
-          "Most of Indiranagar runs on borewell supply with a high dissolved mineral content. " +
+          "Most of Adugodi runs on borewell supply with a high dissolved mineral content. " +
           "When a droplet dries on a hot panel the water leaves and the calcium stays. A coating " +
           "does not make paint immune, but it widens the window between the water landing and the " +
           "damage starting.",
@@ -207,7 +207,7 @@ export const LANDING_PAGES: LandingPage[] = [
     ],
     howItWorks: [
       "Book your appointment online — free during the current offer",
-      "Bring the car to our Indiranagar studio",
+      "Bring the car to our Adugodi studio",
       "Decontamination wash and clay bar treatment",
       "Machine paint correction to remove swirls and water-spot etching",
       "Panel wipe, then the coating applied panel by panel",
@@ -226,7 +226,7 @@ export const LANDING_PAGES: LandingPage[] = [
     vehicle: "bike",
     title: "Bike Ceramic Coating in Bangalore | P91 Car Care",
     description:
-      "1-year ceramic coating for motorcycles in Indiranagar, Bangalore. Tank, fairings and " +
+      "1-year ceramic coating for motorcycles in Adugodi, Bangalore. Tank, fairings and " +
       "panels. See the live price and book your appointment free.",
     eyebrow: "Ceramic coating · Motorcycles",
     h1: "Ceramic Coating for Your Motorcycle",
@@ -235,7 +235,7 @@ export const LANDING_PAGES: LandingPage[] = [
       "grime and chain fling wipe off instead of settling in.",
     primaryServiceSlug: "1-year-bike-ceramic-coating",
     heroAlt:
-      "A motorcycle tank and fairings after ceramic coating at the P91 Car Care studio in Indiranagar, Bangalore",
+      "A motorcycle tank and fairings after ceramic coating at the P91 Car Care studio in Adugodi, Bangalore",
     // Same coating explainer as the car page. Worth knowing: the slides are shot on cars,
     // so this is the one page where the artwork and the vehicle do not match. Swap it the
     // day a motorcycle carousel exists.
@@ -280,7 +280,7 @@ export const LANDING_PAGES: LandingPage[] = [
     ],
     howItWorks: [
       "Book your appointment online — free during the current offer",
-      "Bring the bike to our Indiranagar studio",
+      "Bring the bike to our Adugodi studio",
       "Full decontamination wash, including the areas behind the fairings",
       "Paint correction where the finish needs it",
       "Coating applied by hand across tank, fairings and painted panels",
@@ -302,7 +302,7 @@ export const LANDING_PAGES: LandingPage[] = [
     // /services/paint-protection-film-bangalore, which serves the informational intent.
     title: "Car PPF Price in Bangalore — Hatchback, Sedan, SUV | P91",
     description:
-      "Paint protection film for cars in Indiranagar, Bangalore. Pick your body type for the " +
+      "Paint protection film for cars in Adugodi, Bangalore. Pick your body type for the " +
       "exact package and live price, then book your appointment free.",
     eyebrow: "Paint protection film · Cars",
     h1: "Paint Protection Film for Your Car",
@@ -333,7 +333,7 @@ export const LANDING_PAGES: LandingPage[] = [
       },
     ],
     heroAlt:
-      "Paint protection film being fitted to a car panel at the P91 Car Care studio in Indiranagar, Bangalore",
+      "Paint protection film being fitted to a car panel at the P91 Car Care studio in Adugodi, Bangalore",
     // The coverage carousel, not the origin one: this page's visitor is choosing between
     // partial front, full front and full body, which is exactly what these slides walk
     // through. Deliberately NOT the "PPF vs ceramic" set — none of its slides make the
@@ -376,7 +376,7 @@ export const LANDING_PAGES: LandingPage[] = [
     howItWorks: [
       "Choose your body type above for the exact package and price",
       "Book your appointment online — free during the current offer",
-      "Bring the car to our Indiranagar studio",
+      "Bring the car to our Adugodi studio",
       "Paint inspection and full decontamination before anything is fitted",
       "Film cut and fitted panel by panel",
       "Final inspection, then handover with your written warranty terms",

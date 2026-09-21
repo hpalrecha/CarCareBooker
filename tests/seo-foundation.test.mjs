@@ -251,10 +251,10 @@ describe('llms.txt', () => {
         { dayOfWeek: 1, isOpen: true, openTime: '10:30', cutoffTime: '16:30' },
         { dayOfWeek: 0, isOpen: false, openTime: '10:30', cutoffTime: '15:00' },
       ],
-      guides: [{ title: 'Ceramic Coating in Indiranagar, Bangalore', path: '/services/ceramic-coating-bangalore' }],
+      guides: [{ title: 'Ceramic Coating in Adugodi, Bangalore', path: '/services/ceramic-coating-bangalore' }],
     });
     assert.match(body, /^# P91 Car Care\n\n> /);
-    assert.match(body, /100 Feet Road, HAL 2nd Stage, Indiranagar, Bengaluru, Karnataka 560038/);
+    assert.match(body, /49, 13th Cross, Ayappa Garden, Adugodi, Bengaluru, Karnataka 560030/);
     assert.match(body, /\+91 74066 19191/);
     assert.match(body, /\[1 Year Bike Ceramic Coating\]\(https:\/\/p91carcare\.com\/service\/1-year-bike-ceramic-coating\): ₹2,999$/m);
     // Where a service is paid differs (the annual package is paid online), so it is not stated.

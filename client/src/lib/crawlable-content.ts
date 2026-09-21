@@ -59,7 +59,7 @@ const PHONE_DISPLAY = "+91 74066 19191";
 function shell(main: string): string {
   const address = ADDRESS_CONFIRMED
     ? `${e(STREET_ADDRESS)}, Bengaluru ${e(POSTAL_CODE)}`
-    : "Indiranagar, Bengaluru";
+    : "Bengaluru";
   return (
     `<div ${PRERENDER_ATTR} style="${WRAP_STYLE}">` +
     `<header><a href="/" style="color:#4ade80">P91 Car Care</a>` +
@@ -184,7 +184,7 @@ export function servicePageContent(service: CrawlableService): string {
       (service.description ? p(String(service.description).trim()) : "") +
       priceLine +
       (included.length ? h2("What's Included") + ul(included) : "") +
-      (faqs ? h2(`${title} in Indiranagar, Bangalore: FAQs`) + faqs : ""),
+      (faqs ? h2(`${title} in Adugodi, Bangalore: FAQs`) + faqs : ""),
   );
 }
 

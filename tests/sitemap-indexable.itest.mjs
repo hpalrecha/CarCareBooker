@@ -47,7 +47,7 @@ const SERVICE_SLUGS = [
 const services = SERVICE_SLUGS.map((slug, i) => ({
   id: "svc-" + i, slug,
   title: slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-  description: `Professional ${slug.replace(/-/g, " ")} at P91 Car Care in Indiranagar, Bangalore.`,
+  description: `Professional ${slug.replace(/-/g, " ")} at P91 Car Care in Adugodi, Bangalore.`,
   metaTitle: null, metaDescription: null,
   price: "2999.00", originalPrice: "5999.00", duration: 120,
   images: [`/attached_assets/services/${slug}.webp`],

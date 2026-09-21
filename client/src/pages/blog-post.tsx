@@ -103,7 +103,7 @@ export default function BlogPost() {
             <ImageWithFallback
               className="article-hero"
               src={image}
-              alt={`${post.title} — P91 Car Care, Indiranagar, Bangalore`}
+              alt={`${post.title} — P91 Car Care, Adugodi, Bangalore`}
               width={1200}
               height={300}
               data-testid="img-post-hero"
@@ -170,7 +170,7 @@ export default function BlogPost() {
           <div className="article-cta">
             <div>
               <h3>Ready to book?</h3>
-              <p>Pick a service and hold a slot. The balance is settled at the studio in Indiranagar.</p>
+              <p>Pick a service and hold a slot. The balance is settled at the studio in Adugodi.</p>
             </div>
             <div className="article-cta-btns">
               <Link href="/services" className="cta-lg" data-testid="link-post-book">Book a service</Link>

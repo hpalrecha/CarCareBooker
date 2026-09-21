@@ -173,9 +173,9 @@ export default function Contact() {
                   differs from the schema is a signal that the listing is unverified. */}
               <p className="contact-lines">
                 <b>P91 Car Care</b><br />
-                100 Feet Road, HAL 2nd Stage<br />
-                Indiranagar<br />
-                Bengaluru, Karnataka 560038<br />
+                49, 13th Cross, Ayappa Garden<br />
+                Adugodi<br />
+                Bengaluru, Karnataka 560030<br />
                 India<br />
                 <a href="tel:+917406619191" data-testid="link-contact-phone">+91 74066 19191</a>
               </p>
@@ -268,8 +268,8 @@ export default function Contact() {
           <h2 className="more-h">Find us</h2>
           <div className="map-frame">
             <iframe
-              title="Map showing P91 Car Care in Indiranagar, Bangalore"
-              src="https://www.google.com/maps?q=Indiranagar,Bangalore&output=embed"
+              title="Map showing P91 Car Care in Adugodi, Bangalore"
+              src="https://www.google.com/maps?q=Adugodi,Bangalore&output=embed"
               width={1600}
               height={610}
               loading="lazy"
@@ -279,7 +279,7 @@ export default function Contact() {
           <div className="map-actions">
             <a
               className="cta-lg"
-              href="https://www.google.com/maps/dir/?api=1&destination=P91+Car+Care+Indiranagar+Bengaluru"
+              href="https://www.google.com/maps/dir/?api=1&destination=P91+Car+Care+Adugodi+Bengaluru"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -287,19 +287,15 @@ export default function Contact() {
             </a>
             <a
               className="cta-ghost"
-              href="https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Indiranagar+Bengaluru"
+              href="https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Adugodi+Bengaluru"
               target="_blank"
               rel="noopener noreferrer"
             >
               Open in Google Maps
             </a>
           </div>
-          {/* Honest about the limitation rather than dropping a pin on the wrong building.
-              See lib/local-business.ts — the exact street address still has to come from
-              the Google Business Profile. */}
           <p className="fineprint" style={{ marginTop: 12 }}>
-            The map is centred on Indiranagar. It will point at the exact studio pin once the
-            street address is confirmed.
+            The map is centred on Adugodi.
           </p>
 
           <div className="article-cta">

@@ -98,7 +98,7 @@ export async function sendBookingConfirmationEmail(data: BookingEmailData): Prom
             <p>• No hidden charges - transparent pricing</p>
             
             <div class="detail-row">
-              <span class="label">Location:</span> P91 Car Care, 123 Service Road, Adugodi, Bangalore 560030
+              <span class="label">Location:</span> P91 Car Care, 49, 13th Cross, Ayappa Garden, Adugodi, Bangalore 560030
             </div>
             
             <p>Please arrive 10 minutes before your scheduled time. If you need to reschedule or cancel, please contact us at least 2 hours in advance.</p>

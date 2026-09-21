@@ -149,7 +149,7 @@ export default function Home() {
           <ImageWithFallback
             className="shot"
             src={heroImage}
-            alt="Exterior detailing and hard water spot removal at the P91 Car Care studio in Indiranagar, Bangalore"
+            alt="Exterior detailing and hard water spot removal at the P91 Car Care studio in Adugodi, Bangalore"
             width={1600}
             height={900}
             /* The LCP element. Eager + fetchpriority=high so it is not queued behind
@@ -160,10 +160,10 @@ export default function Home() {
           />
         )}
         <div className="wrap copy">
-          <span className="eyebrow">● Detailing studio · Indiranagar</span>
+          <span className="eyebrow">● Detailing studio · Adugodi</span>
           <h1>
             Car Detailing, PPF &amp; Ceramic Coating Studio in{" "}
-            <span className="gradient-text">Indiranagar, Bangalore</span>
+            <span className="gradient-text">Adugodi, Bangalore</span>
           </h1>
           <p className="lede">
             Ceramic coating, paint protection film and full interior work — done properly,
@@ -190,7 +190,7 @@ export default function Home() {
               <svg className="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M12 21s7-5.3 7-11a7 7 0 1 0-14 0c0 5.7 7 11 7 11z" /><circle cx="12" cy="10" r="2.6" />
               </svg>
-              <b>Indiranagar</b>, Bangalore
+              <b>Adugodi</b>, Bangalore
             </span>
           </div>
         </div>
@@ -243,7 +243,7 @@ export default function Home() {
                       <div className="card-img">
                         <ImageWithFallback
                           src={resolveServiceImage(s)}
-                          alt={`${s.title.trim()} at P91 Car Care studio, Indiranagar, Bangalore`}
+                          alt={`${s.title.trim()} at P91 Car Care studio, Adugodi, Bangalore`}
                           width={1200}
                           height={300}
                           /* Matches .grid: 3-up above 940px, 2-up above 600px, else full

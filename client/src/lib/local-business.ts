@@ -30,18 +30,20 @@ import type { BusinessHour } from "@shared/schema";
  * True once STREET_ADDRESS and POSTAL_CODE below hold the real shop address, matching the
  * Google Business Profile character for character.
  *
- * Confirmed by the business on 2026-09-09. If it is ever set back to false the schema
- * still emits — it simply drops to locality and region only. A schema without a street
- * address forfeits the local-pack listing; a schema with a WRONG one actively suppresses
- * it and poisons the profile, so omission stays the safe failure mode.
+ * Corrected 2026-09-21: the value committed on 2026-09-09 ("100 Feet Road, HAL 2nd Stage,
+ * Indiranagar, 560038") was the wrong neighbourhood — the studio has never been in
+ * Indiranagar. Confirmed directly by the business owner. If it is ever set back to false
+ * the schema still emits — it simply drops to locality and region only. A schema without a
+ * street address forfeits the local-pack listing; a schema with a WRONG one actively
+ * suppresses it and poisons the profile, so omission stays the safe failure mode.
  *
  * IF THE GOOGLE BUSINESS PROFILE IS EDITED, EDIT THIS TO MATCH. A mismatch between the
  * two is worse than either being slightly imperfect on its own.
  */
 export const ADDRESS_CONFIRMED = true;
 
-export const STREET_ADDRESS = "100 Feet Road, HAL 2nd Stage, Indiranagar";
-export const POSTAL_CODE = "560038";
+export const STREET_ADDRESS = "49, 13th Cross, Ayappa Garden, Adugodi";
+export const POSTAL_CODE = "560030";
 
 export const PHONE = "+917406619191";
 

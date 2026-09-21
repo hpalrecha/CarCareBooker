@@ -95,7 +95,7 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
   test('FAQ answers are visible text, not unmounted accordion panels', () => {
     assert.ok(src.includes('data-testid="faq-list"'));
     assert.ok(!src.includes('<AccordionContent'), 'closed Radix panels are not in the DOM');
-    assert.ok(src.includes('in Indiranagar, Bangalore: FAQs'));
+    assert.ok(src.includes('in Adugodi, Bangalore: FAQs'));
   });
 
   test('one offer card, with semantic prices, and no offer section repeating it', () => {

@@ -463,7 +463,7 @@ export default function PpfCeramicLanding() {
     // "500+ cars completed" and "the best warranty in the industry" — an unverifiable
     // statistic wrapped in two comparative superlatives. Replaced with what the page
     // can actually stand behind: the named films and coatings, and the studio location.
-    { q: "Why choose P91 over others?", a: "We install named-brand films and coatings — STEK and Nasiol, alongside our own P91 Premium PPF — from our studio in Indiranagar, Bangalore, and we back PPF with a written replacement warranty." },
+    { q: "Why choose P91 over others?", a: "We install named-brand films and coatings — STEK and Nasiol, alongside our own P91 Premium PPF — from our studio in Adugodi, Bangalore, and we back PPF with a written replacement warranty." },
   ];
 
   /**
@@ -481,7 +481,7 @@ export default function PpfCeramicLanding() {
   const stats = [
     { value: "PPF", label: "Films & Coatings" },
     { value: "Car & Bike", label: "Both Serviced" },
-    { value: "Indiranagar", label: "Bangalore Studio" },
+    { value: "Adugodi", label: "Bangalore Studio" },
     { value: "Warranty", label: "Backed Install" },
   ];
 
@@ -512,14 +512,14 @@ export default function PpfCeramicLanding() {
                 {/* The location is the one fact a local customer checks first, so it opens
                     the studio on Google Maps rather than just sitting there as a label. */}
                 <a
-                  href="https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Indiranagar+Bengaluru"
+                  href="https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Adugodi+Bengaluru"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-yellow-500/20 px-4 py-2 text-sm font-medium text-yellow-400 transition-colors hover:bg-yellow-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-yellow-400"
                   data-testid="link-studio-map"
                 >
                   <MapPin className="h-4 w-4" aria-hidden="true" />
-                  Indiranagar, Bangalore
+                  Adugodi, Bangalore
                 </a>
               </div>
               
@@ -570,7 +570,7 @@ export default function PpfCeramicLanding() {
               {/*
                 These tiles hold WORDS, not numbers, and the numeric-stat styling they
                 inherited broke on a phone: four columns at text-2xl gave each tile 64px at
-                320px wide, while "Indiranagar" needs 131px. It spilled 67px out of its card.
+                320px wide, while "Adugodi" needs 131px. It spilled 67px out of its card.
 
                 Two fixes, both needed. `min-w-0` because a grid item defaults to
                 min-width:auto and refuses to shrink below its content, and two columns on
@@ -829,7 +829,7 @@ export default function PpfCeramicLanding() {
             <div className="flex flex-col items-center gap-2">
               <Users className="w-8 h-8 text-green-400" />
               <div className="text-sm font-medium text-white">In-Studio Installation</div>
-              <div className="text-xs text-gray-400">Indiranagar, Bangalore</div>
+              <div className="text-xs text-gray-400">Adugodi, Bangalore</div>
             </div>
             <div className="flex flex-col items-center gap-2">
               <Star className="w-8 h-8 text-yellow-400" />
@@ -967,7 +967,7 @@ export default function PpfCeramicLanding() {
 
           <div className="text-center mt-8">
             {/* Was "And 500+ more vehicles protected!" — an unverified count. */}
-            <p className="text-gray-400 mb-4">Recent work from our Indiranagar studio.</p>
+            <p className="text-gray-400 mb-4">Recent work from our Adugodi studio.</p>
             <Button
               onClick={scrollToForm}
               className="bg-[var(--neon-green)] hover:brightness-95 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto rounded-[10px]"
@@ -987,7 +987,7 @@ export default function PpfCeramicLanding() {
       <InstagramReels
         reels={REELS_FOR_PPF_CERAMIC_PAGE}
         heading="See PPF & Ceramic in Action"
-        intro="Real work from our Indiranagar studio, straight from our Instagram."
+        intro="Real work from our Adugodi studio, straight from our Instagram."
         className="bg-gray-900"
       />
 
@@ -1204,7 +1204,7 @@ export default function PpfCeramicLanding() {
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-yellow-500/20 text-yellow-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
             <Award className="w-4 h-4" />
-            PPF &amp; Ceramic Coating · Indiranagar
+            PPF &amp; Ceramic Coating · Adugodi
           </div>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Ready to Protect Your Vehicle?</h2>
           <p className="text-xl text-gray-300 mb-4">

@@ -111,8 +111,8 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
     areaServed: { "@type": "City", name: "Bengaluru" },
     address: {
       "@type": "PostalAddress",
-      streetAddress: "100 Feet Road, HAL 2nd Stage, Indiranagar",
-      postalCode: "560038",
+      streetAddress: "49, 13th Cross, Ayappa Garden, Adugodi",
+      postalCode: "560030",
       addressLocality: "Bengaluru",
       addressRegion: "Karnataka",
       addressCountry: "IN",
@@ -259,7 +259,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
                 Number(service.duration) > 0 && (
                   <p className="lp-meta" data-testid="landing-duration">
                     Approx. {Math.round(Number(service.duration) / 60)} hours in the studio ·
-                    Indiranagar, Bangalore
+                    Adugodi, Bangalore
                   </p>
                 )}
 

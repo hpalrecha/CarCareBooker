@@ -72,11 +72,11 @@ export function servicesItemListSchema(
 }
 
 const SNIPPET_MAX = 160;
-const PLACE = " Studio in Indiranagar, Bangalore.";
+const PLACE = " Studio in Adugodi, Bangalore.";
 
 /**
  * A meta description that fits the ~160 characters a search snippet shows and names the
- * studio's neighbourhood — "Indiranagar" is the local term this page should match.
+ * studio's neighbourhood — "Adugodi" is the local term this page should match.
  *
  * Built only from the record's own wording: the whole meta description when it fits, else
  * its first sentence, else it is cut at a word boundary. The stored records run 200–234
@@ -86,7 +86,7 @@ const PLACE = " Studio in Indiranagar, Bangalore.";
 export function serviceSeoDescription(service: ServiceSeoInput): string {
   const base = String(service.metaDescription || service.description || "").trim();
   if (!base) return base;
-  const named = /indiranagar/i.test(base);
+  const named = /adugodi/i.test(base);
   const room = named ? SNIPPET_MAX : SNIPPET_MAX - PLACE.length;
 
   let text = base;

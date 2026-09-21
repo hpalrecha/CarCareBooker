@@ -131,7 +131,7 @@ export default function SeoServicePage() {
             <ImageWithFallback
               className="article-hero"
               src={heroImage}
-              alt={`${page.crumb} at the P91 Car Care studio in Indiranagar, Bangalore`}
+              alt={`${page.crumb} at the P91 Car Care studio in Adugodi, Bangalore`}
               width={1200}
               height={300}
               data-testid="img-seo-hero"
@@ -201,7 +201,7 @@ export default function SeoServicePage() {
           <div className="article-cta">
             <div>
               <h3>Book {page.crumb.toLowerCase()}</h3>
-              <p>Hold your slot online. The balance is settled at the studio in Indiranagar.</p>
+              <p>Hold your slot online. The balance is settled at the studio in Adugodi.</p>
             </div>
             <div className="article-cta-btns">
               {/* Send a ready-to-book reader to the matching conversion page rather than

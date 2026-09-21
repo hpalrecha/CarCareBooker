@@ -30,13 +30,13 @@ export interface StaticSeoPage {
 
 export const HOME_SEO: StaticSeoPage = {
   path: "/",
-  // Was 77 characters ("P91 Car Care — Car Detailing, PPF & Ceramic Coating in Indiranagar,
+  // Was 77 characters ("P91 Car Care — Car Detailing, PPF & Ceramic Coating in Adugodi,
   // Bangalore") and was cut off in results. Same words, shortened.
-  title: "Car Detailing, PPF & Ceramic Coating in Indiranagar | P91",
+  title: "Car Detailing, PPF & Ceramic Coating in Adugodi | P91",
   description:
-    "Ceramic coating, paint protection film and full interior detailing in Indiranagar, " +
+    "Ceramic coating, paint protection film and full interior detailing in Adugodi, " +
     "Bangalore — warranty-backed and bookable online in under a minute.",
-  h1: "Car Detailing, PPF & Ceramic Coating Studio in Indiranagar, Bangalore",
+  h1: "Car Detailing, PPF & Ceramic Coating Studio in Adugodi, Bangalore",
   lede:
     "Ceramic coating, paint protection film and full interior work — done properly, " +
     "warranty-backed, and bookable online in under a minute.",
@@ -48,7 +48,7 @@ export const SERVICES_SEO: StaticSeoPage = {
   // Was 228 characters on the page and a different 164-character text in the prerender.
   description:
     "Every P91 Car Care service with live prices: ceramic coating, PPF, interior and " +
-    "exterior detailing, glass film and headlight restoration in Indiranagar.",
+    "exterior detailing, glass film and headlight restoration in Adugodi.",
   h1: "All Services",
   lede:
     "Filter by what your vehicle is and what it needs. Prices, offers and availability are " +
@@ -57,9 +57,9 @@ export const SERVICES_SEO: StaticSeoPage = {
 
 export const CONTACT_SEO: StaticSeoPage = {
   path: "/contact",
-  title: "Contact P91 Car Care | Indiranagar, Bangalore",
+  title: "Contact P91 Car Care | Adugodi, Bangalore",
   description:
-    "Call, WhatsApp or visit the P91 Car Care detailing studio in Indiranagar, Bangalore. " +
+    "Call, WhatsApp or visit the P91 Car Care detailing studio in Adugodi, Bangalore. " +
     "Opening hours, directions and enquiry form.",
   h1: "Contact us",
   lede:
@@ -91,7 +91,7 @@ export const TERMS_SEO: StaticSeoPage = {
   title: "Terms & Conditions — P91 Car Care",
   description:
     "The terms that apply to booking and paying for detailing, ceramic coating and " +
-    "paint protection film services at P91 Car Care in Indiranagar, Bangalore.",
+    "paint protection film services at P91 Car Care in Adugodi, Bangalore.",
   h1: "Terms and Conditions",
 };
 

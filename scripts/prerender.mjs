@@ -341,7 +341,7 @@ async function main() {
     [
       `    <title>Page not found — P91 Car Care</title>`,
       `    <meta name="robots" content="noindex, follow" />`,
-      `    <meta name="description" content="This page could not be found. Browse our car detailing, ceramic coating and paint protection services in Indiranagar, Bangalore." />`,
+      `    <meta name="description" content="This page could not be found. Browse our car detailing, ceramic coating and paint protection services in Adugodi, Bangalore." />`,
       "  </head>",
     ].join("\n"),
   );

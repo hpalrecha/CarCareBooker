@@ -244,7 +244,7 @@ export default function BookingConfirmation() {
                   <div>
                     <h4 className="font-semibold text-white mb-1">P91 Car Care Center</h4>
                     <p className="text-gray-300" data-testid="text-service-center-address">
-                      123 Service Road, Adugodi<br />
+                      49, 13th Cross, Ayappa Garden, Adugodi<br />
                       Bangalore, Karnataka 560030
                     </p>
                   </div>

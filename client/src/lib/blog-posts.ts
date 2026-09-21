@@ -139,7 +139,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         type: "cta",
         text:
-          "Not sure which your car needs? Bring it to the Indiranagar studio and we will tell you what the paint actually calls for before you spend anything.",
+          "Not sure which your car needs? Bring it to the Adugodi studio and we will tell you what the paint actually calls for before you spend anything.",
         label: "Book an inspection",
       },
 
