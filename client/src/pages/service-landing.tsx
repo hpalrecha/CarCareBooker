@@ -22,6 +22,7 @@ import { useBookingOffer } from "@/hooks/use-booking-offer";
 import { deriveCategory, deriveVehicle } from "@/lib/service-taxonomy";
 import { formatServiceTime } from "@/lib/service-time";
 import { serviceSeoTitle, serviceSeoDescription, serviceStructuredData } from "@/lib/service-seo";
+import { useHeroVideoGate } from "@/hooks/use-hero-video";
 import type { BusinessHour } from "@shared/schema";
 
 // Before/after images
@@ -302,6 +303,17 @@ export default function ServiceLanding() {
   // returns) because hooks cannot be called conditionally.
   const offer = useBookingOffer();
 
+  // Hero background video gate (see use-hero-video.ts). `allowMobile: true` — these are
+  // the studio's own ~5-7MB reels, not the 61MB clip home.tsx/campaign-landing.tsx share,
+  // so autoplaying on a phone is not the mobile-data problem it would be there.
+  // `immediate: true` — this page is reached by clicking into it from within an already-
+  // idle app (services grid, nav, search) far more often than it's the literal first
+  // paint, so the idle/1500ms wait just held the static photo on screen while a video
+  // that was always going to autoplay sat there unrequested. Declared here, before the
+  // early returns below, for the same reason as `offer`.
+  const showHeroVideo = useHeroVideoGate({ allowMobile: true, immediate: true });
+  const [heroVideoReady, setHeroVideoReady] = useState(false);
+
   const { data: service, isLoading } = useQuery<Service>({
     queryKey: ["/api/services", slug],
     enabled: !!slug,
@@ -497,10 +509,9 @@ export default function ServiceLanding() {
       {/* Hero: light theme by request — white/black, real photo as the section's own
           full-bleed background (not boxed beside the text) rather than behind it in a
           dark scrim like home.tsx: a white scrim here instead, so the same photo now
-          supports black text. No video: no real per-service footage exists, and
-          fabricating any would misrepresent the studio's actual work. The offer card
-          stays the ordinary dark `.card` — a deliberate accent panel, needing no colour
-          changes of its own to read clearly over a lightened photo. */}
+          supports black text. The offer card stays the ordinary dark `.card` — a
+          deliberate accent panel, needing no colour changes of its own to read clearly
+          over a lightened photo. */}
       <section className="hero-light-bg">
         {heroImage && (
           <ImageWithFallback
@@ -512,6 +523,35 @@ export default function ServiceLanding() {
             data-testid="img-hero"
           />
         )}
+        {/* Layered directly over the photo above, same treatment as home.tsx's hero video:
+            invisible until `onPlaying` actually fires, so the photo is always what's
+            visible until there is a real frame to replace it with. Only when the record's
+            heroVideo is a real saved file (isDirectVideoFile) — a YouTube/Vimeo URL has no
+            file to autoplay here and stays on the iframe embed further down in Overview. */}
+        {service.heroVideo && isDirectVideoFile(service.heroVideo) && showHeroVideo && (
+          <video
+            className="shot"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            poster={heroImage}
+            aria-hidden="true"
+            data-testid="video-hero"
+            onPlaying={() => setHeroVideoReady(true)}
+            style={{ opacity: heroVideoReady ? 1 : 0, transition: "opacity .6s ease" }}
+          >
+            <source src={service.heroVideo} type="video/mp4" />
+          </video>
+        )}
+        {/* Scrim behind the copy column only, on the left where the text sits. The studio
+            photos this hero was originally tuned for are shot dark/moody, so text-shadow
+            alone was enough; a real reel's footage (autoplaying in the layer above) is
+            not guaranteed to be — a bright panel shot under studio lighting can wash the
+            white h1/lede out. Left-weighted rather than a flat wash so the video is still
+            shown at full brightness everywhere the text isn't. */}
+        <div className="hero-light-scrim" aria-hidden="true" />
         <div className="wrap hero-light-copy">
           <div style={{ maxWidth: 620 }}>
             <h1 className="text-3xl">
@@ -565,20 +605,6 @@ export default function ServiceLanding() {
                   </div>
                 </div>
               </div>
-            )}
-
-            {/* The video itself plays further down, in the Overview section (#overview) —
-                this jumps there rather than duplicating a player in the hero. */}
-            {service.heroVideo && (
-              <a
-                href="#overview"
-                className="cta-ghost hero-light-ghost"
-                style={{ marginTop: 20 }}
-                data-testid="button-watch-video"
-              >
-                <Play className="i" aria-hidden="true" style={{ marginRight: 8 }} />
-                Watch Video
-              </a>
             )}
 
             {/* Offer card: unchanged dark `.card`, an accent panel on the light hero. */}

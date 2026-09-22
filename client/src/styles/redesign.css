@@ -213,6 +213,19 @@
      reason. No new or edited image — this is the same file, just displayed brighter. */
   filter: brightness(1.18) contrast(1.05) saturate(1.08);
 }
+/* Left-weighted scrim, behind the copy column, in front of the photo/video (.shot is
+ * z-index 0, this is z-index 1, .hero-light-copy is z-index 2). See service-landing.tsx
+ * for why this exists on top of the text-shadow below: a real reel is not guaranteed to
+ * be dark the way the studio's still photos are. */
+.p91x .hero-light-scrim {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(90deg, rgba(6,7,8,.78) 0%, rgba(6,7,8,.5) 34%, rgba(6,7,8,.16) 60%, transparent 82%);
+}
+@media (max-width: 640px) {
+  /* Text runs full-width on mobile instead of stopping at maxWidth 620, so the scrim
+     needs to cover the full width too, not just the left two-thirds. */
+  .p91x .hero-light-scrim { background: linear-gradient(180deg, rgba(6,7,8,.7) 0%, rgba(6,7,8,.55) 55%, rgba(6,7,8,.35) 100%); }
+}
 .p91x .hero-light-copy { position: relative; z-index: 2; width: 100%; padding-block: 40px; }
 .p91x .hero-light-copy h1 {
   color: #fff; font-size: clamp(28px, 4.6vw, 46px); font-weight: 800;
@@ -226,8 +239,6 @@
 .p91x .hero-light-facts { margin-top: 18px; color: #EDEFF1; text-shadow: 0 1px 8px rgba(0,0,0,.8); }
 .p91x .hero-light-facts b { color: var(--neon-green); }
 .p91x .hero-light-facts a { color: #EDEFF1; }
-.p91x .hero-light-ghost { border-color: rgba(255,255,255,.55); color: #fff; }
-.p91x .hero-light-ghost:hover { border-color: var(--neon-green); }
 @media (max-width: 640px) {
   .p91x .hero-light-bg { min-height: 74svh; }
   .p91x .hero-light-copy { padding-block: 24px; }
@@ -235,7 +246,9 @@
 /* By explicit request: no dark wash over the hero photo/video at all, so it reads at full
  * brightness/clarity — the same change made to .hero-light-bg above, applied here too.
  * Legibility comes entirely from the text-shadow on h1.hero-solid/.lede below, same
- * technique, no scrim layer left to remove contrast from the footage underneath it. */
+ * technique, no scrim layer left to remove contrast from the footage underneath it.
+ * (.hero-light-bg itself has since gained .hero-light-scrim, scoped to that hero only —
+ * its footage isn't tuned the way this page's is; this hero-bg stays scrim-free.) */
 /* padding-top is deliberately larger than padding-bottom and independent of the flex
  * centering above: the fixed transparent header (.over-hero) reserves no flow space, so
  * on a short viewport or a hero with tall content (title + description + trust pills +
