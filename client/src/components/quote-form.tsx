@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { attributionPayload } from "@/lib/attribution";
 import { trackLead } from "@/lib/meta-pixel";
-import { isValidMobile } from "@/lib/protection-challenge";
+import { isValidMobile } from "@/lib/phone";
 
 /**
  * "Get your appointment" — the enquiry form for someone not ready to pick a slot online.

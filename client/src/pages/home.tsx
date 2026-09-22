@@ -6,7 +6,6 @@ import SiteFooter from "@/components/redesign/site-footer";
 import ScrollRow from "@/components/redesign/scroll-row";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import TransformationCTA from "@/components/transformation-cta";
-import ProtectionChallengeCTA from "@/components/protection-challenge";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { localBusinessSchema } from "@/lib/local-business";
 import { HOME_SEO } from "@/lib/static-seo";
@@ -601,16 +600,12 @@ export default function Home() {
       </section>
 
       {/* ---------- trust / cta ----------
-          XPEL-style closing block: the Protection Challenge and the booking CTA together,
-          with strong whitespace. Also restored: the previous homepage ended with a "Book
-          Your Service Now" button that scrolled to the catalogue, and
-          tests/regression.test.mjs pins both the button and the scroll target. */}
+          XPEL-style closing block, with strong whitespace. Also restored: the previous
+          homepage ended with a "Book Your Service Now" button that scrolled to the
+          catalogue, and tests/regression.test.mjs pins both the button and the scroll
+          target. */}
       <section className="section">
         <div className="wrap">
-          <div className="wrap narrow" style={{ padding: 0, marginBottom: 40 }}>
-            <ProtectionChallengeCTA placement="home" variant="teaser" />
-          </div>
-
           <div
             className="rounded-[14px] border border-[var(--medium-gray)] bg-[var(--dark-gray)] px-6 py-10 text-center sm:px-10"
           >

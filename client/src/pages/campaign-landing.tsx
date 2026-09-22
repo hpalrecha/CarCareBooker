@@ -16,7 +16,6 @@ import CampaignOffer from "@/components/campaign-offer";
 import VehicleSelector from "@/components/vehicle-selector";
 import BlogCarousel from "@/components/blog-carousel";
 import HeroOfferStrip from "@/components/hero-offer-strip";
-import ProtectionChallengeCTA from "@/components/protection-challenge";
 import InstagramReels from "@/components/instagram-reels";
 import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
@@ -533,20 +532,6 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
           </div>
         </section>
       )}
-
-      {/*
-        Optional help for the visitor who is still deciding. Placed AFTER the service
-        content and its price, never in front of them: someone who arrived knowing what
-        they want must not have to scroll past a quiz to reach the booking CTA.
-      */}
-      <section className="section lp-tight">
-        <div className="wrap narrow">
-          <ProtectionChallengeCTA
-            placement={page.path}
-            onBookDirect={() => setBookingOpen(true)}
-          />
-        </div>
-      </section>
 
       {/* ---------- 8. genuine articles ---------- */}
       <BlogCarousel posts={posts} bySlug={bySlug} />

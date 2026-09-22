@@ -125,7 +125,7 @@ describe('brand green and one booking phrase', () => {
     }
   });
 
-  test('"Book Now" everywhere except the Protection Challenge (left untouched)', () => {
+  test('"Book Now" everywhere, never "Book Free Appointment"', () => {
     for (const f of ['client/src/pages/campaign-landing.tsx', 'client/src/components/campaign-offer.tsx', 'client/src/pages/service-landing.tsx']) {
       assert.doesNotMatch(code(f), /Book Free Appointment|service\.ctaText \|\|/, f);
     }

@@ -1,12 +1,9 @@
 /**
  * When the "Prefer a call?" popup may appear on a service page.
  *
- * The site already has one automatic popup — the Protection Challenge invitation, five
- * seconds into every visit (lib/challenge-invite-state.ts). Two popups competing for the
- * same visitor is the fastest way to make both feel like spam, so this one:
- *   - waits CALLBACK_DELAY_MS, well after the invitation has had its moment;
- *   - never opens while the invitation, the booking form or any other dialog is on screen,
- *     re-checking instead, and gives up after CALLBACK_MAX_WAIT_MS;
+ *   - waits CALLBACK_DELAY_MS after the page loads before ever considering it;
+ *   - never opens while the booking form or any other dialog is on screen, re-checking
+ *     instead, and gives up after CALLBACK_MAX_WAIT_MS;
  *   - appears at most once per visit (sessionStorage);
  *   - never appears once the visitor has already asked for a call this visit.
  *
@@ -53,13 +50,10 @@ export function markCallbackRequested(): void {
   writeSession(CALLBACK_SENT_KEY);
 }
 
-/** Anything else on screen: a Radix dialog (booking form, challenge) or the challenge invitation. */
+/** Anything else on screen: a Radix dialog (booking form or any other). */
 export function somethingElseIsOpen(): boolean {
   try {
-    return (
-      document.querySelector('[role="dialog"][data-state="open"]') !== null ||
-      document.querySelector('[data-testid="challenge-invite"]') !== null
-    );
+    return document.querySelector('[role="dialog"][data-state="open"]') !== null;
   } catch {
     return true;
   }

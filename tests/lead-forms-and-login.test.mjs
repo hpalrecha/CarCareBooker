@@ -193,7 +193,7 @@ describe('the service-page quote form', () => {
   });
 
   test('accepts exactly a ten digit mobile, using the shared check', () => {
-    assert.match(quote, /import \{ isValidMobile \} from "@\/lib\/protection-challenge"/);
+    assert.match(quote, /import \{ isValidMobile \} from "@\/lib\/phone"/);
     assert.match(quote, /\.refine\(isValidMobile/);
   });
 });

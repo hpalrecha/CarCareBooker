@@ -6,12 +6,17 @@
  * explicit request, the opposite palette of the rest of the dark/green site, scoped only
  * to this hero), and the section rhythm.
  *
- * HERO VIDEO (Overview section): the studio's own reel, saved under attached_assets/reels/
- * and keyed to the one matching service via its heroVideo field. Originally removed
- * entirely because no real per-service footage existed and a generic clip behind the wrong
- * service's name would have misrepresented the work; now that real per-service footage
- * exists, the guard below asserts it stays real (never the old generic homepage clips) and
- * safe (muted/looping background footage, not autoplaying sound).
+ * HERO VIDEO: the studio's own reel, saved under attached_assets/reels/ and keyed to the
+ * one matching service via its heroVideo field, plays in TWO places once the record has
+ * one: full-bleed behind the top hero's copy (gated by useHeroVideoGate — allowMobile and
+ * immediate, since these are small per-service reels reached mostly by internal nav, not
+ * the 61MB clip home.tsx/campaign-landing.tsx share), and boxed beside "What's Included" in
+ * the Overview section further down (never gated — it is not an LCP element, so it just
+ * plays whenever the browser allows). Originally removed entirely because no real
+ * per-service footage existed and a generic clip behind the wrong service's name would have
+ * misrepresented the work; now that real per-service footage exists, the guards below
+ * assert it stays real (never the old generic homepage clips) and safe (muted/looping
+ * background footage, not autoplaying sound).
  *
  * Migrated off `.p91-brand`/`BrandHeader` onto full `.p91x` + `SiteHeader`/`SiteFooter` —
  * see tests/design-unification.test.mjs for the site-wide chrome assertions this implies.
@@ -31,6 +36,10 @@ const src = raw.replace(/\{\/\*[\s\S]*?\*\/\}/g, '').replace(/\/\*[\s\S]*?\*\//g
 const heroStart = src.indexOf('<section className="hero-light-bg"');
 const heroEnd = src.indexOf('</section>', heroStart);
 const hero = src.slice(heroStart, heroEnd);
+
+const overviewStart = src.lastIndexOf('<section', src.indexOf('id="overview"'));
+const overviewEnd = src.indexOf('</section>', overviewStart);
+const overview = src.slice(overviewStart, overviewEnd);
 
 describe('service pages share the /ppf-ceramic-coating layout', () => {
   test('the hero exists where expected', () => {
@@ -67,17 +76,29 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
     assert.ok(!/<QuoteForm\b/.test(hero), 'no form in the hero');
   });
 
-  test('hero video only plays a service\'s own saved footage, muted and looping', () => {
+  test('hero + overview video only play a service\'s own saved footage, muted and looping', () => {
     // Gated on the SERVICE RECORD's own heroVideo field, not a hardcoded clip — a
     // service with no footage falls through to its photo instead (isDirectVideoFile
     // branch in service-landing.tsx). autoPlay+muted+loop+playsInline: background
     // footage, never a video that plays with sound or forces fullscreen on mobile.
-    assert.match(src, /<video\b/);
-    assert.match(src, /service\.heroVideo && isDirectVideoFile\(service\.heroVideo\)/);
-    assert.match(src, /autoPlay[\s\S]{0,40}muted[\s\S]{0,40}loop[\s\S]{0,40}playsInline/);
+    assert.match(hero, /<video\b/);
+    assert.match(hero, /service\.heroVideo && isDirectVideoFile\(service\.heroVideo\) && showHeroVideo/);
+    assert.match(hero, /autoPlay[\s\S]{0,40}muted[\s\S]{0,40}loop[\s\S]{0,40}playsInline/);
+    assert.match(overview, /<video\b/);
+    assert.match(overview, /service\.heroVideo && isDirectVideoFile\(service\.heroVideo\)/);
+    assert.match(overview, /autoPlay[\s\S]{0,40}muted[\s\S]{0,40}loop[\s\S]{0,40}playsInline/);
     // The OLD generic homepage clips this page used to (wrongly) share must never come back.
     assert.doesNotMatch(src, /attached_assets\/(Exterior|Interior) Detailing_/);
-    assert.doesNotMatch(src, /useHeroVideoGate/);
+  });
+
+  test('hero video is gated (desktop or mobile, no artificial wait); overview video is not — it is not an LCP element', () => {
+    assert.match(src, /const showHeroVideo = useHeroVideoGate\(\{ allowMobile: true, immediate: true \}\);/);
+    assert.match(hero, /showHeroVideo/);
+    assert.doesNotMatch(overview, /showHeroVideo/);
+  });
+
+  test('hero has a scrim behind the copy column — the reel is not guaranteed dark the way the studio photos are', () => {
+    assert.ok(hero.includes('className="hero-light-scrim"'));
   });
 
   test('"Prefer a call?" is a popup, not an inline section', () => {

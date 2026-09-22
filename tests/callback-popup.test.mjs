@@ -1,10 +1,10 @@
 /**
  * The "Prefer a call?" popup on service pages.
  *
- * Its failure mode is the same as the challenge invitation's: being a nuisance. These tests
- * run the real rules (bundled with esbuild) against a fake window/document and pin: once per
- * visit, never after a call was already requested, never over another popup or the booking
- * form, and no crash when storage is blocked.
+ * Its failure mode is being a nuisance. These tests run the real rules (bundled with
+ * esbuild) against a fake window/document and pin: once per visit, never after a call was
+ * already requested, never over another popup or the booking form, and no crash when
+ * storage is blocked.
  */
 import { test, describe, before } from 'node:test';
 import assert from 'node:assert/strict';
@@ -28,15 +28,14 @@ before(async () => {
 });
 
 /** Install a fake browser for one assertion. */
-function browser({ session = {}, dialogOpen = false, inviteOpen = false, storageThrows = false } = {}) {
+function browser({ session = {}, dialogOpen = false, storageThrows = false } = {}) {
   const store = {
     getItem: (k) => { if (storageThrows) throw new Error('blocked'); return k in session ? session[k] : null; },
     setItem: (k, v) => { if (storageThrows) throw new Error('blocked'); session[k] = String(v); },
   };
   globalThis.window = { sessionStorage: store };
   globalThis.document = {
-    querySelector: (sel) =>
-      (dialogOpen && sel.includes('role="dialog"')) || (inviteOpen && sel.includes('challenge-invite')) ? {} : null,
+    querySelector: (sel) => (dialogOpen && sel.includes('role="dialog"')) ? {} : null,
   };
   return session;
 }
@@ -66,11 +65,6 @@ describe('when "Prefer a call?" may pop up', () => {
     assert.equal(state.mayShowCallbackPopup(), false);
   });
 
-  test('never over the Protection Challenge invitation', () => {
-    browser({ inviteOpen: true });
-    assert.equal(state.mayShowCallbackPopup(), false);
-  });
-
   test('blocked storage stays silent and does not loop', () => {
     browser({ storageThrows: true });
     assert.doesNotThrow(() => state.mayShowCallbackPopup());
@@ -79,8 +73,8 @@ describe('when "Prefer a call?" may pop up', () => {
     assert.doesNotThrow(() => state.markCallbackRequested());
   });
 
-  test('waits well after the 5-second challenge invitation, and gives up eventually', () => {
-    assert.ok(state.CALLBACK_DELAY_MS >= 10000, 'must not race the invitation');
+  test('waits well after page load, and gives up eventually', () => {
+    assert.ok(state.CALLBACK_DELAY_MS >= 10000, 'must not fire the instant the page loads');
     assert.ok(state.CALLBACK_RETRY_MS > 0 && state.CALLBACK_RETRY_MS <= 5000);
     assert.ok(state.CALLBACK_MAX_WAIT_MS >= 30000 && state.CALLBACK_MAX_WAIT_MS <= 120000);
   });
