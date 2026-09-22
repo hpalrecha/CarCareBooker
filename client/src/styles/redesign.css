@@ -52,16 +52,20 @@
 .p91x .nav .links a:hover { color: var(--neon-green); }
 .p91x .nav .right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
 .p91x .btn-call {
-  display: inline-flex; align-items: center; gap: 7px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  min-height: 44px;
   border: 1px solid var(--medium-gray); color: var(--txt);
   padding: 7px 13px; border-radius: 8px; font-size: 13.5px; white-space: nowrap;
 }
 .p91x .btn-call:hover { border-color: var(--neon-line); }
 .p91x .btn-book {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px;
   background: var(--neon-green); color: #04120A; font-weight: 700;
   padding: 8px 17px; border-radius: 8px; font-size: 13.5px; white-space: nowrap;
 }
-.p91x .burger { display: none; margin-left: auto; padding: 8px; color: var(--neon-green); background: none; border: 0; cursor: pointer; font-size: 18px; }
+/* min-width keeps the 44px tap target square without enlarging the glyph itself. */
+.p91x .burger { display: none; margin-left: auto; padding: 8px; min-width: 44px; text-align: center; color: var(--neon-green); background: none; border: 0; cursor: pointer; font-size: 18px; }
 @media (max-width: 860px) {
   .p91x .nav .links, .p91x .nav .right { display: none; }
   .p91x .burger { display: block; }
@@ -87,19 +91,30 @@
   object-fit: cover; object-position: center 42%; z-index: 0;
   transform: scale(1.6); transform-origin: 8% 100%;
 }
+/* Was a near-opaque panel over most of the hero's width (90% black on the left, still
+ * 28% at 62% across) — correct for a static dark photo, but it buried a bright autoplay
+ * video under a "full black layer" rather than letting it read as vivid footage. Legibility
+ * now comes almost entirely from the localized radial in .copy::before below, positioned
+ * tight behind the text itself; this layer is reduced to a faint bottom vignette so the
+ * photo/video everywhere else in the frame reads at close to full brightness. */
 .p91x .hero-bg::after {
   content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background:
-    linear-gradient(to right, rgba(6,7,8,.90) 0%, rgba(6,7,8,.74) 32%, rgba(6,7,8,.28) 62%, transparent 100%),
-    linear-gradient(to top, rgba(6,7,8,.55) 0%, rgba(6,7,8,.20) 34%, transparent 62%);
+  background: linear-gradient(to top, rgba(6,7,8,.32) 0%, transparent 40%);
 }
 .p91x .hero-bg .copy { position: relative; z-index: 2; width: 100%; padding-block: 24px; }
 .p91x .hero-bg .copy::before {
   content: ""; position: absolute; z-index: -1;
   inset: -28px -32px -28px -40px;
-  background: radial-gradient(120% 100% at 22% 50%, rgba(4,5,6,.80) 0%, rgba(4,5,6,.55) 45%, transparent 78%);
+  background: radial-gradient(120% 100% at 22% 50%, rgba(4,5,6,.86) 0%, rgba(4,5,6,.62) 45%, transparent 80%);
   filter: blur(2px); pointer-events: none;
 }
+
+/* service-landing.tsx's split hero (image in its own column, not a full-bleed backdrop):
+ * the ::after dark panel above exists to dim a photo sitting BEHIND the text across the
+ * whole section, which doesn't apply here — the image has its own column and needs to
+ * read clearly, not be dimmed for text that is not sitting on top of it. */
+.p91x .hero-bg.hero-split::after { content: none; }
+.p91x .hero-bg.hero-split .copy::before { content: none; }
 @media (max-width: 640px) {
   .p91x .hero-bg .copy::before {
     inset: -20px -24px;
@@ -128,8 +143,11 @@
   padding: 4px 10px; border-radius: 100px; margin-bottom: 12px;
 }
 .p91x .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
-.p91x .cta-lg { background: var(--neon-green); color: #04120A; font-weight: 700; font-size: 15.5px; padding: 13px 26px; border-radius: 10px; }
-.p91x .cta-ghost { border: 1px solid var(--medium-gray); padding: 13px 22px; border-radius: 10px; font-size: 15.5px; color: var(--txt); }
+/* display/align/min-height guarantee a >=44px tap target even where a narrower
+   context below (contact-actions, article-cta, inline-cta, etc.) shrinks the padding
+   or font-size — those overrides don't redeclare min-height, so this still applies. */
+.p91x .cta-lg { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; background: var(--neon-green); color: #04120A; font-weight: 700; font-size: 15.5px; padding: 13px 26px; border-radius: 10px; }
+.p91x .cta-ghost { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; border: 1px solid var(--medium-gray); padding: 13px 22px; border-radius: 10px; font-size: 15.5px; color: var(--txt); }
 .p91x .cta-ghost:hover { border-color: var(--neon-line); }
 .p91x .hero-facts { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 16px; color: var(--txt-2); font-size: 13.5px; }
 .p91x .hero-facts span { display: inline-flex; align-items: center; gap: 7px; }
@@ -173,6 +191,21 @@
  * columns. */
 .p91x .grid.grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 600px) { .p91x .grid.grid-2 { grid-template-columns: minmax(0, 1fr); } }
+
+/* service-landing.tsx's hero: copy + a fixed-width (max 420px) offer card, set inline
+ * because tests/service-page-layout.test.mjs pins that exact desktop shape as a literal
+ * string. An inline style has no way to carry a mobile override of its own, and beats any
+ * class-based rule on specificity regardless of source order — !important is the only
+ * thing that wins against it. Without this, "minmax(0,420px)" still claims most of a
+ * 390px screen for the price card, leaving the H1 to wrap one or two characters per line
+ * in what's left. 900px matches the .lp-hero-grid breakpoint other hero templates use. */
+@media (max-width: 900px) {
+  .p91x .hero-price-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  /* Stacked on mobile: title, price and Book Now still own the first screen (same
+     reasoning campaign-landing.tsx's .lp-hero-media already uses) — the image follows
+     rather than pushing the booking card below the fold on a 390px phone. */
+  .p91x .hero-image-panel { order: 2; }
+}
 
 .p91x .card {
   background: var(--dark-gray); border: 1px solid var(--medium-gray); border-radius: 14px;
@@ -235,6 +268,28 @@
 .p91x .card .was { color: var(--txt-3); text-decoration: line-through; font-size: 12px; }
 .p91x .card .now { color: var(--neon-green); font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums; }
 .p91x .card .go { color: var(--neon-green); font-weight: 600; font-size: 13.5px; white-space: nowrap; }
+
+/* ---------- showcase (XPEL-style large-card horizontal scroll) ----------
+   Section 6 of the XPEL-structure homepage brief: large image-led cards in a
+   horizontally scrollable row, not a grid. Real P91 work photos and real CTAs
+   (TRANSFORMATION_CTAS), just a bigger, image-first frame than the .grid cards above. */
+.p91x .showcase-track {
+  display: flex; gap: 20px; overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none;
+  padding-bottom: 4px; margin: 0 -24px; padding-inline: 24px;
+}
+.p91x .showcase-track::-webkit-scrollbar { display: none; }
+@media (max-width: 640px) { .p91x .showcase-track { margin: 0 -16px; padding-inline: 16px; } }
+.p91x .showcase-card {
+  flex: 0 0 min(82%, 400px); scroll-snap-align: start;
+  background: var(--dark-gray); border: 1px solid var(--medium-gray); border-radius: 16px;
+  overflow: hidden; display: flex; flex-direction: column;
+  transition: border-color .18s, transform .18s;
+}
+.p91x .showcase-card:hover { border-color: var(--neon-line); transform: translateY(-2px); }
+.p91x .showcase-card .card-img img { aspect-ratio: 4 / 5; object-fit: cover; object-position: center; }
+.p91x .showcase-card .card-body { padding: 22px; }
+.p91x .showcase-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
 
 /* ---------- brands ---------- */
 .p91x .brands {
@@ -318,7 +373,7 @@
 .p91x .foot-actions { display: flex; flex-wrap: wrap; gap: 9px; }
 .p91x .foot-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-  min-height: 40px;
+  min-height: 44px;
   border: 1px solid var(--medium-gray); border-radius: 8px;
   padding: 8px 14px; font-size: 13px; color: var(--txt);
   white-space: nowrap; transition: border-color .15s, color .15s;
@@ -340,7 +395,7 @@
 .p91x .foot-hours dt { color: var(--txt-3); }
 .p91x .foot-hours dd { margin: 0; color: var(--txt); text-align: right; font-variant-numeric: tabular-nums; }
 .p91x .foot-hours dd.shut { color: var(--txt-3); }
-.p91x .foot-more { display: inline-flex; align-items: center; min-height: 40px; color: var(--neon-green); font-size: 13px; font-weight: 600; }
+.p91x .foot-more { display: inline-flex; align-items: center; min-height: 44px; color: var(--neon-green); font-size: 13px; font-weight: 600; }
 .p91x .foot-more:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 .p91x .foot-bottom {
@@ -349,7 +404,7 @@
   gap: 10px 24px; color: var(--txt-3); font-size: 12px;
 }
 .p91x .foot-legal { display: flex; flex-wrap: wrap; gap: 18px; order: 3; }
-.p91x .foot-legal a { display: inline-flex; align-items: center; min-height: 40px; color: var(--txt-3); }
+.p91x .foot-legal a { display: inline-flex; align-items: center; min-height: 44px; color: var(--txt-3); }
 .p91x .foot-legal a:hover { color: var(--neon-green); }
 .p91x .foot-meta { order: 2; }
 @media (max-width: 760px) {
@@ -556,7 +611,7 @@
 .p91x .slide-car-count { color: var(--txt-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .p91x .slide-car-btn {
   flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
-  width: 38px; height: 38px; border-radius: 999px;
+  width: 44px; height: 44px; border-radius: 999px;
   background: var(--dark-gray); border: 1px solid var(--medium-gray); color: var(--txt);
   cursor: pointer; transition: border-color .18s, color .18s;
 }

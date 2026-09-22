@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import SiteHeader from "@/components/redesign/site-header";
@@ -122,6 +122,42 @@ export default function Home() {
     return () => window.removeEventListener("resize", setChrome);
   }, []);
 
+  /**
+   * Hero background video — gated so it can never be what makes the page slow.
+   *
+   * Starts `false` (server/prerendered HTML renders the photo only, unchanged — no video
+   * in what a crawler or a first paint sees). Flips to `true` client-side, and only when
+   * ALL of these hold:
+   *   - viewport is >= 769px. The only existing approved footage is a large source file —
+   *     nothing in this project can transcode video, so there is no compressed variant to
+   *     serve. Autoplaying that over mobile data is not "mobile-friendly" by any reading of
+   *     the word, so mobile gets the same photo hero it has today, not a broken promise of
+   *     a lighter file that does not exist.
+   *   - prefers-reduced-motion is not set.
+   *   - the page has already reached load and gone idle, via requestIdleCallback (or a
+   *     timeout on browsers without it) — so the fetch competes with nothing on the
+   *     critical path and cannot delay first paint or interactivity.
+   * The photo stays mounted underneath regardless (see the hero JSX): if any of the above
+   * is false, if the browser blocks autoplay, or if the file is still downloading, the
+   * visitor simply sees the photo hero exactly as it renders today.
+   */
+  const [showHeroVideo, setShowHeroVideo] = useState(false);
+  const [heroVideoReady, setHeroVideoReady] = useState(false);
+  const HERO_VIDEO_LOOP_START = 3.7;
+  const HERO_VIDEO_LOOP_END = 7.7;
+  useEffect(() => {
+    if (window.innerWidth < 769) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const enable = () => setShowHeroVideo(true);
+    const ric = (window as any).requestIdleCallback as ((cb: () => void) => number) | undefined;
+    const id = ric ? ric(enable) : window.setTimeout(enable, 1500);
+    return () => {
+      const cic = (window as any).cancelIdleCallback as ((id: number) => void) | undefined;
+      if (ric && cic) cic(id);
+      else window.clearTimeout(id);
+    };
+  }, []);
+
   const list = Array.isArray(services) ? services : [];
   const bySlug = new Map(list.map((s) => [s.slug, s]));
 
@@ -158,6 +194,45 @@ export default function Home() {
             priority
             data-testid="img-hero"
           />
+        )}
+        {/* Layered directly over the photo above, not swapped in for it — and invisible
+            (opacity 0) until `onPlaying` actually fires. Relying on the `poster` attribute
+            alone left a brief black frame in testing: the instant this element mounts it
+            already owns the same stacking position as the photo, but a video element paints
+            black until it has decoded something, and that can beat the poster/first-frame
+            paint by a beat. Opacity keyed to a real "playing" event means the photo is
+            always what's visible until there is an actual frame to replace it with — never
+            a blank flash, on any connection speed. */}
+        {showHeroVideo && (
+          <video
+            className="shot"
+            autoPlay
+            muted
+            playsInline
+            preload="auto"
+            poster={heroImage}
+            aria-hidden="true"
+            data-testid="video-hero"
+            /* The full clip is a produced promo edit: title cards, a motion-blur scene
+               transition, a multi-panel collage, and a noticeably darker graded stretch.
+               Looping the whole thing would cycle back through all of that. This source
+               range (in the same file, nothing new fetched) is the one continuous, bright,
+               single-frame, in-focus stretch — a daylight rinse — so playback is confined
+               to it instead of the full timeline. */
+            onLoadedMetadata={(e) => { e.currentTarget.currentTime = HERO_VIDEO_LOOP_START; }}
+            onTimeUpdate={(e) => {
+              if (e.currentTarget.currentTime >= HERO_VIDEO_LOOP_END) {
+                e.currentTarget.currentTime = HERO_VIDEO_LOOP_START;
+              }
+            }}
+            onPlaying={() => setHeroVideoReady(true)}
+            /* This stretch still reads a touch flat next to the photo hero — a brightness/
+               contrast/saturation lift brings it up to match without touching the photo,
+               which this same .shot class also styles. */
+            style={{ opacity: heroVideoReady ? 1 : 0, transition: "opacity .6s ease, filter .6s ease", filter: "brightness(1.25) contrast(1.1) saturate(1.25)" }}
+          >
+            <source src="/attached_assets/Exterior Detailing_1754031679196.mp4" type="video/mp4" />
+          </video>
         )}
         <div className="wrap copy">
           <span className="eyebrow">● Detailing studio · Adugodi</span>
@@ -196,6 +271,41 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ---------- categories ----------
+          XPEL-style visual category grid, directly under the hero — a step this page did
+          not have: it went straight from the hero to specific service teasers with no
+          broader "what do you need" grid first. The four destinations are the same ones
+          /services already forks out to (or /services itself for detailing), so this adds
+          no new page and no new content, only a bigger, image-led entry point to what
+          already exists. Real P91 work photos, one per category, none of them the hero
+          photo or the before/after photos used lower on this page. */}
+      <section className="section" style={{ paddingBottom: 0 }}>
+        <div className="wrap">
+          <div className="grid">
+            {[
+              { href: "/ceramic-coating/car", label: "Ceramic Coating", sub: "For your car", img: "/attached_assets/services/car-ceramic-coating-1-year.webp" },
+              { href: "/ppf", label: "Paint Protection Film", sub: "Hatchback, sedan or SUV", img: "/attached_assets/services/p91-full-ppf-suv.webp" },
+              { href: "/services", label: "Interior Detailing", sub: "Full interior clean", img: "/attached_assets/services/interior-detailing-service.webp" },
+              { href: "/ceramic-coating/bike", label: "Ceramic Coating", sub: "For your motorcycle", img: "/attached_assets/services/bike-ceramic-coating-1-year.webp" },
+            ].map((cat) => (
+              <Link key={cat.href + cat.label} href={cat.href} className="card" data-testid={`link-category-${cat.label.toLowerCase().replace(/\s+/g, "-")}-${cat.sub.toLowerCase().replace(/\s+/g, "-")}`}>
+                <div className="card-img">
+                  <ImageWithFallback
+                    src={cat.img}
+                    alt={`${cat.label} ${cat.sub} at P91 Car Care`}
+                    sizes="(min-width: 940px) 380px, (min-width: 600px) 50vw, 100vw"
+                  />
+                </div>
+                <div className="card-body">
+                  <h3>{cat.label}</h3>
+                  <p className="card-note">{cat.sub}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ---------- most booked ----------
           id="services" is kept deliberately. The header CTA, the footer and — more
           importantly — any external link or ad creative pointing at
@@ -207,10 +317,6 @@ export default function Home() {
           <div className="teaser-head">
             <div className="section-head">
               <h2>Most booked this month</h2>
-              <p>
-                A few of the {list.length || 17} services in the studio. Filter the full list on the
-                booking page.
-              </p>
             </div>
             <Link href="/services" className="teaser-more" data-testid="link-see-all-services">
               See all {list.length || 17} services →
@@ -290,168 +396,144 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ---------- before / after ----------
-          RESTORED. The first pass of this redesign dropped these four sections because
-          the prototype's homepage has no equivalent. That was wrong: they are real
-          before-and-after photography of the studio's own work, and their CTAs resolve
-          through TRANSFORMATION_CTAS — a deliberate earlier fix, because the buttons used
-          to link to deactivated slugs and landed customers on "Service Not Found".
-          Deleting marketing content is not a design change, so the content is kept and
-          re-dressed in the prototype's card idiom instead.
+      {/* ---------- statement break ----------
+          XPEL-style: one large real photo as a visual pause right after the featured
+          services grid, before the showcase carousel — not a hero and not another
+          gallery. A different real P91 photo from the hero and the showcase photos below,
+          so nothing on this page repeats itself. */}
+      <section
+        className="section"
+        style={{ padding: 0, position: "relative", minHeight: "clamp(260px, 40vw, 420px)", display: "flex", alignItems: "flex-end", overflow: "hidden" }}
+        data-testid="section-photo-break"
+      >
+        <ImageWithFallback
+          src="/attached_assets/services/annual-maintenance-package.webp"
+          alt="A P91 Car Care technician detailing a car at the studio in Adugodi, Bangalore"
+          sizes="100vw"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
+          data-testid="image-photo-break"
+        />
+        <div
+          aria-hidden="true"
+          style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(9,9,11,.88) 0%, rgba(9,9,11,.35) 45%, transparent 75%)" }}
+        />
+        <div className="wrap" style={{ position: "relative", zIndex: 1, paddingBlock: 24 }}>
+          <p style={{ color: "var(--neon-green)", fontSize: 13, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", marginBottom: 6 }}>
+            Adugodi, Bangalore
+          </p>
+          <h2 style={{ fontSize: "clamp(22px,3.6vw,32px)", fontWeight: 800, textShadow: "0 2px 16px rgba(0,0,0,.6)" }}>
+            Done properly, every time
+          </h2>
+        </div>
+      </section>
 
-          tests/regression.test.mjs asserts all four keys are present here. */}
+      {/* ---------- showcase ----------
+          XPEL-style large visual cards in a horizontal scroll, not a grid. Same real
+          before/after photography and the same TRANSFORMATION_CTAS this section always
+          used — a deliberate earlier fix, because the buttons used to link to deactivated
+          slugs and landed customers on "Service Not Found". Only the card shape changed.
+
+          tests/regression.test.mjs asserts all four TRANSFORMATION_CTAS keys are present
+          here, so the resolver keeps them wired to live services rather than dead slugs. */}
       <section className="section" id="results">
         <div className="wrap">
           <div className="section-head">
-            <h2>Before and after, in our studio</h2>
-            <p>
-              Real jobs photographed on the day. Prices come straight from the live
-              catalogue, so what a button says is what checkout charges.
-            </p>
+            <h2>Real work from the studio</h2>
           </div>
 
-          <div className="grid grid-2">
-            <div className="card">
+          <div className="showcase-track">
+            <div className="showcase-card">
               <div className="card-img">
                 <ImageWithFallback
                   src={interiorDetailingComparison}
                   alt="Interior detailing before and after — dirty versus deep-cleaned car interior"
                   width={1200}
-                  height={300}
-                  sizes="(min-width: 600px) 50vw, 100vw"
+                  height={1500}
+                  sizes="(min-width: 640px) 400px, 82vw"
                   loading="lazy"
                 />
                 <span className="card-cat">Interior</span>
               </div>
               <div className="card-body">
                 <h3>Interior Deep Clean</h3>
-                <p className="card-note">Seat shampoo, dashboard and vents, odour removal.</p>
-                <div className="card-foot">
-                  <TransformationCTA
-                    service={TRANSFORMATION_CTAS.interiorDeepClean}
-                    services={services}
-                    action="Get"
-                    testId="cta-interior-deep-clean"
-                  />
-                </div>
+                <TransformationCTA
+                  service={TRANSFORMATION_CTAS.interiorDeepClean}
+                  services={services}
+                  action="Get"
+                  testId="cta-interior-deep-clean"
+                />
               </div>
             </div>
 
-            <div className="card">
+            <div className="showcase-card">
               <div className="card-img">
                 <ImageWithFallback
                   src={glassCoating}
                   alt="Glass coating water beading demonstration on a treated windscreen"
                   width={1200}
-                  height={300}
-                  sizes="(min-width: 600px) 50vw, 100vw"
+                  height={1500}
+                  sizes="(min-width: 640px) 400px, 82vw"
                   loading="lazy"
                 />
                 <span className="card-cat">Glass</span>
               </div>
               <div className="card-body">
                 <h3>Glass Coating</h3>
-                <p className="card-note">Rain repellent, clearer night driving.</p>
-                <div className="card-foot">
-                  <TransformationCTA
-                    service={TRANSFORMATION_CTAS.glassCoating}
-                    services={services}
-                    action="Get"
-                    testId="cta-glass-coating"
-                  />
-                </div>
+                <TransformationCTA
+                  service={TRANSFORMATION_CTAS.glassCoating}
+                  services={services}
+                  action="Get"
+                  testId="cta-glass-coating"
+                />
               </div>
             </div>
 
-            <div className="card">
+            <div className="showcase-card">
               <div className="card-img">
                 <ImageWithFallback
                   src={headlightAfter}
                   alt="Headlight after restoration — clear lens with yellowing removed"
                   width={1200}
-                  height={300}
-                  sizes="(min-width: 600px) 50vw, 100vw"
+                  height={1500}
+                  sizes="(min-width: 640px) 400px, 82vw"
                   loading="lazy"
                 />
                 <span className="card-cat">Restoration</span>
               </div>
               <div className="card-body">
                 <h3>Headlight Restoration</h3>
-                <p className="card-note">De-yellowing and a UV top coat, both lamps.</p>
-                <div className="card-foot">
-                  <TransformationCTA
-                    service={TRANSFORMATION_CTAS.headlightRestoration}
-                    services={services}
-                    action="Get"
-                    testId="cta-headlight-restoration"
-                  />
-                </div>
+                <TransformationCTA
+                  service={TRANSFORMATION_CTAS.headlightRestoration}
+                  services={services}
+                  action="Get"
+                  testId="cta-headlight-restoration"
+                />
               </div>
             </div>
 
-            <div className="card">
+            <div className="showcase-card">
               <div className="card-img">
                 <ImageWithFallback
                   src={exteriorDetailingAfter}
                   alt="Exterior detailing after hard water spot removal and paint correction"
                   width={1200}
-                  height={300}
-                  sizes="(min-width: 600px) 50vw, 100vw"
+                  height={1500}
+                  sizes="(min-width: 640px) 400px, 82vw"
                   loading="lazy"
                 />
                 <span className="card-cat">Exterior</span>
               </div>
               <div className="card-body">
                 <h3>Complete Exterior Detail</h3>
-                <p className="card-note">Hard water spot removal, clay bar, paint sealant.</p>
-                <div className="card-foot">
-                  <TransformationCTA
-                    service={TRANSFORMATION_CTAS.exteriorDetailing}
-                    services={services}
-                    action="Get"
-                    testId="cta-exterior-detailing"
-                  />
-                </div>
+                <TransformationCTA
+                  service={TRANSFORMATION_CTAS.exteriorDetailing}
+                  services={services}
+                  action="Get"
+                  testId="cta-exterior-detailing"
+                />
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ---------- brands ---------- */}
-      <section className="brands">
-        <div className="wrap">
-          <h2 className="brands-h">Films and coatings we fit</h2>
-          <ul className="brand-row">
-            <li>STEK</li>
-            <li>Nasiol</li>
-            <li>P91 Premium PPF</li>
-          </ul>
-          <p className="brands-note">
-            Warranty on any job is the film or coating manufacturer's, issued in writing at handover.
-            Ask to see the batch details before work starts.
-          </p>
-        </div>
-      </section>
-
-      {/* ---------- trust strip ---------- */}
-      <section className="strip">
-        <div className="wrap">
-          <div className="row">
-            <div className="cell"><b>Warranty-backed</b><span>Written warranty on every coating and PPF job</span></div>
-            <div className="cell"><b>Same-day service</b><span>Most detailing finished the day you book</span></div>
-            <div className="cell"><b>Pickup &amp; drop</b><span>Available across Bangalore at cost</span></div>
-            <div className="cell">{offer.free
-              ? <><b>Free to book</b><span>No payment to reserve — settle at the store, no hidden charges</span></>
-              : <><b>Pay {formatINR(bookingFee)} to book</b><span>Balance settled at the store, no hidden charges</span></>}</div>
-          </div>
-        </div>
-      </section>
-
-      {/* ---------- protection challenge: help deciding, never a gate ---------- */}
-      <section className="section">
-        <div className="wrap narrow">
-          <ProtectionChallengeCTA placement="home" variant="teaser" />
         </div>
       </section>
 
@@ -504,33 +586,65 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ---------- closing CTA ----------
-          Also restored. The previous homepage ended with a "Book Your Service Now" button
-          that scrolled to the catalogue, and tests/regression.test.mjs pins both the
-          button and the scroll target. It is a conversion element at the natural end of
-          the page, so it stays — dressed as the prototype's hero CTA rather than the old
-          gradient block. */}
-      <section className="section" style={{ paddingTop: 0 }}>
+      {/* ---------- brands ---------- */}
+      <section className="brands">
         <div className="wrap">
+          <h2 className="brands-h">Films and coatings we fit</h2>
+          <ul className="brand-row">
+            <li>STEK</li>
+            <li>Nasiol</li>
+            <li>P91 Premium PPF</li>
+          </ul>
+          <p className="brands-note">
+            Warranty on any job is the film or coating manufacturer's, issued in writing at handover.
+            Ask to see the batch details before work starts.
+          </p>
+        </div>
+      </section>
+
+      <section className="strip">
+        <div className="wrap">
+          <div className="row">
+            <div className="cell"><b>Warranty-backed</b><span>Written warranty on every coating and PPF job</span></div>
+            <div className="cell"><b>Same-day service</b><span>Most detailing finished the day you book</span></div>
+            <div className="cell"><b>Pickup &amp; drop</b><span>Available across Bangalore at cost</span></div>
+            <div className="cell">{offer.free
+              ? <><b>Free to book</b><span>No payment to reserve — settle at the store, no hidden charges</span></>
+              : <><b>Pay {formatINR(bookingFee)} to book</b><span>Balance settled at the store, no hidden charges</span></>}</div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- trust / cta ----------
+          XPEL-style closing block: the Protection Challenge and the booking CTA together,
+          with strong whitespace. Also restored: the previous homepage ended with a "Book
+          Your Service Now" button that scrolled to the catalogue, and
+          tests/regression.test.mjs pins both the button and the scroll target. */}
+      <section className="section">
+        <div className="wrap">
+          <div className="wrap narrow" style={{ padding: 0, marginBottom: 40 }}>
+            <ProtectionChallengeCTA placement="home" variant="teaser" />
+          </div>
+
           <div
             className="rounded-[14px] border border-[var(--medium-gray)] bg-[var(--dark-gray)] px-6 py-10 text-center sm:px-10"
           >
-            <h2 style={{ fontSize: "clamp(22px,3.4vw,30px)", fontWeight: 800, marginBottom: 10 }}>
-              Ready when you are
-            </h2>
-            <p style={{ color: "var(--txt-2)", margin: "0 auto 22px", maxWidth: "52ch" }}>
-              {offer.free ? (
-                <>
-                  Pick a service and choose a slot — booking is free right now, with no payment
-                  to reserve. You settle at the studio after the work.
-                </>
-              ) : (
-                <>
-                  Pick a service, choose a slot, and pay {formatINR(bookingFee)} to reserve it. The
-                  balance is settled at the studio.
-                </>
-              )}
-            </p>
+            <div className="section-head" style={{ marginBottom: 22 }}>
+              <h2>Ready when you are</h2>
+              <p style={{ marginLeft: "auto", marginRight: "auto" }}>
+                {offer.free ? (
+                  <>
+                    Pick a service and choose a slot — booking is free right now, with no payment
+                    to reserve. You settle at the studio after the work.
+                  </>
+                ) : (
+                  <>
+                    Pick a service, choose a slot, and pay {formatINR(bookingFee)} to reserve it. The
+                    balance is settled at the studio.
+                  </>
+                )}
+              </p>
+            </div>
             <button
               type="button"
               className="cta-lg"
