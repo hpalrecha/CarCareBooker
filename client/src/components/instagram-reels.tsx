@@ -83,12 +83,18 @@ export default function InstagramReels({
   const Heading = headingLevel;
   // Centred in a page band; left-aligned with the text inside an article.
   const centre = variant === "section" ? "mx-auto " : "";
+  // `!grid`/`!gap-4`/`!grid-cols-*` (Tailwind's important-modifier syntax), not the plain
+  // utility names: `.p91x .grid` (redesign.css, the card grids elsewhere on this page) sets
+  // its OWN grid-template-columns/gap and — being a two-class selector — outranks Tailwind's
+  // bare one-class `.grid`/`.gap-4`/`.sm\:grid-cols-2` regardless of source order. That left
+  // a 1- or 2-reel section rendering inside a leftover 3-column track from that rule, with
+  // 2 empty grid cells of dead space next to the one real card.
   const grid =
     unique.length === 1
-      ? `${centre}grid max-w-xs gap-4`
+      ? `${centre}!grid max-w-xs !gap-4`
       : unique.length === 2
-        ? `${centre}grid max-w-2xl gap-4 sm:grid-cols-2`
-        : "grid gap-4 sm:grid-cols-2 lg:grid-cols-4";
+        ? `${centre}!grid max-w-2xl !gap-4 sm:!grid-cols-2`
+        : "!grid !gap-4 sm:!grid-cols-2 lg:!grid-cols-4";
 
   const body = (
     <>

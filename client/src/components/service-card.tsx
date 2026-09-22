@@ -3,6 +3,7 @@ import { Clock, ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import { resolveServiceImage, formatINR } from "@/lib/canonical-services";
 import { formatServiceTime } from "@/lib/service-time";
+import { deriveCategory } from "@/lib/service-taxonomy";
 
 interface ServiceCardProps {
   service: {
@@ -45,60 +46,56 @@ export default function ServiceCard({ service }: ServiceCardProps) {
 
   return (
     <Link href={`/service/${service.slug}`}>
-      <div className="group relative cursor-pointer overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/60 transition-colors duration-300 hover:border-[var(--neon-green)]">
-        {/* One 2:1 image band on every card. aspect-ratio (not a fixed height) reserves
-            the box from the card's width alone, so the row height is known before the
-            image loads and the grid never shifts. */}
-        <ImageWithFallback
-          src={resolveServiceImage(service)}
-          alt={`${service.title} being carried out at P91 Car Care`}
-          width={1600}
-          height={800}
-          className="block w-full aspect-[2/1] object-cover object-center bg-[#1a1a1a] transition-transform duration-300 group-hover:scale-105"
-          data-testid={`img-service-${service.id}`}
-        />
-        <div className="p-6">
-          <div className="mb-3 flex items-start justify-between gap-4">
-            <h3
-              className="text-xl font-semibold transition-colors group-hover:text-[var(--neon-green)]"
-              data-testid={`text-service-title-${service.id}`}
-            >
-              {service.title}
-            </h3>
-            <div className="shrink-0 text-right">
+      {/* Same .card/.card-img/.card-body/.card-foot pattern the site already uses for
+          home.tsx's teaser cards, so the catalogue grid matches the rest of the site
+          instead of carrying its own one-off Tailwind card. */}
+      <div className="card" data-testid={`card-service-${service.id}`}>
+        <div className="card-img">
+          {/* Catalogue cards carry more (title, description, duration, price) than the
+              lighter homepage teasers, so they keep their own taller 2:1 crop rather than
+              the shared .card-img default of 4:1 — className for the aspect/fit/position
+              utilities plus a matching inline style, since the inline style is what
+              actually wins over the shared 4:1 rule's higher CSS specificity. */}
+          <ImageWithFallback
+            src={resolveServiceImage(service)}
+            alt={`${service.title} being carried out at P91 Car Care`}
+            width={1600}
+            height={800}
+            className="aspect-[2/1] object-cover object-center"
+            style={{ aspectRatio: "2 / 1", objectFit: "cover", objectPosition: "center" }}
+            sizes="(min-width: 940px) 380px, (min-width: 600px) 50vw, 100vw"
+            data-testid={`img-service-${service.id}`}
+          />
+          <span className="card-cat">{deriveCategory(service)}</span>
+          {discountPercent > 0 && (
+            <span className="card-save" data-testid={`text-off-${service.id}`}>{discountPercent}% off</span>
+          )}
+        </div>
+        <div className="card-body">
+          <h3 data-testid={`text-service-title-${service.id}`}>{service.title}</h3>
+          {time && (
+            <p className="card-note" data-testid={`text-duration-${service.id}`} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              <Clock className="i" aria-hidden="true" />
+              {time}
+            </p>
+          )}
+          <p className="card-note line-clamp-2" data-testid={`text-description-${service.id}`}>
+            {service.description}
+          </p>
+          <div className="card-foot">
+            <div className="prices">
               {discountPercent > 0 && (
-                <div className="mb-1 flex items-center justify-end gap-2">
-                  <span className="text-sm text-gray-500 line-through" data-testid={`text-original-price-${service.id}`}>
-                    {formatINR(service.originalPrice)}
-                  </span>
-                  <span className="rounded border border-white/15 px-1.5 py-0.5 text-xs font-semibold text-[var(--neon-green)]">
-                    {discountPercent}% off
-                  </span>
-                </div>
+                <span className="was" data-testid={`text-original-price-${service.id}`}>
+                  {formatINR(service.originalPrice)}
+                </span>
               )}
-              <span className="block text-lg font-bold text-[var(--neon-green)]" data-testid={`text-price-${service.id}`}>
+              <span className="now" data-testid={`text-price-${service.id}`}>
                 {formatINR(service.price)}
               </span>
             </div>
-          </div>
-          <p className="mb-4 line-clamp-2 text-gray-300" data-testid={`text-description-${service.id}`}>
-            {service.description}
-          </p>
-          <div className="flex items-center justify-between gap-3">
-            {time ? (
-              <span className="flex items-center text-sm text-gray-400" data-testid={`text-duration-${service.id}`}>
-                <Clock className="mr-1 h-4 w-4" aria-hidden="true" />
-                {time}
-              </span>
-            ) : (
-              <span />
-            )}
-            <span
-              className="inline-flex min-h-[40px] items-center rounded-[10px] bg-[var(--neon-green)] px-4 text-sm font-bold text-black transition group-hover:brightness-95"
-              data-testid={`button-view-service-${service.id}`}
-            >
+            <span className="go" data-testid={`button-view-service-${service.id}`}>
               View Service
-              <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+              <ArrowRight className="i" aria-hidden="true" />
             </span>
           </div>
         </div>

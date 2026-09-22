@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
+import ScrollRow from "@/components/redesign/scroll-row";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import TransformationCTA from "@/components/transformation-cta";
 import ProtectionChallengeCTA from "@/components/protection-challenge";
@@ -60,6 +61,22 @@ const TEASER_SLUGS = [
 /** Slug whose photograph is the hero background. */
 const HERO_IMAGE_SLUG = "exterior-detailing-hard-water-new";
 
+/**
+ * Static, build-time-known path to today's hero photo — same file the live
+ * `exterior-detailing-hard-water-new` record points at (see
+ * scripts/set-service-card-images.mjs). Used only so the hero `<img>` can render on the
+ * very first paint, before `/api/services` has answered.
+ *
+ * This is the LCP element. Gating its existence on an API response (as it used to be:
+ * `{heroImage && <img .../>}`) meant the browser could not even discover, let alone
+ * fetch, the image until React mounted, the query resolved, and the element appeared —
+ * a fully serial chain on top of whatever the image itself costs. Rendering it
+ * unconditionally with this fallback, then letting `heroImage` below swap in the live
+ * DB value once it arrives (normally the same file), removes that entire wait from the
+ * LCP and CLS-causing "box appears from nothing" path.
+ */
+const HERO_FALLBACK_IMAGE = "/attached_assets/services/exterior-detailing-hard-water-spot-removal.webp";
+
 function discountPercent(service: ServiceRecord): number {
   const original = service.originalPrice ? parseFloat(service.originalPrice) : 0;
   const price = parseFloat(service.price);
@@ -106,21 +123,6 @@ export default function Home() {
       businessHours,
     }),
   });
-
-  // The hero is full-height minus the sticky header, so the header's real height is
-  // measured rather than assumed — a wrapped nav on a narrow screen would otherwise push
-  // the next section into view. The CSS fallback covers the frame before this runs.
-  useEffect(() => {
-    const setChrome = () => {
-      const header = document.querySelector(".p91x header.site") as HTMLElement | null;
-      if (header) {
-        document.documentElement.style.setProperty("--chrome", `${header.offsetHeight}px`);
-      }
-    };
-    setChrome();
-    window.addEventListener("resize", setChrome);
-    return () => window.removeEventListener("resize", setChrome);
-  }, []);
 
   /**
    * Hero background video — gated so it can never be what makes the page slow.
@@ -173,28 +175,29 @@ export default function Home() {
   }
 
   const heroService = bySlug.get(HERO_IMAGE_SLUG) ?? list[0];
-  const heroImage = resolveServiceImage(heroService);
+  const heroImage = resolveServiceImage(heroService) ?? HERO_FALLBACK_IMAGE;
 
   return (
     <div className="p91x min-h-screen">
-      <SiteHeader />
+      <SiteHeader overHero />
 
       {/* ---------- hero ---------- */}
       <section className="hero-bg">
-        {heroImage && (
-          <ImageWithFallback
-            className="shot"
-            src={heroImage}
-            alt="Exterior detailing and hard water spot removal at the P91 Car Care studio in Adugodi, Bangalore"
-            width={1600}
-            height={900}
-            /* The LCP element. Eager + fetchpriority=high so it is not queued behind
-               lazy card thumbnails, and 100vw because it really is full-bleed. */
-            sizes="100vw"
-            priority
-            data-testid="img-hero"
-          />
-        )}
+        <ImageWithFallback
+          className="shot"
+          src={heroImage}
+          alt="Exterior detailing and hard water spot removal at the P91 Car Care studio in Adugodi, Bangalore"
+          width={1600}
+          height={900}
+          /* The LCP element. Rendered unconditionally (heroImage always resolves — to the
+             live DB image once loaded, to HERO_FALLBACK_IMAGE before that) so it exists in
+             the tree from the first paint instead of appearing only after /api/services
+             answers. Eager + fetchpriority=high so it is not queued behind lazy card
+             thumbnails, and 100vw because it really is full-bleed. */
+          sizes="100vw"
+          priority
+          data-testid="img-hero"
+        />
         {/* Layered directly over the photo above, not swapped in for it — and invisible
             (opacity 0) until `onPlaying` actually fires. Relying on the `poster` attribute
             alone left a brief black frame in testing: the instant this element mounts it
@@ -235,38 +238,19 @@ export default function Home() {
           </video>
         )}
         <div className="wrap copy">
-          <span className="eyebrow">● Detailing studio · Adugodi</span>
-          <h1>
-            Car Detailing, PPF &amp; Ceramic Coating Studio in{" "}
-            <span className="gradient-text">Adugodi, Bangalore</span>
+          <span className="eyebrow">Detailing Studio · Adugodi</span>
+          <h1 className="hero-solid">
+            Car Detailing, PPF &amp; Ceramic Coating Studio in Adugodi, Bangalore
           </h1>
           <p className="lede">
             Ceramic coating, paint protection film and full interior work — done properly,
             warranty-backed, and bookable online in under a minute.
           </p>
+          <p className="hero-caption">
+            Same-day slots · Warranty on coatings · Adugodi, Bangalore
+          </p>
           <div className="hero-cta">
             <Link href="/services" className="cta-lg" data-testid="button-hero-book">Book Now →</Link>
-            <a className="cta-ghost" href="https://wa.me/917406619191" data-testid="link-hero-whatsapp">WhatsApp us</a>
-          </div>
-          <div className="hero-facts">
-            <span>
-              <svg className="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
-              </svg>
-              <b>Same-day</b> slots
-            </span>
-            <span>
-              <svg className="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M12 2l8 3v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V5z" /><path d="M9 12l2 2 4-4" />
-              </svg>
-              <b>Warranty</b> on coatings
-            </span>
-            <span>
-              <svg className="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M12 21s7-5.3 7-11a7 7 0 1 0-14 0c0 5.7 7 11 7 11z" /><circle cx="12" cy="10" r="2.6" />
-              </svg>
-              <b>Adugodi</b>, Bangalore
-            </span>
           </div>
         </div>
       </section>
@@ -279,30 +263,32 @@ export default function Home() {
           no new page and no new content, only a bigger, image-led entry point to what
           already exists. Real P91 work photos, one per category, none of them the hero
           photo or the before/after photos used lower on this page. */}
-      <section className="section" style={{ paddingBottom: 0 }}>
+      <section className="section">
         <div className="wrap">
-          <div className="grid">
+          <div className="section-head">
+            <span className="eyebrow">Services</span>
+            <h2>Full protection, done properly</h2>
+          </div>
+          <ScrollRow testId="scroll-categories">
             {[
               { href: "/ceramic-coating/car", label: "Ceramic Coating", sub: "For your car", img: "/attached_assets/services/car-ceramic-coating-1-year.webp" },
               { href: "/ppf", label: "Paint Protection Film", sub: "Hatchback, sedan or SUV", img: "/attached_assets/services/p91-full-ppf-suv.webp" },
               { href: "/services", label: "Interior Detailing", sub: "Full interior clean", img: "/attached_assets/services/interior-detailing-service.webp" },
               { href: "/ceramic-coating/bike", label: "Ceramic Coating", sub: "For your motorcycle", img: "/attached_assets/services/bike-ceramic-coating-1-year.webp" },
             ].map((cat) => (
-              <Link key={cat.href + cat.label} href={cat.href} className="card" data-testid={`link-category-${cat.label.toLowerCase().replace(/\s+/g, "-")}-${cat.sub.toLowerCase().replace(/\s+/g, "-")}`}>
-                <div className="card-img">
-                  <ImageWithFallback
-                    src={cat.img}
-                    alt={`${cat.label} ${cat.sub} at P91 Car Care`}
-                    sizes="(min-width: 940px) 380px, (min-width: 600px) 50vw, 100vw"
-                  />
-                </div>
-                <div className="card-body">
+              <Link key={cat.href + cat.label} href={cat.href} className="tile" data-testid={`link-category-${cat.label.toLowerCase().replace(/\s+/g, "-")}-${cat.sub.toLowerCase().replace(/\s+/g, "-")}`}>
+                <ImageWithFallback
+                  src={cat.img}
+                  alt={`${cat.label} ${cat.sub} at P91 Car Care`}
+                  sizes="(min-width: 640px) 300px, 72vw"
+                />
+                <div className="tile-label">
                   <h3>{cat.label}</h3>
-                  <p className="card-note">{cat.sub}</p>
+                  <span>{cat.sub}</span>
                 </div>
               </Link>
             ))}
-          </div>
+          </ScrollRow>
         </div>
       </section>
 
@@ -316,6 +302,7 @@ export default function Home() {
         <div className="wrap">
           <div className="teaser-head">
             <div className="section-head">
+              <span className="eyebrow">Catalogue</span>
               <h2>Most booked this month</h2>
             </div>
             <Link href="/services" className="teaser-more" data-testid="link-see-all-services">
@@ -323,16 +310,11 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid">
+          <ScrollRow testId="scroll-featured">
             {isLoading
               ? Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="card-skel" data-testid="skeleton-teaser">
-                    <div className="img" />
-                    <div style={{ padding: 20 }}>
-                      <div className="bar" style={{ height: 16, width: "70%", marginBottom: 12 }} />
-                      <div className="bar" style={{ height: 12, width: "50%", marginBottom: 22 }} />
-                      <div className="bar" style={{ height: 22, width: "40%" }} />
-                    </div>
+                  <div key={i} className="card-skel" data-testid="skeleton-teaser" style={{ flex: "0 0 min(80%, 340px)", aspectRatio: "3 / 4" }}>
+                    <div className="img" style={{ height: "100%" }} />
                   </div>
                 ))
               : teasers.map((s) => {
@@ -343,26 +325,19 @@ export default function Home() {
                     <Link
                       key={s.id}
                       href={`/service/${s.slug}`}
-                      className="card is-teaser"
+                      className="promo-card card is-teaser"
                       data-testid={`card-teaser-${s.id}`}
                     >
-                      <div className="card-img">
-                        <ImageWithFallback
-                          src={resolveServiceImage(s)}
-                          alt={`${s.title.trim()} at P91 Car Care studio, Adugodi, Bangalore`}
-                          width={1200}
-                          height={300}
-                          /* Matches .grid: 3-up above 940px, 2-up above 600px, else full
-                             width. Without an honest `sizes` the browser assumes 100vw and
-                             picks the 1600w variant for a ~380px slot. */
-                          sizes="(min-width: 940px) 380px, (min-width: 600px) 50vw, 100vw"
-                          loading="lazy"
-                          data-testid={`img-teaser-${s.id}`}
-                        />
-                        <span className="card-cat">{deriveCategory(s)}</span>
-                        {off > 0 && <span className="card-save" data-testid={`text-teaser-off-${s.id}`}>{off}% off</span>}
-                      </div>
-                      <div className="card-body">
+                      <ImageWithFallback
+                        src={resolveServiceImage(s)}
+                        alt={`${s.title.trim()} at P91 Car Care studio, Adugodi, Bangalore`}
+                        sizes="(min-width: 640px) 340px, 80vw"
+                        loading="lazy"
+                        data-testid={`img-teaser-${s.id}`}
+                      />
+                      <span className="card-cat">{deriveCategory(s)}</span>
+                      {off > 0 && <span className="card-save" data-testid={`text-teaser-off-${s.id}`}>{off}% off</span>}
+                      <div className="promo-body">
                         <h3 data-testid={`text-service-title-${s.id}`}>{s.title.trim()}</h3>
                         <p className="card-note">
                           {offer.free ? (
@@ -392,7 +367,7 @@ export default function Home() {
                     </Link>
                   );
                 })}
-          </div>
+          </ScrollRow>
         </div>
       </section>
 
@@ -417,13 +392,16 @@ export default function Home() {
           aria-hidden="true"
           style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(9,9,11,.88) 0%, rgba(9,9,11,.35) 45%, transparent 75%)" }}
         />
-        <div className="wrap" style={{ position: "relative", zIndex: 1, paddingBlock: 24 }}>
-          <p style={{ color: "var(--neon-green)", fontSize: 13, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", marginBottom: 6 }}>
+        <div className="wrap" style={{ position: "relative", zIndex: 1, paddingBlock: 32 }}>
+          <p style={{ color: "var(--neon-green)", fontSize: 13, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", marginBottom: 10 }}>
             Adugodi, Bangalore
           </p>
-          <h2 style={{ fontSize: "clamp(22px,3.6vw,32px)", fontWeight: 800, textShadow: "0 2px 16px rgba(0,0,0,.6)" }}>
+          <h2 style={{ fontSize: "clamp(26px,4.6vw,44px)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "-.01em", lineHeight: 1.08, textShadow: "0 2px 16px rgba(0,0,0,.6)", maxWidth: "14ch" }}>
             Done properly, every time
           </h2>
+          <Link href="/services" className="cta-lg" style={{ marginTop: 22 }} data-testid="link-photo-break-cta">
+            Book Now →
+          </Link>
         </div>
       </section>
 
@@ -438,22 +416,19 @@ export default function Home() {
       <section className="section" id="results">
         <div className="wrap">
           <div className="section-head">
+            <span className="eyebrow">Real results</span>
             <h2>Real work from the studio</h2>
           </div>
 
-          <div className="showcase-track">
+          <ScrollRow testId="scroll-showcase">
             <div className="showcase-card">
-              <div className="card-img">
-                <ImageWithFallback
-                  src={interiorDetailingComparison}
-                  alt="Interior detailing before and after — dirty versus deep-cleaned car interior"
-                  width={1200}
-                  height={1500}
-                  sizes="(min-width: 640px) 400px, 82vw"
-                  loading="lazy"
-                />
-                <span className="card-cat">Interior</span>
-              </div>
+              <ImageWithFallback
+                src={interiorDetailingComparison}
+                alt="Interior detailing before and after — dirty versus deep-cleaned car interior"
+                sizes="(min-width: 640px) 400px, 82vw"
+                loading="lazy"
+              />
+              <span className="card-cat">Interior</span>
               <div className="card-body">
                 <h3>Interior Deep Clean</h3>
                 <TransformationCTA
@@ -466,17 +441,13 @@ export default function Home() {
             </div>
 
             <div className="showcase-card">
-              <div className="card-img">
-                <ImageWithFallback
-                  src={glassCoating}
-                  alt="Glass coating water beading demonstration on a treated windscreen"
-                  width={1200}
-                  height={1500}
-                  sizes="(min-width: 640px) 400px, 82vw"
-                  loading="lazy"
-                />
-                <span className="card-cat">Glass</span>
-              </div>
+              <ImageWithFallback
+                src={glassCoating}
+                alt="Glass coating water beading demonstration on a treated windscreen"
+                sizes="(min-width: 640px) 400px, 82vw"
+                loading="lazy"
+              />
+              <span className="card-cat">Glass</span>
               <div className="card-body">
                 <h3>Glass Coating</h3>
                 <TransformationCTA
@@ -489,17 +460,13 @@ export default function Home() {
             </div>
 
             <div className="showcase-card">
-              <div className="card-img">
-                <ImageWithFallback
-                  src={headlightAfter}
-                  alt="Headlight after restoration — clear lens with yellowing removed"
-                  width={1200}
-                  height={1500}
-                  sizes="(min-width: 640px) 400px, 82vw"
-                  loading="lazy"
-                />
-                <span className="card-cat">Restoration</span>
-              </div>
+              <ImageWithFallback
+                src={headlightAfter}
+                alt="Headlight after restoration — clear lens with yellowing removed"
+                sizes="(min-width: 640px) 400px, 82vw"
+                loading="lazy"
+              />
+              <span className="card-cat">Restoration</span>
               <div className="card-body">
                 <h3>Headlight Restoration</h3>
                 <TransformationCTA
@@ -512,17 +479,13 @@ export default function Home() {
             </div>
 
             <div className="showcase-card">
-              <div className="card-img">
-                <ImageWithFallback
-                  src={exteriorDetailingAfter}
-                  alt="Exterior detailing after hard water spot removal and paint correction"
-                  width={1200}
-                  height={1500}
-                  sizes="(min-width: 640px) 400px, 82vw"
-                  loading="lazy"
-                />
-                <span className="card-cat">Exterior</span>
-              </div>
+              <ImageWithFallback
+                src={exteriorDetailingAfter}
+                alt="Exterior detailing after hard water spot removal and paint correction"
+                sizes="(min-width: 640px) 400px, 82vw"
+                loading="lazy"
+              />
+              <span className="card-cat">Exterior</span>
               <div className="card-body">
                 <h3>Complete Exterior Detail</h3>
                 <TransformationCTA
@@ -533,7 +496,7 @@ export default function Home() {
                 />
               </div>
             </div>
-          </div>
+          </ScrollRow>
         </div>
       </section>
 
@@ -542,6 +505,7 @@ export default function Home() {
         <div className="wrap">
           <div className="teaser-head">
             <div className="section-head">
+              <span className="eyebrow">Resources</span>
               <h2>Guides from the studio</h2>
               <p>Straight answers to what customers ask us most.</p>
             </div>
@@ -562,8 +526,9 @@ export default function Home() {
                     <ImageWithFallback
                       src={img}
                       alt={post.title}
+                      sizes="(min-width: 640px) 50vw, 100vw"
                       width={800}
-                      height={200}
+                      height={500}
                       loading="lazy"
                     />
                   )}
@@ -605,12 +570,32 @@ export default function Home() {
       <section className="strip">
         <div className="wrap">
           <div className="row">
-            <div className="cell"><b>Warranty-backed</b><span>Written warranty on every coating and PPF job</span></div>
-            <div className="cell"><b>Same-day service</b><span>Most detailing finished the day you book</span></div>
-            <div className="cell"><b>Pickup &amp; drop</b><span>Available across Bangalore at cost</span></div>
-            <div className="cell">{offer.free
-              ? <><b>Free to book</b><span>No payment to reserve — settle at the store, no hidden charges</span></>
-              : <><b>Pay {formatINR(bookingFee)} to book</b><span>Balance settled at the store, no hidden charges</span></>}</div>
+            <div className="cell">
+              <svg className="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 2l8 3v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V5z" /><path d="M9 12l2 2 4-4" />
+              </svg>
+              <b>Warranty-backed</b><span>Written warranty on every coating and PPF job</span>
+            </div>
+            <div className="cell">
+              <svg className="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
+              </svg>
+              <b>Same-day service</b><span>Most detailing finished the day you book</span>
+            </div>
+            <div className="cell">
+              <svg className="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 21s7-5.3 7-11a7 7 0 1 0-14 0c0 5.7 7 11 7 11z" /><circle cx="12" cy="10" r="2.6" />
+              </svg>
+              <b>Pickup &amp; drop</b><span>Available across Bangalore at cost</span>
+            </div>
+            <div className="cell">
+              <svg className="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="2.5" y="5" width="19" height="14" rx="2.2" /><path d="M2.5 10h19" />
+              </svg>
+              {offer.free
+                ? <><b>Free to book</b><span>No payment to reserve — settle at the store, no hidden charges</span></>
+                : <><b>Pay {formatINR(bookingFee)} to book</b><span>Balance settled at the store, no hidden charges</span></>}
+            </div>
           </div>
         </div>
       </section>

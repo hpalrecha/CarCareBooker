@@ -148,7 +148,18 @@ export default function SiteFooter() {
                 ))}
               </dl>
             )}
-            <Link href="/contact" className="foot-more">Directions →</Link>
+            {/* Was <Link href="/contact"> — a click on "Directions" landed on the contact
+                page instead of giving directions. Same destination contact.tsx's own
+                "Get directions" button already uses. */}
+            <a
+              href="https://www.google.com/maps/dir/?api=1&destination=P91+Car+Care+Adugodi+Bengaluru"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="foot-more"
+              data-testid="link-footer-directions"
+            >
+              Directions →
+            </a>
           </div>
         </div>
 

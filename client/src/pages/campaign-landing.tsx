@@ -1,6 +1,12 @@
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
-import { Phone } from "lucide-react";
+// `.lp-*` (landing-pages.css) is also used by ppf-ceramic-landing.tsx and
+// service-landing.tsx, each importing it themselves. Only this component uses the
+// offer/countdown classes from landing.css. Imported here, not in main.tsx, so they ship
+// in this lazy chunk instead of blocking every other route.
+import "@/styles/landing.css";
+import "@/styles/landing-pages.css";
+import { Phone, Clock, ShieldCheck, MapPin, CheckCircle } from "lucide-react";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import { ImageWithFallback } from "@/components/image-with-fallback";
@@ -11,10 +17,13 @@ import VehicleSelector from "@/components/vehicle-selector";
 import BlogCarousel from "@/components/blog-carousel";
 import HeroOfferStrip from "@/components/hero-offer-strip";
 import ProtectionChallengeCTA from "@/components/protection-challenge";
+import InstagramReels from "@/components/instagram-reels";
 import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
+import { useHeroVideoGate } from "@/hooks/use-hero-video";
 import { useQuery } from "@tanstack/react-query";
 import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canonical-services";
+import { REELS_BY_SERVICE } from "@/lib/instagram-reels";
 import {
   getLandingPage,
   relevantPosts,
@@ -72,9 +81,21 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
     () => page?.defaultCategoryKey ?? page?.categories?.[0]?.key ?? "",
   );
   const [bookingOpen, setBookingOpen] = useState(false);
+  const showHeroVideo = useHeroVideoGate();
+  const [heroVideoReady, setHeroVideoReady] = useState(false);
 
   // An unrecognised path is a genuine 404, not an empty version of this template.
   if (!page) return <NotFound />;
+
+  /**
+   * Real studio footage for the hero photo box — only two clips exist studio-wide
+   * (Exterior Detailing, Interior Detailing). Ceramic coating and PPF are both exterior
+   * paint work, so both get the exterior clip; the bike page gets none, because no bike
+   * footage exists and showing the car clip there would misrepresent the work.
+   */
+  const heroVideoSrc = path === "/ceramic-coating/bike" ? null : "/attached_assets/Exterior Detailing_1754031679196.mp4";
+  const HERO_VIDEO_LOOP_START = 3.7;
+  const HERO_VIDEO_LOOP_END = 7.7;
 
   const selectedCategory: CategoryOption | undefined = page.categories?.find(
     (c) => c.key === categoryKey,
@@ -192,12 +213,6 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
       {/* ---------- 1-3. hero: what, for whom, how much ---------- */}
       <section className="section lp-hero">
         <div className="wrap">
-          <nav className="crumb" aria-label="Breadcrumb">
-            <Link href="/">Home</Link> <span>/</span>
-            <Link href="/services">Services</Link> <span>/</span>
-            <span>{page.eyebrow}</span>
-          </nav>
-
           <div className="lp-hero-grid">
             <div className="lp-hero-copy">
               <p className="eyebrow">{page.eyebrow}</p>
@@ -276,6 +291,25 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
                   <Phone className="i" aria-hidden="true" /> 74066 19191
                 </a>
               </div>
+
+              {/* Same trust-row pattern as home.tsx and ppf-ceramic-landing.tsx's hero
+                  (.hero-facts, redesign.css) — this page never had one. Wording is generic
+                  and unnumbered on purpose: it must hold for every category a body-type
+                  selector can pick, and the itest guards against invented statistics. */}
+              <div className="hero-facts">
+                <span>
+                  <Clock className="i" aria-hidden="true" />
+                  <b>Same-day</b> slots
+                </span>
+                <span>
+                  <ShieldCheck className="i" aria-hidden="true" />
+                  Written warranty
+                </span>
+                <span>
+                  <MapPin className="i" aria-hidden="true" />
+                  Adugodi, Bangalore
+                </span>
+              </div>
             </div>
 
             {/*
@@ -330,6 +364,29 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
                     sizes="(min-width: 900px) 520px, 100vw"
                     data-testid="img-landing-hero"
                   />
+                  {heroVideoSrc && showHeroVideo && (
+                    <video
+                      className="lp-hero-video"
+                      autoPlay
+                      muted
+                      loop={false}
+                      playsInline
+                      preload="auto"
+                      poster={heroImage}
+                      aria-hidden="true"
+                      data-testid="video-landing-hero"
+                      onLoadedMetadata={(e) => { e.currentTarget.currentTime = HERO_VIDEO_LOOP_START; }}
+                      onTimeUpdate={(e) => {
+                        if (e.currentTarget.currentTime >= HERO_VIDEO_LOOP_END) {
+                          e.currentTarget.currentTime = HERO_VIDEO_LOOP_START;
+                        }
+                      }}
+                      onPlaying={() => setHeroVideoReady(true)}
+                      style={{ opacity: heroVideoReady ? 1 : 0 }}
+                    >
+                      <source src={heroVideoSrc} type="video/mp4" />
+                    </video>
+                  )}
                 </div>
               )
             )}
@@ -358,9 +415,11 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
           <div className="section-head">
             <h2>{page.benefitsHeading}</h2>
           </div>
-          <div className="lp-benefits">
+          {/* XPEL-style icon-feature bullets, shared with /service/* (redesign.css). */}
+          <div className="feature-grid">
             {page.benefits.map((b) => (
-              <div className="lp-benefit" key={b.title}>
+              <div className="feature-item" key={b.title}>
+                <CheckCircle className="i" aria-hidden="true" />
                 <h3>{b.title}</h3>
                 <p>{b.body}</p>
               </div>
@@ -376,14 +435,59 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
             <div className="section-head">
               <h2>What the job includes</h2>
             </div>
-            <ul className="lp-includes" data-testid="landing-includes">
+            <div className="feature-grid" data-testid="landing-includes">
               {displayableIncludes(service?.whatIncluded).map((item, i) => (
-                <li key={i}>{item}</li>
+                <div className="feature-item" key={i}>
+                  <CheckCircle className="i" aria-hidden="true" />
+                  <p>{item}</p>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </section>
       )}
+
+      {/* ---------- real photos, from the catalogue record's own image(s) ----------
+          Not "recent work" — these are the SAME photo(s) already resolved for the hero
+          and for this exact record on /services and /service/:slug, just given a proper
+          image-led moment of their own rather than staying a single small hero thumbnail.
+          Renders 1 photo for most records and up to 3 for the ones that carry more (car
+          ceramic coating) — the grid handles either count without looking sparse or
+          broken, and nothing here is invented: same source, same alt-text convention as
+          the rest of the site. */}
+      {service?.images && service.images.length > 0 && (
+        <section className="section lp-tight">
+          <div className="wrap">
+            <div className="section-head" style={{ textAlign: "center" }}>
+              <h2>Real photos from the studio</h2>
+            </div>
+            <div className="grid" style={{ gridTemplateColumns: `repeat(${Math.min(service.images.length, 3)}, minmax(0, 1fr))` }}>
+              {service.images.slice(0, 3).map((src, i) => (
+                <div key={src} className="card-img" data-testid={`img-landing-gallery-${i}`}>
+                  <ImageWithFallback
+                    src={src}
+                    alt={`${service.title.trim()} at the P91 Car Care studio in Adugodi, Bangalore`}
+                    width={800}
+                    height={600}
+                    sizes="(min-width: 900px) 33vw, 100vw"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* The studio's own real reels of this exact service, when there are any
+          (lib/instagram-reels.ts). Genuine video of P91's own ceramic coating/detailing
+          work — the honest answer to "show a real video of this service", where the hero
+          box above can only offer the closest of two generic studio clips. Pages without
+          a matching reel render nothing here rather than an unrelated one. */}
+      <InstagramReels
+        reels={REELS_BY_SERVICE[service?.slug ?? ""] ?? []}
+        heading="See it on Instagram"
+        intro={service ? `Real ${service.title.trim().toLowerCase()} work from our Adugodi studio.` : undefined}
+      />
 
       {/* ---------- how it works ---------- */}
       <section className="section lp-tight">
@@ -446,6 +550,28 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
 
       {/* ---------- 8. genuine articles ---------- */}
       <BlogCarousel posts={posts} bySlug={bySlug} />
+
+      {/* XPEL-style closing trust row before the final CTA — the same three facts already
+          stated in the hero (.hero-facts above), restated larger as reinforcement rather
+          than new claims. */}
+      <section className="strip">
+        <div className="wrap">
+          <div className="row cols-3">
+            <div className="cell">
+              <Clock className="i" aria-hidden="true" />
+              <b>Same-day slots</b><span>Most jobs finished the day you book</span>
+            </div>
+            <div className="cell">
+              <ShieldCheck className="i" aria-hidden="true" />
+              <b>Written warranty</b><span>Issued at handover, from the film or coating maker</span>
+            </div>
+            <div className="cell">
+              <MapPin className="i" aria-hidden="true" />
+              <b>Adugodi studio</b><span>Bangalore — pickup &amp; drop available</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ---------- 9. final CTA ---------- */}
       <section className="section lp-tight">

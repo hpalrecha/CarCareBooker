@@ -28,6 +28,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, desc, asc, sql } from "drizzle-orm";
+import { deriveAutoImage } from "./lib/service-auto-image";
 
 /** Thrown by createBookingWithCapacity when the requested slot is already full. */
 export class SlotFullError extends Error {
@@ -145,7 +146,15 @@ export class DatabaseStorage implements IStorage {
 
   async createService(service: InsertService): Promise<Service> {
     const slug = service.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const [newService] = await db.insert(services).values({ ...service, slug }).returning();
+    // A service created with no photo of its own (e.g. via the simplified admin form,
+    // which has no upload step) gets a best-guess match from the existing photo library
+    // instead of showing the "image coming soon" placeholder forever. Never overrides a
+    // photo the caller actually provided, and never runs on update — see
+    // server/lib/service-auto-image.ts.
+    const needsAutoImage = !service.images || service.images.length === 0;
+    const autoImage = needsAutoImage ? deriveAutoImage({ title: service.title, slug }) : null;
+    const images = autoImage ? [autoImage] : service.images;
+    const [newService] = await db.insert(services).values({ ...service, slug, images }).returning();
     return newService;
   }
 

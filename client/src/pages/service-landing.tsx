@@ -1,24 +1,30 @@
-import { useParams, useLocation } from "wouter";
+import { useParams, useLocation, Link } from "wouter";
+// `.lp-*` (price, includes, steps, FAQ, final CTA below) is defined in landing-pages.css.
+// This is the highest-traffic consumer of that stylesheet — the 17 indexed /service/:slug
+// pages — so it must import it directly now that main.tsx no longer loads it globally
+// (see main.tsx: moved out to stop blocking every route with CSS most routes don't use).
+import "@/styles/landing-pages.css";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Star, Clock, Shield, Phone, Mail, MapPin, Play, ArrowRight, Zap, Timer } from "lucide-react";
+import { CheckCircle, Star, Clock, Shield, Phone, Mail, MapPin, Play, ArrowRight } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import BookingModal from "@/components/booking-modal";
 import CallbackPopup from "@/components/callback-popup";
 import InstagramReels from "@/components/instagram-reels";
+import { ImageWithFallback } from "@/components/image-with-fallback";
 import { INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, REELS_BY_SERVICE } from "@/lib/instagram-reels";
 import { SiInstagram } from "react-icons/si";
-import { BrandHeader, BrandFooter } from "@/components/redesign/brand-chrome";
+import SiteHeader from "@/components/redesign/site-header";
+import SiteFooter from "@/components/redesign/site-footer";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
-import { resolveServiceImage, formatINR } from "@/lib/canonical-services";
-import { useBookingOffer, formatOfferEnd } from "@/hooks/use-booking-offer";
+import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canonical-services";
+import { useBookingOffer } from "@/hooks/use-booking-offer";
+import { deriveCategory, deriveVehicle } from "@/lib/service-taxonomy";
 import { formatServiceTime } from "@/lib/service-time";
 import { serviceSeoTitle, serviceSeoDescription, serviceStructuredData } from "@/lib/service-seo";
 import type { BusinessHour } from "@shared/schema";
 
-// Import before/after images
+// Before/after images
 import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029992282.webp";
 import headlightAfter from "@assets/GVXjDlbWcAAoQD1_1754029992281.jpg";
 import glassCoating from "@assets/Before-and-After-Ceramic-Coating-on-Glass (1)_1754028454560.jpg";
@@ -38,6 +44,15 @@ import interiorDetailingComparison from "@assets/ff034468a03ea55ea0924270de1e42b
  * bike-specific testimonials are supplied. No other service is affected.
  */
 const TESTIMONIALS_SUPPRESSED = new Set<string>(['1-year-bike-ceramic-coating']);
+
+/**
+ * Section ids the sticky sub-nav below the hero can link to. Looked up with
+ * `document.getElementById` rather than derived from `subnavItems` (computed after the
+ * early loading/not-found returns), so the scroll-spy effect can be declared once, before
+ * those returns, like every other hook in this component — a section this service does not
+ * render simply is not in the DOM, and `getElementById` returns null for it.
+ */
+const SUBNAV_IDS = ["overview", "benefits", "packages", "gallery", "faqs"] as const;
 
 interface Service {
   id: string;
@@ -64,6 +79,17 @@ interface Service {
   ctaText: string;
   urgencyText: string;
   guaranteeText: string;
+}
+
+/**
+ * `service.heroVideo` (shared/schema.ts) is "YouTube/Vimeo URL or video file URL" — two
+ * different embed mechanisms. A direct file (the studio's own reel, saved under
+ * attached_assets/) plays as a real <video>, autoplaying and muted like the homepage hero's
+ * footage; a YouTube/Vimeo URL has no direct file to point a <video> element at and stays
+ * on the existing <iframe> embed.
+ */
+function isDirectVideoFile(url: string): boolean {
+  return /\.(mp4|webm|mov)(\?.*)?$/i.test(url);
 }
 
 /** Drops the "✓ " some records prefix to each item — the list already draws a tick. */
@@ -93,6 +119,157 @@ function firstSentence(text: string) {
   return (m ? m[0] : t).trim();
 }
 
+/**
+ * The four hand-photographed before/after slugs, plus the generic `service.beforeAfter`
+ * array a record may carry. One data-driven renderer replaces what used to be four
+ * copy-pasted JSX blocks (~90 lines each) — same images, same captions, same testids,
+ * same video URLs, just described once instead of four times.
+ */
+type Comparison =
+  | { layout: "pair"; before: string; beforeAlt: string; beforeLabel: string; beforeCaption: string;
+      after: string; afterAlt: string; afterLabel: string; afterCaption: string;
+      testId: string; video?: { src: string; title: string }; heading: string; sub: string }
+  | { layout: "single"; image: string; alt: string; badge: string; caption: string; testId: string;
+      video?: { src: string; title: string }; note?: string; heading: string; sub: string };
+
+function fixedComparisonFor(slug: string, vehicleNoun: string): Comparison | null {
+  switch (slug) {
+    case 'headlight-restoration-both':
+      return {
+        layout: "pair",
+        before: headlightBefore, beforeAlt: "Foggy headlight before restoration",
+        beforeLabel: "BEFORE", beforeCaption: "Foggy & Yellowed",
+        after: headlightAfter, afterAlt: "Crystal clear headlight after restoration",
+        afterLabel: "AFTER", afterCaption: "Crystal Clear",
+        testId: "headlight",
+        video: { src: "https://www.youtube.com/embed/XXb4J6cBze0", title: "Headlight Restoration Process - P91 Car Care" },
+        heading: "Watch The Complete Process",
+        sub: "See how we transform foggy headlights to crystal clear",
+      };
+    case 'windshield-glass-coating-new':
+      return {
+        layout: "single",
+        image: glassCoating, alt: "Water beading on ceramic coated windshield",
+        badge: "COATED GLASS", caption: "Water Beading Effect", testId: "glass-coating",
+        video: { src: "https://www.youtube.com/embed/Oak9CKJMz6E", title: "Glass Coating Water Repelling Demo - P91 Car Care" },
+        heading: "See The Water Repelling Effect",
+        sub: "Watch how water slides off instantly after coating",
+      };
+    case 'windshield-glass-polishing':
+      return {
+        layout: "single",
+        image: glassPolishing, alt: "Crystal clear polished windshield",
+        badge: "POLISHED GLASS", caption: "Crystal Clear Clarity", testId: "glass-polishing",
+        video: { src: "https://www.youtube.com/embed/Oak9CKJMz6E", title: "Glass Polishing Process - P91 Car Care" },
+        heading: "See The Polishing Process",
+        sub: "Watch how we restore crystal-clear visibility by removing water spots and scratches",
+      };
+    case 'exterior-detailing-hard-water-new':
+      return {
+        layout: "pair",
+        before: exteriorDetailingBefore, beforeAlt: "Car before exterior detailing - dull and dirty",
+        beforeLabel: "BEFORE", beforeCaption: "Dull & Dirty",
+        after: exteriorDetailingAfter, afterAlt: "Car after exterior detailing - glossy orange finish",
+        afterLabel: "AFTER", afterCaption: "Showroom Shine",
+        testId: "exterior",
+        note: "Our professional exterior detailing transforms your car's appearance with deep cleaning, paint correction, and protective coating. See the mirror-like finish and showroom shine that makes your car look brand new.",
+        heading: "Watch The Detailing Process",
+        sub: "See how we transform dull cars into showroom perfection",
+      } as Comparison;
+    case 'interior-detailing-service':
+      return {
+        layout: "single",
+        image: interiorDetailingComparison, alt: "Interior detailing before and after comparison - dirty vs clean car interior",
+        badge: "SEE THE DIFFERENCE", caption: "Before vs After", testId: "interior",
+        note: `Transform your ${vehicleNoun}'s interior from dirty and stained to fresh and spotless. Our deep cleaning process removes dirt, stains, and odors, leaving your interior looking and smelling like new.`,
+        heading: "Interior Detailing Process",
+        sub: "See our comprehensive interior cleaning transformation",
+      };
+    default:
+      return null;
+  }
+}
+
+function ComparisonBlock({ comparison }: { comparison: Comparison }) {
+  return (
+    <div>
+      {comparison.layout === "pair" ? (
+        <div className="grid grid-2">
+          <div className="card-img" style={{ position: "relative" }}>
+            <ImageWithFallback
+              src={comparison.before}
+              alt={comparison.beforeAlt}
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              style={{ aspectRatio: "4 / 3", objectPosition: "center" }}
+              data-testid={`image-${comparison.testId}-before`}
+            />
+            <span className="card-cat" style={{ background: "#B4232F", color: "#fff", borderColor: "transparent" }}>{comparison.beforeLabel}</span>
+            <div style={{ position: "absolute", bottom: 10, left: 10, background: "rgba(9,9,11,.86)", color: "var(--txt)", padding: "6px 12px", borderRadius: 8, fontSize: 13 }}>
+              {comparison.beforeCaption}
+            </div>
+          </div>
+          <div className="card-img" style={{ position: "relative" }}>
+            <ImageWithFallback
+              src={comparison.after}
+              alt={comparison.afterAlt}
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              style={{ aspectRatio: "4 / 3", objectPosition: "center" }}
+              data-testid={`image-${comparison.testId}-after`}
+            />
+            <span className="card-cat" style={{ background: "var(--neon-green)", color: "#04120A", borderColor: "transparent" }}>{comparison.afterLabel}</span>
+            <div style={{ position: "absolute", bottom: 10, right: 10, background: "rgba(9,9,11,.86)", color: "var(--txt)", padding: "6px 12px", borderRadius: 8, fontSize: 13 }}>
+              {comparison.afterCaption}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="card-img" style={{ position: "relative", maxWidth: 900, margin: "0 auto" }}>
+          <ImageWithFallback
+            src={comparison.image}
+            alt={comparison.alt}
+            sizes="(min-width: 1024px) 900px, 100vw"
+            style={{ aspectRatio: "4 / 3", objectPosition: "center" }}
+            data-testid={`image-${comparison.testId}`}
+          />
+          <span className="card-cat" style={{ borderColor: "var(--neon-line)" }}>{comparison.badge}</span>
+          <div style={{ position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)", background: "rgba(9,9,11,.86)", color: "var(--txt)", padding: "6px 12px", borderRadius: 8, fontSize: 13 }}>
+            {comparison.caption}
+          </div>
+        </div>
+      )}
+
+      {comparison.layout === "single" && comparison.note && (
+        <p className="fineprint" style={{ maxWidth: 760, margin: "20px auto 0", textAlign: "center", fontStyle: "normal" }}>
+          {comparison.note}
+        </p>
+      )}
+      {comparison.layout === "pair" && (comparison as any).note && (
+        <p className="fineprint" style={{ maxWidth: 760, margin: "20px auto 0", textAlign: "center", fontStyle: "normal" }}>
+          {(comparison as any).note}
+        </p>
+      )}
+
+      {comparison.video && (
+        <div style={{ marginTop: 34, maxWidth: 900, marginLeft: "auto", marginRight: "auto" }}>
+          <div className="section-head" style={{ textAlign: "center", marginBottom: 20 }}>
+            <h3 style={{ fontSize: 19, fontWeight: 700 }}>{comparison.heading}</h3>
+            <p>{comparison.sub}</p>
+          </div>
+          <div className="card-img" style={{ aspectRatio: "16 / 9" }}>
+            <iframe
+              src={comparison.video.src}
+              title={comparison.video.title}
+              style={{ width: "100%", height: "100%", border: 0 }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ServiceLanding() {
   const { slug } = useParams();
   const [, setLocation] = useLocation();
@@ -120,17 +297,19 @@ export default function ServiceLanding() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-  const [showVideo, setShowVideo] = useState(false);
 
   // Free-booking offer state, decided server-side. Declared here (before the early
   // returns) because hooks cannot be called conditionally.
   const offer = useBookingOffer();
-  const offerEnds = formatOfferEnd(offer.until);
 
   const { data: service, isLoading } = useQuery<Service>({
     queryKey: ["/api/services", slug],
     enabled: !!slug,
   });
+
+  // The full catalogue, only to find this service's real PPF tier siblings (Basic /
+  // Premium / Partial, same vehicle size) — never to invent variants that don't exist.
+  const { data: allServices } = useQuery<ServiceRecord[]>({ queryKey: ["/api/services"] });
 
   // Hide the floating CTA once the real bottom CTA scrolls into view.
   useEffect(() => {
@@ -146,10 +325,44 @@ export default function ServiceLanding() {
     return () => observer.disconnect();
   }, [service]);
 
+  // Scroll-spy for the sticky sub-nav (Overview / Benefits / Packages / Gallery / FAQs).
+  // Watches whichever of SUBNAV_IDS actually rendered for this service; a service missing a
+  // section (no FAQ, no PPF tiers) simply has nothing at that id, so it's never observed.
+  const [activeSection, setActiveSection] = useState<string>("");
+  useEffect(() => {
+    const targets = SUBNAV_IDS.map((id) => document.getElementById(id)).filter(
+      (el): el is HTMLElement => Boolean(el),
+    );
+    if (!targets.length || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting);
+        if (!visible.length) return;
+        // The topmost of the currently-intersecting sections is the one the reader is
+        // actually at, when several are tall enough to overlap the observation band.
+        const top = visible.reduce((a, b) => (a.boundingClientRect.top < b.boundingClientRect.top ? a : b));
+        setActiveSection(top.target.id);
+      },
+      // A band just under the sticky header+sub-nav, ending well above the fold, so the
+      // "active" tab changes as a section reaches reading position, not the instant its
+      // top pixel appears.
+      { rootMargin: "-130px 0px -65% 0px", threshold: 0 },
+    );
+    targets.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [service]);
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-400"></div>
+      <div className="p91x min-h-screen">
+        <SiteHeader />
+        <section className="section" style={{ minHeight: "50vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div
+            className="animate-spin"
+            style={{ width: 48, height: 48, borderRadius: "50%", border: "3px solid var(--medium-gray)", borderBottomColor: "var(--neon-green)" }}
+          />
+        </section>
+        <SiteFooter />
       </div>
     );
   }
@@ -159,44 +372,37 @@ export default function ServiceLanding() {
   // CTAs landed, because they pointed at inactive slugs.
   if (!service) {
     return (
-      <div className="p91-brand min-h-screen bg-black text-white flex flex-col">
-        <BrandHeader />
-        <main className="flex-1 flex items-center justify-center px-4 py-20">
-          <div className="max-w-xl w-full text-center">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">We couldn't find that service</h1>
-            <p className="text-gray-300 text-lg mb-10">
-              It may have been renamed or is no longer offered. All of our current services
-              are listed on the homepage.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="/#services">
-                <Button
-                  size="lg"
-                  className="bg-[var(--neon-green)] hover:brightness-95 w-full sm:w-auto text-black font-bold rounded-[10px]"
-                  data-testid="button-service-not-found-services"
-                >
-                  Browse All Services
-                </Button>
+      <div className="p91x min-h-screen">
+        <SiteHeader />
+        <section className="section">
+          <div className="wrap" style={{ textAlign: "center", maxWidth: 640 }}>
+            <div className="section-head">
+              <h1 style={{ fontSize: "clamp(26px,4.6vw,40px)", fontWeight: 800 }}>We couldn't find that service</h1>
+              <p>
+                It may have been renamed or is no longer offered. All of our current services
+                are listed on the homepage.
+              </p>
+            </div>
+            <div className="hero-cta" style={{ justifyContent: "center" }}>
+              <a href="/#services" className="cta-lg" data-testid="button-service-not-found-services">
+                Browse All Services
               </a>
-              <Button
-                size="lg"
-                variant="outline"
+              <button
+                type="button"
                 onClick={() => setLocation("/")}
-                className="w-full sm:w-auto border-green-400 text-green-400 hover:bg-green-400 hover:text-black font-bold"
+                className="cta-ghost"
                 data-testid="button-service-not-found-home"
               >
                 Go Home
-              </Button>
+              </button>
             </div>
-            <p className="mt-8 text-gray-400">
+            <p className="fineprint" style={{ marginTop: 28 }}>
               Need help choosing?{" "}
-              <a href="/contact" className="text-green-400 hover:text-green-300 underline">
-                Contact us
-              </a>
+              <a href="/contact">Contact us</a>
             </p>
           </div>
-        </main>
-        <BrandFooter />
+        </section>
+        <SiteFooter />
       </div>
     );
   }
@@ -217,607 +423,339 @@ export default function ServiceLanding() {
   const vehicleNoun = isBikeService ? "bike" : "car";
   const vehicleNounTitle = isBikeService ? "Bike" : "Car";
 
+  const heroCategory = deriveCategory(service);
+
+  const comparison = fixedComparisonFor(service.slug, vehicleNoun);
+  const genericComparisons = service.beforeAfter && service.beforeAfter.length > 0 ? service.beforeAfter : [];
+  const hasComparisons = comparison !== null || genericComparisons.length > 0;
+
+  /**
+   * Real PPF tier siblings for this exact vehicle size — Basic / Premium / Partial are
+   * genuinely separate catalogue records (see lib/service-taxonomy.ts), not variants of
+   * one product the way XPEL's FUSION PLUS tabs are. This is a tab-styled row of real
+   * links between those real pages, not a switcher pretending one record holds all three.
+   * Empty (and hidden) for every category without real tiered siblings — ceramic coating,
+   * interior detailing, glass, etc. each have exactly one tier, so nothing here would be
+   * genuine for them.
+   */
+  const tierSiblings = (heroCategory === "PPF" && Array.isArray(allServices))
+    ? allServices
+        .filter((s) => deriveCategory(s) === "PPF" && deriveVehicle(s) === deriveVehicle(service))
+        .sort((a, b) => parseFloat(a.price) - parseFloat(b.price))
+    : [];
+
+  /**
+   * Other active services in the same category AND for the same vehicle — never a bike
+   * service on a car page or vice versa. This page had no internal links to any other
+   * /service/:slug at all; a visitor who finished reading could only book this one service
+   * or leave, and neither Google nor a reader had a path from here to the rest of the
+   * catalogue. Excludes PPF, whose real cross-links are tierSiblings above already.
+   */
+  const relatedServices = (heroCategory !== "PPF" && Array.isArray(allServices))
+    ? allServices
+        .filter((s) =>
+          s.slug !== service.slug &&
+          deriveCategory(s) === heroCategory &&
+          deriveVehicle(s) === deriveVehicle(service),
+        )
+        .slice(0, 3)
+    : [];
+
+  /**
+   * Which of the sticky sub-nav's five tabs this service actually has content for, and —
+   * for Packages/Process, which real section stands behind it. Gated on the same
+   * conditions each target section already renders on, so a tab never points at an id
+   * that isn't on the page.
+   */
+  const hasOverview = Boolean((service.whatIncluded && service.whatIncluded.length > 0) || service.heroVideo);
+  const hasBenefits = Boolean(service.whyChoose) || Boolean(service.guaranteeText);
+  const packagesMode: "tiers" | "process" | null =
+    tierSiblings.length > 1 ? "tiers" : service.process && service.process.length > 0 ? "process" : null;
+  const hasGallery =
+    hasComparisons || Boolean(service.gallery && service.gallery.some((item) => item.type === "video"));
+  const hasFaqs = Boolean(service.faq && service.faq.length > 0);
+
+  const subnavItems: { id: (typeof SUBNAV_IDS)[number]; label: string }[] = [
+    hasOverview ? { id: "overview" as const, label: "Overview" } : null,
+    hasBenefits ? { id: "benefits" as const, label: "Benefits" } : null,
+    packagesMode ? { id: "packages" as const, label: packagesMode === "tiers" ? "Packages" : "Process" } : null,
+    hasGallery ? { id: "gallery" as const, label: "Gallery" } : null,
+    hasFaqs ? { id: "faqs" as const, label: "FAQs" } : null,
+  ].filter((x): x is { id: (typeof SUBNAV_IDS)[number]; label: string } => x !== null);
+
   return (
     <>
     <ServiceSeo service={service} />
-    <div className="p91-brand min-h-screen bg-black text-white">
+    <div className="p91x min-h-screen">
       {/*
-        The site header, shared with every other page (components/redesign/brand-chrome).
-        This page used to carry its own green announcement bar and header — a different logo
-        size, nav and button from the rest of the site. Book Now still opens this service's
-        booking form in place rather than sending the visitor away to /services.
+        The site header, shared with every other page (components/redesign/site-header).
+        Book Now opens this service's booking form in place rather than sending the visitor
+        away to /services.
       */}
-      <BrandHeader onBookNow={() => setBookingModalOpen(true)} />
+      <SiteHeader onBookNow={() => setBookingModalOpen(true)} />
 
-      {/* Hero: copy left, enquiry form right — the /ppf-ceramic-coating shape. */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900 px-4 py-10 lg:py-16">
-        {/* The service photo stays, now as a quiet backdrop rather than a full-bleed
-            image the text has to fight for contrast against. */}
+      {/* Hero: light theme by request — white/black, real photo as the section's own
+          full-bleed background (not boxed beside the text) rather than behind it in a
+          dark scrim like home.tsx: a white scrim here instead, so the same photo now
+          supports black text. No video: no real per-service footage exists, and
+          fabricating any would misrepresent the studio's actual work. The offer card
+          stays the ordinary dark `.card` — a deliberate accent panel, needing no colour
+          changes of its own to read clearly over a lightened photo. */}
+      <section className="hero-light-bg">
         {heroImage && (
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 z-0 bg-cover bg-center opacity-50"
-            style={{ backgroundImage: `url(${heroImage})` }}
+          <ImageWithFallback
+            className="shot"
+            src={heroImage}
+            alt={`${service.title.trim()} at the P91 Car Care studio in Adugodi, Bangalore`}
+            sizes="100vw"
+            priority
+            data-testid="img-hero"
           />
         )}
-        {/* Stronger on phones, where the copy spans the full width of the photo. */}
-        <div className="absolute inset-0 z-0 bg-black/70 lg:bg-transparent lg:bg-gradient-to-r lg:from-black lg:via-black/80 lg:to-black/20" aria-hidden="true" />
+        <div className="wrap hero-light-copy">
+          <div style={{ maxWidth: 620 }}>
+            <h1 className="text-3xl">
+              {service.title.trim()}
+            </h1>
 
-        <div className="relative z-10 mx-auto max-w-7xl">
-          {/* items-center: with the form moved out, the offer card lines up with the middle of
-              the copy instead of hanging from the top of the column. */}
-          <div className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-12">
-            {/* ---------------------------------------------------------------- copy */}
-            {/* 60/40 split on desktop: value proposition left, the offer right. */}
-            <div className="min-w-0 space-y-5 lg:col-span-7">
-              {/* Plain type, not gradient-clipped: bg-clip-text was cutting the descenders. */}
-              <h1 className="text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
-                {service.title.trim()}
-              </h1>
+            <p className="hero-light-lede">
+              {service.description}
+            </p>
 
-              <p className="max-w-xl text-base leading-relaxed text-gray-200 sm:text-lg">
-                {service.description}
-              </p>
+            {/*
+              Three trust pills, every one a fact: the service's own first included item,
+              its duration from the record, and the studio (which opens Google Maps).
+            */}
+            <ul className="hero-facts hero-light-facts" data-testid="trust-pills">
+              {service.whatIncluded?.[0] && (
+                <span>
+                  <CheckCircle className="i" aria-hidden="true" style={{ color: "var(--neon-green)" }} />
+                  {shortIncluded(service.whatIncluded[0])}
+                </span>
+              )}
+              {formatServiceTime(service) && (
+                <span>
+                  <Clock className="i" aria-hidden="true" style={{ color: "var(--neon-green)" }} />
+                  About {formatServiceTime(service)}
+                </span>
+              )}
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Adugodi+Bengaluru"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="link-studio-map"
+                style={{ display: "inline-flex", alignItems: "center", gap: 7, minHeight: 40 }}
+              >
+                <MapPin className="i" aria-hidden="true" />
+                Adugodi studio
+              </a>
+            </ul>
 
-              {/*
-                Three trust pills, every one a fact: the service's own first included item,
-                its duration from the record, and the studio (which opens Google Maps).
-              */}
-              <ul className="flex flex-wrap gap-2" data-testid="trust-pills">
-                {service.whatIncluded?.[0] && (
-                  <li className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-2 text-sm text-gray-100">
-                    <CheckCircle className="h-4 w-4 shrink-0 text-green-400" aria-hidden="true" />
-                    {shortIncluded(service.whatIncluded[0])}
-                  </li>
-                )}
-                {formatServiceTime(service) && (
-                  <li className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-2 text-sm text-gray-100">
-                    <Clock className="h-4 w-4 shrink-0 text-green-400" aria-hidden="true" />
-                    About {formatServiceTime(service)}
-                  </li>
-                )}
-                <li>
-                  <a
-                    href="https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Adugodi+Bengaluru"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-500/10 px-3.5 py-2 text-sm text-yellow-300 transition-colors hover:bg-yellow-500/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-yellow-400"
-                    data-testid="link-studio-map"
-                  >
-                    <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    Adugodi studio
-                  </a>
-                </li>
-              </ul>
-
-              {/* Glass coating needs the vehicle overnight. */}
-              {service.slug === 'windshield-glass-coating-new' && (
-                <div className="rounded-xl border border-amber-500/50 bg-amber-500/10 p-4">
-                  <div className="flex items-start gap-3">
-                    <Clock className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" aria-hidden="true" />
-                    <div>
-                      <div className="font-bold text-amber-400">Vehicle stays 24 hours</div>
-                      <p className="mt-1 text-sm leading-relaxed text-amber-100">
-                        The coating needs a full 24-hour cure in our controlled environment to bond
-                        properly. Please plan for this — an early pickup compromises the finish.
-                      </p>
-                    </div>
+            {/* Glass coating needs the vehicle overnight. */}
+            {service.slug === 'windshield-glass-coating-new' && (
+              <div style={{ marginTop: 20, borderRadius: 10, border: "1px solid rgba(233,185,73,.4)", background: "rgba(233,185,73,.08)", padding: 16 }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                  <Clock style={{ color: "var(--warn)", flex: "none", marginTop: 2 }} aria-hidden="true" />
+                  <div>
+                    <div style={{ color: "var(--warn)", fontWeight: 700 }}>Vehicle stays 24 hours</div>
+                    <p style={{ color: "#5B5F63", fontSize: 14, marginTop: 4 }}>
+                      The coating needs a full 24-hour cure in our controlled environment to bond
+                      properly. Please plan for this — an early pickup compromises the finish.
+                    </p>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {service.heroVideo && !showVideo && (
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={() => setShowVideo(true)}
-                  className="min-h-[48px] border-gray-600 px-6 text-base text-white hover:bg-gray-800"
-                  data-testid="button-watch-video"
-                >
-                  <Play className="mr-2 h-5 w-5" aria-hidden="true" />
-                  Watch Video
-                </Button>
-              )}
+            {/* The video itself plays further down, in the Overview section (#overview) —
+                this jumps there rather than duplicating a player in the hero. */}
+            {service.heroVideo && (
+              <a
+                href="#overview"
+                className="cta-ghost hero-light-ghost"
+                style={{ marginTop: 20 }}
+                data-testid="button-watch-video"
+              >
+                <Play className="i" aria-hidden="true" style={{ marginRight: 8 }} />
+                Watch Video
+              </a>
+            )}
+
+            {/* Offer card: unchanged dark `.card`, an accent panel on the light hero. */}
+            <div
+              className="card"
+              data-testid="offer-card"
+              style={{ padding: "22px 24px", marginTop: 24 }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <span className="eyebrow" style={{ marginBottom: 0 }}>
+                {isAnnualPackage ? 'Annual package' : 'In-studio offer'}
+              </span>
+              {discountPercent > 0 && <span className="cta-price-save">{discountPercent}% off</span>}
             </div>
 
-            {/* ------------------------------------------------------- offer + form */}
-            <section aria-label="Pricing and booking" className="min-w-0 space-y-4 lg:col-span-5">
-              {/*
-                ─────────────────────────────────────────────────────────────────────────
-                The offer card: the whole online booking journey in one container — price,
-                what paying today does, what is included, one button, and the real refund
-                terms. It replaced a plain price table.
+            <p style={{ marginTop: 16, display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "4px 10px" }}>
+              <ins className="lp-price-now" data-testid="text-offer-price" style={{ textDecoration: "none" }}>
+                {formatINR(service.price)}
+              </ins>
+              {service.originalPrice && (
+                <del className="lp-price-was">{formatINR(service.originalPrice)}</del>
+              )}
+            </p>
+            <p style={{ color: "var(--txt-3)", fontSize: 13, marginTop: 2 }}>
+              {isAnnualPackage ? 'Package value' : 'Offer price · paid at the studio after the work'}
+            </p>
 
-                Deliberately NOT on it, although a design review suggested them:
-                  - "Limited time": the discount has no end date, so none is claimed;
-                  - "3-stage paint correction", "certified": the checklist is the service's
-                    OWN stored included items, not marketing lines written here;
-                  - "balance at shop": whether the ₹299 is deducted is unconfirmed;
-                  - "zero risk, cancel up to 24h": the refund terms below are quoted from
-                    /refund-policy, which is the policy that governs the ₹299 fee.
-                ─────────────────────────────────────────────────────────────────────────
-              */}
-              <div
-                className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.7)] backdrop-blur-md sm:p-7"
-                data-testid="offer-card"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-green-400">
-                    {isAnnualPackage ? 'Annual package' : 'In-studio offer'}
-                  </span>
-                  {discountPercent > 0 && (
-                    <span className="rounded-full bg-red-600 px-2.5 py-1 text-xs font-bold text-white">
-                      {discountPercent}% OFF
-                    </span>
-                  )}
-                </div>
+            <p style={{ marginTop: 16, borderRadius: 8, border: "1px solid var(--neon-line)", background: "var(--neon-soft)", padding: "10px 12px", fontSize: 13.5, color: "var(--neon-green)", fontWeight: 600 }}>
+              {offer.free
+                ? 'No booking fee — reserve your slot online free.'
+                : isAnnualPackage
+                  ? `Pay ${formatINR(service.price)} online for the full annual package.`
+                  : 'Pay just ₹299 online today to hold your slot.'}
+            </p>
 
-                <p className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <ins
-                    className="text-4xl font-extrabold leading-none tracking-tight text-white no-underline sm:text-[42px]"
-                    data-testid="text-offer-price"
-                  >
-                    {formatINR(service.price)}
-                  </ins>
-                  {service.originalPrice && (
-                    <del className="text-lg text-gray-500">{formatINR(service.originalPrice)}</del>
-                  )}
-                </p>
-                <p className="mt-1 text-sm text-gray-300">
-                  {isAnnualPackage ? 'Package value' : 'Offer price · paid at the studio after the work'}
-                </p>
+            <ul className="lp-includes" style={{ marginTop: 18, paddingTop: 18, borderTop: "1px solid var(--medium-gray)" }}>
+              {/* Items 2–4: the first is already the lead trust pill beside the title. */}
+              {Array.from(new Set((service.whatIncluded || []).map(cleanIncluded)))
+                .slice(1, 4)
+                .map((item, i) => (
+                  <li key={i}>{shortIncluded(item)}</li>
+                ))}
+              <li>₹500 voucher on your 2nd visit</li>
+            </ul>
 
-                <p className="mt-4 rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2.5 text-sm font-medium text-green-300">
-                  {offer.free
-                    ? 'No booking fee — reserve your slot online free.'
-                    : isAnnualPackage
-                      ? `Pay ${formatINR(service.price)} online for the full annual package.`
-                      : 'Pay just ₹299 online today to hold your slot.'}
-                </p>
+            <button
+              type="button"
+              onClick={() => setBookingModalOpen(true)}
+              className="cta-lg"
+              style={{ width: "100%", marginTop: 18, justifyContent: "center" }}
+              data-testid="button-book-now-hero"
+            >
+              {/* Never quote a price the server will not charge: `free` comes from the
+                  same server that decides the amount. */}
+              {offer.free
+                ? 'Reserve your slot — no fee'
+                : isAnnualPackage
+                  ? `Book the package — ${formatINR(service.price)}`
+                  : 'Reserve your slot for ₹299'}
+              <ArrowRight className="i" aria-hidden="true" />
+            </button>
 
-                <ul className="mt-5 space-y-2.5 border-t border-white/10 pt-5 text-sm text-gray-100">
-                  {/* Items 2–4: the first is already the lead trust pill beside the title. */}
-                  {Array.from(new Set((service.whatIncluded || []).map(cleanIncluded)))
-                    .slice(1, 4)
-                    .map((item, i) => (
-                      <li key={i} className="flex items-start gap-2.5">
-                        <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-green-400" aria-hidden="true" />
-                        <span>{shortIncluded(item)}</span>
-                      </li>
-                    ))}
-                  <li className="flex items-start gap-2.5">
-                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-green-400" aria-hidden="true" />
-                    <span>₹500 voucher on your 2nd visit</span>
-                  </li>
-                </ul>
-
-                <Button
-                  onClick={() => setBookingModalOpen(true)}
-                  className="bg-[var(--neon-green)] hover:brightness-95 mt-6 h-auto min-h-[56px] w-full whitespace-normal rounded-xl py-4 text-base font-bold text-black sm:text-lg"
-                  data-testid="button-book-now-hero"
-                >
-                  {/* Never quote a price the server will not charge: `free` comes from the
-                      same server that decides the amount. */}
-                  {offer.free
-                    ? 'Reserve your slot — no fee'
-                    : isAnnualPackage
-                      ? `Book the package — ${formatINR(service.price)}`
-                      : 'Reserve your slot for ₹299'}
-                  <ArrowRight className="ml-2 h-5 w-5 shrink-0" aria-hidden="true" />
-                </Button>
-
-                <p className="mt-3 text-center text-xs text-gray-400">
-                  {offer.free
-                    ? 'Nothing to pay online, so nothing to cancel — just call or message us.'
-                    : isAnnualPackage
-                      // The package is paid in full, so the ₹299-fee refund rule does not apply.
-                      ? 'Paid in full online — cancellation terms apply.'
-                      : 'Full refund of the booking fee if you cancel 24+ hours ahead.'}{' '}
-                  <a href="/refund-policy" className="underline underline-offset-2 hover:text-gray-200">
-                    Refund policy
-                  </a>
-                </p>
-              </div>
-              {/* The "Prefer a call?" form used to sit under this card. It made the right
-                  column far taller than the left and read as an odd one out beside the
-                  title, so it now has its own centred section lower down the page. */}
-            </section>
+            <p style={{ marginTop: 12, textAlign: "center", fontSize: 12, color: "var(--txt-3)" }}>
+              {offer.free
+                ? 'Nothing to pay online, so nothing to cancel — just call or message us.'
+                : isAnnualPackage
+                  // The package is paid in full, so the ₹299-fee refund rule does not apply.
+                  ? 'Paid in full online — cancellation terms apply.'
+                  : 'Full refund of the booking fee if you cancel 24+ hours ahead.'}{' '}
+              <a href="/refund-policy">Refund policy</a>
+            </p>
+            </div>
           </div>
         </div>
       </section>
 
+      {/* XPEL-style sticky sub-nav: anchor links to the sections further down THIS page,
+          not a tab switcher that hides them — every section stays in the DOM regardless of
+          which tab is "active" (scroll-spied, see the effect above), so nothing here is
+          any less crawlable or find-in-page-able than before this was added. Only a tab
+          whose target section actually rendered for this service appears. */}
+      {subnavItems.length > 0 && (
+        <nav className="service-subnav" aria-label="On this page" data-testid="nav-service-subnav">
+          <div className="wrap">
+            <div className="service-subnav-row">
+              {subnavItems.map((item) => (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  className={"subnav-tab" + (activeSection === item.id ? " is-active" : "")}
+                  data-testid={`tab-subnav-${item.id}`}
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        </nav>
+      )}
+
+      {/* PPF tier tabs — XPEL-style, but real pages, not a JS switcher over one record. */}
+      {tierSiblings.length > 1 && (
+        <nav
+          className="tier-tabs"
+          aria-label="PPF tiers for this vehicle"
+          data-testid="nav-tier-tabs"
+          id={packagesMode === "tiers" ? "packages" : undefined}
+        >
+          <div className="wrap">
+            <div className="tier-tabs-row">
+              {tierSiblings.map((s) => (
+                s.slug === service.slug ? (
+                  <span key={s.id} className="tier-tab is-active" data-testid={`tab-tier-${s.slug}`}>
+                    {s.title.trim()}
+                  </span>
+                ) : (
+                  <Link key={s.id} href={`/service/${s.slug}`} className="tier-tab" data-testid={`tab-tier-${s.slug}`}>
+                    {s.title.trim()}
+                  </Link>
+                )
+              ))}
+            </div>
+          </div>
+        </nav>
+      )}
+
       {/* Before & After Section - Moved to 2nd position */}
-      {(service.slug === 'headlight-restoration-both' || service.slug === 'windshield-glass-coating-new' || service.slug === 'exterior-detailing-hard-water-new' || service.slug === 'interior-detailing-service' || (service.beforeAfter && service.beforeAfter.length > 0)) && (
-        <section className="py-16 px-4 bg-gradient-to-b from-gray-900 to-black">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16">
-              {/* Starts at text-3xl, not text-5xl. "Transformations" is a single
-                  unbreakable 15-character word: at 48px it measures ~368px, and the
-                  column is 328px on a 360px phone, so it alone gave the page 25px of
-                  horizontal scroll. Every fixed element (header, toast viewport) then
-                  stretched to match, which is why the header looked like the culprit.
-                  This section only renders for services that have before/after content,
-                  which is why some service pages overflowed and others did not. */}
-              <h2 className="text-2xl sm:text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
-                Dramatic Transformations
-              </h2>
-              <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-                See the incredible before and after results of our expert car detailing services. 
+      {hasComparisons && (
+        <section className="section light-band" id="gallery">
+          <div className="wrap">
+            <div className="section-head" style={{ textAlign: "center" }}>
+              <h2>Dramatic Transformations</h2>
+              <p style={{ margin: "10px auto 0" }}>
+                See the incredible before and after results of our expert car detailing services.
                 These real transformations speak for themselves.
               </p>
             </div>
 
-            <div className="space-y-16">
-              {/* Headlight Restoration Before/After */}
-              {service.slug === 'headlight-restoration-both' && (
-                <div className="group">
-                  <div className="grid lg:grid-cols-2 gap-8 items-center">
-                    {/* Before Image */}
-                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
-                      <img
-                        className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
-                        src={headlightBefore}
-                        alt="Foggy headlight before restoration"
-                        data-testid="image-headlight-before"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                      <div className="absolute top-6 left-6">
-                        <div className="bg-red-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
-                          BEFORE
-                        </div>
-                      </div>
-                      <div className="absolute bottom-6 left-6">
-                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
-                          <p className="text-sm opacity-90">Foggy & Yellowed</p>
-                        </div>
-                      </div>
-                    </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 48, marginTop: 40 }}>
+              {comparison && <ComparisonBlock comparison={comparison} />}
 
-                    {/* After Image */}
-                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
-                      <img
-                        className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
-                        src={headlightAfter}
-                        alt="Crystal clear headlight after restoration"
-                        data-testid="image-headlight-after"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                      <div className="absolute top-6 right-6">
-                        <div className="bg-green-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
-                          AFTER
-                        </div>
-                      </div>
-                      <div className="absolute bottom-6 right-6">
-                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
-                          <p className="text-sm opacity-90">Crystal Clear</p>
-                        </div>
-                      </div>
-                    </div>
+              {/* Original beforeAfter data from the record, when present. */}
+              {genericComparisons.map((c, index) => (
+                <div key={index}>
+                  <div className="card-img" style={{ position: "relative", maxWidth: 960, margin: "0 auto" }}>
+                    <ImageWithFallback
+                      src={c.before}
+                      alt={`${service.title} transformation ${index + 1}`}
+                      sizes="(min-width: 1024px) 960px, 100vw"
+                      style={{ aspectRatio: "4 / 3", objectPosition: "center" }}
+                      data-testid={`image-comparison-${index}`}
+                    />
+                    <span className="card-cat" style={{ background: "#B4232F", color: "#fff", borderColor: "transparent" }}>BEFORE</span>
+                    <span className="card-cat" style={{ right: 10, left: "auto", background: "var(--neon-green)", color: "#04120A", borderColor: "transparent" }}>AFTER</span>
                   </div>
-
-                  {/* YouTube Video */}
-                  <div className="mt-12 max-w-4xl mx-auto">
-                    <div className="text-center mb-6">
-                      <h3 className="text-2xl font-bold text-white mb-2">Watch The Complete Process</h3>
-                      <p className="text-gray-400">See how we transform foggy headlights to crystal clear</p>
-                    </div>
-                    <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800 shadow-2xl">
-                      <iframe
-                        src="https://www.youtube.com/embed/XXb4J6cBze0"
-                        title="Headlight Restoration Process - P91 Car Care"
-                        className="w-full h-full"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      ></iframe>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Glass Coating Before/After */}
-              {service.slug === 'windshield-glass-coating-new' && (
-                <div className="group">
-                  <div className="max-w-4xl mx-auto">
-                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
-                      <img
-                        className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
-                        src={glassCoating}
-                        alt="Water beading on ceramic coated windshield"
-                        data-testid="image-glass-coating"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                      <div className="absolute top-6 left-6">
-                        <div className="bg-blue-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
-                          COATED GLASS
-                        </div>
-                      </div>
-                      <div className="absolute bottom-6 center-6">
-                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg mx-auto">
-                          <p className="text-sm opacity-90">Water Beading Effect</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* YouTube Video */}
-                  <div className="mt-12 max-w-4xl mx-auto">
-                    <div className="text-center mb-6">
-                      <h3 className="text-2xl font-bold text-white mb-2">See The Water Repelling Effect</h3>
-                      <p className="text-gray-400">Watch how water slides off instantly after coating</p>
-                    </div>
-                    <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800 shadow-2xl">
-                      <iframe
-                        src="https://www.youtube.com/embed/Oak9CKJMz6E"
-                        title="Glass Coating Water Repelling Demo - P91 Car Care"
-                        className="w-full h-full"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      ></iframe>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Glass Polishing Before/After */}
-              {service.slug === 'windshield-glass-polishing' && (
-                <div className="group">
-                  <div className="max-w-4xl mx-auto">
-                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
-                      <img
-                        className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
-                        src={glassPolishing}
-                        alt="Crystal clear polished windshield"
-                        data-testid="image-glass-polishing"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                      <div className="absolute top-6 left-6">
-                        <div className="bg-emerald-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
-                          POLISHED GLASS
-                        </div>
-                      </div>
-                      <div className="absolute bottom-6 center-6">
-                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg mx-auto">
-                          <p className="text-sm opacity-90">Crystal Clear Clarity</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* YouTube Video */}
-                  <div className="mt-12 max-w-4xl mx-auto">
-                    <div className="text-center mb-6">
-                      <h3 className="text-2xl font-bold text-white mb-2">See The Polishing Process</h3>
-                      <p className="text-gray-400">Watch how we restore crystal-clear visibility by removing water spots and scratches</p>
-                    </div>
-                    <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800 shadow-2xl">
-                      <iframe
-                        src="https://www.youtube.com/embed/Oak9CKJMz6E"
-                        title="Glass Polishing Process - P91 Car Care"
-                        className="w-full h-full"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      ></iframe>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Exterior Detailing Before/After */}
-              {service.slug === 'exterior-detailing-hard-water-new' && (
-                <div className="group">
-                  <div className="grid lg:grid-cols-2 gap-8 items-center">
-                    {/* Before Image */}
-                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
-                      <img
-                        className="w-full h-[350px] md:h-[400px] object-cover transition-transform duration-700 group-hover:scale-105"
-                        src={exteriorDetailingBefore}
-                        alt="Car before exterior detailing - dull and dirty"
-                        data-testid="image-exterior-before"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                      <div className="absolute top-6 left-6">
-                        <div className="bg-red-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
-                          BEFORE
-                        </div>
-                      </div>
-                      <div className="absolute bottom-6 left-6">
-                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
-                          <p className="text-sm opacity-90">Dull & Dirty</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* After Image */}
-                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
-                      <img
-                        className="w-full h-[350px] md:h-[400px] object-cover transition-transform duration-700 group-hover:scale-105"
-                        src={exteriorDetailingAfter}
-                        alt="Car after exterior detailing - glossy orange finish"
-                        data-testid="image-exterior-after"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                      <div className="absolute top-6 right-6">
-                        <div className="bg-green-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
-                          AFTER
-                        </div>
-                      </div>
-                      <div className="absolute bottom-6 right-6">
-                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
-                          <p className="text-sm opacity-90">Showroom Shine</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <div className="mt-8 text-center">
-                    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 max-w-4xl mx-auto">
-                      <p className="text-lg text-gray-300 leading-relaxed">
-                        Our professional exterior detailing transforms your car's appearance with deep cleaning, 
-                        paint correction, and protective coating. See the mirror-like finish and showroom shine 
-                        that makes your car look brand new.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Optimized Video */}
-                  <div className="mt-12 max-w-4xl mx-auto">
-                    <div className="text-center mb-6">
-                      <h3 className="text-2xl font-bold text-white mb-2">Watch The Detailing Process</h3>
-                      <p className="text-gray-400">See how we transform dull cars into showroom perfection</p>
-                    </div>
-                    <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800 shadow-2xl">
-                      <video
-                        className="w-full h-full object-cover"
-                        controls
-                        preload="none"
-                        poster={exteriorDetailingAfter}
-                        width="640"
-                        height="360"
-                      >
-                        <source src="/attached_assets/Exterior Detailing_1754031679196.mp4" type="video/mp4" />
-                        Your browser does not support the video tag.
-                      </video>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Interior Detailing Before/After */}
-              {service.slug === 'interior-detailing-service' && (
-                <div className="group">
-                  <div className="max-w-4xl mx-auto">
-                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
-                      <img
-                        className="w-full object-contain transition-transform duration-700 group-hover:scale-105"
-                        src={interiorDetailingComparison}
-                        alt="Interior detailing before and after comparison - dirty vs clean car interior"
-                        data-testid="image-interior-comparison"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                      <div className="absolute top-6 left-6">
-                        <div className="bg-orange-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
-                          SEE THE DIFFERENCE
-                        </div>
-                      </div>
-                      <div className="absolute bottom-6 center-6">
-                        <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg mx-auto">
-                          <p className="text-sm opacity-90">Before vs After</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-8 text-center">
-                    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 max-w-4xl mx-auto">
-                      <p className="text-lg text-gray-300 leading-relaxed">
-                        Transform your {vehicleNoun}'s interior from dirty and stained to fresh and spotless.
-                        Our deep cleaning process removes dirt, stains, and odors, leaving your interior 
-                        looking and smelling like new.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Optimized Interior Video */}
-                  <div className="mt-12 max-w-4xl mx-auto">
-                    <div className="text-center mb-6">
-                      <h3 className="text-2xl font-bold text-white mb-2">Interior Detailing Process</h3>
-                      <p className="text-gray-400">See our comprehensive interior cleaning transformation</p>
-                    </div>
-                    <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800 shadow-2xl">
-                      <video
-                        className="w-full h-full object-cover"
-                        controls
-                        preload="none"
-                        poster={interiorDetailingComparison}
-                        width="480"
-                        height="270"
-                      >
-                        <source src="/attached_assets/Interior Detailing_1754032868240.mp4" type="video/mp4" />
-                        Your browser does not support the video tag.
-                      </video>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Original beforeAfter data if exists */}
-              {service.beforeAfter && service.beforeAfter.map((comparison, index) => (
-                <div key={index} className="group">
-                  {/* Single Full-Width Comparison Image */}
-                  <div className="max-w-5xl mx-auto">
-                    <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl" style={{ maxHeight: '500px' }}>
-                      <img
-                        className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
-                        style={{ objectPosition: 'center bottom', marginTop: '-20%' }}
-                        src={comparison.before}
-                        alt={`${service.title} transformation ${index + 1}`}
-                        data-testid={`image-comparison-${index}`}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                      
-                      {/* Before label on left side */}
-                      <div className="absolute top-6 left-6">
-                        <div className="bg-red-600 text-white px-4 py-2 rounded-full text-sm md:text-lg font-bold shadow-lg">
-                          BEFORE
-                        </div>
-                      </div>
-                      
-                      {/* After label on right side */}
-                      <div className="absolute top-6 right-6">
-                        <div className="bg-green-600 text-white px-4 py-2 rounded-full text-sm md:text-lg font-bold shadow-lg">
-                          AFTER
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Description */}
-                    {comparison.description && (
-                      <div className="mt-6 text-center">
-                        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 md:p-6">
-                          <p className="text-base md:text-lg text-gray-300 leading-relaxed">
-                            {comparison.description}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Separator */}
-                  {index < service.beforeAfter.length - 1 && (
-                    <div className="flex justify-center mt-12 mb-12">
-                      <div className="w-32 h-1 bg-gradient-to-r from-transparent via-green-400 to-transparent"></div>
-                    </div>
+                  {c.description && (
+                    <p className="fineprint" style={{ maxWidth: 760, margin: "16px auto 0", textAlign: "center", fontStyle: "normal" }}>
+                      {c.description}
+                    </p>
                   )}
                 </div>
               ))}
             </div>
 
             {/* CTA at bottom of before/after section */}
-            <div className="mt-20 text-center">
-              <div className="bg-green-600/20 backdrop-blur-sm rounded-2xl p-6 sm:p-8 max-w-2xl mx-auto border border-green-400/30">
-                <h3 className="text-2xl font-bold mb-4 text-white">
-                  Ready for Your Transformation?
-                </h3>
-                <p className="text-gray-300 mb-6">
-                  Join hundreds of satisfied customers who've experienced the P91 difference
-                </p>
-                <Button
-                  size="lg"
-                  onClick={() => setBookingModalOpen(true)}
-                  className="bg-[var(--neon-green)] hover:brightness-95 text-black font-bold px-6 sm:px-8 py-4 text-base sm:text-lg max-w-full whitespace-normal h-auto rounded-[10px]"
-                  data-testid="button-book-transformation"
-                >
-                  Book Your Transformation
-                  <ArrowRight className="ml-2 w-5 h-5 shrink-0" />
-                </Button>
-              </div>
+            <div className="lp-final" style={{ marginTop: 48 }}>
+              <h2>Ready for Your Transformation?</h2>
+              <p>Join hundreds of satisfied customers who've experienced the P91 difference</p>
+              <button
+                type="button"
+                onClick={() => setBookingModalOpen(true)}
+                className="cta-lg"
+                data-testid="button-book-transformation"
+              >
+                Book Your Transformation
+                <ArrowRight className="i" aria-hidden="true" />
+              </button>
             </div>
           </div>
         </section>
@@ -834,23 +772,136 @@ export default function ServiceLanding() {
           - the process shows step titles, not the paragraph under each one.
         ─────────────────────────────────────────────────────────────────────────────────
       */}
-      {service.whatIncluded && service.whatIncluded.length > 0 && (
-        <section className="bg-black px-4 py-16">
-          <div className="mx-auto max-w-5xl">
-            <h2 className="mb-8 text-center text-2xl font-bold sm:text-3xl lg:text-4xl">What's Included</h2>
-            <ul className="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.from(new Set(service.whatIncluded.map(cleanIncluded))).map((item, index) => (
-                <li
-                  key={index}
-                  className="flex min-w-0 items-center gap-3 rounded-lg border border-gray-800 bg-gray-900/60 px-4 py-3"
-                >
-                  <CheckCircle className="h-5 w-5 shrink-0 text-green-400" aria-hidden="true" />
-                  <span className="truncate text-sm text-gray-200 sm:text-base" title={cleanIncluded(item)}>
-                    {shortIncluded(item)}
-                  </span>
-                </li>
-              ))}
-            </ul>
+      {/* XPEL-style Overview: the service's own video (when the record has one) or its hero
+          photo, large, beside the "What's Included" list as icon-bullet items — one
+          headline clause bold, the item's full sentence as its description, so nothing
+          about the record is hidden, only trimmed to a scannable line first. Deliberately
+          re-uses heroImage here rather than service.images[1]: the photo-break section
+          below is the one place images[1] gets shown, so a two-photo record never shows
+          the same picture twice in a row. */}
+      {((service.whatIncluded && service.whatIncluded.length > 0) || service.heroVideo) && (
+        <section className="section light-band" id="overview">
+          <div className="wrap">
+            <div className="section-head" style={{ textAlign: "center" }}>
+              <h2>Why Choose P91 {service.title.trim()}?</h2>
+            </div>
+            <div className="overview-grid">
+              {service.heroVideo && isDirectVideoFile(service.heroVideo) ? (
+                <div className="card-img overview-media" style={{ aspectRatio: "16 / 9" }}>
+                  {/* The studio's own reel, saved as a real file — autoplaying background
+                      footage, same treatment as the homepage hero's video (muted,
+                      loop, playsInline so mobile Safari doesn't force fullscreen).
+                      heroImage as poster: never a blank/black frame before it decodes. */}
+                  <video
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    poster={heroImage}
+                    data-testid="video-overview"
+                  >
+                    <source src={service.heroVideo} type="video/mp4" />
+                  </video>
+                </div>
+              ) : service.heroVideo ? (
+                <div className="card-img overview-media" style={{ aspectRatio: "16 / 9" }}>
+                  <iframe
+                    style={{ width: "100%", height: "100%", border: 0 }}
+                    src={service.heroVideo}
+                    title={`${service.title.trim()} — P91 Car Care`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    data-testid="video-overview"
+                  />
+                </div>
+              ) : heroImage ? (
+                <ImageWithFallback
+                  className="overview-media"
+                  src={heroImage}
+                  alt={`${service.title.trim()} at the P91 Car Care studio in Adugodi, Bangalore`}
+                  sizes="(min-width: 860px) 480px, 100vw"
+                  style={{ aspectRatio: "4 / 3", objectPosition: "center" }}
+                  loading="lazy"
+                  data-testid="image-overview"
+                />
+              ) : null}
+              {service.whatIncluded && service.whatIncluded.length > 0 && (
+                <ul className="overview-benefits">
+                  {Array.from(new Set(service.whatIncluded.map(cleanIncluded))).map((item, index) => {
+                    const headline = shortIncluded(item);
+                    // A short record item ("Front windshield film") has no clause to trim,
+                    // so shortIncluded(item) returns it unchanged — printing it again below
+                    // as a "description" was the same six words twice, which is what made
+                    // this list run so much longer than the photo beside it. Only items
+                    // shortIncluded ACTUALLY shortened get that second line.
+                    return (
+                      <li key={index}>
+                        <CheckCircle className="i" aria-hidden="true" />
+                        <div>
+                          <h3>{headline}</h3>
+                          {headline !== item && <p>{item}</p>}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+      {/* Full-bleed photo break, XPEL-style: one large real photo as a visual pause between
+          content blocks, not a hero and not a gallery. Uses the service's SECOND photo when
+          the catalogue record has one (only the first is ever used, as the hero above), so
+          this is never a duplicate of what the visitor already scrolled past — and falls
+          back to the same hero photo for the (more common) single-image record rather than
+          rendering nothing. No new or downloaded images; no new claim in the overlay text,
+          just the service name and the studio's real location. */}
+      {(service.images?.[1] ?? heroImage) && (
+        <section
+          className="section"
+          style={{
+            padding: 0,
+            position: "relative",
+            minHeight: "clamp(260px, 40vw, 420px)",
+            display: "flex",
+            alignItems: "flex-end",
+            overflow: "hidden",
+          }}
+          data-testid="section-photo-break"
+        >
+          <ImageWithFallback
+            src={service.images?.[1] ?? heroImage}
+            alt={`${service.title.trim()} at the P91 Car Care studio in Adugodi, Bangalore`}
+            sizes="100vw"
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: "center",
+            }}
+            data-testid="image-photo-break"
+          />
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 0,
+              // Lightened alongside the hero and the final CTA banner (same request):
+              // the photo shows brighter, text leans on its own shadow instead.
+              background: "linear-gradient(to top, rgba(9,9,11,.55) 0%, rgba(9,9,11,.2) 45%, transparent 75%)",
+            }}
+          />
+          <div className="wrap" style={{ position: "relative", zIndex: 1, paddingBlock: 24 }}>
+            <p style={{ color: "var(--neon-green)", fontSize: 13, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", marginBottom: 6, textShadow: "0 1px 8px rgba(0,0,0,.85)" }}>
+              Adugodi, Bangalore
+            </p>
+            <h2 style={{ fontSize: "clamp(22px,3.6vw,32px)", fontWeight: 800, textShadow: "0 2px 16px rgba(0,0,0,.85), 0 1px 3px rgba(0,0,0,.9)" }}>
+              {service.title.trim()}
+            </h2>
           </div>
         </section>
       )}
@@ -860,32 +911,27 @@ export default function ServiceLanding() {
         reels={REELS_BY_SERVICE[service.slug] ?? []}
         heading="See it on Instagram"
         intro={`Real ${service.title.trim().toLowerCase()} work from our Adugodi studio.`}
-        className="bg-black"
       />
+      {/* XPEL-style statement band ("Let It Roll Off"): a full-width mid-tone panel,
+          headline and copy side by side instead of stacked and centred. */}
       {service.whyChoose && (
-        <section className="bg-gray-900 px-4 py-16">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="mb-4 text-2xl font-bold sm:text-3xl lg:text-4xl">Why P91 Car Care in Adugodi?</h2>
-            <p className="text-base leading-relaxed text-gray-300 sm:text-lg">{firstSentence(service.whyChoose)}</p>
+        <section className="statement-band light-band" id="benefits">
+          <div className="wrap statement-grid">
+            <h2>Why choose P91 in Adugodi?</h2>
+            <p>{firstSentence(service.whyChoose)}</p>
           </div>
         </section>
       )}
       {service.process && service.process.length > 0 && (
-        <section className="bg-black px-4 py-16">
-          <div className="mx-auto max-w-5xl">
-            <h2 className="mb-8 text-center text-2xl font-bold sm:text-3xl lg:text-4xl">Our Process</h2>
-            <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <section className="section light-band" id={packagesMode === "process" ? "packages" : undefined}>
+          <div className="wrap narrow">
+            <div className="section-head" style={{ textAlign: "center" }}>
+              <h2>Our Process</h2>
+            </div>
+            <ol className="lp-steps">
               {service.process.map((step, index) => (
-                <li
-                  key={index}
-                  className="flex min-w-0 items-center gap-3 rounded-lg border border-gray-800 bg-gray-900/60 px-4 py-3"
-                >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-400 text-sm font-bold text-black">
-                    {step.step ?? index + 1}
-                  </span>
-                  <span className="truncate text-sm font-medium text-gray-200 sm:text-base" title={step.title}>
-                    {step.title}
-                  </span>
+                <li key={index} title={step.title}>
+                  {step.title}
                 </li>
               ))}
             </ol>
@@ -897,168 +943,168 @@ export default function ServiceLanding() {
           hero now carries the service photo instead. Restore image galleries once the
           studio supplies real work photos or Instagram reels. */}
       {service.gallery && service.gallery.some(item => item.type === 'video') && (
-        <section className="py-16 px-4 bg-gray-900">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
-                Inside the Studio
-              </h2>
-              <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+        <section className="section light-band" id={!hasComparisons ? "gallery" : undefined}>
+          <div className="wrap">
+            <div className="section-head" style={{ textAlign: "center" }}>
+              <h2>Inside the Studio</h2>
+              <p style={{ margin: "10px auto 0" }}>
                 See our expert technicians in action as they transform your {vehicleNoun} with precision and care.
               </p>
             </div>
 
             {/* Single Video - Full Width 16:9 */}
             {service.gallery.find(item => item.type === 'video') && (
-              <div className="max-w-6xl mx-auto mb-16">
-                <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
-                  <div className="aspect-video"> {/* 16:9 aspect ratio */}
-                    <iframe
-                      className="w-full h-full rounded-2xl"
-                      src={service.gallery.find(item => item.type === 'video')?.url}
-                      title={service.gallery.find(item => item.type === 'video')?.caption || `${service.title} Process Video`}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                      data-testid="video-process"
-                    />
-                  </div>
-                  <div className="absolute top-6 left-6">
-                    <div className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg flex items-center gap-2">
-                      <Play className="w-4 h-4" />
-                      PROCESS VIDEO
-                    </div>
-                  </div>
-                  {service.gallery.find(item => item.type === 'video')?.caption && (
-                    <div className="absolute bottom-6 left-6 right-6">
-                      <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-3 rounded-lg">
-                        <p className="text-sm font-medium">
-                          {service.gallery.find(item => item.type === 'video')?.caption}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
+              <div className="card-img" style={{ aspectRatio: "16 / 9", position: "relative", maxWidth: 1100, margin: "32px auto 0" }}>
+                <iframe
+                  style={{ width: "100%", height: "100%", border: 0 }}
+                  src={service.gallery.find(item => item.type === 'video')?.url}
+                  title={service.gallery.find(item => item.type === 'video')?.caption || `${service.title} Process Video`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  data-testid="video-process"
+                />
+                <span className="card-cat">
+                  <Play className="i" aria-hidden="true" style={{ marginRight: 4 }} />
+                  PROCESS VIDEO
+                </span>
               </div>
             )}
 
             {/* Single Image - Full Width */}
             {service.gallery.find(item => item.type === 'image') && (
-              <div className="max-w-6xl mx-auto">
-                <div className="relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl group">
-                  <img
-                    className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
-                    src={service.gallery.find(item => item.type === 'image')?.url}
-                    alt={
-                      service.gallery.find(item => item.type === 'image')?.caption ||
-                      `${service.title.trim()} being carried out at the P91 Car Care studio in Adugodi, Bangalore`
-                    }
-                    width={1600}
-                    height={1000}
-                    loading="lazy"
-                    decoding="async"
-                    data-testid="image-process"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                  {service.gallery.find(item => item.type === 'image')?.caption && (
-                    <div className="absolute bottom-6 left-6 right-6">
-                      <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-3 rounded-lg">
-                        <p className="text-sm font-medium">
-                          {service.gallery.find(item => item.type === 'image')?.caption}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
+              <div className="card-img" style={{ position: "relative", maxWidth: 1100, margin: "24px auto 0" }}>
+                <ImageWithFallback
+                  src={service.gallery.find(item => item.type === 'image')?.url}
+                  alt={
+                    service.gallery.find(item => item.type === 'image')?.caption ||
+                    `${service.title.trim()} being carried out at the P91 Car Care studio in Adugodi, Bangalore`
+                  }
+                  width={1600}
+                  height={1000}
+                  sizes="(min-width: 1024px) 1100px, 100vw"
+                  loading="lazy"
+                  decoding="async"
+                  style={{ aspectRatio: "4 / 3", objectPosition: "center" }}
+                  data-testid="image-process"
+                />
+                {service.gallery.find(item => item.type === 'image')?.caption && (
+                  <div style={{ position: "absolute", bottom: 10, left: 10, right: 10, background: "rgba(9,9,11,.86)", color: "var(--txt)", padding: "8px 14px", borderRadius: 8, fontSize: 13 }}>
+                    {service.gallery.find(item => item.type === 'image')?.caption}
+                  </div>
+                )}
               </div>
             )}
 
             {/* Optional CTA below gallery */}
-            <div className="mt-16 text-center">
-              <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 max-w-2xl mx-auto">
-                <h3 className="text-2xl font-bold mb-4 text-white">
-                  Experience Professional Car Care
-                </h3>
-                <p className="text-gray-300 mb-6">
-                  Book your service today and let our experts give your {vehicleNoun} the attention it deserves
-                </p>
-                <Button
-                  size="lg"
-                  onClick={() => setBookingModalOpen(true)}
-                  className="bg-[var(--neon-green)] hover:brightness-95 text-black font-bold px-8 py-4 rounded-[10px]"
-                  data-testid="button-book-gallery"
-                >
-                  Book Your Service
-                  <ArrowRight className="ml-2 w-5 h-5 shrink-0" />
-                </Button>
-              </div>
+            <div className="lp-final" style={{ marginTop: 40 }}>
+              <h2>Experience Professional Car Care</h2>
+              <p>Book your service today and let our experts give your {vehicleNoun} the attention it deserves</p>
+              <button
+                type="button"
+                onClick={() => setBookingModalOpen(true)}
+                className="cta-lg"
+                data-testid="button-book-gallery"
+              >
+                Book Your Service
+                <ArrowRight className="i" aria-hidden="true" />
+              </button>
             </div>
           </div>
         </section>
       )}
       {/* Testimonials Section */}
       {showTestimonials && service.testimonials && service.testimonials.length > 0 && (
-        <section className="py-16 px-4">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-2xl sm:text-4xl font-bold text-center mb-12">What Our Customers Say</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <section className="section light-band">
+          <div className="wrap">
+            <div className="section-head" style={{ textAlign: "center" }}>
+              <h2>What Our Customers Say</h2>
+            </div>
+            <div className="grid">
               {service.testimonials.map((testimonial, index) => (
-                <Card key={index} className="bg-gray-900 border-gray-800">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-1 mb-4">
+                <div key={index} className="card">
+                  <div className="card-body">
+                    <div style={{ display: "flex", gap: 2, marginBottom: 12 }}>
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`w-4 h-4 ${i < testimonial.rating ? 'text-yellow-400 fill-current' : 'text-gray-600'}`}
+                          className="i"
+                          style={{ color: i < testimonial.rating ? "#E9B949" : "var(--medium-gray)", fill: i < testimonial.rating ? "#E9B949" : "none" }}
                         />
                       ))}
                     </div>
-                    <p className="text-gray-300 mb-4 italic">"{testimonial.comment}"</p>
-                    <div className="flex items-center gap-3">
+                    <p style={{ color: "var(--txt-2)", fontStyle: "italic", marginBottom: 14 }}>"{testimonial.comment}"</p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       {testimonial.image && (
-                        <img
-                          className="w-10 h-10 rounded-full object-cover"
+                        <ImageWithFallback
+                          style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }}
                           src={testimonial.image}
                           alt={testimonial.name}
+                          sizes="36px"
                         />
                       )}
                       <div>
-                        <p className="font-semibold">{testimonial.name}</p>
-                        <p className="text-sm text-gray-400">Verified Customer</p>
+                        <p style={{ fontWeight: 600 }}>{testimonial.name}</p>
+                        <p style={{ color: "var(--txt-3)", fontSize: 12.5 }}>Verified Customer</p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
         </section>
       )}
-      {/* FAQ Section */}
+      {/* FAQ Section — light card, XPEL-style, scoped to .faq-light only (the rest of the
+          page stays the site's usual dark theme; see .hero-light-bg above for the same
+          scoping approach). */}
       {service.faq && service.faq.length > 0 && (
-        <section className="py-16 px-4 bg-gray-900">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="mb-8 text-center text-2xl font-bold sm:text-3xl lg:text-4xl">
-              {service.title.trim()} in Adugodi, Bangalore: FAQs
-            </h2>
+        <section className="section faq-light" id="faqs">
+          <div className="wrap narrow">
+            <div className="section-head" style={{ textAlign: "center" }}>
+              <h2>{service.title.trim()} in Adugodi, Bangalore: FAQs</h2>
+            </div>
             {/*
-              Every answer is visible text, not a collapsed accordion. The Radix accordion
-              UNMOUNTS closed panels, so the answers were not in the page at all until
-              someone clicked — search engines and AI answer engines only ever saw the
-              questions (plus the FAQPage schema). Question = h3, answer = the paragraph
-              under it, which is the shape those engines quote from.
+              Each answer is a native <details>/<summary> disclosure, not a JS-conditional
+              accordion. The distinction matters: this still renders every answer into the
+              raw HTML and the prerendered output regardless of open/closed state — only the
+              browser's layout hides a closed one, so search engines and AI answer engines
+              that read markup rather than executing JS still see every answer, not just the
+              questions. A conditionally-rendered accordion would have actually removed the
+              closed answers from the DOM, which is the failure mode this avoids.
             */}
-            <dl className="grid gap-x-8 gap-y-6 md:grid-cols-2" data-testid="faq-list">
+            <div className="lp-faqs" data-testid="faq-list">
               {service.faq
                 .filter((item) => item?.question?.trim() && item?.answer?.trim())
                 .map((item, index) => (
-                  <div key={index} className="border-t border-gray-800 pt-4">
-                    <dt>
-                      <h3 className="text-base font-semibold text-white sm:text-lg">{item.question.trim()}</h3>
-                    </dt>
-                    <dd className="mt-1.5 text-sm leading-relaxed text-gray-200 sm:text-base">{item.answer.trim()}</dd>
-                  </div>
+                  <details className="lp-faq" key={index}>
+                    <summary>{item.question.trim()}</summary>
+                    <p>{item.answer.trim()}</p>
+                  </details>
                 ))}
-            </dl>
+            </div>
+          </div>
+        </section>
+      )}
+      {/* Related services — see relatedServices above for why this exists at all. */}
+      {relatedServices.length > 0 && (
+        <section className="section light-band">
+          <div className="wrap narrow">
+            <div className="section-head">
+              <h2>Other {heroCategory.toLowerCase()} services for your {vehicleNoun}</h2>
+            </div>
+            <div className="mini-grid">
+              {relatedServices.map((s) => (
+                <Link
+                  key={s.id}
+                  href={`/service/${s.slug}`}
+                  className="mini"
+                  data-testid={`link-related-${s.slug}`}
+                >
+                  <b>{s.title.trim()}</b>
+                  <span>{formatINR(s.price)}</span>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
       )}
@@ -1069,83 +1115,142 @@ export default function ServiceLanding() {
         serviceSlug={service.slug}
         isBikeService={isBikeService}
       />
-      {/* Guarantee Section */}
+      {/* Guarantee Section + the trust strip right after it share one light band (see
+          .light-band in redesign.css) — same "opposite palette, by request" scoping as
+          .hero-light-bg/.faq-light, just spanning these two adjacent sections instead of
+          one, so there's no visible seam between them. */}
       {service.guaranteeText && (
-        <section className="py-16 px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <Shield className="w-16 h-16 text-green-400 mx-auto mb-6" />
-            <h2 className="text-2xl sm:text-3xl font-bold mb-6">Our Guarantee</h2>
-            <p className="text-xl text-gray-300 leading-relaxed">{service.guaranteeText}</p>
+        <section className="section light-band" id={!service.whyChoose ? "benefits" : undefined}>
+          <div className="wrap narrow" style={{ textAlign: "center" }}>
+            <Shield className="i" style={{ width: 40, height: 40, color: "var(--neon-green)", margin: "0 auto 16px" }} aria-hidden="true" />
+            <div className="section-head">
+              <h2>Our Guarantee</h2>
+            </div>
+            <p style={{ fontSize: 17 }}>{service.guaranteeText}</p>
           </div>
         </section>
       )}
-      {/* Final CTA Section */}
-      <section ref={finalCtaRef} className="py-16 px-4 bg-gradient-to-r from-green-600 to-green-800">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl sm:text-4xl font-bold mb-6">Ready to Transform Your {vehicleNounTitle}?</h2>
-          <p className="text-xl mb-8 opacity-90">
-            Book your {service.title.toLowerCase()} today and experience the P91 difference!
-          </p>
-          
-          <div className="mb-8">
-            {/* flex-wrap because the price is live data of unknown length: the PPF rows
-                are five figures ("₹65000.00" beside "₹95000.00" and the Save badge),
-                which is 2px wider than a 360px phone allows on one line. */}
-            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mb-4">
-              <span className="text-2xl sm:text-4xl font-bold">₹{service.price}</span>
-              {service.originalPrice && (
-                <>
-                  <span className="text-2xl opacity-75 line-through">₹{service.originalPrice}</span>
-                  <Badge className="bg-black text-green-400">Save {discountPercent}%</Badge>
-                </>
-              )}
+      {/* Bottom trust strip — same three real claims and icons as home.tsx's, not new ones
+          invented for this page: warranty terms, same-day turnaround and pickup/drop are
+          true of every service, not just this one. */}
+      <section className={"strip light-band" + (service.guaranteeText ? " light-band-joined" : "")}>
+        <div className="wrap">
+          <div className="row cols-3">
+            <div className="cell">
+              <svg className="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 2l8 3v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V5z" /><path d="M9 12l2 2 4-4" />
+              </svg>
+              <b>Warranty-backed</b><span>Written warranty on every coating and PPF job</span>
             </div>
-            {service.urgencyText && (
-              <p className="text-black font-semibold animate-pulse">{service.urgencyText}</p>
-            )}
-          </div>
-
-          {/* ctaText comes from the record and its length is not ours to predict, so this
-              wraps rather than forcing the page wider than a 320px phone. */}
-          <Button
-            size="lg"
-            onClick={() => setBookingModalOpen(true)}
-            className="h-auto max-w-full whitespace-normal bg-black px-6 py-4 text-lg font-bold text-green-400 hover:bg-gray-900 sm:px-12 sm:text-xl"
-            data-testid="button-book-now-final"
-          >
-            {/* One booking phrase site-wide. ctaText ("Get Protected Now"...) varied per record. */}
-            Book Now
-            <ArrowRight className="ml-2 h-6 w-6 shrink-0" />
-          </Button>
-
-          {/* Contact Info */}
-          <div className="mt-12 flex flex-wrap justify-center gap-8 text-sm opacity-90">
-            <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4" />
-              +91 74066 19191
+            <div className="cell">
+              <svg className="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
+              </svg>
+              <b>Same-day service</b><span>Most detailing finished the day you book</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Mail className="w-4 h-4" />
-              info@p91carcare.com
+            <div className="cell">
+              <svg className="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 21s7-5.3 7-11a7 7 0 1 0-14 0c0 5.7 7 11 7 11z" /><circle cx="12" cy="10" r="2.6" />
+              </svg>
+              <b>Pickup &amp; drop</b><span>Available across Bangalore at cost</span>
             </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4" />
-              Bangalore, Karnataka
-            </div>
-            <a
-              href={INSTAGRAM_PROFILE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 hover:underline"
-              data-testid="link-service-instagram"
-            >
-              <SiInstagram className="w-4 h-4" aria-hidden="true" />
-              @{INSTAGRAM_HANDLE}
-            </a>
           </div>
         </div>
       </section>
-      <BrandFooter />
+      {/* Final CTA Section — full-bleed background photo, XPEL "Discover..." banner style,
+          instead of a plain dark panel. Same content, testids and copy as before; only the
+          backdrop is new. Falls back to heroImage so a single-photo record still gets a
+          real background instead of a blank one. */}
+      <section ref={finalCtaRef} className="section cta-banner">
+        {(service.images?.[1] ?? heroImage) && (
+          <>
+            <ImageWithFallback
+              className="cta-banner-bg"
+              src={service.images?.[1] ?? heroImage}
+              alt={`${service.title.trim()} at the P91 Car Care studio in Adugodi, Bangalore`}
+              sizes="100vw"
+              loading="lazy"
+            />
+            <div className="cta-banner-scrim" aria-hidden="true" />
+          </>
+        )}
+        <div className="wrap narrow">
+          <div className="lp-final">
+            <h2>Ready to Transform Your {vehicleNounTitle}?</h2>
+            <p>
+              Book your {service.title.toLowerCase()} today and experience the P91 difference!
+            </p>
+
+            <p style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", justifyContent: "center", gap: "6px 12px", margin: "0 0 8px" }}>
+              <ins className="lp-price-now" style={{ textDecoration: "none" }}>{formatINR(service.price)}</ins>
+              {service.originalPrice && (
+                <>
+                  <del className="lp-price-was">{formatINR(service.originalPrice)}</del>
+                  <Badge className="bg-black text-green-400">Save {discountPercent}%</Badge>
+                </>
+              )}
+            </p>
+            {service.urgencyText && (
+              <p style={{ color: "var(--neon-green)", fontWeight: 600, marginBottom: 16 }}>{service.urgencyText}</p>
+            )}
+
+            <div className="hero-cta" style={{ justifyContent: "center" }}>
+              <button
+                type="button"
+                onClick={() => setBookingModalOpen(true)}
+                className="cta-lg"
+                data-testid="button-book-now-final"
+              >
+                {/* One booking phrase site-wide. ctaText ("Get Protected Now"...) varied per record. */}
+                Book Now
+                <ArrowRight className="i" aria-hidden="true" />
+              </button>
+            </div>
+
+            {/* Contact Info — each one a real link, matching the Instagram link beside
+                them (was three plain spans that looked identical to it but did nothing). */}
+            <div style={{ marginTop: 28, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 24, fontSize: 13.5, color: "var(--txt-2)" }}>
+              <a
+                href="tel:+917406619191"
+                style={{ display: "flex", alignItems: "center", gap: 7, color: "inherit" }}
+                data-testid="link-service-phone"
+              >
+                <Phone className="i" aria-hidden="true" />
+                +91 74066 19191
+              </a>
+              <a
+                href="mailto:info@p91carcare.com"
+                style={{ display: "flex", alignItems: "center", gap: 7, color: "inherit" }}
+                data-testid="link-service-email"
+              >
+                <Mail className="i" aria-hidden="true" />
+                info@p91carcare.com
+              </a>
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Adugodi+Bengaluru"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: "flex", alignItems: "center", gap: 7, color: "inherit" }}
+                data-testid="link-service-location"
+              >
+                <MapPin className="i" aria-hidden="true" />
+                Bangalore, Karnataka
+              </a>
+              <a
+                href={INSTAGRAM_PROFILE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: "flex", alignItems: "center", gap: 7 }}
+                data-testid="link-service-instagram"
+              >
+                <SiInstagram className="i" aria-hidden="true" />
+                @{INSTAGRAM_HANDLE}
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+      <SiteFooter />
       {/*
         Sticky booking bar. Full width along the bottom on phones — price, what paying
         today does, and one Reserve button, reachable however far down the customer has
@@ -1155,44 +1260,50 @@ export default function ServiceLanding() {
       */}
       {showFloatingCTA && !finalCtaVisible && !bookingModalOpen && !floatingCtaDismissed && (
         <div
-          className="fixed inset-x-0 bottom-0 z-[45] sm:inset-x-auto sm:right-4 sm:bottom-4"
-          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+          className="card fixed inset-x-0 bottom-0"
+          style={{
+            zIndex: 45,
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+            borderRadius: 0, borderLeft: 0, borderRight: 0, borderBottom: 0,
+          }}
           data-testid="floating-cta-button"
         >
-          <div className="relative flex items-center gap-3 border-t border-green-500/40 bg-gray-950/95 px-4 py-3 shadow-2xl backdrop-blur-md sm:max-w-sm sm:rounded-2xl sm:border">
-            <div className="min-w-0 flex-1">
-              <div className="flex items-baseline gap-2">
-                <span className="text-lg font-extrabold text-white">{formatINR(service.price)}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px" }}>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <span style={{ fontSize: 18, fontWeight: 800 }}>{formatINR(service.price)}</span>
                 {service.originalPrice && (
-                  <del className="text-xs text-gray-500">{formatINR(service.originalPrice)}</del>
+                  <del style={{ fontSize: 12, color: "var(--txt-3)" }}>{formatINR(service.originalPrice)}</del>
                 )}
               </div>
-              <div className="truncate text-xs text-green-300">
+              <div style={{ fontSize: 12, color: "var(--neon-green)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {offer.free
                   ? 'No booking fee'
                   : isAnnualPackage ? 'Full package, paid online' : 'Pay ₹299 now to hold your slot'}
               </div>
             </div>
-            <Button
+            <button
+              type="button"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setBookingModalOpen(true);
               }}
-              className="bg-[var(--neon-green)] hover:brightness-95 min-h-[44px] shrink-0 rounded-xl px-4 text-sm font-bold text-black"
+              className="cta-lg"
+              style={{ flex: "none", minHeight: 44, padding: "0 18px", fontSize: 14 }}
               data-testid="button-floating-book-now"
             >
               Reserve slot
-            </Button>
+            </button>
             {/* Persistent bar, so it needs a way out. 44x44 touch target. */}
             <button
               type="button"
               onClick={() => setFloatingCtaDismissed(true)}
               aria-label="Dismiss booking bar"
-              className="inline-flex h-11 w-9 shrink-0 items-center justify-center rounded-full text-gray-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
+              style={{ flex: "none", width: 36, height: 44, display: "inline-flex", alignItems: "center", justifyContent: "center", color: "var(--txt-3)", background: "none", border: 0 }}
               data-testid="button-dismiss-floating-cta"
             >
-              <span aria-hidden="true" className="text-xl leading-none">×</span>
+              <span aria-hidden="true" style={{ fontSize: 20, lineHeight: 1 }}>×</span>
             </button>
           </div>
         </div>

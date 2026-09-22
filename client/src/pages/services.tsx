@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { BrandHeader, BrandFooter } from "@/components/redesign/brand-chrome";
+import SiteHeader from "@/components/redesign/site-header";
+import SiteFooter from "@/components/redesign/site-footer";
 import ServiceCard from "@/components/service-card";
 import ServiceFilter from "@/components/service-filter";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { type ServiceRecord } from "@/lib/canonical-services";
 import { SERVICES_SEO } from "@/lib/static-seo";
@@ -39,19 +39,14 @@ export default function Services() {
   });
 
   return (
-    <div className="p91-brand min-h-screen bg-black text-white">
-      <BrandHeader />
+    <div className="p91x min-h-screen">
+      <SiteHeader />
 
-      <section className="pt-12 pb-20 sm:pt-16 bg-gradient-to-b from-black to-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-10">
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-4">
-              <span className="text-white">All </span>
-              <span className="bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
-                Services
-              </span>
-            </h1>
-            <p className="text-lg text-gray-300 max-w-3xl">
+      <section className="section">
+        <div className="wrap">
+          <div className="section-head">
+            <h1>All Services</h1>
+            <p>
               Filter by what your vehicle is and what it needs. Prices, offers and availability are
               live — the same ones you will see at checkout.
             </p>
@@ -73,11 +68,11 @@ export default function Services() {
             Deliberately a small row above the grid, not a replacement for it: the 17 cards
             and their /service/:slug pages are indexed and stay exactly as they are.
           */}
-          <nav className="mb-10" aria-label="Popular services">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">
+          <nav style={{ marginBottom: 40 }} aria-label="Popular services">
+            <h2 style={{ fontSize: 13, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".08em", color: "var(--txt-3)", marginBottom: 14 }}>
               Book by service
             </h2>
-            <div className="grid sm:grid-cols-3 gap-4">
+            <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
               {[
                 { href: "/ceramic-coating/car", label: "Ceramic Coating", sub: "For your car" },
                 { href: "/ceramic-coating/bike", label: "Ceramic Coating", sub: "For your motorcycle" },
@@ -86,24 +81,27 @@ export default function Services() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="flex flex-col gap-1 rounded-xl border border-gray-800 bg-gray-900/60 px-5 py-4 transition-colors hover:border-green-500 focus-visible:border-green-500"
+                  className="card"
                   data-testid={`link-fork-${item.href.replace(/\//g, "-").replace(/^-/, "")}`}
                 >
-                  <span className="font-semibold text-white">{item.label}</span>
-                  <span className="text-sm text-gray-400">{item.sub}</span>
+                  <div className="card-body">
+                    <h3>{item.label}</h3>
+                    <p className="card-note">{item.sub}</p>
+                  </div>
                 </Link>
               ))}
             </div>
           </nav>
 
           {isLoading ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid">
               {Array.from({ length: 9 }).map((_, i) => (
-                <div key={i} className="bg-gray-900 rounded-2xl overflow-hidden">
-                  <Skeleton className="w-full h-48 bg-gray-800" />
-                  <div className="p-6 space-y-4">
-                    <Skeleton className="h-6 w-32 bg-gray-800" />
-                    <Skeleton className="h-16 w-full bg-gray-800" />
+                <div key={i} className="card-skel" data-testid="skeleton-service">
+                  <div className="img" />
+                  <div style={{ padding: 20 }}>
+                    <div className="bar" style={{ height: 16, width: "70%", marginBottom: 12 }} />
+                    <div className="bar" style={{ height: 12, width: "50%", marginBottom: 22 }} />
+                    <div className="bar" style={{ height: 22, width: "40%" }} />
                   </div>
                 </div>
               ))}
@@ -111,7 +109,7 @@ export default function Services() {
           ) : (
             <ServiceFilter services={Array.isArray(services) ? services : []}>
               {(filtered) => (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid">
                   {filtered.map((service: any) => (
                     <ServiceCard key={service.id} service={service} />
                   ))}
@@ -122,7 +120,7 @@ export default function Services() {
         </div>
       </section>
 
-      <BrandFooter />
+      <SiteFooter />
     </div>
   );
 }

@@ -1,8 +1,20 @@
 /**
- * The 17 /service/* pages share one template, and the studio asked for that template to
- * look like /ppf-ceramic-coating. These tests pin the parts of that layout a later edit
- * could quietly undo: the announcement bar, a header carrying the phone and a CTA, the
- * two-column hero with the enquiry form on the right, and the section rhythm.
+ * The 17 /service/* pages share one template. These tests pin the parts of that layout a
+ * later edit could quietly undo: the site-wide header carrying the phone and a Book Now
+ * that opens the modal in place, the light-theme two-column hero (white background, real
+ * photo boxed on one side, the dark offer card as an accent panel on the other — by
+ * explicit request, the opposite palette of the rest of the dark/green site, scoped only
+ * to this hero), and the section rhythm.
+ *
+ * HERO VIDEO (Overview section): the studio's own reel, saved under attached_assets/reels/
+ * and keyed to the one matching service via its heroVideo field. Originally removed
+ * entirely because no real per-service footage existed and a generic clip behind the wrong
+ * service's name would have misrepresented the work; now that real per-service footage
+ * exists, the guard below asserts it stays real (never the old generic homepage clips) and
+ * safe (muted/looping background footage, not autoplaying sound).
+ *
+ * Migrated off `.p91-brand`/`BrandHeader` onto full `.p91x` + `SiteHeader`/`SiteFooter` —
+ * see tests/design-unification.test.mjs for the site-wide chrome assertions this implies.
  */
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
@@ -16,7 +28,7 @@ const raw =fs.readFileSync(path.join(repoRoot, 'client/src/pages/service-landing
 /** Comments stripped, so assertions match code rather than the prose describing it. */
 const src = raw.replace(/\{\/\*[\s\S]*?\*\/\}/g, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
-const heroStart = src.indexOf('<section className="relative overflow-hidden bg-gradient-to-br');
+const heroStart = src.indexOf('<section className="hero-light-bg"');
 const heroEnd = src.indexOf('</section>', heroStart);
 const hero = src.slice(heroStart, heroEnd);
 
@@ -27,21 +39,45 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
 
   test('the site-wide header and footer, with Book Now opening this page\'s booking form', () => {
     const top = src.slice(0, heroStart);
-    // Shared chrome (Phase 2): the page-only green bar and header are gone.
+    // Shared chrome (Phase 2, then the full .p91x migration): the page-only green bar and
+    // header, and later the .p91-brand/BrandHeader shim, are gone.
     assert.doesNotMatch(top, /from-green-700 to-green-800/);
-    assert.match(top, /<BrandHeader onBookNow=\{\(\) => setBookingModalOpen\(true\)\} \/>/);
-    assert.match(src, /<BrandFooter \/>/);
+    assert.match(top, /<SiteHeader onBookNow=\{\(\) => setBookingModalOpen\(true\)\} \/>/);
+    assert.match(src, /<SiteFooter \/>/);
     // The phone number lives in the shared header.
     assert.match(read('client/src/components/redesign/site-header.tsx'), /href="tel:\+917406619191"/);
   });
 
-  test('60/40 hero: copy left, offer card alone on the right, vertically centred', () => {
-    assert.match(hero, /lg:grid-cols-12 lg:items-center/);
-    assert.match(hero, /lg:col-span-7/);
-    assert.match(hero, /<section aria-label="Pricing and booking" className="[^"]*lg:col-span-5/);
+  test('light-theme hero: real photo as the full-bleed background, dark offer card on top', () => {
+    // By explicit request: white/black, the opposite palette of the rest of the
+    // dark/green site, scoped only to this hero via .hero-light-bg — and the photo is
+    // the section's own background (behind the text), not boxed beside it.
+    assert.ok(hero.includes('data-testid="img-hero"'));
     assert.ok(hero.includes('data-testid="offer-card"'));
+    // The offer card is the ordinary dark `.card`, unchanged — an accent panel on the
+    // light hero, not recoloured for it.
+    assert.match(hero, /className="card"\s*\n\s*data-testid="offer-card"/);
+    // Comes after the title/description/trust-pills in the same column, not a separate
+    // grid track.
+    assert.ok(
+      hero.indexOf('data-testid="offer-card"') > hero.indexOf('data-testid="trust-pills"'),
+      'offer card follows the copy in the same column',
+    );
     // The call-back form looked out of place under the card, so it is not in the hero.
     assert.ok(!/<QuoteForm\b/.test(hero), 'no form in the hero');
+  });
+
+  test('hero video only plays a service\'s own saved footage, muted and looping', () => {
+    // Gated on the SERVICE RECORD's own heroVideo field, not a hardcoded clip — a
+    // service with no footage falls through to its photo instead (isDirectVideoFile
+    // branch in service-landing.tsx). autoPlay+muted+loop+playsInline: background
+    // footage, never a video that plays with sound or forces fullscreen on mobile.
+    assert.match(src, /<video\b/);
+    assert.match(src, /service\.heroVideo && isDirectVideoFile\(service\.heroVideo\)/);
+    assert.match(src, /autoPlay[\s\S]{0,40}muted[\s\S]{0,40}loop[\s\S]{0,40}playsInline/);
+    // The OLD generic homepage clips this page used to (wrongly) share must never come back.
+    assert.doesNotMatch(src, /attached_assets\/(Exterior|Interior) Detailing_/);
+    assert.doesNotMatch(src, /useHeroVideoGate/);
   });
 
   test('"Prefer a call?" is a popup, not an inline section', () => {
@@ -73,7 +109,7 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
     assert.doesNotMatch(src, /\$\{service\.duration\} min/);
   });
 
-  test('sections use the same 64px rhythm as /ppf-ceramic-coating', () => {
+  test('sections use the shared .section rhythm, not a one-off Tailwind padding', () => {
     const sections = src.match(/<section[^>]*className="[^"]*"/g) || [];
     for (const s of sections) assert.doesNotMatch(s, /\bpy-(20|24)\b/, s);
   });

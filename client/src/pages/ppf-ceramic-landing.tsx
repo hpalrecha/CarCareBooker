@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+// `.lp` styles, shipped in this lazy chunk (see campaign-landing.tsx for the same import
+// and why neither lives in main.tsx's global stylesheet anymore).
+import "@/styles/landing-pages.css";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { formatINR, type ServiceRecord } from "@/lib/canonical-services";
 import {
   PPF_CERAMIC_PRICE_SLUGS,
@@ -20,21 +22,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useToast } from "@/hooks/use-toast";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { PPF_CERAMIC_SEO } from "@/lib/static-seo";
-import { BrandHeader, BrandFooter } from "@/components/redesign/brand-chrome";
+import SiteHeader from "@/components/redesign/site-header";
+import SiteFooter from "@/components/redesign/site-footer";
+import { ImageWithFallback } from "@/components/image-with-fallback";
 import InstagramReels from "@/components/instagram-reels";
 import { REELS_FOR_PPF_CERAMIC_PAGE } from "@/lib/instagram-reels";
 import { attributionPayload } from "@/lib/attribution";
 import { trackLead as trackMetaLead } from "@/lib/meta-pixel";
-import { 
-  Shield, 
-  Sparkles, 
-  Car, 
-  Bike, 
-  Check, 
-  Star, 
-  Award, 
-  Clock, 
-  Phone, 
+import {
+  Shield,
+  Sparkles,
+  Car,
+  Bike,
+  Check,
+  Star,
+  Award,
+  Clock,
+  Phone,
   MapPin,
   ChevronRight,
   Gift,
@@ -43,11 +47,8 @@ import {
   BadgeCheck,
   Timer,
   RefreshCcw,
-  MessageCircle
 } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
-import { Link } from "wouter";
-import p91Logo from "@assets/Car Care (4)_1753951564515.png";
 
 const leadFormSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -145,30 +146,32 @@ function HeroPriceTile({
 }) {
   return (
     <div
-      className={
-        popular
-          ? "bg-green-500/20 rounded-xl p-3 border-2 border-green-500 relative overflow-hidden text-center"
-          : "bg-gray-800/50 rounded-xl p-3 border border-gray-700 relative overflow-hidden text-center"
-      }
+      className="relative overflow-hidden text-center"
+      style={{
+        borderRadius: 10,
+        padding: 12,
+        background: popular ? "var(--neon-soft)" : "var(--dark-gray)",
+        border: popular ? "1px solid var(--neon-green)" : "1px solid var(--medium-gray)",
+      }}
       data-testid={testId}
     >
       {popular ? (
-        <div className="absolute top-0 right-0 bg-green-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg">POPULAR</div>
+        <div className="absolute top-0 right-0" style={{ background: "var(--neon-green)", color: "#04120A", fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: "0 0 0 8px" }}>POPULAR</div>
       ) : pricing && pricing.discountPercent > 0 ? (
-        <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg">{pricing.discountPercent}% OFF</div>
+        <div className="absolute top-0 right-0" style={{ background: "#B4232F", color: "#fff", fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: "0 0 0 8px" }}>{pricing.discountPercent}% OFF</div>
       ) : null}
       {pricing?.originalPrice ? (
-        <div className="text-xs text-gray-400 line-through" data-testid={`${testId}-was`}>
+        <div style={{ fontSize: 12, color: "var(--txt-3)", textDecoration: "line-through" }} data-testid={`${testId}-was`}>
           {formatINR(pricing.originalPrice)}
         </div>
       ) : (
         // Holds the row height so tiles with and without a struck-through price stay aligned.
-        <div className="text-xs" aria-hidden="true">{" "}</div>
+        <div className="text-xs" aria-hidden="true">{" "}</div>
       )}
-      <div className="text-xl font-bold text-green-400" data-testid={`${testId}-price`}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: "var(--neon-green)" }} data-testid={`${testId}-price`}>
         {pricing ? formatINR(pricing.price) : loading ? "…" : "On request"}
       </div>
-      <div className="text-xs text-gray-400">{label}</div>
+      <div style={{ fontSize: 12, color: "var(--txt-3)" }}>{label}</div>
     </div>
   );
 }
@@ -486,80 +489,71 @@ export default function PpfCeramicLanding() {
   ];
 
   return (
-    <div className="p91-brand min-h-screen bg-black text-white">
+    <div className="p91x min-h-screen">
       {/*
-        The site header, shared with every other page (components/redesign/brand-chrome).
-        Replaced three pieces of page-only chrome: a fixed blue "Call Now" tab on the right
-        edge (the header carries the phone number), a green announcement bar, and this page's
-        own header. Book Now still takes the visitor to this page's enquiry form.
+        The site header, shared with every other page (components/redesign/site-header).
+        Book Now still takes the visitor to this page's enquiry form.
       */}
-      <BrandHeader onBookNow={scrollToForm} />
+      <SiteHeader onBookNow={scrollToForm} />
 
-      {/* Hero Section with Form */}
-      <section className="relative py-12 lg:py-20 px-4 bg-gradient-to-br from-gray-900 via-black to-gray-900">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-start">
+      {/* Hero Section with Form — same two-column shape as the other landing templates
+          (`.lp-hero-grid`), copy left, an enquiry form (not a photo) fixed-width on the
+          right. */}
+      <section className="section lp-hero">
+        <div className="wrap">
+          <div className="lp-hero-grid">
             {/* Hero Content */}
-            <div className="space-y-6">
-              <div className="flex flex-wrap gap-2">
-                <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-400 px-4 py-2 rounded-full text-sm font-medium">
-                  <Shield className="w-4 h-4" />
+            <div className="lp-hero-copy">
+              <div className="flex flex-wrap gap-2" style={{ marginBottom: 14 }}>
+                <span className="eyebrow">
+                  <Shield className="i" aria-hidden="true" />
                   Premium Protection
-                </div>
-                {/* Was "#1 in Bangalore" — an unverifiable ranking claim. The studio
-                    location is the verifiable fact, and it is the one a local customer
-                    clicking an ad actually wants in the first three seconds. */}
+                </span>
                 {/* The location is the one fact a local customer checks first, so it opens
                     the studio on Google Maps rather than just sitting there as a label. */}
                 <a
                   href="https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Adugodi+Bengaluru"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-yellow-500/20 px-4 py-2 text-sm font-medium text-yellow-400 transition-colors hover:bg-yellow-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-yellow-400"
+                  className="eyebrow"
+                  style={{ background: "rgba(233,185,73,.12)", borderColor: "rgba(233,185,73,.35)", color: "var(--warn)" }}
                   data-testid="link-studio-map"
                 >
-                  <MapPin className="h-4 w-4" aria-hidden="true" />
+                  <MapPin className="i" aria-hidden="true" />
                   Adugodi, Bangalore
                 </a>
               </div>
-              
-              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold leading-tight">
-                <span className="text-green-400">PPF</span> & <span className="text-green-400">Ceramic Coating</span>
-                <br />for Cars & Bikes
+
+              <h1>
+                <span style={{ color: "var(--neon-green)" }}>PPF</span> &amp; <span style={{ color: "var(--neon-green)" }}>Ceramic Coating</span>
+                <br />for Cars &amp; Bikes
               </h1>
 
-              <div className="bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border border-yellow-600/50 rounded-xl p-4">
-                {/* Was "BANGALORE'S BIGGEST DETAILING STUDIO" over "500+ vehicles
-                    protected | 10+ years warranty | No questions asked replacement".
-                    The superlative and the vehicle count are unverified; the warranty
-                    terms are a real business commitment and are kept, stated once here
-                    rather than repeated as a statistic. */}
-                <div className="flex items-center gap-2 text-yellow-400 font-bold mb-2">
-                  <Zap className="w-5 h-5" />
+              <div style={{ borderRadius: 10, border: "1px solid rgba(233,185,73,.4)", background: "linear-gradient(90deg, rgba(233,185,73,.12), rgba(255,150,60,.08))", padding: 16, marginBottom: 18 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--warn)", fontWeight: 700, marginBottom: 8 }}>
+                  <Zap className="i" aria-hidden="true" />
                   PAINT PROTECTION SPECIALISTS
                 </div>
-                <p className="text-gray-300 text-sm">
+                <p style={{ color: "var(--txt-2)", fontSize: 14 }}>
                   STEK · Nasiol · P91 Premium PPF | Up to 10-year PPF warranty with no-questions-asked replacement
                 </p>
               </div>
-              
-              <p className="text-xl text-gray-300 leading-relaxed">
-                Protect your investment with world-class paint protection. 
-                We use premium brands including our exclusive <strong className="text-green-400">P91 Premium PPF</strong>, 
+
+              <p className="lp-lede">
+                Protect your investment with world-class paint protection.
+                We use premium brands including our exclusive <strong style={{ color: "var(--neon-green)" }}>P91 Premium PPF</strong>,
                 plus STEK and Nasiol ceramic coating.
               </p>
 
               {/* Warranty Highlight */}
-              <div className="bg-green-500/10 border-2 border-green-500 rounded-xl p-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-green-500 rounded-full p-2">
-                    <BadgeCheck className="w-6 h-6 text-black" />
+              <div style={{ borderRadius: 10, border: "2px solid var(--neon-green)", background: "var(--neon-soft)", padding: 16, marginBottom: 20 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ background: "var(--neon-green)", borderRadius: "50%", padding: 8, flex: "none" }}>
+                    <BadgeCheck style={{ width: 24, height: 24, color: "#04120A" }} aria-hidden="true" />
                   </div>
                   <div>
-                    {/* Sentence case. Two words in caps read as emphasis; a whole line of
-                        it reads as shouting, and the claim is strong enough plainly. */}
-                    <div className="text-lg font-bold text-green-400">No-questions-asked warranty</div>
-                    <div className="text-sm text-gray-300">
+                    <div style={{ fontSize: 17, fontWeight: 800, color: "var(--neon-green)" }}>No-questions-asked warranty</div>
+                    <div style={{ fontSize: 14, color: "var(--txt-2)" }}>
                       If the PPF fails we replace it at no charge, up to 10 years coverage.
                     </div>
                   </div>
@@ -568,32 +562,33 @@ export default function PpfCeramicLanding() {
 
               {/* Stats Counter */}
               {/*
-                These tiles hold WORDS, not numbers, and the numeric-stat styling they
-                inherited broke on a phone: four columns at text-2xl gave each tile 64px at
-                320px wide, while "Adugodi" needs 131px. It spilled 67px out of its card.
-
-                Two fixes, both needed. `min-w-0` because a grid item defaults to
-                min-width:auto and refuses to shrink below its content, and two columns on
-                mobile so the longest word has room before the type scales up.
+                These tiles hold WORDS, not numbers: two columns on mobile so the longest
+                word ("Warranty") has room before the type scales up.
               */}
-              <div className="grid grid-cols-2 gap-2 py-4 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
+              <div className="grid grid-cols-2 gap-2 py-4 sm:grid-cols-4" style={{ marginBottom: 4 }}>
                 {stats.map((stat, idx) => (
                   <div
                     key={idx}
-                    className="min-w-0 rounded-lg border border-gray-700 bg-gray-800/50 p-3 text-center"
+                    className="min-w-0 text-center"
+                    style={{ borderRadius: 8, border: "1px solid var(--medium-gray)", background: "var(--dark-gray)", padding: 12 }}
                   >
-                    <div className="break-words text-lg font-bold leading-tight text-green-400 sm:text-xl">
+                    <div className="break-words" style={{ fontSize: 17, fontWeight: 700, lineHeight: 1.2, color: "var(--neon-green)" }}>
                       {stat.value}
                     </div>
-                    <div className="mt-0.5 text-xs text-gray-400">{stat.label}</div>
+                    <div style={{ marginTop: 2, fontSize: 12, color: "var(--txt-3)" }}>{stat.label}</div>
                   </div>
                 ))}
               </div>
 
               {/* Discounted Price Cards - PPF by Car Type */}
-              <div className="space-y-3">
-                <h3 className="text-lg font-bold text-white">PPF Pricing (Full Body) <span className="text-green-400 text-sm font-normal">- Starts at</span></h3>
-                <div className="grid grid-cols-3 gap-2">
+              <div style={{ marginBottom: 20 }}>
+                {/* h2, not h3: this is the first subsection heading after the page's h1,
+                    so it must not skip a level. Same inline style as before — the tag
+                    changed, not the appearance. */}
+                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>
+                  PPF Pricing (Full Body) <span style={{ color: "var(--neon-green)", fontSize: 13, fontWeight: 400 }}>- Starts at</span>
+                </h2>
+                <div className="grid grid-cols-3 gap-2" style={{ marginBottom: 8 }}>
                   <HeroPriceTile label="Hatchback" pricing={priceFor(PPF_CERAMIC_PRICE_SLUGS.ppfHatchback)} loading={pricesLoading} testId="tile-price-ppf-hatchback" />
                   <HeroPriceTile label="Sedan" pricing={priceFor(PPF_CERAMIC_PRICE_SLUGS.ppfSedan)} loading={pricesLoading} popular testId="tile-price-ppf-sedan" />
                   <HeroPriceTile label="SUV" pricing={priceFor(PPF_CERAMIC_PRICE_SLUGS.ppfSuv)} loading={pricesLoading} testId="tile-price-ppf-suv" />
@@ -605,43 +600,46 @@ export default function PpfCeramicLanding() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-6 text-sm text-gray-400">
-                <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-green-400" />
+              <div className="hero-facts">
+                <span>
+                  <Phone className="i" aria-hidden="true" style={{ color: "var(--neon-green)" }} />
                   +91 74066 19191
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-green-400" />
+                </span>
+                <span>
+                  <MapPin className="i" aria-hidden="true" style={{ color: "var(--neon-green)" }} />
                   Bangalore
-                </div>
+                </span>
               </div>
             </div>
 
             {/* Lead Form */}
-            <div id="lead-form" className="bg-gray-900 rounded-2xl p-6 lg:p-8 border border-gray-800 shadow-2xl lg:sticky lg:top-24">
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center gap-2 bg-red-500/20 text-red-400 px-3 py-1 rounded-full text-xs font-medium mb-3">
-                  <Timer className="w-3 h-3" />
+            <div id="lead-form" className="card lp-hero-media" style={{ padding: "24px 22px" }}>
+              <div style={{ textAlign: "center", marginBottom: 22 }}>
+                <span className="eyebrow" style={{ background: "rgba(180,35,47,.14)", borderColor: "rgba(180,35,47,.35)", color: "#ff8a95" }}>
+                  <Timer className="i" aria-hidden="true" />
                   Limited Slots Available
-                </div>
-                <h2 className="text-2xl font-bold text-white">Book Now</h2>
-                <p className="text-gray-400 mt-2">Our expert will contact you within 24 hours</p>
+                </span>
+                {/* No heading here: the form's own submit button already says "Book Now"
+                    a few inches below, so a heading repeating the same words added nothing —
+                    the eyebrow above and the form fields below already say what this card is. */}
+                <p style={{ color: "var(--txt-3)", fontSize: 14, marginTop: 10 }}>Our expert will contact you within 24 hours</p>
               </div>
 
               {hasSubmitted ? (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Check className="w-8 h-8 text-green-400" />
+                <div style={{ textAlign: "center", padding: "24px 0" }}>
+                  <div style={{ width: 56, height: 56, background: "var(--neon-soft)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
+                    <Check style={{ width: 28, height: 28, color: "var(--neon-green)" }} />
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-2">Thank You!</h3>
-                  <p className="text-gray-400">We've received your inquiry. Our team will contact you shortly.</p>
-                  <Button
+                  <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Thank You!</h3>
+                  <p style={{ color: "var(--txt-3)" }}>We've received your inquiry. Our team will contact you shortly.</p>
+                  <button
+                    type="button"
                     onClick={() => setHasSubmitted(false)}
-                    variant="outline"
-                    className="mt-4"
+                    className="cta-ghost"
+                    style={{ marginTop: 16 }}
                   >
                     Submit Another Inquiry
-                  </Button>
+                  </button>
                 </div>
               ) : (
                 <Form {...form}>
@@ -785,23 +783,18 @@ export default function PpfCeramicLanding() {
                       )}
                     />
 
-                    {/*
-                      whitespace-normal: Button's base class sets whitespace-nowrap, so a
-                      label this long could not wrap and set a min-content width of 350px
-                      on the whole hero column — which is what pushed a 320px phone into
-                      horizontal scroll. h-auto lets the button grow instead.
-                    */}
-                    <Button
+                    <button
                       type="submit"
-                      className="bg-[var(--neon-green)] hover:brightness-95 h-auto w-full whitespace-normal py-4 text-base font-bold text-black sm:py-6 sm:text-lg rounded-[10px]"
+                      className="cta-lg"
+                      style={{ width: "100%", justifyContent: "center" }}
                       disabled={submitLeadMutation.isPending}
                       data-testid="button-submit-lead"
                     >
                       {submitLeadMutation.isPending ? "Submitting..." : "Book Now"}
-                      <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
-                    </Button>
+                      <ChevronRight className="i" aria-hidden="true" />
+                    </button>
 
-                    <p className="text-xs text-gray-500 text-center">
+                    <p style={{ fontSize: 12, color: "var(--txt-3)", textAlign: "center" }}>
                       By submitting, you agree to be contacted by our team. No spam, we promise!
                     </p>
                   </form>
@@ -812,169 +805,151 @@ export default function PpfCeramicLanding() {
         </div>
       </section>
 
-      {/* Trust Badges */}
-      <section className="py-8 px-4 bg-gray-900/50 border-y border-gray-800">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div className="flex flex-col items-center gap-2">
-              <Shield className="w-8 h-8 text-green-400" />
-              <div className="text-sm font-medium text-white">10 Year Warranty</div>
-              <div className="text-xs text-gray-400">No questions asked</div>
+      {/* Trust Badges — the site's own compact trust-strip pattern (`.strip`), same one
+          the homepage uses, rather than a page-local imitation of it. */}
+      <section className="strip">
+        <div className="wrap">
+          <div className="row">
+            <div className="cell" style={{ textAlign: "center" }}>
+              <Shield className="i" aria-hidden="true" style={{ color: "var(--neon-green)", margin: "0 auto 8px" }} />
+              <b>10 Year Warranty</b>
+              <span>No questions asked</span>
             </div>
             {/* Two tiles here asserted "500+ Happy Customers" and "4.9 Google Rating /
                 200+ reviews". Both are withheld pending confirmation against the actual
                 Google Business Profile — see the testimonials block for the restore
                 procedure. Replaced with the installation facts, so the four-tile row
                 keeps its shape and still answers "why trust these people with my paint". */}
-            <div className="flex flex-col items-center gap-2">
-              <Users className="w-8 h-8 text-green-400" />
-              <div className="text-sm font-medium text-white">In-Studio Installation</div>
-              <div className="text-xs text-gray-400">Adugodi, Bangalore</div>
+            <div className="cell" style={{ textAlign: "center" }}>
+              <Users className="i" aria-hidden="true" style={{ color: "var(--neon-green)", margin: "0 auto 8px" }} />
+              <b>In-Studio Installation</b>
+              <span>Adugodi, Bangalore</span>
             </div>
-            <div className="flex flex-col items-center gap-2">
-              <Star className="w-8 h-8 text-yellow-400" />
-              <div className="text-sm font-medium text-white">Named-Brand Films</div>
-              <div className="text-xs text-gray-400">STEK · Nasiol</div>
+            <div className="cell" style={{ textAlign: "center" }}>
+              <Star className="i" aria-hidden="true" style={{ color: "#E9B949", margin: "0 auto 8px" }} />
+              <b>Named-Brand Films</b>
+              <span>STEK · Nasiol</span>
             </div>
-            <div className="flex flex-col items-center gap-2">
-              <RefreshCcw className="w-8 h-8 text-green-400" />
-              <div className="text-sm font-medium text-white">Free Replacement</div>
-              <div className="text-xs text-gray-400">If PPF fails, we replace</div>
+            <div className="cell" style={{ textAlign: "center" }}>
+              <RefreshCcw className="i" aria-hidden="true" style={{ color: "var(--neon-green)", margin: "0 auto 8px" }} />
+              <b>Free Replacement</b>
+              <span>If PPF fails, we replace</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* Brands Section */}
-      <section className="py-16 px-4 bg-gray-900">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Premium Brands We Use</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">
+      <section className="section">
+        <div className="wrap">
+          <div className="section-head" style={{ textAlign: "center" }}>
+            <h2>Premium Brands We Use</h2>
+            <p style={{ margin: "10px auto 0" }}>
               {/* "the best value protection in India" was an unverifiable comparative
                   claim about the whole market. What is true and checkable is that this
                   is our own film, sold alongside the named third-party brands below. */}
-              Including our own <span className="text-green-400 font-bold">P91 Premium PPF</span>, alongside the brands below
+              Including our own <span style={{ color: "var(--neon-green)", fontWeight: 700 }}>P91 Premium PPF</span>, alongside the brands below
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="flex flex-col gap-6 md:flex-row">
             {/* PPF Brands */}
-            <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
-              <h3 className="text-xl font-bold text-green-400 mb-6 flex items-center gap-2">
-                <Shield className="w-6 h-6" />
+            <div className="card" style={{ flex: 1, padding: "22px 24px" }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: "var(--neon-green)", display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+                <Shield className="i" aria-hidden="true" />
                 Paint Protection Film (PPF)
               </h3>
-              <div className="space-y-4">
+              <div className="flex flex-col gap-3">
                 {ppfBrands.map((brand) => (
-                  <div 
-                    key={brand.name} 
-                    className={`flex items-center justify-between p-4 rounded-xl ${
-                      brand.highlight 
-                        ? "bg-green-500/20 border-2 border-green-500" 
-                        : "bg-gray-900/50"
-                    }`}
+                  <div
+                    key={brand.name}
+                    style={{
+                      display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: 14, borderRadius: 10,
+                      background: brand.highlight ? "var(--neon-soft)" : "var(--deep-black)",
+                      border: brand.highlight ? "1px solid var(--neon-green)" : "1px solid var(--medium-gray)",
+                    }}
                   >
-                    <div className="flex items-center gap-3">
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       {brand.highlight && (
-                        <div className="bg-green-500 text-black text-[10px] font-bold px-2 py-0.5 rounded">
+                        <span style={{ background: "var(--neon-green)", color: "#04120A", fontSize: 10, fontWeight: 700, padding: "3px 7px", borderRadius: 4 }}>
                           {brand.badge}
-                        </div>
+                        </span>
                       )}
                       <div>
-                        <div className={`font-bold text-lg ${brand.highlight ? "text-green-400" : "text-white"}`}>
+                        <div style={{ fontWeight: 700, fontSize: 15.5, color: brand.highlight ? "var(--neon-green)" : "var(--txt)" }}>
                           {brand.name}
                         </div>
-                        <div className="text-sm text-gray-400">{brand.description}</div>
+                        <div style={{ fontSize: 13, color: "var(--txt-3)" }}>{brand.description}</div>
                       </div>
                     </div>
-                    <div className="text-green-400 font-medium text-sm">{brand.warranty}</div>
+                    <div style={{ color: "var(--neon-green)", fontWeight: 600, fontSize: 13 }}>{brand.warranty}</div>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Ceramic Brands */}
-            <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
-              <h3 className="text-xl font-bold text-green-400 mb-6 flex items-center gap-2">
-                <Sparkles className="w-6 h-6" />
+            <div className="card" style={{ flex: 1, padding: "22px 24px" }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: "var(--neon-green)", display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+                <Sparkles className="i" aria-hidden="true" />
                 Ceramic Coating
               </h3>
-              <div className="space-y-4">
+              <div className="flex flex-col gap-3">
                 {ceramicBrands.map((brand) => (
-                  <div key={brand.name} className="flex items-center justify-between p-4 bg-gray-900/50 rounded-xl">
+                  <div key={brand.name} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: 14, borderRadius: 10, background: "var(--deep-black)", border: "1px solid var(--medium-gray)" }}>
                     <div>
-                      <div className="font-bold text-white text-lg">{brand.name}</div>
-                      <div className="text-sm text-gray-400">{brand.description}</div>
+                      <div style={{ fontWeight: 700, fontSize: 15.5 }}>{brand.name}</div>
+                      <div style={{ fontSize: 13, color: "var(--txt-3)" }}>{brand.description}</div>
                     </div>
-                    <div className="text-green-400 font-medium text-sm">{brand.warranty}</div>
+                    <div style={{ color: "var(--neon-green)", fontWeight: 600, fontSize: 13 }}>{brand.warranty}</div>
                   </div>
                 ))}
-                <div className="p-4 bg-green-500/10 rounded-xl border border-green-500/30">
-                  <p className="text-sm text-gray-300">
-                    <strong className="text-green-400">Pro Tip:</strong> Combine PPF + Ceramic Coating for ultimate protection and shine!
-                  </p>
-                </div>
+                <p style={{ padding: 14, borderRadius: 10, background: "var(--neon-soft)", border: "1px solid var(--neon-line)", fontSize: 13.5, color: "var(--txt-2)" }}>
+                  <strong style={{ color: "var(--neon-green)" }}>Pro Tip:</strong> Combine PPF + Ceramic Coating for ultimate protection and shine!
+                </p>
               </div>
             </div>
-          </div>
-
-          <div className="text-center mt-8">
-            <Button
-              onClick={scrollToForm}
-              className="bg-[var(--neon-green)] hover:brightness-95 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto rounded-[10px]"
-              data-testid="button-cta-brands"
-            >
-              Book Now
-              <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
-            </Button>
           </div>
         </div>
       </section>
 
       {/* Completed Works Gallery */}
-      <section className="py-16 px-4 bg-black">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Our Recent Work</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">
+      <section className="section">
+        <div className="wrap">
+          <div className="section-head" style={{ textAlign: "center" }}>
+            <h2>Our Recent Work</h2>
+            <p style={{ margin: "10px auto 0" }}>
               Check out some of the premium vehicles we've protected at our studio
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
             {completedWorks.map((work, idx) => (
-              <div 
-                key={idx} 
-                className="group relative rounded-xl overflow-hidden border border-gray-800 hover:border-green-500 transition-all aspect-[3/4]"
-              >
-                <img
+              <div key={idx} className="card-img" style={{ position: "relative" }}>
+                <ImageWithFallback
                   src={work.image}
                   alt={work.vehicle}
-                  className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                  sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+                  style={{ aspectRatio: "3 / 4", objectPosition: "top" }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-90"></div>
-                <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <div className="flex items-center gap-1 mb-1">
-                    <BadgeCheck className="w-3 h-3 text-green-400" />
-                    <span className="text-green-400 text-xs font-medium">{work.service}</span>
+                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: 12, background: "linear-gradient(to top, rgba(0,0,0,.85), transparent)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 3 }}>
+                    <BadgeCheck style={{ width: 12, height: 12, color: "var(--neon-green)" }} aria-hidden="true" />
+                    <span style={{ color: "var(--neon-green)", fontSize: 11, fontWeight: 600 }}>{work.service}</span>
                   </div>
-                  <h3 className="text-sm font-bold text-white">{work.vehicle}</h3>
+                  <h3 style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{work.vehicle}</h3>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="text-center mt-8">
+          <div style={{ textAlign: "center", marginTop: 32 }}>
             {/* Was "And 500+ more vehicles protected!" — an unverified count. */}
-            <p className="text-gray-400 mb-4">Recent work from our Adugodi studio.</p>
-            <Button
-              onClick={scrollToForm}
-              className="bg-[var(--neon-green)] hover:brightness-95 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto rounded-[10px]"
-            >
+            <p style={{ color: "var(--txt-3)", marginBottom: 16 }}>Recent work from our Adugodi studio.</p>
+            <button type="button" onClick={scrollToForm} className="cta-lg">
               Get Your Vehicle Protected
-              <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
-            </Button>
+              <ChevronRight className="i" aria-hidden="true" />
+            </button>
           </div>
         </div>
       </section>
@@ -988,95 +963,88 @@ export default function PpfCeramicLanding() {
         reels={REELS_FOR_PPF_CERAMIC_PAGE}
         heading="See PPF & Ceramic in Action"
         intro="Real work from our Adugodi studio, straight from our Instagram."
-        className="bg-gray-900"
       />
 
       {/* Pricing Section */}
-      <section className="py-16 px-4 bg-gray-900">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-red-500/20 text-red-400 px-4 py-2 rounded-full text-sm font-medium mb-4">
-              <Timer className="w-4 h-4" />
+      <section className="section">
+        <div className="wrap">
+          <div className="section-head" style={{ textAlign: "center" }}>
+            <span className="eyebrow" style={{ background: "rgba(180,35,47,.14)", borderColor: "rgba(180,35,47,.35)", color: "#ff8a95" }}>
+              <Timer className="i" aria-hidden="true" />
               Limited Time Offer{bestDiscount > 0 ? ` - Up to ${bestDiscount}% OFF` : ""}
-            </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Transparent Pricing</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">
+            </span>
+            <h2 style={{ marginTop: 14 }}>Transparent Pricing</h2>
+            <p style={{ margin: "10px auto 0" }}>
               All prices include professional installation and warranty. These are DISCOUNTED rates for a limited time only!
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid">
             {pricingCards.map((card) => {
               const pricing = priceFor(card.slug);
               return (
               <div
                 key={card.title}
-                className={`relative rounded-2xl p-6 border ${
-                  card.popular
-                    ? "bg-green-500/10 border-green-500"
-                    : "bg-gray-800/50 border-gray-700"
-                }`}
+                className="card"
+                style={{
+                  position: "relative", padding: "22px 20px",
+                  ...(card.popular ? { background: "var(--neon-soft)", borderColor: "var(--neon-green)" } : {}),
+                }}
               >
                 {card.popular && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-green-500 text-black px-4 py-1 rounded-full text-sm font-bold">
-                      Most Popular
-                    </span>
-                  </div>
+                  <span style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "var(--neon-green)", color: "#04120A", padding: "4px 14px", borderRadius: 999, fontSize: 12.5, fontWeight: 700 }}>
+                    Most Popular
+                  </span>
                 )}
 
                 {pricing && pricing.discountPercent > 0 && (
-                  <div className="absolute top-3 right-3">
-                    <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
-                      {pricing.discountPercent}% OFF
-                    </span>
-                  </div>
+                  <span className="card-save" style={{ position: "absolute", top: 10, right: 10 }}>
+                    {pricing.discountPercent}% OFF
+                  </span>
                 )}
 
-                <div className="text-center mb-6 pt-4">
-                  <card.icon className={`w-12 h-12 mx-auto mb-4 ${card.popular ? "text-green-400" : "text-gray-400"}`} />
-                  <h3 className="text-xl font-bold text-white">{card.title}</h3>
-                  <div className="mt-4" data-testid={`price-card-${card.title.toLowerCase().replace(/\s+/g, "-")}`}>
+                <div style={{ textAlign: "center", marginBottom: 20, paddingTop: 8 }}>
+                  <card.icon style={{ width: 40, height: 40, color: card.popular ? "var(--neon-green)" : "var(--txt-3)", margin: "0 auto 12px" }} aria-hidden="true" />
+                  <h3 style={{ fontSize: 17, fontWeight: 700 }}>{card.title}</h3>
+                  <div style={{ marginTop: 12 }} data-testid={`price-card-${card.title.toLowerCase().replace(/\s+/g, "-")}`}>
                     {pricing ? (
-                      <>
+                      <div className="cta-price" style={{ justifyContent: "center" }}>
                         {pricing.originalPrice !== null && (
-                          <span className="text-lg text-gray-500 line-through">{formatINR(pricing.originalPrice)}</span>
+                          <span className="cta-price-was">{formatINR(pricing.originalPrice)}</span>
                         )}
-                        <span className="text-2xl sm:text-3xl font-bold text-green-400 ml-2">{formatINR(pricing.price)}</span>
-                        <span className="text-sm text-gray-400 block">{card.priceNote}</span>
-                      </>
+                        <span className="cta-price-now">{formatINR(pricing.price)}</span>
+                      </div>
                     ) : (
-                      <span className="text-2xl font-bold text-green-400 block">
+                      <span style={{ fontSize: 20, fontWeight: 700, color: "var(--neon-green)" }}>
                         {card.slug && pricesLoading ? "…" : "Price on request"}
                       </span>
                     )}
+                    <span style={{ display: "block", fontSize: 13, color: "var(--txt-3)", marginTop: 4 }}>{card.priceNote}</span>
                   </div>
-                  <div className="text-sm text-green-400 mt-2 flex items-center justify-center gap-1">
-                    <BadgeCheck className="w-4 h-4" />
+                  <div style={{ fontSize: 13, color: "var(--neon-green)", marginTop: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                    <BadgeCheck className="i" aria-hidden="true" />
                     {card.warranty}
                   </div>
                 </div>
 
-                <ul className="space-y-3 mb-6">
+                <ul style={{ marginBottom: 20 }}>
                   {card.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center gap-2 text-sm text-gray-300">
-                      <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
+                    <li key={idx} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5, color: "var(--txt-2)", marginBottom: 10 }}>
+                      <Check className="i" aria-hidden="true" style={{ color: "var(--neon-green)", flex: "none" }} />
                       {feature}
                     </li>
                   ))}
                 </ul>
 
-                <Button
+                <button
+                  type="button"
                   onClick={scrollToForm}
-                  className={`w-full ${
-                    card.popular
-                      ? "bg-[var(--neon-green)] hover:brightness-95 text-black rounded-[10px]"
-                      : "bg-gray-700 hover:bg-gray-600 text-white"
-                  }`}
+                  className={card.popular ? "btn-book" : "cta-ghost"}
+                  style={{ width: "100%", justifyContent: "center" }}
                   data-testid={`button-pricing-${card.title.toLowerCase().replace(/\s+/g, "-")}`}
                 >
                   Book Now
-                </Button>
+                </button>
               </div>
               );
             })}
@@ -1084,36 +1052,67 @@ export default function PpfCeramicLanding() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 px-4 bg-black">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Why PPF & Ceramic Coating?</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">
+      {/* Features Section — `.lp-benefits`: deliberately not cards, same as every other
+          landing template on the site. */}
+      <section className="section">
+        <div className="wrap">
+          <div className="section-head" style={{ textAlign: "center" }}>
+            <h2>Why PPF &amp; Ceramic Coating?</h2>
+            <p style={{ margin: "10px auto 0" }}>
               Protect your vehicle's paint from daily wear and tear while maintaining that showroom shine
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="lp-benefits">
             {features.map((feature) => (
-              <div key={feature.title} className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700 text-center">
-                <feature.icon className="w-12 h-12 text-green-400 mx-auto mb-4" />
-                <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
-                <p className="text-sm text-gray-400">{feature.description}</p>
+              <div className="lp-benefit" key={feature.title} style={{ textAlign: "center", borderTop: "none", paddingTop: 0 }}>
+                <feature.icon style={{ width: 34, height: 34, color: "var(--neon-green)", margin: "0 auto 12px" }} aria-hidden="true" />
+                <h3>{feature.title}</h3>
+                <p>{feature.description}</p>
               </div>
             ))}
           </div>
 
-          <div className="text-center mt-8">
-            <Button
-              onClick={scrollToForm}
-              className="bg-[var(--neon-green)] hover:brightness-95 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto rounded-[10px]"
-              data-testid="button-cta-features"
-            >
+          <div style={{ textAlign: "center", marginTop: 32 }}>
+            <button type="button" onClick={scrollToForm} className="cta-lg" data-testid="button-cta-features">
               Protect Your Vehicle Today
-              <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
-            </Button>
+              <ChevronRight className="i" aria-hidden="true" />
+            </button>
           </div>
+        </div>
+      </section>
+
+      {/* Full-bleed photo break, XPEL-style: one large real photo as a visual pause, not a
+          hero and not another gallery grid — "Our Recent Work" and the Instagram reels
+          above already cover image-led galleries, and everything from "Transparent Pricing"
+          through "Why PPF & Ceramic Coating?" is text/icon-only, so this is where the page
+          currently has the longest photo-free stretch. Reuses a real, already-approved P91
+          work photo (used elsewhere on the site, e.g. /services) rather than one of the
+          Our Recent Work portrait screenshots already shown above on this same page — no
+          new or downloaded image, and no new claim in the overlay text. */}
+      <section
+        className="section"
+        style={{ padding: 0, position: "relative", minHeight: "clamp(260px, 40vw, 420px)", display: "flex", alignItems: "flex-end", overflow: "hidden" }}
+        data-testid="section-photo-break"
+      >
+        <ImageWithFallback
+          src="/attached_assets/services/p91-full-ppf-sedan.webp"
+          alt="P91 Premium PPF fitted to a sedan at the P91 Car Care studio in Adugodi, Bangalore"
+          sizes="100vw"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
+          data-testid="image-photo-break"
+        />
+        <div
+          aria-hidden="true"
+          style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(9,9,11,.88) 0%, rgba(9,9,11,.35) 45%, transparent 75%)" }}
+        />
+        <div className="wrap" style={{ position: "relative", zIndex: 1, paddingBlock: 24 }}>
+          <p style={{ color: "var(--neon-green)", fontSize: 13, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", marginBottom: 6 }}>
+            Adugodi, Bangalore
+          </p>
+          <h2 style={{ fontSize: "clamp(22px,3.6vw,32px)", fontWeight: 800, textShadow: "0 2px 16px rgba(0,0,0,.6)" }}>
+            PPF &amp; Ceramic Coating
+          </h2>
         </div>
       </section>
 
@@ -1126,140 +1125,109 @@ export default function PpfCeramicLanding() {
           head this section are gone with it — an aggregate rating is exactly the kind of
           claim that must come from the Google Business Profile, not from markup. */}
       {testimonials.length > 0 && (
-      <section className="py-16 px-4 bg-gray-900">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">What Our Customers Say</h2>
+      <section className="section">
+        <div className="wrap">
+          <div className="section-head" style={{ textAlign: "center" }}>
+            <h2>What Our Customers Say</h2>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[800px] overflow-y-auto pr-2">
+          <div className="grid">
             {testimonials.map((testimonial, idx) => (
-              <div 
-                key={idx} 
-                className="bg-gray-800/50 rounded-xl p-5 border border-gray-700"
-              >
-                <div className="flex items-center gap-1 mb-3">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-gray-300 mb-3 text-sm">"{testimonial.comment}"</p>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-black font-bold text-sm">
-                    {testimonial.name[0]}
+              <div key={idx} className="card">
+                <div className="card-body">
+                  <div style={{ display: "flex", gap: 2, marginBottom: 10 }}>
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="i" style={{ color: "#E9B949", fill: "#E9B949" }} />
+                    ))}
                   </div>
-                  <div>
-                    <div className="text-white font-medium text-sm">{testimonial.name}</div>
-                    <div className="text-gray-500 text-xs">{testimonial.vehicle}</div>
+                  <p style={{ color: "var(--txt-2)", fontSize: 13.5, marginBottom: 10 }}>"{testimonial.comment}"</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ width: 32, height: 32, background: "var(--neon-green)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#04120A", fontWeight: 700, fontSize: 14 }}>
+                      {testimonial.name[0]}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 13.5 }}>{testimonial.name}</div>
+                      <div style={{ color: "var(--txt-3)", fontSize: 12 }}>{testimonial.vehicle}</div>
+                    </div>
                   </div>
                 </div>
               </div>
             ))}
-          </div>
-
-          <div className="text-center mt-8">
-            <Button
-              onClick={scrollToForm}
-              className="bg-[var(--neon-green)] hover:brightness-95 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto rounded-[10px]"
-            >
-              Book Now
-              <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
-            </Button>
           </div>
         </div>
       </section>
       )}
 
       {/* FAQ Section */}
-      <section className="py-16 px-4 bg-black">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Frequently Asked Questions</h2>
+      <section className="section">
+        <div className="wrap narrow">
+          <div className="section-head" style={{ textAlign: "center" }}>
+            <h2>Frequently Asked Questions</h2>
           </div>
 
-          <div className="space-y-4">
+          {/* Native <details>/<summary> disclosure, not a JS-conditional accordion — every
+              answer stays in the raw HTML regardless of open/closed state, so this collapses
+              by default without hiding anything from a crawler that doesn't run JS. Same
+              .lp-faq CSS (incl. the summary/+ icon rules) service-landing.tsx's FAQ already
+              uses. */}
+          <div className="lp-faqs">
             {faqs.map((faq, idx) => (
-              <div key={idx} className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
-                <h3 className="text-lg font-bold text-white mb-2">{faq.q}</h3>
-                <p className="text-gray-400">{faq.a}</p>
-              </div>
+              <details className="lp-faq" key={idx}>
+                <summary>{faq.q}</summary>
+                <p>{faq.a}</p>
+              </details>
             ))}
           </div>
 
-          <div className="text-center mt-8">
-            <Button
-              onClick={scrollToForm}
-              className="bg-[var(--neon-green)] hover:brightness-95 text-black font-bold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg max-w-full whitespace-normal h-auto rounded-[10px]"
-              data-testid="button-cta-faq"
-            >
+          <div style={{ textAlign: "center", marginTop: 32 }}>
+            <button type="button" onClick={scrollToForm} className="cta-lg" data-testid="button-cta-faq">
               Still Have Questions? Get Expert Advice
-              <ChevronRight className="ml-2 w-5 h-5 shrink-0" />
-            </Button>
+              <ChevronRight className="i" aria-hidden="true" />
+            </button>
           </div>
         </div>
       </section>
 
       {/* Final CTA */}
-      <section className="py-16 px-4 bg-gradient-to-r from-green-900/30 to-green-800/30">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-yellow-500/20 text-yellow-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
-            <Award className="w-4 h-4" />
-            PPF &amp; Ceramic Coating · Adugodi
-          </div>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Ready to Protect Your Vehicle?</h2>
-          <p className="text-xl text-gray-300 mb-4">
-            Book your appointment today. Our team will help you choose the right protection.
-          </p>
-          {/* Sentence case, not shouting. The claim is unchanged. */}
-          <div className="mx-auto mb-8 inline-flex max-w-xl items-center gap-3 rounded-xl border border-green-500 bg-green-500/10 p-4 text-left">
-            <BadgeCheck className="h-6 w-6 shrink-0 text-green-400" aria-hidden="true" />
-            <span className="text-sm font-semibold text-green-400 sm:text-base">
-              No-questions-asked warranty — if the PPF fails, we replace it at no charge.
+      <section className="section">
+        <div className="wrap narrow">
+          <div className="lp-final">
+            <span className="eyebrow">
+              <Award className="i" aria-hidden="true" />
+              PPF &amp; Ceramic Coating · Adugodi
             </span>
-          </div>
-          {/*
-            Was three buttons in three different colours at three different heights — a
-            tall green one, a blue outline and a second, darker green — none of which read
-            as the primary action. Now one primary and two equal secondaries, all the same
-            height (items-stretch plus min-h), so the row lines up.
-          */}
-          <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap">
-            <Button
-              onClick={scrollToForm}
-              className="bg-[var(--neon-green)] hover:brightness-95 min-h-[52px] whitespace-normal px-8 text-base font-bold text-black sm:text-lg rounded-[10px]"
-              data-testid="button-final-cta"
-            >
-              Book Now
-              <ChevronRight className="ml-2 h-5 w-5 shrink-0" />
-            </Button>
-            <a href="tel:+917406619191" className="sm:w-auto">
-              <Button
-                variant="outline"
-                className="min-h-[52px] w-full border-gray-600 px-8 text-base text-white hover:bg-gray-800 sm:text-lg"
+            <h2 style={{ marginTop: 14 }}>Ready to Protect Your Vehicle?</h2>
+            <p>
+              Book your appointment today. Our team will help you choose the right protection.
+            </p>
+            <p style={{ display: "inline-flex", alignItems: "center", gap: 10, borderRadius: 10, border: "1px solid var(--neon-green)", background: "var(--neon-soft)", padding: 14, textAlign: "left", margin: "0 auto 24px", maxWidth: "56ch" }}>
+              <BadgeCheck style={{ width: 22, height: 22, color: "var(--neon-green)", flex: "none" }} aria-hidden="true" />
+              <span style={{ color: "var(--neon-green)", fontWeight: 600, fontSize: 14 }}>
+                No-questions-asked warranty — if the PPF fails, we replace it at no charge.
+              </span>
+            </p>
+            <div className="hero-cta" style={{ justifyContent: "center" }}>
+              <button type="button" onClick={scrollToForm} className="cta-lg" data-testid="button-final-cta">
+                Book Now
+                <ChevronRight className="i" aria-hidden="true" />
+              </button>
+              <a href="tel:+917406619191" className="cta-ghost">
+                <Phone className="i" aria-hidden="true" /> Call Now
+              </a>
+              <a
+                href="https://wa.me/917406619191?text=Hi%20P91%20Car%20Care!%20I'm%20interested%20in%20PPF%20/%20Ceramic%20Coating.%20Please%20share%20more%20details."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="cta-ghost"
               >
-                <Phone className="mr-2 h-5 w-5" aria-hidden="true" />
-                Call Now
-              </Button>
-            </a>
-            <a
-              href="https://wa.me/917406619191?text=Hi%20P91%20Car%20Care!%20I'm%20interested%20in%20PPF%20/%20Ceramic%20Coating.%20Please%20share%20more%20details."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="sm:w-auto"
-            >
-              <Button
-                variant="outline"
-                className="min-h-[52px] w-full border-gray-600 px-8 text-base text-white hover:bg-gray-800 sm:text-lg"
-              >
-                <SiWhatsapp className="mr-2 h-5 w-5" aria-hidden="true" />
-                WhatsApp Us
-              </Button>
-            </a>
+                <SiWhatsapp className="i" aria-hidden="true" /> WhatsApp Us
+              </a>
+            </div>
           </div>
         </div>
       </section>
 
-      <BrandFooter />
+      <SiteFooter />
 
       {/* Exit Intent Popup */}
       <Dialog open={showExitPopup} onOpenChange={setShowExitPopup}>

@@ -2,12 +2,21 @@ import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { BrandHeader, BrandFooter } from "@/components/redesign/brand-chrome";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle, Calendar, Clock, MapPin, Phone, Mail, MessageCircle, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
+
+/**
+ * The solid card recipe used everywhere on this page, in place of the shadcn `Card` +
+ * `glass-effect` (a frosted, semi-transparent panel unlike anything else on the site) and
+ * `neon-glow` (a pulsing box-shadow animation, also unused elsewhere). Same border-radius
+ * and colour tokens `.p91x`'s own `.card`/`.contact-card` use — this page cannot take those
+ * classes directly (see tests/design-unification.test.mjs: it stays on `.p91-brand`,
+ * Tailwind-only, like /services and the policy pages), so the values are matched by hand.
+ */
+const CARD = "rounded-[14px] border border-[var(--medium-gray)] bg-[var(--dark-gray)]";
 
 export default function BookingConfirmation() {
   /**
@@ -58,13 +67,11 @@ export default function BookingConfirmation() {
             <Skeleton className="w-64 h-8 mx-auto mb-2 bg-medium-gray" />
             <Skeleton className="w-48 h-6 mx-auto bg-medium-gray" />
           </div>
-          <Card className="glass-effect border-[var(--medium-gray)]">
-            <CardContent className="p-8 space-y-6">
-              <Skeleton className="w-full h-32 bg-medium-gray" />
-              <Skeleton className="w-full h-24 bg-medium-gray" />
-              <Skeleton className="w-full h-16 bg-medium-gray" />
-            </CardContent>
-          </Card>
+          <div className={`${CARD} p-8 space-y-6`}>
+            <Skeleton className="w-full h-32 bg-medium-gray" />
+            <Skeleton className="w-full h-24 bg-medium-gray" />
+            <Skeleton className="w-full h-16 bg-medium-gray" />
+          </div>
         </div>
         <BrandFooter />
       </div>
@@ -140,15 +147,13 @@ export default function BookingConfirmation() {
           </p>
         </div>
 
-        {/* Booking Details Card */}
-        <Card className="glass-effect border-[var(--medium-gray)] mb-8">
-          <CardHeader>
-            <CardTitle className="flex justify-between items-center">
-              <span className="text-[var(--neon-green)]">Booking Details</span>
-              <span data-testid="status-badge">{getStatusBadge(booking.paymentStatus)}</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        {/* Booking Details */}
+        <div className={`${CARD} mb-8 p-6 sm:p-8`}>
+          <div className="flex justify-between items-center mb-6">
+            <span className="text-[var(--neon-green)] font-semibold">Booking Details</span>
+            <span data-testid="status-badge">{getStatusBadge(booking.paymentStatus)}</span>
+          </div>
+          <div className="space-y-6">
             {/* Service Information */}
             <div className="grid md:grid-cols-2 gap-6">
               <div>
@@ -228,16 +233,13 @@ export default function BookingConfirmation() {
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Location & Contact Card */}
-        <Card className="glass-effect border-[var(--medium-gray)] mb-8">
-          <CardHeader>
-            <CardTitle className="text-[var(--neon-green)]">Service Center Location</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
+        {/* Location & Contact */}
+        <div className={`${CARD} mb-8 p-6 sm:p-8`}>
+          <h2 className="text-[var(--neon-green)] font-semibold mb-6">Service Center Location</h2>
+          <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="flex items-start space-x-3">
                   <MapPin className="w-5 h-5 text-[var(--neon-green)] mt-1" />
@@ -256,33 +258,33 @@ export default function BookingConfirmation() {
                   <Phone className="w-5 h-5 text-[var(--neon-green)]" />
                   <div>
                     <h4 className="font-semibold text-white mb-1">Contact</h4>
-                    <p className="text-gray-300" data-testid="text-contact-phone">
-                      +91 74066 19191
+                    <p className="text-gray-300">
+                      <a href="tel:+917406619191" className="text-gray-300" data-testid="text-contact-phone">
+                        +91 74066 19191
+                      </a>
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
                   <MessageCircle className="w-5 h-5 text-[var(--neon-green)]" />
                   <div>
                     <h4 className="font-semibold text-white mb-1">WhatsApp</h4>
-                    <p className="text-gray-300" data-testid="text-whatsapp-number">
-                      +91 74066 19191
+                    <p className="text-gray-300">
+                      <a href="https://wa.me/917406619191" target="_blank" rel="noopener noreferrer" className="text-gray-300" data-testid="text-whatsapp-number">
+                        +91 74066 19191
+                      </a>
                     </p>
                   </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Important Information */}
         {isConfirmed && (
-          <Card className="glass-effect border-[var(--medium-gray)] mb-8">
-            <CardHeader>
-              <CardTitle className="text-[var(--neon-green)]">Important Information</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <div className={`${CARD} mb-8 p-6 sm:p-8`}>
+            <h2 className="text-[var(--neon-green)] font-semibold mb-6">Important Information</h2>
               <div className="space-y-3 text-gray-300">
                 <div className="flex items-start space-x-2">
                   <CheckCircle className="w-5 h-5 text-[var(--neon-green)] mt-0.5 flex-shrink-0" />
@@ -301,15 +303,14 @@ export default function BookingConfirmation() {
                   <p>You will receive WhatsApp and email confirmations shortly.</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+          </div>
         )}
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="border-2 border-[var(--neon-green)] text-[var(--neon-green)] hover:bg-neon-green hover:text-[var(--deep-black)]"
               data-testid="button-back-home"
             >
@@ -317,10 +318,10 @@ export default function BookingConfirmation() {
               Back to Home
             </Button>
           </Link>
-          
+
           {isConfirmed && (
-            <Button 
-              className="bg-neon-green text-[var(--deep-black)] hover:bg-neon-green/90 neon-glow"
+            <Button
+              className="bg-neon-green text-[var(--deep-black)] hover:bg-neon-green/90"
               onClick={() => {
                 const mapUrl = `https://maps.google.com/?q=P91+Car+Care+Adugodi+Bangalore`;
                 window.open(mapUrl, '_blank');
@@ -334,7 +335,7 @@ export default function BookingConfirmation() {
         </div>
 
         {/* Contact Support */}
-        <div className="text-center mt-8 p-6 glass-effect rounded-xl">
+        <div className={`text-center mt-8 p-6 ${CARD}`}>
           <h3 className="font-semibold text-white mb-2">Need Help?</h3>
           <p className="text-gray-300 mb-4">
             If you have any questions about your booking, feel free to contact us.

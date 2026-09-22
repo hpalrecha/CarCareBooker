@@ -41,6 +41,24 @@ const SHELL = path.join(DIST, "index.html");
 const ORIGIN = "https://p91carcare.com";
 const OG_IMAGE = "/Car Care (4)_1753951564515.png";
 
+/**
+ * The homepage hero/LCP photo, preloaded ONLY on "/" — this same set of widths is what
+ * ImageWithFallback (client/src/components/image-with-fallback.tsx) generates into the
+ * <picture>'s AVIF <source> for "services/exterior-detailing-hard-water-spot-removal",
+ * the fallback client/src/pages/home.tsx renders before /api/services answers. Kept in
+ * sync by hand (no shared module — this is a Node build script, the other is browser
+ * code) rather than duplicated blindly: if the hero photo or its widths ever change,
+ * update both, or the browser preloads a variant the <picture> does not end up using.
+ */
+const HERO_IMAGE_BASE = "services/exterior-detailing-hard-water-spot-removal";
+const HERO_IMAGE_WIDTHS = [96, 320, 640, 1280, 1600];
+function heroPreloadTag() {
+  const srcset = HERO_IMAGE_WIDTHS.map(
+    (w) => `/attached_assets/_opt/${HERO_IMAGE_BASE}-${w}.avif ${w}w`,
+  ).join(", ");
+  return `<link rel="preload" as="image" imagesrcset="${srcset}" imagesizes="100vw" type="image/avif" fetchpriority="high" />`;
+}
+
 function die(message) {
   console.error("\n[prerender] FAILED: " + message);
   console.error("[prerender] The build is stopped deliberately. Shipping an SPA shell with");
@@ -110,6 +128,9 @@ function headFor(route) {
       `<script type="application/ld+json" data-seo="prerender">${JSON.stringify(block).replace(/</g, "\\u003c")}</script>`,
     );
   }
+  // Only "/" carries the hero preload — every other route would just be spending its own
+  // bandwidth budget on a photo it never shows.
+  if (route.path === "/") tags.push(heroPreloadTag());
   return tags.map((t) => "    " + t).join("\n");
 }
 

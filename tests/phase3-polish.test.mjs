@@ -31,8 +31,13 @@ describe('item 10 — mobile blog carousel no longer bleeds past the viewport on
 describe('item 9 — footer and filter-chip tap targets reach 40px on phone pages', () => {
   const css = read('client/src/styles/redesign.css');
 
-  test('.foot-btn (call/WhatsApp/Instagram) has an explicit 40px floor', () => {
-    assert.match(css, /\.p91x \.foot-btn \{[\s\S]{0,120}min-height: 40px;/);
+  // .foot-btn, .foot-more and .foot-legal a were raised from a 40px floor to the full
+  // WCAG 44px minimum in a later pass (the render QA that followed the .p91x migration
+  // found the site's primary and secondary CTAs measuring short of 44px in a real browser).
+  // .foot-col a and .teaser-head a.teaser-more were not part of that pass and keep their
+  // original 40px floor.
+  test('.foot-btn (call/WhatsApp/Instagram) has an explicit 44px floor', () => {
+    assert.match(css, /\.p91x \.foot-btn \{[\s\S]{0,120}min-height: 44px;/);
   });
 
   test('.foot-col a (Services/Company link lists) has enough padding to clear 40px', () => {
@@ -40,9 +45,9 @@ describe('item 9 — footer and filter-chip tap targets reach 40px on phone page
     assert.match(css, /\.p91x footer\.site \.foot-col a \{ display: block; color: var\(--txt-2\); padding: 10px 0; \}/);
   });
 
-  test('.foot-more, .foot-legal a and the homepage .teaser-more links have a 40px floor', () => {
-    assert.match(css, /\.p91x \.foot-more \{[\s\S]{0,80}min-height: 40px;/);
-    assert.match(css, /\.p91x \.foot-legal a \{[\s\S]{0,80}min-height: 40px;/);
+  test('.foot-more and .foot-legal a have a 44px floor; the homepage .teaser-more links keep their 40px floor', () => {
+    assert.match(css, /\.p91x \.foot-more \{[\s\S]{0,80}min-height: 44px;/);
+    assert.match(css, /\.p91x \.foot-legal a \{[\s\S]{0,80}min-height: 44px;/);
     assert.match(css, /\.p91x \.teaser-head a\.teaser-more \{[\s\S]{0,80}min-height: 40px;/);
   });
 

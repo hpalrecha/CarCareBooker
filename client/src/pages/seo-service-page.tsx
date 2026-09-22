@@ -118,12 +118,6 @@ export default function SeoServicePage() {
 
       <section className="section">
         <div className="wrap narrow">
-          <nav className="crumb" aria-label="Breadcrumb">
-            <Link href="/">Home</Link> <span>/</span>
-            <Link href="/services">Services</Link> <span>/</span>
-            <span>{page.crumb}</span>
-          </nav>
-
           <h1 className="article-h1" data-testid="text-seo-h1">{page.h1}</h1>
           <p className="article-lede">{page.lede}</p>
 

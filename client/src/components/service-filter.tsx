@@ -86,7 +86,7 @@ export default function ServiceFilter<T extends ServiceLike>({ services, childre
     <div>
       {/* ---- vehicle bar ---- */}
       {availableVehicles.length > 1 && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-3 sm:gap-4 rounded-xl border border-[var(--medium-gray)] bg-[var(--dark-gray)] px-4 py-4 mb-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-3 sm:gap-4 rounded-[14px] border border-[var(--medium-gray)] bg-[var(--dark-gray)] px-4 py-4 mb-2">
           <span className="text-[11px] font-semibold uppercase tracking-[0.13em] text-[var(--txt-3)] whitespace-nowrap">
             Your vehicle
           </span>
@@ -182,7 +182,7 @@ export default function ServiceFilter<T extends ServiceLike>({ services, childre
 
       {filtered.length === 0 ? (
         <div
-          className="rounded-2xl border border-[var(--medium-gray)] bg-[var(--dark-gray)] px-6 py-12 text-center"
+          className="rounded-[14px] border border-[var(--medium-gray)] bg-[var(--dark-gray)] px-6 py-12 text-center"
           data-testid="filter-empty"
         >
           <b className="block text-lg text-[var(--txt)] mb-2">Nothing matches that</b>

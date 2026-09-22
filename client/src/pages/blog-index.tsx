@@ -1,5 +1,8 @@
 import { Link, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+// Only this route uses `.p91x-editorial` (blog-post.tsx renders plain `.p91x`), so the
+// stylesheet lives in this lazy chunk instead of main.tsx's global, render-blocking bundle.
+import "@/styles/editorial.css";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import { ImageWithFallback } from "@/components/image-with-fallback";
