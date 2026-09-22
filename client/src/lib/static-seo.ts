@@ -104,13 +104,20 @@ export const REFUND_SEO: StaticSeoPage = {
   h1: "Refund & Cancellation Policy",
 };
 
-/** Every hand-written page the prerenderer emits, in sitemap order. */
+/**
+ * Every hand-written page the prerenderer emits, in sitemap order.
+ *
+ * PPF_CERAMIC_SEO (below) is deliberately NOT listed here: /ppf-ceramic-coating now 301s
+ * to /services (server/routes.ts) rather than being its own page, so it no longer needs a
+ * prerendered file or a sitemap entry. The constant itself stays exported — the (now
+ * unreachable, route removed from App.tsx) ppf-ceramic-landing.tsx component still reads
+ * its title/description from it, and tests/prerender.test.mjs still pins that wiring.
+ */
 export const STATIC_SEO_PAGES: StaticSeoPage[] = [
   HOME_SEO,
   SERVICES_SEO,
   PRIVACY_SEO,
   TERMS_SEO,
   REFUND_SEO,
-  PPF_CERAMIC_SEO,
   CONTACT_SEO,
 ];

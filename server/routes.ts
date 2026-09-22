@@ -366,6 +366,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Legacy/duplicate URL redirects — real HTTP 301s, registered here (registerRoutes()
+  // runs before serveStatic()/setupVite(), same reason robots.txt above wins over any
+  // static file of the same name) so they intercept BEFORE the /service/:slug metadata
+  // handler, the prerendered-file lookup and the SPA catch-all — none of which can issue
+  // a redirect, only render or 404.
+  //
+  // SEO audit (2026-09-22):
+  //   /service/glass-polishing — a near-duplicate of /service/windshield-glass-polishing:
+  //     same photo, same core "removes water spots/scratches" description, no FAQ, and
+  //     created as a thinner re-entry of the older, richer page. Merged into it rather
+  //     than kept as a second page competing for the same query.
+  //   /ppf-ceramic-coating — the old combined PPF+ceramic page. Zero internal links
+  //     anywhere on the site (not nav, not footer, not any guide's related-pages list)
+  //     and zero external search visibility found for its URL or its exact title. 301 to
+  //     /services rather than to either single-topic guide, since its own content spanned
+  //     both PPF and ceramic coating for both cars and bikes — no one guide is a clean,
+  //     non-lossy redirect target, and /services is the real hub for all of them.
+  //
+  // The pages/records behind both URLs are left in place (component, static SEO copy,
+  // and — for glass-polishing — the catalogue row, just deactivated rather than deleted)
+  // so this is reversible without re-authoring anything.
+  app.get("/service/glass-polishing", (_req, res) => {
+    res.redirect(301, "/service/windshield-glass-polishing");
+  });
+  app.get("/ppf-ceramic-coating", (_req, res) => {
+    res.redirect(301, "/services");
+  });
+
   // sitemap.xml — generated from the live active-service rows rather than a checked-in
   // file, so a service added or deactivated in the admin panel is reflected without a
   // redeploy. getAllServices() returns active rows only, which is exactly the set that
@@ -412,10 +440,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { loc: "/ceramic-coating/car", priority: "0.9", changefreq: "weekly" },
         { loc: "/ceramic-coating/bike", priority: "0.9", changefreq: "weekly" },
         { loc: "/ppf", priority: "0.9", changefreq: "weekly" },
-        // The older combined PPF+ceramic page. Left indexed and untouched — see the
-        // overlap note in the Phase 2D report. Dropped to 0.7 so it no longer outranks
-        // the focused pages above for the same queries.
-        { loc: "/ppf-ceramic-coating", priority: "0.7", changefreq: "monthly" },
+        // The older combined PPF+ceramic page used to be listed here too. SEO audit
+        // (2026-09-22) found it had zero internal links anywhere on the site and no
+        // external search visibility at all — nothing pointed at it and nothing found it.
+        // It now 301s to /services (see the redirect registered above) instead of being
+        // offered to crawlers as its own page; see server/routes.ts's
+        // "Legacy/duplicate URL redirects" block.
         { loc: "/contact", priority: "0.6", changefreq: "yearly" },
         { loc: "/terms-conditions", priority: "0.3", changefreq: "yearly" },
         { loc: "/privacy-policy", priority: "0.3", changefreq: "yearly" },

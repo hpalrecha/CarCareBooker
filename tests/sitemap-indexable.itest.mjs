@@ -66,12 +66,30 @@ describe("route pipeline: nothing in the sitemap may be left without a handler",
   /** The literal `loc:` paths the sitemap handler emits. */
   const sitemapStaticPaths = [...routesSrc.matchAll(/\{\s*loc:\s*"([^"]+)"/g)].map((m) => m[1]);
 
-  /** Paths prerendered from the STATIC_ROUTES table. */
-  const staticRouteTable = prerenderSrc.slice(
-    prerenderSrc.indexOf("const STATIC_ROUTES"),
-    prerenderSrc.indexOf("/** Bundle the TS"),
+  /**
+   * Paths prerendered from the hand-written pages. prerender.mjs builds these from
+   * STATIC_SEO_PAGES (client/src/lib/static-seo.ts) rather than its own inline table —
+   * see the comment above loadContent() in prerender.mjs — so that is what this reads.
+   *
+   * Scoped to the STATIC_SEO_PAGES array literal itself, not the whole file: static-seo.ts
+   * also exports standalone StaticSeoPage constants (PPF_CERAMIC_SEO) that a component
+   * still reads for its own title/description without being in the array — i.e. without
+   * being prerendered. Matching `path:` anywhere in the file would find those too and
+   * report them as prerendered when they are not.
+   */
+  const staticSeoSrc = read("client/src/lib/static-seo.ts");
+  const staticSeoPagesArray = staticSeoSrc.slice(
+    staticSeoSrc.indexOf("export const STATIC_SEO_PAGES"),
+    staticSeoSrc.indexOf("];", staticSeoSrc.indexOf("export const STATIC_SEO_PAGES")) + 2,
   );
-  const prerenderedStatic = [...staticRouteTable.matchAll(/path:\s*"([^"]+)"/g)].map((m) => m[1]);
+  const prerenderedStatic = [...staticSeoPagesArray.matchAll(/\b([A-Z][A-Z0-9_]*_SEO)\b/g)]
+    .map((m) => m[1])
+    .map((constName) => {
+      const decl = staticSeoSrc.slice(staticSeoSrc.indexOf(`export const ${constName}`));
+      const pathMatch = decl.match(/path:\s*"([^"]+)"/);
+      return pathMatch ? pathMatch[1] : null;
+    })
+    .filter((p) => p !== null);
 
   test("the sitemap emits the paths we expect", () => {
     assert.ok(sitemapStaticPaths.includes("/"), "homepage");
@@ -99,11 +117,31 @@ describe("route pipeline: nothing in the sitemap may be left without a handler",
     );
   });
 
-  test("the three legal pages and /ppf-ceramic-coating are prerendered", () => {
-    // The exact four that were broken. Named individually so a regression says which.
-    for (const p of ["/privacy-policy", "/terms-conditions", "/refund-policy", "/ppf-ceramic-coating"]) {
+  test("the three legal pages are prerendered", () => {
+    // Two of the original four that were broken (see file header). /ppf-ceramic-coating
+    // is checked separately below — it deliberately stopped being one of these.
+    for (const p of ["/privacy-policy", "/terms-conditions", "/refund-policy"]) {
       assert.ok(prerenderedStatic.includes(p), `${p} must be prerendered`);
     }
+  });
+
+  test("/ppf-ceramic-coating is a redirect, not a prerendered page", () => {
+    // SEO audit (2026-09-22): zero internal links, zero external search visibility.
+    // server/routes.ts now 301s it to /services instead of rendering it, so it must NOT
+    // be in the sitemap, must NOT have a prerendered file, and the route must not exist
+    // in the client router either — three ways the old page could accidentally come back.
+    assert.ok(!sitemapStaticPaths.includes("/ppf-ceramic-coating"), "must not be in the sitemap");
+    assert.ok(!prerenderedStatic.includes("/ppf-ceramic-coating"), "must not have a prerendered file");
+    assert.doesNotMatch(
+      read("client/src/App.tsx"),
+      /path="\/ppf-ceramic-coating"/,
+      "must not have a client route — the server redirect is the only handler now",
+    );
+    assert.match(
+      routesSrc,
+      /app\.get\("\/ppf-ceramic-coating",\s*\(_req,\s*res\)\s*=>\s*\{\s*res\.redirect\(301,\s*"\/services"\)/,
+      "must be a real 301 to /services",
+    );
   });
 
   test("/service/:slug has a dedicated server handler, since the build has no database", () => {

@@ -51,7 +51,6 @@ export const SERVICES_COLUMNS: NavColumn[] = [
       { label: "Interior Detailing", href: "/service/interior-detailing-service" },
       { label: "Exterior Detailing", href: "/service/exterior-detailing-hard-water-new" },
       { label: "Car Polishing", href: "/service/car-polishing" },
-      { label: "Annual Maintenance Package", href: "/service/annual-maintenance-package" },
     ],
   },
   {
@@ -61,6 +60,18 @@ export const SERVICES_COLUMNS: NavColumn[] = [
       { label: "Glass Polishing", href: "/service/windshield-glass-polishing" },
       { label: "Headlight Restoration", href: "/service/headlight-restoration-both" },
       { label: "Glass & sun film overview", href: "/services/glass-sun-control-film-bangalore" },
+    ],
+  },
+  {
+    // The three prepaid/one-time wash and maintenance products — previously reachable only
+    // by browsing /services, with no dedicated nav entry (Annual Maintenance Package used
+    // to sit under Detailing, which is where it least belongs). Ordered by commitment:
+    // one-time, then wash-only for a year, then the fuller wash+detailing year plan.
+    heading: "Packages",
+    links: [
+      { label: "Premium Car Wash Special", href: "/service/premium-car-wash-special" },
+      { label: "1 Year Car Wash Package", href: "/service/annual-car-wash-package" },
+      { label: "Annual Maintenance Package", href: "/service/annual-maintenance-package" },
     ],
   },
 ];

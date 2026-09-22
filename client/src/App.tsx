@@ -40,7 +40,6 @@ const PrivacyPolicy = lazy(() => import("@/pages/privacy-policy"));
 const TermsConditions = lazy(() => import("@/pages/terms-conditions"));
 const RefundPolicy = lazy(() => import("@/pages/refund-policy"));
 const Contact = lazy(() => import("@/pages/contact"));
-const PpfCeramicLanding = lazy(() => import("@/pages/ppf-ceramic-landing"));
 const Services = lazy(() => import("@/pages/services"));
 const SeoServicePage = lazy(() => import("@/pages/seo-service-page"));
 const BlogIndex = lazy(() => import("@/pages/blog-index"));
@@ -78,9 +77,13 @@ function Router() {
         <Route path="/service/:slug" component={ServiceLanding} />
         <Route path="/booking-confirmation/:id" component={BookingConfirmation} />
         <Route path="/contact" component={Contact} />
-        {/* Campaign landing pages. Declared BEFORE /ppf-ceramic-coating so neither can
-            shadow the other, and each passes its own path so the template can look up its
-            content. These are the URLs that go into the advertisements. */}
+        {/* Campaign landing pages — the URLs that go into the advertisements. Each passes
+            its own path so the template can look up its content.
+            /ppf-ceramic-coating (the old combined PPF+ceramic page) used to be registered
+            here too. SEO audit (2026-09-22) found it had zero internal links and zero
+            external search visibility, so it now 301s to /services — see the redirect in
+            server/routes.ts, registered ahead of this SPA router entirely, so no client
+            route for that path is needed any more. */}
         <Route path="/ceramic-coating/car">
           <CampaignLanding path="/ceramic-coating/car" />
         </Route>
@@ -90,7 +93,6 @@ function Router() {
         <Route path="/ppf">
           <CampaignLanding path="/ppf" />
         </Route>
-        <Route path="/ppf-ceramic-coating" component={PpfCeramicLanding} />
         <Route path="/privacy-policy" component={PrivacyPolicy} />
         <Route path="/terms-conditions" component={TermsConditions} />
         <Route path="/refund-policy" component={RefundPolicy} />
