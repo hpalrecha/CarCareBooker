@@ -1,19 +1,17 @@
 import { useParams, useLocation, Link } from "wouter";
-// `.lp-*` (price, includes, steps, FAQ, final CTA below) is defined in landing-pages.css.
-// This is the highest-traffic consumer of that stylesheet — the 17 indexed /service/:slug
-// pages — so it must import it directly now that main.tsx no longer loads it globally
-// (see main.tsx: moved out to stop blocking every route with CSS most routes don't use).
+// `.lp-*` (price, includes, steps, FAQ) is defined in landing-pages.css. This is the
+// highest-traffic consumer of that stylesheet — the 17 indexed /service/:slug pages — so
+// it must import it directly now that main.tsx no longer loads it globally (see main.tsx:
+// moved out to stop blocking every route with CSS most routes don't use).
 import "@/styles/landing-pages.css";
 import { useQuery } from "@tanstack/react-query";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Star, Clock, Shield, Phone, Mail, MapPin, Play, ArrowRight } from "lucide-react";
+import { CheckCircle, Star, Clock, Shield, MapPin, Play, ArrowRight } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import BookingModal from "@/components/booking-modal";
 import CallbackPopup from "@/components/callback-popup";
 import InstagramReels from "@/components/instagram-reels";
 import { ImageWithFallback } from "@/components/image-with-fallback";
-import { INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, REELS_BY_SERVICE } from "@/lib/instagram-reels";
-import { SiInstagram } from "react-icons/si";
+import { REELS_BY_SERVICE } from "@/lib/instagram-reels";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
@@ -278,8 +276,10 @@ export default function ServiceLanding() {
   const [showFloatingCTA, setShowFloatingCTA] = useState(false);
   // Once dismissed the sticky bar stays gone for the rest of the visit.
   const [floatingCtaDismissed, setFloatingCtaDismissed] = useState(false);
-  // True while the final "Ready to Transform" CTA section is on screen — the floating bar
-  // hides then, so it never covers the real Book Now button or the footer contact info.
+  // True from the footer onwards — the floating bar hides then, so it never covers the
+  // footer's own contact info. Used to watch the "Ready to Transform" CTA banner, which
+  // was removed from every service page; now watches the footer wrapper directly (see
+  // the ref below, attached just above <SiteFooter />).
   const [finalCtaVisible, setFinalCtaVisible] = useState(false);
   const finalCtaRef = useRef<HTMLElement | null>(null);
 
@@ -323,13 +323,14 @@ export default function ServiceLanding() {
   // Premium / Partial, same vehicle size) — never to invent variants that don't exist.
   const { data: allServices } = useQuery<ServiceRecord[]>({ queryKey: ["/api/services"] });
 
-  // Hide the floating CTA once the real bottom CTA scrolls into view.
+  // Hide the floating CTA once the footer scrolls into view.
   useEffect(() => {
     const el = finalCtaRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
     const observer = new IntersectionObserver(
-      // Hidden from the bottom CTA onwards, not only while it is on screen: the site footer
-      // now sits below it, and the bar would otherwise reappear over the footer's contacts.
+      // Hidden from the footer onwards, not only while it is on screen — entry.top < 0
+      // covers a footer taller than the viewport, where it can be "on screen" (top edge
+      // already scrolled past) without ever satisfying isIntersecting on its own.
       ([entry]) => setFinalCtaVisible(entry.isIntersecting || entry.boundingClientRect.top < 0),
       { rootMargin: "0px 0px -10% 0px", threshold: 0.01 },
     );
@@ -428,12 +429,11 @@ export default function ServiceLanding() {
 
   // This template is shared by every service, and its fixed copy said "car"
   // throughout — which read wrong on the bike ceramic-coating page ("transform your
-  // car", "Ready to Transform Your Car?"). Derive the noun from the service itself.
-  // "P91 Car Care" is the brand name and is deliberately left alone.
+  // car"). Derive the noun from the service itself. "P91 Car Care" is the brand name
+  // and is deliberately left alone.
   const heroImage = resolveServiceImage(service);
   const isBikeService = /\bbike\b|\bmotorcycle\b/i.test(service.title);
   const vehicleNoun = isBikeService ? "bike" : "car";
-  const vehicleNounTitle = isBikeService ? "Bike" : "Car";
 
   const heroCategory = deriveCategory(service);
 
@@ -1183,100 +1183,15 @@ export default function ServiceLanding() {
           </div>
         </div>
       </section>
-      {/* Final CTA Section — full-bleed background photo, XPEL "Discover..." banner style,
-          instead of a plain dark panel. Same content, testids and copy as before; only the
-          backdrop is new. Falls back to heroImage so a single-photo record still gets a
-          real background instead of a blank one. */}
-      <section ref={finalCtaRef} className="section cta-banner">
-        {(service.images?.[1] ?? heroImage) && (
-          <>
-            <ImageWithFallback
-              className="cta-banner-bg"
-              src={service.images?.[1] ?? heroImage}
-              alt={`${service.title.trim()} at the P91 Car Care studio in Adugodi, Bangalore`}
-              sizes="100vw"
-              loading="lazy"
-            />
-            <div className="cta-banner-scrim" aria-hidden="true" />
-          </>
-        )}
-        <div className="wrap narrow">
-          <div className="lp-final">
-            <h2>Ready to Transform Your {vehicleNounTitle}?</h2>
-            <p>
-              Book your {service.title.toLowerCase()} today and experience the P91 difference!
-            </p>
-
-            <p style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", justifyContent: "center", gap: "6px 12px", margin: "0 0 8px" }}>
-              <ins className="lp-price-now" style={{ textDecoration: "none" }}>{formatINR(service.price)}</ins>
-              {service.originalPrice && (
-                <>
-                  <del className="lp-price-was">{formatINR(service.originalPrice)}</del>
-                  <Badge className="bg-black text-green-400">Save {discountPercent}%</Badge>
-                </>
-              )}
-            </p>
-            {service.urgencyText && (
-              <p style={{ color: "var(--neon-green)", fontWeight: 600, marginBottom: 16 }}>{service.urgencyText}</p>
-            )}
-
-            <div className="hero-cta" style={{ justifyContent: "center" }}>
-              <button
-                type="button"
-                onClick={() => setBookingModalOpen(true)}
-                className="cta-lg"
-                data-testid="button-book-now-final"
-              >
-                {/* One booking phrase site-wide. ctaText ("Get Protected Now"...) varied per record. */}
-                Book Now
-                <ArrowRight className="i" aria-hidden="true" />
-              </button>
-            </div>
-
-            {/* Contact Info — each one a real link, matching the Instagram link beside
-                them (was three plain spans that looked identical to it but did nothing). */}
-            <div style={{ marginTop: 28, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 24, fontSize: 13.5, color: "var(--txt-2)" }}>
-              <a
-                href="tel:+917406619191"
-                style={{ display: "flex", alignItems: "center", gap: 7, color: "inherit" }}
-                data-testid="link-service-phone"
-              >
-                <Phone className="i" aria-hidden="true" />
-                +91 74066 19191
-              </a>
-              <a
-                href="mailto:info@p91carcare.com"
-                style={{ display: "flex", alignItems: "center", gap: 7, color: "inherit" }}
-                data-testid="link-service-email"
-              >
-                <Mail className="i" aria-hidden="true" />
-                info@p91carcare.com
-              </a>
-              <a
-                href="https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Adugodi+Bengaluru"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: "flex", alignItems: "center", gap: 7, color: "inherit" }}
-                data-testid="link-service-location"
-              >
-                <MapPin className="i" aria-hidden="true" />
-                Bangalore, Karnataka
-              </a>
-              <a
-                href={INSTAGRAM_PROFILE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: "flex", alignItems: "center", gap: 7 }}
-                data-testid="link-service-instagram"
-              >
-                <SiInstagram className="i" aria-hidden="true" />
-                @{INSTAGRAM_HANDLE}
-              </a>
-            </div>
-          </div>
-        </div>
+      {/* Final CTA banner ("Ready to Transform Your Car?" + price + Book Now + contact
+          row) removed by request from every /service/:slug page. finalCtaRef now watches
+          the footer wrapper below instead — see its declaration above — so the floating
+          sticky CTA bar still hides once the page bottom is reached, same reason it
+          always did: without this, the bar would sit on top of the footer's own contacts
+          for the rest of the scroll. */}
+      <section ref={finalCtaRef}>
+        <SiteFooter />
       </section>
-      <SiteFooter />
       {/*
         Sticky booking bar. Full width along the bottom on phones — price, what paying
         today does, and one Reserve button, reachable however far down the customer has
