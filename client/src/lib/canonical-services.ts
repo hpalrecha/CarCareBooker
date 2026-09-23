@@ -30,7 +30,7 @@ export const TRANSFORMATION_CTAS = {
   interiorDeepClean: {
     id: '43f050c6-488b-4657-9458-99d23364c72a',
     slug: 'interior-detailing-service',
-    expectedTitle: 'Interior Detailing Service',
+    expectedTitle: 'Interior Rejuvenation Service',
     legacySlug: 'interior-deep-clean',
     marketingLabel: 'Interior Deep Clean',
   },
@@ -59,19 +59,15 @@ export const TRANSFORMATION_CTAS = {
 
 /**
  * The short curated list shown in the footer. Deliberately not every database row —
- * these are the five most-booked active services. "Premium Car Wash - ₹599" was removed:
- * no such service exists, active or inactive.
+ * these are the most-booked active services. "Premium Car Wash - ₹599" was removed:
+ * no such service exists, active or inactive. "Car Polishing" was removed when that
+ * service was deactivated on 2026-09-23.
  */
 export const FOOTER_SERVICES: CanonicalService[] = [
   TRANSFORMATION_CTAS.interiorDeepClean,
   TRANSFORMATION_CTAS.exteriorDetailing,
   TRANSFORMATION_CTAS.glassCoating,
   TRANSFORMATION_CTAS.headlightRestoration,
-  {
-    id: '2d0a6a5c-e642-4624-97e0-a7e3026d4684',
-    slug: 'car-polishing',
-    expectedTitle: 'Car Polishing',
-  },
 ];
 
 export interface ServiceRecord {

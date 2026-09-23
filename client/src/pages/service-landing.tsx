@@ -5,7 +5,7 @@ import { useParams, useLocation, Link } from "wouter";
 // moved out to stop blocking every route with CSS most routes don't use).
 import "@/styles/landing-pages.css";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle, Star, Clock, Shield, MapPin, Play, ArrowRight } from "lucide-react";
+import { CheckCircle, Star, Clock, Shield, MapPin, Play, ArrowRight, Maximize2, Droplet, Eye, Leaf } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import BookingModal from "@/components/booking-modal";
 import CallbackPopup from "@/components/callback-popup";
@@ -107,6 +107,37 @@ function shortIncluded(item: string) {
   const cut = text.search(/\s+[-–—]\s+|,|\s+(to|for|before|with|on|that|which)\s+/i);
   const head = cut > 5 ? text.slice(0, cut).trim() : text;
   return head.replace(/\s*[-–—:]+$/, '');
+}
+
+/**
+ * The PPF tier tabs' own label, cut to "tier – car type" — the two real titles this
+ * runs on are "P91 PPF Basic - Hatchback" and "Partial PPF (Hatchback)"; both reduce
+ * to "Basic – Hatchback" / "Partial – Hatchback" here. Still the record's own words,
+ * just the repeated "P91 PPF" brand prefix and the inconsistent dash/parenthesis
+ * punctuation between the two formats normalized, so nine tabs in one row read as one
+ * family instead of two differently-punctuated ones.
+ */
+function tierTabLabel(title: string): string {
+  return title
+    .trim()
+    .replace(/^P91\s+PPF\s+/i, '')
+    .replace(/^Partial\s+PPF\s+\(([^)]+)\)$/i, 'Partial – $1')
+    .replace(/\s+-\s+/, ' – ');
+}
+
+/**
+ * A varied icon per Overview feature row (XPEL's own version uses a different icon for
+ * warranty/water-repel/clarity/environmental rather than one checkmark repeated four
+ * times) — picked from the item's own wording, never invented. Falls back to the plain
+ * check for anything that doesn't match one of these, so it's never wrong, only plainer.
+ */
+function iconForIncluded(item: string) {
+  const t = item.toLowerCase();
+  if (/warrant|guarant/.test(t)) return Shield;
+  if (/water|hydrophobic|repel|beading/.test(t)) return Droplet;
+  if (/gloss|shine|clarity|clear|depth/.test(t)) return Eye;
+  if (/uv|oxidation|environmental|contaminant|protect/.test(t)) return Leaf;
+  return CheckCircle;
 }
 
 /** The first sentence of a paragraph — "why choose" is a single line, not an essay. */
@@ -271,6 +302,12 @@ export default function ServiceLanding() {
   const { slug } = useParams();
   const [, setLocation] = useLocation();
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  // Which of the record's own photos the hero's main frame shows — the thumbnail rail
+  // (XPEL product-page layout, by request) switches this; index 0 until clicked. Reset
+  // per service via the `service.slug` key on the thumb buttons' onClick closures below,
+  // not a effect: a slug with fewer photos than the current index just falls back to 0
+  // via the `?? 0` in the image lookup, so there is nothing to reset.
+  const [activeThumbIndex, setActiveThumbIndex] = useState(0);
   const [showFloatingCTA, setShowFloatingCTA] = useState(false);
   // Once dismissed the sticky bar stays gone for the rest of the visit.
   const [floatingCtaDismissed, setFloatingCtaDismissed] = useState(false);
@@ -440,18 +477,30 @@ export default function ServiceLanding() {
   const hasComparisons = comparison !== null || genericComparisons.length > 0;
 
   /**
-   * Real PPF tier siblings for this exact vehicle size — Basic / Premium / Partial are
-   * genuinely separate catalogue records (see lib/service-taxonomy.ts), not variants of
-   * one product the way XPEL's FUSION PLUS tabs are. This is a tab-styled row of real
-   * links between those real pages, not a switcher pretending one record holds all three.
-   * Empty (and hidden) for every category without real tiered siblings — ceramic coating,
-   * interior detailing, glass, etc. each have exactly one tier, so nothing here would be
-   * genuine for them.
+   * Every real PPF catalogue record — car types AND packages together (by request,
+   * 2026-09-23): Basic/Premium/Partial across hatchback/sedan/suv are nine genuinely
+   * separate catalogue records (see lib/service-taxonomy.ts), not variants of one
+   * product the way XPEL's own tier tabs are. This is a tab-styled row of real links
+   * between those real pages, not a switcher pretending one record holds all nine.
+   * Used to be scoped to the current page's own vehicle size only (three tabs: this
+   * car's Basic/Premium/Partial); widened so the row also shows the other car types,
+   * matching the "one clean row lists everything" reference the request pointed at.
+   * Empty (and hidden) for every category without real tiered siblings — ceramic
+   * coating, interior detailing, glass, etc. each have exactly one tier, so nothing
+   * here would be genuine for them.
    */
   const tierSiblings = (heroCategory === "PPF" && Array.isArray(allServices))
     ? allServices
-        .filter((s) => deriveCategory(s) === "PPF" && deriveVehicle(s) === deriveVehicle(service))
-        .sort((a, b) => parseFloat(a.price) - parseFloat(b.price))
+        .filter((s) => deriveCategory(s) === "PPF")
+        // Grouped by vehicle size first, then by price within each group — reads as
+        // "every hatchback option, then every sedan option, then every SUV option"
+        // rather than a price-sorted jumble mixing car types together.
+        .sort((a, b) => {
+          const vehicleOrder = ["hatchback", "sedan", "suv"];
+          const va = vehicleOrder.indexOf(deriveVehicle(a));
+          const vb = vehicleOrder.indexOf(deriveVehicle(b));
+          return va !== vb ? va - vb : parseFloat(a.price) - parseFloat(b.price);
+        })
     : [];
 
   /**
@@ -478,14 +527,17 @@ export default function ServiceLanding() {
    * that isn't on the page.
    */
   const hasOverview = Boolean((service.whatIncluded && service.whatIncluded.length > 0) || service.heroVideo);
-  // The first two real included items, shortened the same way the full list is — floated
-  // as chips on the Overview media instead of duplicated in new wording.
-  const overviewBadgeItems = (service.whatIncluded && service.whatIncluded.length > 0)
-    ? Array.from(new Set(service.whatIncluded.map(cleanIncluded))).slice(0, 2).map(shortIncluded)
+  // Four, not every item — XPEL's own version of this panel (FUSION PLUS Classic) never
+  // lists more than about four features either, and this page never showed the FULL list
+  // anywhere: the hero's offer card already only ever shows the first four (trust pill +
+  // 3 in .lp-includes). Same first four items, same real words, just a second placement.
+  const overviewFeatureItems = (service.whatIncluded && service.whatIncluded.length > 0)
+    ? Array.from(new Set(service.whatIncluded.map(cleanIncluded))).slice(0, 4)
     : [];
   const hasBenefits = Boolean(service.whyChoose) || Boolean(service.guaranteeText);
-  const packagesMode: "tiers" | "process" | null =
-    tierSiblings.length > 1 ? "tiers" : service.process && service.process.length > 0 ? "process" : null;
+  // "Process" removed by request — Packages now only ever means the real PPF tier
+  // switcher, never a fallback to the process steps (that section is gone).
+  const packagesMode: "tiers" | null = tierSiblings.length > 1 ? "tiers" : null;
   const hasGallery =
     hasComparisons || Boolean(service.gallery && service.gallery.some((item) => item.type === "video"));
   const hasFaqs = Boolean(service.faq && service.faq.length > 0);
@@ -493,7 +545,7 @@ export default function ServiceLanding() {
   const subnavItems: { id: (typeof SUBNAV_IDS)[number]; label: string }[] = [
     hasOverview ? { id: "overview" as const, label: "Overview" } : null,
     hasBenefits ? { id: "benefits" as const, label: "Benefits" } : null,
-    packagesMode ? { id: "packages" as const, label: packagesMode === "tiers" ? "Packages" : "Process" } : null,
+    packagesMode ? { id: "packages" as const, label: "Packages" } : null,
     hasGallery ? { id: "gallery" as const, label: "Gallery" } : null,
     hasFaqs ? { id: "faqs" as const, label: "FAQs" } : null,
   ].filter((x): x is { id: (typeof SUBNAV_IDS)[number]; label: string } => x !== null);
@@ -509,67 +561,87 @@ export default function ServiceLanding() {
       */}
       <SiteHeader onBookNow={() => setBookingModalOpen(true)} />
 
-      {/* Hero: light theme by request — white/black, real photo as the section's own
-          full-bleed background (not boxed beside the text) rather than behind it in a
-          dark scrim like home.tsx: a white scrim here instead, so the same photo now
-          supports black text. The offer card stays the ordinary dark `.card` — a
-          deliberate accent panel, needing no colour changes of its own to read clearly
-          over a lightened photo. */}
-      <section className="hero-light-bg">
-        {heroImage && (
-          <ImageWithFallback
-            className="shot"
-            src={heroImage}
-            alt={`${service.title.trim()} at the P91 Car Care studio in Adugodi, Bangalore`}
-            sizes="100vw"
-            priority
-            data-testid="img-hero"
-          />
-        )}
-        {/* Layered directly over the photo above, same treatment as home.tsx's hero video:
-            invisible until `onPlaying` actually fires, so the photo is always what's
-            visible until there is a real frame to replace it with. Only when the record's
-            heroVideo is a real saved file (isDirectVideoFile) — a YouTube/Vimeo URL has no
-            file to autoplay here and stays on the iframe embed further down in Overview. */}
-        {service.heroVideo && isDirectVideoFile(service.heroVideo) && showHeroVideo && (
-          <video
-            className="shot"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            poster={heroImage}
-            aria-hidden="true"
-            data-testid="video-hero"
-            onPlaying={() => setHeroVideoReady(true)}
-            style={{ opacity: heroVideoReady ? 1 : 0, transition: "opacity .6s ease" }}
-          >
-            <source src={service.heroVideo} type="video/mp4" />
-          </video>
-        )}
-        {/* Scrim behind the copy column only, on the left where the text sits. The studio
-            photos this hero was originally tuned for are shot dark/moody, so text-shadow
-            alone was enough; a real reel's footage (autoplaying in the layer above) is
-            not guaranteed to be — a bright panel shot under studio lighting can wash the
-            white h1/lede out. Left-weighted rather than a flat wash so the video is still
-            shown at full brightness everywhere the text isn't. */}
-        <div className="hero-light-scrim" aria-hidden="true" />
-        <div className="wrap hero-light-copy">
-          <div style={{ maxWidth: 620 }}>
-            <h1 className="text-3xl">
-              {service.title.trim()}
-            </h1>
+      {/* Hero: XPEL product-page layout by request — thumbnail rail + boxed main photo
+          on the left, a dark info panel on the right, both bounded on the page's white
+          ground rather than a full-bleed photo behind the text. Content is unchanged
+          (same trust facts, same offer card fields, same video/photo logic); only the
+          container changed shape. */}
+      <section className="pdp-hero">
+        <div className="wrap pdp-hero-grid">
+          <div className="pdp-media">
+            {service.images && service.images.length > 1 && (
+              <div className="pdp-thumbs" data-testid="hero-thumbs">
+                {service.images.slice(0, 6).map((img, i) => (
+                  <button
+                    key={img}
+                    type="button"
+                    onClick={() => setActiveThumbIndex(i)}
+                    className={"pdp-thumb" + (i === activeThumbIndex ? " is-active" : "")}
+                    data-testid={`button-thumb-${i}`}
+                    aria-label={`Photo ${i + 1} of ${service.title.trim()}`}
+                    aria-pressed={i === activeThumbIndex}
+                  >
+                    <ImageWithFallback src={img} alt="" sizes="64px" />
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="pdp-main-image">
+              {heroImage && (
+                <ImageWithFallback
+                  className="shot"
+                  src={service.images?.[activeThumbIndex] ?? heroImage}
+                  alt={`${service.title.trim()} at the P91 Car Care studio in Adugodi, Bangalore`}
+                  sizes="(min-width: 900px) 640px, 100vw"
+                  priority
+                  data-testid="img-hero"
+                />
+              )}
+              {/* Layered directly over the photo above: invisible until `onPlaying`
+                  actually fires, so the photo is always what's visible until there is a
+                  real frame to replace it with. Only when the record's heroVideo is a
+                  real saved file (isDirectVideoFile) — a YouTube/Vimeo URL has no file
+                  to autoplay here and stays on the iframe embed further down in
+                  Overview. */}
+              {service.heroVideo && isDirectVideoFile(service.heroVideo) && showHeroVideo && (
+                <video
+                  className="shot"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="auto"
+                  poster={heroImage}
+                  aria-hidden="true"
+                  data-testid="video-hero"
+                  onPlaying={() => setHeroVideoReady(true)}
+                  style={{ opacity: heroVideoReady ? 1 : 0, transition: "opacity .6s ease" }}
+                >
+                  <source src={service.heroVideo} type="video/mp4" />
+                </video>
+              )}
+              {/* Decorative only — XPEL's own hero has the same corner mark on its main
+                  photo. No lightbox: not asked for, and the thumbnail rail already lets
+                  a visitor switch the photo shown here. */}
+              <span className="pdp-expand" aria-hidden="true">
+                <Maximize2 size={16} />
+              </span>
+            </div>
+          </div>
 
-            <p className="hero-light-lede">
-              {service.description}
-            </p>
+          <div className="pdp-panel">
+            <a href="/services" className="pdp-crumb" data-testid="link-hero-crumb">
+              ← {heroCategory}
+            </a>
+            <h1>{service.title.trim()}</h1>
+            <hr className="pdp-rule" />
+            <p className="pdp-lede">{service.description}</p>
 
             {/*
               Three trust pills, every one a fact: the service's own first included item,
               its duration from the record, and the studio (which opens Google Maps).
             */}
-            <ul className="hero-facts hero-light-facts" data-testid="trust-pills">
+            <ul className="hero-facts" data-testid="trust-pills" style={{ marginTop: 18 }}>
               {service.whatIncluded?.[0] && (
                 <span>
                   <CheckCircle className="i" aria-hidden="true" style={{ color: "var(--neon-green)" }} />
@@ -596,12 +668,12 @@ export default function ServiceLanding() {
 
             {/* Glass coating needs the vehicle overnight. */}
             {service.slug === 'windshield-glass-coating-new' && (
-              <div style={{ marginTop: 20, borderRadius: 10, border: "1px solid rgba(233,185,73,.4)", background: "rgba(233,185,73,.08)", padding: 16 }}>
+              <div style={{ marginTop: 20, borderRadius: 10, border: "1px solid rgba(233,185,73,.35)", background: "rgba(233,185,73,.1)", padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                  <Clock style={{ color: "var(--warn)", flex: "none", marginTop: 2 }} aria-hidden="true" />
+                  <Clock style={{ color: "#E9B949", flex: "none", marginTop: 2 }} aria-hidden="true" />
                   <div>
-                    <div style={{ color: "var(--warn)", fontWeight: 700 }}>Vehicle stays 24 hours</div>
-                    <p style={{ color: "#5B5F63", fontSize: 14, marginTop: 4 }}>
+                    <div style={{ color: "#E9B949", fontWeight: 700 }}>Vehicle stays 24 hours</div>
+                    <p style={{ color: "rgba(241,244,241,.7)", fontSize: 14, marginTop: 4 }}>
                       The coating needs a full 24-hour cure in our controlled environment to bond
                       properly. Please plan for this — an early pickup compromises the finish.
                     </p>
@@ -610,75 +682,70 @@ export default function ServiceLanding() {
               </div>
             )}
 
-            {/* Offer card: unchanged dark `.card`, an accent panel on the light hero. */}
-            <div
-              className="card"
-              data-testid="offer-card"
-              style={{ padding: "22px 24px", marginTop: 24 }}
-          >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-              <span className="eyebrow" style={{ marginBottom: 0 }}>
-                {isAnnualPackage ? 'Annual package' : 'In-studio offer'}
-              </span>
-              {discountPercent > 0 && <span className="cta-price-save">{discountPercent}% off</span>}
-            </div>
+            <div data-testid="offer-card" style={{ marginTop: 24, paddingTop: 22, borderTop: "1px solid rgba(255,255,255,.14)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <span className="eyebrow" style={{ marginBottom: 0, color: "rgba(241,244,241,.6)" }}>
+                  {isAnnualPackage ? 'Annual package' : 'In-studio offer'}
+                </span>
+                {discountPercent > 0 && <span className="cta-price-save">{discountPercent}% off</span>}
+              </div>
 
-            <p style={{ marginTop: 16, display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "4px 10px" }}>
-              <ins className="lp-price-now" data-testid="text-offer-price" style={{ textDecoration: "none" }}>
-                {formatINR(service.price)}
-              </ins>
-              {service.originalPrice && (
-                <del className="lp-price-was">{formatINR(service.originalPrice)}</del>
-              )}
-            </p>
-            <p style={{ color: "var(--txt-3)", fontSize: 13, marginTop: 2 }}>
-              {isAnnualPackage ? 'Package value' : 'Offer price · paid at the studio after the work'}
-            </p>
+              <p style={{ marginTop: 16, display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "4px 10px" }}>
+                <ins data-testid="text-offer-price" style={{ textDecoration: "none", fontSize: 30, fontWeight: 800, color: "#fff" }}>
+                  {formatINR(service.price)}
+                </ins>
+                {service.originalPrice && (
+                  <del style={{ color: "rgba(241,244,241,.5)", fontSize: 16 }}>{formatINR(service.originalPrice)}</del>
+                )}
+              </p>
+              <p style={{ color: "rgba(241,244,241,.6)", fontSize: 13, marginTop: 2 }}>
+                {isAnnualPackage ? 'Package value' : 'Offer price · paid at the studio after the work'}
+              </p>
 
-            <p style={{ marginTop: 16, borderRadius: 8, border: "1px solid var(--neon-line)", background: "var(--neon-soft)", padding: "10px 12px", fontSize: 13.5, color: "var(--neon-green)", fontWeight: 600 }}>
-              {offer.free
-                ? 'No booking fee — reserve your slot online free.'
-                : isAnnualPackage
-                  ? `Pay ${formatINR(service.price)} online for the full annual package.`
-                  : 'Pay just ₹299 online today to hold your slot.'}
-            </p>
+              <p style={{ marginTop: 16, borderRadius: 8, border: "1px solid var(--neon-line)", background: "rgba(78,184,72,.14)", padding: "10px 12px", fontSize: 13.5, color: "var(--neon-green)", fontWeight: 600 }}>
+                {offer.free
+                  ? 'No booking fee — reserve your slot online free.'
+                  : isAnnualPackage
+                    ? `Pay ${formatINR(service.price)} online for the full annual package.`
+                    : 'Pay just ₹299 online today to hold your slot.'}
+              </p>
 
-            <ul className="lp-includes" style={{ marginTop: 18, paddingTop: 18, borderTop: "1px solid var(--medium-gray)" }}>
-              {/* Items 2–4: the first is already the lead trust pill beside the title. */}
-              {Array.from(new Set((service.whatIncluded || []).map(cleanIncluded)))
-                .slice(1, 4)
-                .map((item, i) => (
-                  <li key={i}>{shortIncluded(item)}</li>
-                ))}
-              <li>₹500 voucher on your 2nd visit</li>
-            </ul>
+              <ul className="lp-includes" style={{ marginTop: 18, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,.14)", color: "rgba(241,244,241,.82)" }}>
+                {/* Items 2–4: the first is already the lead trust pill beside the title. */}
+                {Array.from(new Set((service.whatIncluded || []).map(cleanIncluded)))
+                  .slice(1, 4)
+                  .map((item, i) => (
+                    <li key={i}>{shortIncluded(item)}</li>
+                  ))}
+                <li>₹500 voucher on your 2nd visit</li>
+              </ul>
 
-            <button
-              type="button"
-              onClick={() => setBookingModalOpen(true)}
-              className="cta-lg"
-              style={{ width: "100%", marginTop: 18, justifyContent: "center" }}
-              data-testid="button-book-now-hero"
-            >
-              {/* Never quote a price the server will not charge: `free` comes from the
-                  same server that decides the amount. */}
-              {offer.free
-                ? 'Reserve your slot — no fee'
-                : isAnnualPackage
-                  ? `Book the package — ${formatINR(service.price)}`
-                  : 'Reserve your slot for ₹299'}
-              <ArrowRight className="i" aria-hidden="true" />
-            </button>
+              <button
+                type="button"
+                onClick={() => setBookingModalOpen(true)}
+                className="cta-lg"
+                style={{ width: "100%", marginTop: 18, justifyContent: "center" }}
+                data-testid="button-book-now-hero"
+              >
+                {/* Never quote a price the server will not charge: `free` comes from the
+                    same server that decides the amount. */}
+                {offer.free
+                  ? 'Reserve your slot — no fee'
+                  : isAnnualPackage
+                    ? `Book the package — ${formatINR(service.price)}`
+                    : 'Reserve your slot for ₹299'}
+                <ArrowRight className="i" aria-hidden="true" />
+              </button>
 
-            <p style={{ marginTop: 12, textAlign: "center", fontSize: 12, color: "var(--txt-3)" }}>
-              {offer.free
-                ? 'Nothing to pay online, so nothing to cancel — just call or message us.'
-                : isAnnualPackage
-                  // The package is paid in full, so the ₹299-fee refund rule does not apply.
-                  ? 'Paid in full online — cancellation terms apply.'
-                  : 'Full refund of the booking fee if you cancel 24+ hours ahead.'}{' '}
-              <a href="/refund-policy">Refund policy</a>
-            </p>
+              <p style={{ marginTop: 12, textAlign: "center", fontSize: 12, color: "rgba(241,244,241,.55)" }}>
+                {offer.free
+                  ? 'Nothing to pay online, so nothing to cancel — just call or message us.'
+                  : isAnnualPackage
+                    // The package is paid in full, so the ₹299-fee refund rule does not apply.
+                    ? 'Paid in full online — cancellation terms apply.'
+                    : 'Full refund of the booking fee if you cancel 24+ hours ahead.'}{' '}
+                <a href="/refund-policy" style={{ color: "rgba(241,244,241,.8)", textDecoration: "underline" }}>Refund policy</a>
+              </p>
             </div>
           </div>
         </div>
@@ -708,11 +775,12 @@ export default function ServiceLanding() {
         </nav>
       )}
 
-      {/* PPF tier tabs — XPEL-style, but real pages, not a JS switcher over one record. */}
+      {/* PPF car type + package tabs — XPEL-style, but real pages, not a JS switcher
+          over one record. */}
       {tierSiblings.length > 1 && (
         <nav
           className="tier-tabs"
-          aria-label="PPF tiers for this vehicle"
+          aria-label="PPF car types and packages"
           data-testid="nav-tier-tabs"
           id={packagesMode === "tiers" ? "packages" : undefined}
         >
@@ -721,11 +789,11 @@ export default function ServiceLanding() {
               {tierSiblings.map((s) => (
                 s.slug === service.slug ? (
                   <span key={s.id} className="tier-tab is-active" data-testid={`tab-tier-${s.slug}`}>
-                    {s.title.trim()}
+                    {tierTabLabel(s.title)}
                   </span>
                 ) : (
                   <Link key={s.id} href={`/service/${s.slug}`} className="tier-tab" data-testid={`tab-tier-${s.slug}`}>
-                    {s.title.trim()}
+                    {tierTabLabel(s.title)}
                   </Link>
                 )
               ))}
@@ -746,32 +814,34 @@ export default function ServiceLanding() {
               </p>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 48, marginTop: 40 }}>
-              {comparison && <ComparisonBlock comparison={comparison} />}
-
-              {/* Original beforeAfter data from the record, when present. */}
-              {genericComparisons.map((c, index) => (
-                <div key={index}>
+            {/* One comparison, not a stack of them: the hand-photographed pair when this
+                service has one, else the record's own first before/after entry. Showing
+                both (up to 4 images total between the two sources) was the "too many
+                images" problem — one real transformation makes the point. */}
+            <div style={{ marginTop: 40 }}>
+              {comparison ? (
+                <ComparisonBlock comparison={comparison} />
+              ) : genericComparisons[0] ? (
+                <div>
                   <div className="card-img" style={{ position: "relative", maxWidth: 960, margin: "0 auto" }}>
                     <ImageWithFallback
-                      src={c.before}
-                      alt={`${service.title} transformation ${index + 1}`}
+                      src={genericComparisons[0].before}
+                      alt={`${service.title} transformation`}
                       sizes="(min-width: 1024px) 960px, 100vw"
                       style={{ aspectRatio: "4 / 3", objectPosition: "center" }}
-                      data-testid={`image-comparison-${index}`}
+                      data-testid="image-comparison-0"
                     />
                     <span className="card-cat" style={{ background: "#B4232F", color: "#fff", borderColor: "transparent" }}>BEFORE</span>
                     <span className="card-cat" style={{ right: 10, left: "auto", background: "var(--neon-green)", color: "#04120A", borderColor: "transparent" }}>AFTER</span>
                   </div>
-                  {c.description && (
+                  {genericComparisons[0].description && (
                     <p className="fineprint" style={{ maxWidth: 760, margin: "16px auto 0", textAlign: "center", fontStyle: "normal" }}>
-                      {c.description}
+                      {genericComparisons[0].description}
                     </p>
                   )}
                 </div>
-              ))}
+              ) : null}
             </div>
-
           </div>
         </section>
       )}
@@ -797,17 +867,42 @@ export default function ServiceLanding() {
       {((service.whatIncluded && service.whatIncluded.length > 0) || service.heroVideo) && (
         <section className="section light-band" id="overview">
           <div className="wrap">
-            <div className="section-head" style={{ textAlign: "center" }}>
-              <h2>Why Choose P91 {service.title.trim()}?</h2>
-            </div>
-            <div className="overview-grid">
-              {/* The media column now behaves like a background, not a boxed thumbnail
-                  next to a list: it stretches to the full height of the benefits column
-                  beside it (see .overview-grid's align-items in redesign.css), and the
-                  first couple of real included items float on top of it as chips —
-                  the SAME words already in the full list to the right, not new copy,
-                  just given a second, more visual treatment. Skipped entirely when there
-                  is nothing real to show (no fabricated points). */}
+            {/* XPEL's own "FUSION PLUS Classic" panel: product name, one short line, one
+                button, then a short (four-item) feature list — text and CTA on one side,
+                one large photo/video on the other. Replaces the earlier centred heading +
+                full-width checklist. */}
+            <div className="overview-grid overview-grid-xpel">
+              <div className="overview-copy">
+                <h2>{service.title.trim()}</h2>
+                {service.description && <p className="overview-copy-lede">{firstSentence(service.description)}</p>}
+                <button
+                  type="button"
+                  onClick={() => setBookingModalOpen(true)}
+                  className="cta-lg"
+                  data-testid="button-overview-book"
+                >
+                  Book Now
+                </button>
+                {overviewFeatureItems.length > 0 && (
+                  <ul className="overview-features">
+                    {overviewFeatureItems.map((item, index) => {
+                      const headline = shortIncluded(item);
+                      const FeatureIcon = iconForIncluded(item);
+                      return (
+                        <li key={index}>
+                          <span className="overview-feature-icon">
+                            <FeatureIcon className="i" aria-hidden="true" />
+                          </span>
+                          <div>
+                            <h3>{headline}</h3>
+                            {headline !== item && <p>{item}</p>}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
               <div className="overview-media-wrap">
                 {service.heroVideo && isDirectVideoFile(service.heroVideo) ? (
                   <div className="card-img overview-media">
@@ -843,44 +938,13 @@ export default function ServiceLanding() {
                     className="overview-media"
                     src={heroImage}
                     alt={`${service.title.trim()} at the P91 Car Care studio in Adugodi, Bangalore`}
-                    sizes="(min-width: 860px) 480px, 100vw"
+                    sizes="(min-width: 860px) 560px, 100vw"
                     style={{ objectPosition: "center" }}
                     loading="lazy"
                     data-testid="image-overview"
                   />
                 ) : null}
-                {overviewBadgeItems.length > 0 && (
-                  <div className="overview-media-badges">
-                    {overviewBadgeItems.map((label, i) => (
-                      <span className="overview-media-badge" key={i}>
-                        <CheckCircle className="i" aria-hidden="true" />
-                        {label}
-                      </span>
-                    ))}
-                  </div>
-                )}
               </div>
-              {service.whatIncluded && service.whatIncluded.length > 0 && (
-                <ul className="overview-benefits">
-                  {Array.from(new Set(service.whatIncluded.map(cleanIncluded))).map((item, index) => {
-                    const headline = shortIncluded(item);
-                    // A short record item ("Front windshield film") has no clause to trim,
-                    // so shortIncluded(item) returns it unchanged — printing it again below
-                    // as a "description" was the same six words twice, which is what made
-                    // this list run so much longer than the photo beside it. Only items
-                    // shortIncluded ACTUALLY shortened get that second line.
-                    return (
-                      <li key={index}>
-                        <CheckCircle className="i" aria-hidden="true" />
-                        <div>
-                          <h3>{headline}</h3>
-                          {headline !== item && <p>{item}</p>}
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
             </div>
           </div>
         </section>
@@ -933,7 +997,10 @@ export default function ServiceLanding() {
             <p style={{ color: "var(--neon-green)", fontSize: 13, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", marginBottom: 6, textShadow: "0 1px 8px rgba(0,0,0,.85)" }}>
               Adugodi, Bangalore
             </p>
-            <h2 style={{ fontSize: "clamp(22px,3.6vw,32px)", fontWeight: 800, textShadow: "0 2px 16px rgba(0,0,0,.85), 0 1px 3px rgba(0,0,0,.9)" }}>
+            {/* color: "#fff" explicit — see home.tsx's photo-break h2 for why this is
+                needed now (theme flip made the inherited --txt dark; this sits on a
+                dark photo scrim regardless of page theme). */}
+            <h2 style={{ fontSize: "clamp(22px,3.6vw,32px)", fontWeight: 800, color: "#fff", textShadow: "0 2px 16px rgba(0,0,0,.85), 0 1px 3px rgba(0,0,0,.9)" }}>
               {service.title.trim()}
             </h2>
           </div>
@@ -946,22 +1013,6 @@ export default function ServiceLanding() {
           <div className="wrap statement-grid">
             <h2>Why choose P91 in Adugodi?</h2>
             <p>{firstSentence(service.whyChoose)}</p>
-          </div>
-        </section>
-      )}
-      {service.process && service.process.length > 0 && (
-        <section className="section light-band" id={packagesMode === "process" ? "packages" : undefined}>
-          <div className="wrap narrow">
-            <div className="section-head" style={{ textAlign: "center" }}>
-              <h2>Our Process</h2>
-            </div>
-            <ol className="lp-steps">
-              {service.process.map((step, index) => (
-                <li key={index} title={step.title}>
-                  {step.title}
-                </li>
-              ))}
-            </ol>
           </div>
         </section>
       )}
@@ -1068,12 +1119,11 @@ export default function ServiceLanding() {
         </section>
       )}
       {/* FAQ Section — light card, XPEL-style, scoped to .faq-light only (the rest of the
-          page stays the site's usual dark theme; see .hero-light-bg above for the same
-          scoping approach). */}
+          page stays the site's usual palette). */}
       {service.faq && service.faq.length > 0 && (
         <section className="section faq-light" id="faqs">
           <div className="wrap narrow">
-            <div className="section-head" style={{ textAlign: "center" }}>
+            <div className="section-head">
               <h2>{service.title.trim()} in Adugodi, Bangalore: FAQs</h2>
             </div>
             {/*
@@ -1084,6 +1134,10 @@ export default function ServiceLanding() {
               that read markup rather than executing JS still see every answer, not just the
               questions. A conditionally-rendered accordion would have actually removed the
               closed answers from the DOM, which is the failure mode this avoids.
+              Collapsed by default now (by request, to match the XPEL accordion look — a
+              "+" that rotates to "×" on open, same .lp-faq CSS every other page's FAQ
+              uses): still a real, native <details>, so this changes only what a visitor
+              sees on first paint, not what a crawler reads.
             */}
             <div className="lp-faqs" data-testid="faq-list">
               {service.faq
@@ -1130,8 +1184,8 @@ export default function ServiceLanding() {
       />
       {/* Guarantee Section + the trust strip right after it share one light band (see
           .light-band in redesign.css) — same "opposite palette, by request" scoping as
-          .hero-light-bg/.faq-light, just spanning these two adjacent sections instead of
-          one, so there's no visible seam between them. */}
+          .faq-light above, just spanning these two adjacent sections instead of one, so
+          there's no visible seam between them. */}
       {service.guaranteeText && (
         <section className="section light-band" id={!service.whyChoose ? "benefits" : undefined}>
           <div className="wrap narrow" style={{ textAlign: "center" }}>

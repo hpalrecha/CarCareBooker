@@ -9,8 +9,20 @@
  *
  * Shared by the service page and the booking modal so the two can never disagree.
  */
+/** Services whose turnaround is a range, not a single figure — the `duration`
+ *  column only holds one number, so these are shown as text instead. */
+const DURATION_RANGE_OVERRIDES: Record<string, string> = {
+  "windshield-glass-coating-new": "24 hrs",
+  "1-year-bike-ceramic-coating": "36-48 hrs",
+  "exterior-detailing-hard-water-new": "6-12 hrs",
+  "interior-detailing-service": "18-24 hrs",
+  "windshield-glass-polishing": "3-4 hrs",
+};
+
 export function formatServiceTime(service: { slug?: string; duration?: number | string }): string | null {
-  if (service.slug === "windshield-glass-coating-new") return "24 hrs";
+  if (service.slug && service.slug in DURATION_RANGE_OVERRIDES) {
+    return DURATION_RANGE_OVERRIDES[service.slug];
+  }
   const m = Number(service.duration);
   if (!Number.isFinite(m) || m < 15) return null;
   if (m < 60) return `${m} min`;

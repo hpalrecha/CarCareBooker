@@ -85,6 +85,7 @@ describe('titles and descriptions', () => {
     const files = {
       '/': 'client/src/pages/home.tsx',
       '/services': 'client/src/pages/services.tsx',
+      '/products': 'client/src/pages/products.tsx',
       '/contact': 'client/src/pages/contact.tsx',
       '/ppf-ceramic-coating': 'client/src/pages/ppf-ceramic-landing.tsx',
       '/privacy-policy': 'client/src/pages/privacy-policy.tsx',

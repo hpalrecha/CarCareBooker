@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { CalendarCheck, BookOpen, MessageCircle, ArrowRight } from "lucide-react";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import ScrollRow from "@/components/redesign/scroll-row";
@@ -12,7 +13,6 @@ import { HOME_SEO } from "@/lib/static-seo";
 import { resolveServiceImage, formatINR, TRANSFORMATION_CTAS, type ServiceRecord } from "@/lib/canonical-services";
 import { deriveCategory } from "@/lib/service-taxonomy";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
-import { BLOG_POSTS, formatPostDate } from "@/lib/blog-posts";
 import type { BusinessHour } from "@shared/schema";
 
 // Before/after photography for the results section.
@@ -177,7 +177,7 @@ export default function Home() {
   const heroImage = resolveServiceImage(heroService) ?? HERO_FALLBACK_IMAGE;
 
   return (
-    <div className="p91x min-h-screen">
+    <div className="p91x min-h-screen home-page">
       <SiteHeader overHero />
 
       {/* ---------- hero ---------- */}
@@ -236,6 +236,13 @@ export default function Home() {
             <source src="/attached_assets/Exterior Detailing_1754031679196.mp4" type="video/mp4" />
           </video>
         )}
+        {/* Two problems, one fix: the h1/lede's text-shadow alone couldn't hold up against
+            a bright moment in the photo/video passing directly behind it (the words
+            actually disappeared), and the video's own burned-in P91 watermark (top-left of
+            the clip) was reading as a second, oversized logo sitting right under the real
+            header logo. This covers the top strip (both the header and the watermark) and
+            fades behind the copy column — see .hero-bg-scrim for why it's two gradients. */}
+        <div className="hero-bg-scrim" aria-hidden="true" />
         <div className="wrap copy">
           <span className="eyebrow">Detailing Studio · Adugodi</span>
           <h1 className="hero-solid">
@@ -250,6 +257,38 @@ export default function Home() {
           </p>
           <div className="hero-cta">
             <Link href="/services" className="cta-lg" data-testid="button-hero-book">Book Now →</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- about ----------
+          XPEL-style: a short "About [Brand]" teaser right after the hero, before the
+          categories grid — same scroll position xpel.com uses. No founding year or
+          country/branch count: nothing in this codebase states one, and inventing a
+          number here would break the "claims nothing unmeasured" rule every other
+          section on this page is held to (tests/regression.test.mjs). Links to /contact
+          — there is no dedicated About page, and it is the real destination for someone
+          who reads this and wants to know more or get in touch. */}
+      <section className="section">
+        <div className="wrap">
+          <div className="about-grid">
+            <div className="section-head" style={{ marginBottom: 0 }}>
+              <span className="eyebrow">About P91</span>
+              <h2>About P91 Car Care</h2>
+            </div>
+            <div>
+              <p style={{ color: "var(--txt-2)", fontSize: 15.5, lineHeight: 1.7, maxWidth: "58ch" }}>
+                P91 Car Care is a car detailing, ceramic coating and paint protection film
+                studio in Adugodi, Bangalore. Ceramic coating, PPF, and interior and exterior
+                detailing are all done in-studio and backed by a written warranty from the
+                film or coating manufacturer, issued at handover — not just a verbal promise.
+                We fit STEK paint protection film and Nasiol ceramic coatings, alongside our
+                own P91 Premium PPF line.
+              </p>
+              <Link href="/contact" className="cta-ghost" style={{ marginTop: 20 }} data-testid="link-about-us">
+                About Us
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -395,12 +434,60 @@ export default function Home() {
           <p style={{ color: "var(--neon-green)", fontSize: 13, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", marginBottom: 10 }}>
             Adugodi, Bangalore
           </p>
-          <h2 style={{ fontSize: "clamp(26px,4.6vw,44px)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "-.01em", lineHeight: 1.08, textShadow: "0 2px 16px rgba(0,0,0,.6)", maxWidth: "14ch" }}>
+          {/* color: "#fff" explicit, not inherited — this sits on a dark photo scrim
+              regardless of the page's own (now white/green) theme, same reasoning as
+              every other scrim-on-photo heading on this page. Before the green/white
+              theme swap, the inherited --txt was light and this worked by accident;
+              --txt is dark ink now, which made this text invisible against the dark
+              scrim until this explicit color was added. */}
+          <h2 style={{ fontSize: "clamp(26px,4.6vw,44px)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "-.01em", lineHeight: 1.08, color: "#fff", textShadow: "0 2px 16px rgba(0,0,0,.6)", maxWidth: "14ch" }}>
             Done properly, every time
           </h2>
+          {/* Same claim the hero already makes ("Ceramic coating, paint protection film and
+              full interior work — done properly, warranty-backed..."), shortened to two
+              lines — not a new claim invented for this section, XPEL's own copy pattern
+              (headline + one supporting line + single CTA) applied to wording already
+              approved elsewhere on this page. */}
+          <p style={{ marginTop: 14, maxWidth: "42ch", color: "#EDEFF1", fontSize: "clamp(14.5px,1.6vw,16.5px)", lineHeight: 1.55, textShadow: "0 1px 10px rgba(0,0,0,.7)" }}>
+            Ceramic coating, PPF and full interior work, warranty-backed — the same standard
+            on every car that comes through the studio.
+          </p>
+          {/* Same destination as the hero's "Book Now", different words — the hero already
+              said "Book Now" once, a heartbeat above this on the same screen. */}
           <Link href="/services" className="cta-lg" style={{ marginTop: 22 }} data-testid="link-photo-break-cta">
-            Book Now →
+            Explore Services →
           </Link>
+        </div>
+      </section>
+
+      {/* ---------- action row ----------
+          XPEL-style: icon, bold line, one sentence, a text link — not XPEL's own installer-
+          network/certification/dealer program (P91 is one studio, not a franchise), the
+          three real things this site actually offers in that shape: book, read a guide,
+          or talk to someone. Reuses .strip/.cell (same classes the trust-icon row below
+          uses), so no new visual language, just three real destinations instead of facts. */}
+      <section className="strip">
+        <div className="wrap">
+          <div className="row cols-3">
+            <Link href="/services" className="cell cell-link" data-testid="link-action-book">
+              <CalendarCheck className="i" aria-hidden="true" />
+              <b>Ready to Book?</b>
+              <span>Pick a service and a slot — bookable online in under a minute.</span>
+              <em>Book Now <ArrowRight className="i" aria-hidden="true" /></em>
+            </Link>
+            <Link href="/blog" className="cell cell-link" data-testid="link-action-guides">
+              <BookOpen className="i" aria-hidden="true" />
+              <b>Not Sure What You Need?</b>
+              <span>Straight answers on coating, PPF and detailing from the studio's own guides.</span>
+              <em>Read Guides <ArrowRight className="i" aria-hidden="true" /></em>
+            </Link>
+            <Link href="/contact" className="cell cell-link" data-testid="link-action-contact">
+              <MessageCircle className="i" aria-hidden="true" />
+              <b>Have a Question?</b>
+              <span>Call, WhatsApp or visit the Adugodi studio — real answers, no bot.</span>
+              <em>Get in Touch <ArrowRight className="i" aria-hidden="true" /></em>
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -499,57 +586,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ---------- guides ---------- */}
-      <section className="section" id="blog">
-        <div className="wrap">
-          <div className="teaser-head">
-            <div className="section-head">
-              <span className="eyebrow">Resources</span>
-              <h2>Guides from the studio</h2>
-              <p>Straight answers to what customers ask us most.</p>
-            </div>
-            <Link href="/blog" className="teaser-more" data-testid="link-see-all-guides">See all guides →</Link>
-          </div>
-
-          <div className="blog-grid">
-            {BLOG_POSTS.map((post) => {
-              const img = resolveServiceImage(bySlug.get(post.imageServiceSlug));
-              return (
-                <Link
-                  key={post.slug}
-                  href={`/blog/${post.slug}`}
-                  className="post"
-                  data-testid={`card-post-${post.slug}`}
-                >
-                  {img && (
-                    <ImageWithFallback
-                      src={img}
-                      alt={post.title}
-                      sizes="(min-width: 640px) 50vw, 100vw"
-                      width={800}
-                      height={500}
-                      loading="lazy"
-                    />
-                  )}
-                  <div className="post-body">
-                    <div className="post-meta">
-                      <time dateTime={post.date}>{formatPostDate(post.date)}</time>
-                      <i className="dot" />
-                      <span>{post.readMinutes} min read</span>
-                      <i className="dot" />
-                      <span>{post.category}</span>
-                    </div>
-                    <h3>{post.title}</h3>
-                    <p>{post.excerpt}</p>
-                    <span className="read">Read Guide →</span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
       {/* ---------- brands ---------- */}
       <section className="brands">
         <div className="wrap">
@@ -599,43 +635,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ---------- trust / cta ----------
-          XPEL-style closing block, with strong whitespace. Also restored: the previous
-          homepage ended with a "Book Your Service Now" button that scrolled to the
-          catalogue, and tests/regression.test.mjs pins both the button and the scroll
-          target. */}
-      <section className="section">
-        <div className="wrap">
-          <div
-            className="rounded-[14px] border border-[var(--medium-gray)] bg-[var(--dark-gray)] px-6 py-10 text-center sm:px-10"
-          >
-            <div className="section-head" style={{ marginBottom: 22 }}>
-              <h2>Ready when you are</h2>
-              <p style={{ marginLeft: "auto", marginRight: "auto" }}>
-                {offer.free ? (
-                  <>
-                    Pick a service and choose a slot — booking is free right now, with no payment
-                    to reserve. You settle at the studio after the work.
-                  </>
-                ) : (
-                  <>
-                    Pick a service, choose a slot, and pay {formatINR(bookingFee)} to reserve it. The
-                    balance is settled at the studio.
-                  </>
-                )}
-              </p>
-            </div>
-            <button
-              type="button"
-              className="cta-lg"
-              onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
-              data-testid="button-final-cta"
-            >
-              Book Your Service Now →
-            </button>
-          </div>
-        </div>
-      </section>
 
       <SiteFooter />
     </div>

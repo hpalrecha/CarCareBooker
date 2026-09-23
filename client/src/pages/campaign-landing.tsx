@@ -6,7 +6,7 @@ import { Link } from "wouter";
 // in this lazy chunk instead of blocking every other route.
 import "@/styles/landing.css";
 import "@/styles/landing-pages.css";
-import { Phone, Clock, ShieldCheck, MapPin, CheckCircle } from "lucide-react";
+import { Phone, Clock, ShieldCheck, MapPin, CheckCircle, Wrench, Layers, ArrowRight } from "lucide-react";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import { ImageWithFallback } from "@/components/image-with-fallback";
@@ -396,6 +396,102 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
       {/* The body-type selector lives in the HERO (see above), not in its own section —
           the customer must choose before seeing a price, not after scrolling past one. */}
 
+      {/* ---------- 3b. PPF concept block (XPEL layout, by request, /ppf only) ----------
+          Trust strip + photo collage + full-bleed CTA banner. Scoped to path === "/ppf"
+          because the copy below ("color PPF match", paint-chip damage) is PPF-specific —
+          it would misdescribe the ceramic coating pages this same component also
+          renders. Every claim here already exists elsewhere on the site (warranty
+          issued at handover, in-studio fitting, full/partial coverage) — restated, not
+          invented, for this concept block. */}
+      {path === "/ppf" && (
+        <>
+          <section className="strip strip-dark" data-testid="section-ppf-trust-strip">
+            <div className="wrap">
+              <div className="row cols-3">
+                <div className="cell">
+                  <Wrench className="i" aria-hidden="true" />
+                  <b>In-studio professional install</b>
+                  <span>Every panel measured, plotter-cut and fitted by hand in our Adugodi bay.</span>
+                </div>
+                <div className="cell">
+                  <ShieldCheck className="i" aria-hidden="true" />
+                  <b>Manufacturer-backed warranty</b>
+                  <span>A real written warranty on the film, issued at handover — not a verbal promise.</span>
+                </div>
+                <div className="cell">
+                  <Layers className="i" aria-hidden="true" />
+                  <b>Full or partial coverage</b>
+                  <span>Protect the whole car, or just the panels that take the most hits.</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="section" data-testid="section-ppf-collage">
+            <div className="wrap">
+              <div className="guide-collage">
+                <div className="guide-collage-grid">
+                  <ImageWithFallback
+                    src="/attached_assets/services/p91-full-ppf-suv.webp"
+                    alt="Full-body PPF fitted to an SUV at the P91 Car Care studio in Adugodi, Bangalore"
+                    sizes="(min-width: 860px) 280px, 45vw"
+                    loading="lazy"
+                  />
+                  <ImageWithFallback
+                    src="/attached_assets/ppf-application.jpg"
+                    alt="A P91 technician applying paint protection film in the Adugodi studio"
+                    sizes="(min-width: 860px) 280px, 45vw"
+                    loading="lazy"
+                  />
+                  <div className="guide-collage-wide">
+                    <ImageWithFallback
+                      src="/attached_assets/services/partial-ppf-hatchback.webp"
+                      alt="Partial PPF coverage on a hatchback's high-impact panels"
+                      sizes="(min-width: 860px) 580px, 90vw"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+                <div className="guide-collage-copy">
+                  <h2>Catch damage before it costs you</h2>
+                  <p>
+                    A self-healing film absorbs stone chips, kerb scrapes and swirl marks before
+                    they ever reach your clearcoat — so the paint underneath stays exactly as it
+                    left the factory.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="section cta-banner" data-testid="section-ppf-banner-cta">
+            <ImageWithFallback
+              className="cta-banner-bg"
+              src="/attached_assets/services/p91-full-ppf-sedan.webp"
+              alt="Full-body PPF fitted to a sedan at the P91 Car Care studio in Adugodi, Bangalore"
+              sizes="100vw"
+              loading="lazy"
+            />
+            <div className="cta-banner-scrim" aria-hidden="true" />
+            <div className="wrap" style={{ position: "relative", zIndex: 2, paddingBlock: 56 }}>
+              <h2 style={{ color: "#fff", fontSize: "clamp(24px,3.4vw,36px)", fontWeight: 800, maxWidth: "16ch", textShadow: "0 2px 16px rgba(0,0,0,.7)" }}>
+                Ready to protect your car's paint?
+              </h2>
+              <button
+                type="button"
+                onClick={() => setBookingOpen(true)}
+                className="cta-lg"
+                style={{ marginTop: 20 }}
+                data-testid="button-ppf-banner-cta"
+              >
+                Book Now
+                <ArrowRight className="i" aria-hidden="true" />
+              </button>
+            </div>
+          </section>
+        </>
+      )}
+
       {/* ---------- 4. the offer ---------- */}
       <section className="section lp-tight">
         <div className="wrap narrow">
@@ -521,12 +617,15 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
             <div className="section-head">
               <h2>Common questions</h2>
             </div>
+            {/* Native <details>/<summary>, collapsed by default — same accordion as
+                service-landing.tsx and ppf-ceramic-landing.tsx (.lp-faq CSS, incl. the
+                summary/+ icon rules). */}
             <div className="lp-faqs" data-testid="landing-faqs">
               {faqs.map((f, i) => (
-                <div className="lp-faq" key={i}>
-                  <h3>{f.question}</h3>
+                <details className="lp-faq" key={i}>
+                  <summary>{f.question}</summary>
                   <p>{f.answer}</p>
-                </div>
+                </details>
               ))}
             </div>
           </div>
@@ -558,31 +657,15 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
         </div>
       </section>
 
-      {/* ---------- 9. final CTA ---------- */}
-      <section className="section lp-tight">
-        <div className="wrap narrow">
-          <div className="lp-final">
-            <h2>Ready when you are</h2>
-            <p>
-              Booking takes under a minute and costs nothing during the current offer.
-              {service ? ` ${service.title.trim()} is ${formatINR(service.price)}, settled at the studio after the work.` : ""}
-            </p>
-            <div className="lp-hero-cta">
-              <button
-                type="button"
-                className="cta-lg"
-                onClick={() => setBookingOpen(true)}
-                data-testid="button-final-book"
-              >
-                Book Now
-              </button>
-              <a className="cta-ghost" href="tel:+917406619191">
-                <Phone className="i" aria-hidden="true" /> 74066 19191
-              </a>
-            </div>
-          </div>
-
-          {page.related.length > 0 && (
+      {/* ---------- 9. related pages ----------
+          The closing "Ready when you are" CTA (heading, price line, Book Now + phone
+          button) that used to sit above this was removed by request — the hero CTA and
+          the offer-card CTA further up already cover booking on this page, and it was the
+          same heading/panel already removed from home.tsx for the same reason. Only the
+          related-pages nav is left, and only when there is one. */}
+      {page.related.length > 0 && (
+        <section className="section lp-tight">
+          <div className="wrap narrow">
             <nav className="lp-related" aria-label="Related pages">
               {/* The label sits in a span so the tap target can grow to 44px via padding
                   on the anchor while the underline still hugs the text. */}
@@ -592,9 +675,9 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
                 </Link>
               ))}
             </nav>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
       <SiteFooter />
 

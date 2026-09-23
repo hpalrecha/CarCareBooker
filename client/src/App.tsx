@@ -41,6 +41,7 @@ const TermsConditions = lazy(() => import("@/pages/terms-conditions"));
 const RefundPolicy = lazy(() => import("@/pages/refund-policy"));
 const Contact = lazy(() => import("@/pages/contact"));
 const Services = lazy(() => import("@/pages/services"));
+const Products = lazy(() => import("@/pages/products"));
 const SeoServicePage = lazy(() => import("@/pages/seo-service-page"));
 const BlogIndex = lazy(() => import("@/pages/blog-index"));
 const BlogPost = lazy(() => import("@/pages/blog-post"));
@@ -69,6 +70,7 @@ function Router() {
         <Route path="/admin/whatsapp" component={AdminWhatsApp} />
         <Route path="/services" component={Services} />
         <Route path="/services/:seoSlug" component={SeoServicePage} />
+        <Route path="/products" component={Products} />
         <Route path="/blog" component={BlogIndex} />
         {/* Category listings share BlogIndex — same page, filtered. Declared BEFORE
             /blog/:slug so "category" is never mistaken for a post slug. */}

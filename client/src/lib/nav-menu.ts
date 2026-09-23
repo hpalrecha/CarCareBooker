@@ -29,36 +29,30 @@ export interface NavColumn {
 
 export const SERVICES_COLUMNS: NavColumn[] = [
   {
+    // Individual service links removed — the overview page (Explore tabs, see
+    // seo-service-page.tsx) already lists every variant with real pricing/images, so this
+    // column just points straight at it instead of duplicating the list here.
     heading: "Ceramic Coating",
     links: [
-      { label: "Car — 1 Year Ceramic Coating", href: "/service/1-year-ceramic-coating" },
-      { label: "Bike — 1 Year Ceramic Coating", href: "/service/1-year-bike-ceramic-coating" },
       { label: "Ceramic coating overview", href: "/services/ceramic-coating-bangalore" },
     ],
   },
   {
     heading: "Paint Protection Film",
     links: [
-      { label: "PPF — Hatchback", href: "/service/ppf-hatchback" },
-      { label: "PPF — Sedan", href: "/service/ppf-sedan" },
-      { label: "PPF — SUV", href: "/service/ppf-suv" },
       { label: "PPF overview", href: "/services/paint-protection-film-bangalore" },
     ],
   },
   {
     heading: "Detailing",
     links: [
-      { label: "Interior Detailing", href: "/service/interior-detailing-service" },
+      { label: "Interior Rejuvenation", href: "/service/interior-detailing-service" },
       { label: "Exterior Detailing", href: "/service/exterior-detailing-hard-water-new" },
-      { label: "Car Polishing", href: "/service/car-polishing" },
     ],
   },
   {
     heading: "Glass & Restoration",
     links: [
-      { label: "Windshield Glass Coating", href: "/service/windshield-glass-coating-new" },
-      { label: "Glass Polishing", href: "/service/windshield-glass-polishing" },
-      { label: "Headlight Restoration", href: "/service/headlight-restoration-both" },
       { label: "Glass & sun film overview", href: "/services/glass-sun-control-film-bangalore" },
     ],
   },
@@ -71,7 +65,6 @@ export const SERVICES_COLUMNS: NavColumn[] = [
     links: [
       { label: "Premium Car Wash Special", href: "/service/premium-car-wash-special" },
       { label: "1 Year Car Wash Package", href: "/service/annual-car-wash-package" },
-      { label: "Annual Maintenance Package", href: "/service/annual-maintenance-package" },
     ],
   },
 ];
@@ -82,9 +75,22 @@ export const SERVICES_COLUMNS: NavColumn[] = [
  * take-home product; every one is fitted in-studio, hence each card links to the service
  * page that books the install rather than to a storefront that doesn't exist.
  */
-export const PRODUCT_BRANDS: { name: string; tagline: string; href: string }[] = [
-  { name: "STEK", tagline: "Paint protection film — self-healing, matte & gloss", href: "/services/paint-protection-film-bangalore" },
-  { name: "Nasiol", tagline: "Ceramic coating — long-term gloss & hydrophobic protection", href: "/services/ceramic-coating-bangalore" },
+export interface ProductBrand {
+  name: string;
+  tagline: string;
+  href: string;
+  /** True for STEK/Nasiol: the manufacturer's own real site, opened in a new tab —
+   *  not the /services page for the P91 job that fits their film/coating. False (or
+   *  unset) for P91's own product line, which stays an internal Link. */
+  external?: boolean;
+}
+
+export const PRODUCT_BRANDS: ProductBrand[] = [
+  // By request (2026-09-23): the brand card now sends the visitor to the
+  // manufacturer's own real site — verified official domains, not guessed — rather
+  // than P91's own service page for the film/coating.
+  { name: "STEK", tagline: "Paint protection film — self-healing, matte & gloss", href: "https://stek-india.in/", external: true },
+  { name: "Nasiol", tagline: "Ceramic coating — long-term gloss & hydrophobic protection", href: "https://www.nasiol.in/", external: true },
   { name: "P91 Premium PPF", tagline: "Our own PPF line, fitted and warranty-backed in-studio", href: "/service/ppf-suv" },
 ];
 

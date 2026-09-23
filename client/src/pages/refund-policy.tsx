@@ -52,7 +52,7 @@ export default function RefundPolicy() {
                 </div>
                 
                 <div className="bg-medium-gray p-4 rounded-lg">
-                  <h3 className="text-white font-semibold">Windshield Glass Coating (₹1,399)</h3>
+                  <h3 className="text-white font-semibold">Windshield Glass Coating (₹1,699)</h3>
                   <p>No refund after application due to material usage</p>
                 </div>
                 

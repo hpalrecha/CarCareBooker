@@ -75,15 +75,14 @@ describe('homepage transformation CTAs', () => {
   });
 });
 
-describe('main "Book Your Service Now" CTA', () => {
+describe('homepage services anchor', () => {
   const home = read('client/src/pages/home.tsx');
-  test('is a real button wired to the services section', () => {
-    const idx = home.indexOf('data-testid="button-final-cta"');
-    assert.ok(idx > 0, 'final CTA not found');
-    const block = home.slice(idx - 500, idx);
-    assert.match(block, /getElementById\('services'\)\?\.scrollIntoView/);
-  });
-  test('the services section it targets exists', () => {
+  // The closing "Ready when you are" / "Book Your Service Now" panel that used to scroll
+  // here was removed by request (redundant with the hero CTA, the statement-break CTA and
+  // the header's own Book Now). The anchor itself stays pinned regardless of what points
+  // at it internally — the header CTA, the footer and external ad creative linking to
+  // p91carcare.com/#services all still depend on it existing.
+  test('the services section anchor still exists', () => {
     assert.match(home, /id="services"/);
   });
 });
@@ -555,7 +554,7 @@ describe('HTTP', { skip: BASE ? false : 'set TEST_BASE_URL to run' }, () => {
 
   test('the four CTA target services are active and resolvable', async () => {
     const targets = [
-      ['interior-detailing-service', '43f050c6-488b-4657-9458-99d23364c72a', 'Interior Detailing Service'],
+      ['interior-detailing-service', '43f050c6-488b-4657-9458-99d23364c72a', 'Interior Rejuvenation Service'],
       ['windshield-glass-coating-new', 'c2517260-3e7e-4de1-9886-542fb5d7df8f', 'Windshield Glass Coating'],
       ['headlight-restoration-both', 'd7fae6bd-fbf4-445f-8faa-e67d8461fbdc', 'Headlight Restoration - Both Lights'],
       ['exterior-detailing-hard-water-new', 'd5e11a48-afe4-4757-9796-a98322ac5bf2', 'Exterior Detailing with Hard Water Spot Removal'],

@@ -1110,7 +1110,10 @@ export default function PpfCeramicLanding() {
           <p style={{ color: "var(--neon-green)", fontSize: 13, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", marginBottom: 6 }}>
             Adugodi, Bangalore
           </p>
-          <h2 style={{ fontSize: "clamp(22px,3.6vw,32px)", fontWeight: 800, textShadow: "0 2px 16px rgba(0,0,0,.6)" }}>
+          {/* color: "#fff" explicit — see home.tsx's photo-break h2 for why this is
+              needed now (theme flip made the inherited --txt dark; this sits on a dark
+              photo scrim regardless of page theme). */}
+          <h2 style={{ fontSize: "clamp(22px,3.6vw,32px)", fontWeight: 800, color: "#fff", textShadow: "0 2px 16px rgba(0,0,0,.6)" }}>
             PPF &amp; Ceramic Coating
           </h2>
         </div>

@@ -1,10 +1,10 @@
 /**
  * The 17 /service/* pages share one template. These tests pin the parts of that layout a
  * later edit could quietly undo: the site-wide header carrying the phone and a Book Now
- * that opens the modal in place, the light-theme two-column hero (white background, real
- * photo boxed on one side, the dark offer card as an accent panel on the other — by
- * explicit request, the opposite palette of the rest of the dark/green site, scoped only
- * to this hero), and the section rhythm.
+ * that opens the modal in place, the product-page hero (2026-09-23, by request: XPEL's own
+ * layout — a thumbnail rail plus boxed main photo on one side, a dark info panel with the
+ * booking/offer content on the other, both bounded on the page's white ground, replacing
+ * an earlier full-bleed-photo-with-text-overlay hero), and the section rhythm.
  *
  * HERO VIDEO: the studio's own reel, saved under attached_assets/reels/ and keyed to the
  * one matching service via its heroVideo field, plays in TWO places once the record has
@@ -33,7 +33,7 @@ const raw =fs.readFileSync(path.join(repoRoot, 'client/src/pages/service-landing
 /** Comments stripped, so assertions match code rather than the prose describing it. */
 const src = raw.replace(/\{\/\*[\s\S]*?\*\/\}/g, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
-const heroStart = src.indexOf('<section className="hero-light-bg"');
+const heroStart = src.indexOf('<section className="pdp-hero"');
 const heroEnd = src.indexOf('</section>', heroStart);
 const hero = src.slice(heroStart, heroEnd);
 
@@ -57,15 +57,16 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
     assert.match(read('client/src/components/redesign/site-header.tsx'), /href="tel:\+917406619191"/);
   });
 
-  test('light-theme hero: real photo as the full-bleed background, dark offer card on top', () => {
-    // By explicit request: white/black, the opposite palette of the rest of the
-    // dark/green site, scoped only to this hero via .hero-light-bg — and the photo is
-    // the section's own background (behind the text), not boxed beside it.
+  test('product-page hero: thumbnail rail + boxed photo on one side, dark info panel on the other', () => {
+    assert.ok(hero.includes('pdp-hero-grid'), 'two-column grid');
+    assert.ok(hero.includes('className="pdp-media"'), 'photo column');
+    assert.ok(hero.includes('className="pdp-panel"'), 'dark info panel');
+    assert.ok(hero.includes('data-testid="hero-thumbs"'), 'thumbnail rail (only rendered for >1 photo — see below)');
     assert.ok(hero.includes('data-testid="img-hero"'));
     assert.ok(hero.includes('data-testid="offer-card"'));
-    // The offer card is the ordinary dark `.card`, unchanged — an accent panel on the
-    // light hero, not recoloured for it.
-    assert.match(hero, /className="card"\s*\n\s*data-testid="offer-card"/);
+    // Offer card content lives directly inside the dark panel now, not a separately
+    // recoloured `.card` sitting on top of a light hero.
+    assert.doesNotMatch(hero, /className="card"/, 'offer content is not a boxed card-on-card');
     // Comes after the title/description/trust-pills in the same column, not a separate
     // grid track.
     assert.ok(
@@ -74,6 +75,11 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
     );
     // The call-back form looked out of place under the card, so it is not in the hero.
     assert.ok(!/<QuoteForm\b/.test(hero), 'no form in the hero');
+  });
+
+  test('thumbnail rail only renders for a service with more than one photo', () => {
+    assert.match(hero, /service\.images && service\.images\.length > 1 && \(/);
+    assert.match(hero, /setActiveThumbIndex\(i\)/, 'clicking a thumbnail switches the main photo');
   });
 
   test('hero + overview video only play a service\'s own saved footage, muted and looping', () => {
@@ -97,8 +103,12 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
     assert.doesNotMatch(overview, /showHeroVideo/);
   });
 
-  test('hero has a scrim behind the copy column — the reel is not guaranteed dark the way the studio photos are', () => {
-    assert.ok(hero.includes('className="hero-light-scrim"'));
+  test('hero copy sits on a solid dark panel, not a scrim over the photo/video', () => {
+    // The photo/video and the copy are in separate boxed columns now (pdp-media /
+    // pdp-panel), so there is no text-over-footage legibility problem left to solve
+    // with a scrim — the panel background alone (#0E1F16, redesign.css) does that job.
+    assert.doesNotMatch(hero, /hero-light-scrim/);
+    assert.ok(hero.includes('className="pdp-panel"'));
   });
 
   test('"Prefer a call?" is a popup, not an inline section', () => {
@@ -114,7 +124,9 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
     const h1 = hero.match(/<h1[^>]*>/)?.[0] ?? '';
     assert.ok(h1, 'hero h1 missing');
     assert.doesNotMatch(h1, /bg-clip-text|text-transparent/);
-    assert.match(h1, /text-3xl/, 'mobile base size');
+    // Sizing comes from .pdp-panel h1 in redesign.css now, not a Tailwind class on the
+    // element itself.
+    assert.match(read('client/src/styles/redesign.css'), /\.pdp-panel h1 \{/);
   });
 
   test('trust pills are facts from the record, and claim nothing unmeasured', () => {

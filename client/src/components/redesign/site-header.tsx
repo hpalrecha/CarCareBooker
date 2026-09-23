@@ -211,13 +211,27 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
 
                     {menu.key === "products" && (
                       <div className="mega-brands">
-                        {PRODUCT_BRANDS.map((b) => (
-                          <Link key={b.name} href={b.href} className="mega-brand" onClick={closeEverything}>
-                            <b>{b.name}</b>
-                            <span>{b.tagline}</span>
-                          </Link>
-                        ))}
+                        {/* STEK/Nasiol are external: true (nav-menu.ts) — the
+                            manufacturer's own real site in a new tab, not a wouter
+                            Link, which can only navigate to an internal path.
+                            P91 Premium PPF dropped here by request (2026-09-23) —
+                            this dropdown stays third-party-brands only; it's still
+                            reachable from the /products page and its own service page. */}
+                        {PRODUCT_BRANDS.filter((b) => b.name !== "P91 Premium PPF").map((b) =>
+                          b.external ? (
+                            <a key={b.name} href={b.href} target="_blank" rel="noopener noreferrer" className="mega-brand" onClick={closeEverything}>
+                              <b>{b.name}</b>
+                            </a>
+                          ) : (
+                            <Link key={b.name} href={b.href} className="mega-brand" onClick={closeEverything}>
+                              <b>{b.name}</b>
+                            </Link>
+                          ),
+                        )}
                         <p className="mega-fineprint">{PRODUCT_FINE_PRINT}</p>
+                        <Link href="/products" className="mega-promo-cta" onClick={closeEverything}>
+                          View all products →
+                        </Link>
                       </div>
                     )}
 
@@ -283,9 +297,14 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
                       ))}
                     {menu.key === "products" && (
                       <div className="m-group">
-                        {PRODUCT_BRANDS.map((b) => (
-                          <Link key={b.name} href={b.href} onClick={closeEverything}>{b.name}</Link>
-                        ))}
+                        {PRODUCT_BRANDS.filter((b) => b.name !== "P91 Premium PPF").map((b) =>
+                          b.external ? (
+                            <a key={b.name} href={b.href} target="_blank" rel="noopener noreferrer" onClick={closeEverything}>{b.name}</a>
+                          ) : (
+                            <Link key={b.name} href={b.href} onClick={closeEverything}>{b.name}</Link>
+                          ),
+                        )}
+                        <Link href="/products" onClick={closeEverything}>View all products</Link>
                       </div>
                     )}
                     {menu.key === "resources" && (

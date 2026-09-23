@@ -24,48 +24,67 @@
   --ring: hsl(240, 4.9%, 83.9%);
   --radius: 0.5rem;
 
-  /* P91 Custom Colors */
-  --neon-green: hsl(142, 100%, 50%);
-  --deep-black: hsl(240, 10%, 3.9%);
-  --dark-gray: hsl(240, 3.7%, 10.2%);
-  --medium-gray: hsl(240, 3.7%, 20%);
+  /* P91 Custom Colors
+   *
+   * Green-and-white theme (2026-09-23), by request. --neon-green is now the exact
+   * green sampled from the real P91 logo (attached_assets/Car Care (4)_...png,
+   * pixel-sampled: #4EB848 = hsl(117, 44%, 50%)) rather than the prototype's neon
+   * hsl(142,100%,50%). Every other token here is inverted from dark-ground to a
+   * white ground: --deep-black (the page background) and --dark-gray/--medium-gray
+   * (card/border surfaces) go from near-black to white/near-white, and --txt/-2/-3
+   * go from light-on-dark to dark-on-light — because virtually every component in
+   * redesign.css reads these tokens rather than a literal color, this one edit is
+   * most of the theme change; only a handful of hardcoded chrome colors (the
+   * sticky header background) needed a direct follow-up. Photo/video overlay
+   * scrims and small badges drawn ON TOP of a photo are UNCHANGED and still dark —
+   * that is for legibility of the text sitting on that specific photo, not a
+   * statement about the page's own background, and stays true in any theme (XPEL's
+   * own white-ground site still darkens its hero photos under white text). */
+  --neon-green: #4EB848;
+  --deep-black: #FFFFFF;
+  --dark-gray: #F3F6F3;
+  --medium-gray: #E1E8E1;
 
-  /* --- Ported from the redesign prototype (audit branch). --------------------
-     The palette tokens above already matched the prototype exactly; these are the
-     text-tier and accent tokens it added on top.
-
-     --txt-3 note: the prototype measured #6E737B at 3.65:1 on card surfaces, below
-     the WCAG AA 4.5:1 minimum for body text. #868C95 measures 5.14:1 on cards and
-     5.87:1 on the page ground, so it is used instead. Do not darken it back. */
-  --neon-soft:  hsla(142, 100%, 50%, .12);
-  --neon-line:  hsla(142, 100%, 50%, .28);
-  --txt:        #EDEEF0;
-  --txt-2:      #A0A4AB;
-  --txt-3:      #868C95;
-  --warn:       #E9B949;
-  --danger:     #FF6B7D;
+  /* --txt-3 must still clear WCAG AA (4.5:1 body text) on the new white ground —
+     verified, not eyeballed: #5E6D65 measures ~5.3:1 on #FFFFFF. */
+  --neon-soft:  hsla(117, 44%, 50%, .12);
+  --neon-line:  hsla(117, 44%, 50%, .32);
+  --txt:        #10241A;
+  --txt-2:      #4B5B52;
+  --txt-3:      #5E6D65;
+  /* Darkened from the prototype's dark-ground values (#E9B949, #FF6B7D) — both
+     were tuned to sit on near-black cards and fail contrast on white/light ones. */
+  --warn:       #8A6D1D;
+  --danger:     #C9273A;
 }
 
+/* The wrapper div in App.tsx keeps className="dark" (a leftover name from the old
+   dark-mode-only build, not touched here — renaming it is a bigger, separate change),
+   so shadcn/ui primitives (Select, Dialog, the booking calendar, etc.) still read
+   THIS block, not :root's, for their own background/text/border tokens. It is
+   flipped to the same white-ground/green-accent values as :root above, for the
+   same reason: otherwise every dropdown and dialog on the site would still render
+   in the old dark theme while everything around it went light. */
 .dark {
-  --background: hsl(240, 10%, 3.9%);
-  --foreground: hsl(0, 0%, 98%);
-  --muted: hsl(240, 3.7%, 15.9%);
-  --muted-foreground: hsl(240, 5%, 64.9%);
-  --popover: hsl(240, 10%, 3.9%);
-  --popover-foreground: hsl(0, 0%, 98%);
-  --card: hsl(240, 10%, 3.9%);
-  --card-foreground: hsl(0, 0%, 98%);
-  --border: hsl(240, 3.7%, 15.9%);
-  --input: hsl(240, 3.7%, 15.9%);
-  --primary: hsl(142, 100%, 50%);
-  --primary-foreground: hsl(240, 10%, 3.9%);
-  --secondary: hsl(240, 3.7%, 15.9%);
-  --secondary-foreground: hsl(0, 0%, 98%);
-  --accent: hsl(240, 3.7%, 15.9%);
-  --accent-foreground: hsl(0, 0%, 98%);
-  --destructive: hsl(0, 62.8%, 30.6%);
-  --destructive-foreground: hsl(0, 0%, 98%);
-  --ring: hsl(240, 4.9%, 83.9%);
+  --background: #FFFFFF;
+  --foreground: #10241A;
+  --muted: #F3F6F3;
+  --muted-foreground: #4B5B52;
+  --popover: #FFFFFF;
+  --popover-foreground: #10241A;
+  --card: #FFFFFF;
+  --card-foreground: #10241A;
+  --border: #E1E8E1;
+  --input: #E1E8E1;
+  --primary: #4EB848;
+  --primary-foreground: #062D12;
+  --secondary: #F3F6F3;
+  --secondary-foreground: #10241A;
+  --accent: #F3F6F3;
+  --accent-foreground: #10241A;
+  --destructive: #C9273A;
+  --destructive-foreground: #FFFFFF;
+  --ring: #4EB848;
 }
 
 @layer base {

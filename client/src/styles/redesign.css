@@ -42,7 +42,9 @@
 /* ---------- header ---------- */
 .p91x header.site {
   position: sticky; top: 0; z-index: 60;
-  background: rgba(9, 9, 11, .94); backdrop-filter: blur(10px);
+  /* Hardcoded, not a var(--deep-black) reference, so the token swap above did not
+     already fix it — white ground, matching the page. */
+  background: rgba(255, 255, 255, .94); backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--medium-gray);
 }
 /* XPEL-style: on pages with a full-bleed hero directly underneath (home, service pages),
@@ -57,6 +59,23 @@
   background: linear-gradient(to bottom, rgba(6,7,8,.55) 0%, rgba(6,7,8,.16) 65%, transparent 100%);
   border-bottom: 0; backdrop-filter: none;
 }
+/* `--txt`/`--txt-2` are dark (site-wide light-theme tokens, for the white solid header
+   above). Over a photo, with only the thin dark gradient behind them, that dark text has
+   no reliable contrast — so this state needs its own light colors, not the token values,
+   plus a shadow as a floor for the gradient's transparent tail near the bottom. */
+.p91x header.site.over-hero.is-transparent .nav-trigger,
+.p91x header.site.over-hero.is-transparent .nav-plain,
+.p91x header.site.over-hero.is-transparent .icon-btn,
+.p91x header.site.over-hero.is-transparent .btn-call {
+  color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.55);
+}
+.p91x header.site.over-hero.is-transparent .icon-btn,
+.p91x header.site.over-hero.is-transparent .btn-call { border-color: rgba(255,255,255,.5); }
+.p91x header.site.over-hero.is-transparent .nav-trigger:hover,
+.p91x header.site.over-hero.is-transparent .nav-trigger[aria-expanded="true"],
+.p91x header.site.over-hero.is-transparent .nav-plain:hover { color: var(--neon-green); }
+.p91x header.site.over-hero.is-transparent .icon-btn:hover,
+.p91x header.site.over-hero.is-transparent .btn-call:hover { border-color: var(--neon-line); color: var(--neon-green); }
 .p91x .nav { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 8px 0; position: relative; }
 .p91x .nav img { height: 34px; width: auto; }
 
@@ -184,71 +203,133 @@
   border-bottom: 1px solid var(--medium-gray);
   overflow: hidden; padding: 0;
 }
+/* No extra transform/zoom here (there used to be one: scale(1.6) anchored bottom-left,
+   "tuned for one specific image" per its own comment). object-fit: cover already frames
+   the photo correctly at any viewport width; stacking a 1.6x zoom on top of that pushed
+   most of the frame out of view — the actual cause of the hero cropping oddly, worst on
+   wide desktop where cover already shows more of the photo before the zoom even applies. */
 .p91x .hero-bg .shot {
   position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; object-position: center 42%; z-index: 0;
-  transform: scale(1.6); transform-origin: 8% 100%;
 }
-/* ---------- hero-light-bg (service page hero, real photo shown bright, no colour wash) ----------
- * By explicit request: the photo is the section's background exactly as shot — no white or
- * dark scrim laid over it, so it reads at full brightness like XPEL's product-page heroes.
- * Text is white instead of black for this reason: legibility now comes from a text-shadow
- * on each line (the same technique home.tsx's dark hero already uses on its own h1/lede),
- * never from dimming or brightening the photo underneath it. The offer card stays the
- * ordinary dark `.card`, opaque on its own, so it never needed the scrim either. */
-.p91x .hero-light-bg {
-  position: relative; min-height: 82svh; display: flex; align-items: center;
-  overflow: hidden; padding: 0; border-bottom: 1px solid var(--medium-gray);
+/* ---------- product-page hero (service pages): XPEL layout, by request ----------
+ * Thumbnail rail + boxed main photo on the left, a dark info panel on the right — both
+ * bounded on the page's own white ground, replacing the earlier full-bleed-photo hero
+ * (.hero-light-bg, removed 2026-09-23: this section's whole previous ruleset). The dark
+ * panel is a deliberate, one-off dark accent, not a theme token: after the green/white
+ * theme swap, var(--dark-gray) means "light surface" everywhere else on the site, which
+ * is exactly wrong for the one place this page wants XPEL's black info panel. */
+.p91x .pdp-hero { padding: 40px 0 0; }
+.p91x .pdp-hero-grid { display: grid; grid-template-columns: 1fr .8fr; gap: 32px; align-items: stretch; padding-bottom: 56px; }
+@media (max-width: 900px) {
+  .p91x .pdp-hero-grid { grid-template-columns: 1fr; gap: 20px; padding-bottom: 32px; }
 }
-/* Full absolute-fill positioning, same as .hero-bg .shot — but without the homepage's
- * zoom/anchor hack, which was tuned for one specific image, not 23 arbitrary catalogue
- * photos. */
-.p91x .hero-light-bg .shot {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; object-position: center; z-index: 0;
-  /* The studio photos themselves are shot dark/moody (dim room, neon accents) — by
-     request, a real brightness/contrast lift on the photo itself, not a colour wash on
-     top of it (that's what got removed earlier), so the car reads clean and visible
-     instead of dark, same technique home.tsx's hero video already uses for the same
-     reason. No new or edited image — this is the same file, just displayed brighter. */
+.p91x .pdp-media { display: flex; gap: 14px; }
+@media (max-width: 640px) { .p91x .pdp-media { flex-direction: column-reverse; } }
+.p91x .pdp-thumbs { display: flex; flex-direction: column; gap: 10px; flex: none; }
+@media (max-width: 640px) { .p91x .pdp-thumbs { flex-direction: row; overflow-x: auto; } }
+.p91x .pdp-thumb {
+  width: 64px; height: 64px; flex: none; padding: 0; cursor: pointer;
+  border-radius: 10px; overflow: hidden; border: 2px solid transparent; background: var(--medium-gray);
+}
+.p91x .pdp-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.p91x .pdp-thumb.is-active { border-color: var(--neon-green); }
+.p91x .pdp-main-image {
+  position: relative; flex: 1 1 auto; min-height: 320px;
+  border-radius: 18px; overflow: hidden; background: var(--medium-gray);
+}
+.p91x .pdp-main-image .shot {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  /* The studio photos are shot dark/moody (dim room, neon accents) — a real brightness
+     lift on the photo itself, not a colour wash on top of it, so the car reads clean. */
   filter: brightness(1.18) contrast(1.05) saturate(1.08);
 }
-/* Left-weighted scrim, behind the copy column, in front of the photo/video (.shot is
- * z-index 0, this is z-index 1, .hero-light-copy is z-index 2). See service-landing.tsx
- * for why this exists on top of the text-shadow below: a real reel is not guaranteed to
- * be dark the way the studio's still photos are. */
-.p91x .hero-light-scrim {
+.p91x .pdp-expand {
+  position: absolute; top: 14px; right: 14px; z-index: 2;
+  width: 38px; height: 38px; border-radius: 9px; background: var(--neon-green); color: #062D12;
+  display: flex; align-items: center; justify-content: center;
+}
+.p91x .pdp-panel { background: #0E1F16; color: #F1F4F1; border-radius: 18px; padding: 32px 30px; }
+.p91x .pdp-crumb {
+  display: inline-flex; align-items: center; gap: 6px; width: fit-content;
+  font-size: 13px; font-weight: 600; color: rgba(241,244,241,.62); margin-bottom: 18px;
+}
+.p91x .pdp-crumb:hover { color: var(--neon-green); }
+.p91x .pdp-panel h1 {
+  color: #fff; font-size: clamp(26px, 3vw, 34px); font-weight: 800; letter-spacing: -.02em;
+}
+.p91x .pdp-rule { border: 0; border-top: 1px solid rgba(255,255,255,.14); margin: 22px 0; }
+.p91x .pdp-lede { font-size: 15px; line-height: 1.7; color: rgba(241,244,241,.72); margin: 0; }
+.p91x .pdp-panel .hero-facts { color: rgba(241,244,241,.85); }
+.p91x .pdp-panel .hero-facts a { color: rgba(241,244,241,.85); }
+
+/* ---------- SEO guide-page hero (/services/:seoSlug) ----------
+ * XPEL guide-page layout, by request: full-bleed photo, the site header floating over
+ * it (SiteHeader overHero, same mechanism home.tsx uses), a breadcrumb pill, one bold
+ * title. Distinct from .article-h1/.article-lede/.article-hero, which blog-post.tsx
+ * still uses unchanged — this hero applies only to the four guide pages. */
+.p91x .seo-hero {
+  position: relative; min-height: 62svh; display: flex; align-items: flex-end;
+  overflow: hidden; padding: 0; border-bottom: 1px solid var(--medium-gray);
+}
+.p91x .seo-hero .shot {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;
+}
+/* Dark toward the bottom (where the copy sits) and the top (under the fixed header),
+ * fading out through the middle so the photo itself still reads clearly. */
+.p91x .seo-hero-scrim {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: linear-gradient(90deg, rgba(6,7,8,.78) 0%, rgba(6,7,8,.5) 34%, rgba(6,7,8,.16) 60%, transparent 82%);
+  background:
+    linear-gradient(to top, rgba(6,7,8,.82) 0%, rgba(6,7,8,.15) 38%, transparent 60%),
+    linear-gradient(to bottom, rgba(6,7,8,.55) 0%, transparent 22%);
 }
-@media (max-width: 640px) {
-  /* Text runs full-width on mobile instead of stopping at maxWidth 620, so the scrim
-     needs to cover the full width too, not just the left two-thirds. */
-  .p91x .hero-light-scrim { background: linear-gradient(180deg, rgba(6,7,8,.7) 0%, rgba(6,7,8,.55) 55%, rgba(6,7,8,.35) 100%); }
+.p91x .seo-hero-copy { position: relative; z-index: 2; width: 100%; padding-block: 40px; }
+.p91x .seo-crumb {
+  display: inline-flex; align-items: center; gap: 4px; width: fit-content;
+  background: rgba(255,255,255,.14); backdrop-filter: blur(6px);
+  border-radius: 100px; padding: 8px 16px; margin-bottom: 18px;
+  color: #F1F4F1; font-size: 13px; font-weight: 600;
+  text-shadow: 0 1px 6px rgba(0,0,0,.6);
 }
-.p91x .hero-light-copy { position: relative; z-index: 2; width: 100%; padding-block: 40px; }
-.p91x .hero-light-copy h1 {
+.p91x .seo-crumb .i { width: 14px; height: 14px; opacity: .7; }
+.p91x .seo-hero-h1 {
   color: #fff; font-size: clamp(28px, 4.6vw, 46px); font-weight: 800;
-  letter-spacing: -.02em; margin-bottom: 14px;
+  letter-spacing: -.025em; max-width: 20ch; margin: 0;
   text-shadow: 0 2px 20px rgba(0,0,0,.75), 0 1px 3px rgba(0,0,0,.9);
 }
-.p91x .hero-light-lede {
-  color: #EDEFF1; font-size: clamp(15px, 1.6vw, 17px); line-height: 1.6; margin: 0; max-width: 54ch;
-  text-shadow: 0 1px 10px rgba(0,0,0,.8);
-}
-.p91x .hero-light-facts { margin-top: 18px; color: #EDEFF1; text-shadow: 0 1px 8px rgba(0,0,0,.8); }
-.p91x .hero-light-facts b { color: var(--neon-green); }
-.p91x .hero-light-facts a { color: #EDEFF1; }
 @media (max-width: 640px) {
-  .p91x .hero-light-bg { min-height: 74svh; }
-  .p91x .hero-light-copy { padding-block: 24px; }
+  .p91x .seo-hero { min-height: 52svh; }
+  .p91x .seo-hero-copy { padding-block: 24px; }
 }
-/* By explicit request: no dark wash over the hero photo/video at all, so it reads at full
- * brightness/clarity — the same change made to .hero-light-bg above, applied here too.
- * Legibility comes entirely from the text-shadow on h1.hero-solid/.lede below, same
- * technique, no scrim layer left to remove contrast from the footage underneath it.
- * (.hero-light-bg itself has since gained .hero-light-scrim, scoped to that hero only —
- * its footage isn't tuned the way this page's is; this hero-bg stays scrim-free.) */
+/* Scrim's back, lighter than before it was removed. "No wash at all" turned out to be too
+ * far the other way: the photo/video both have genuinely bright moments (glare off glass,
+ * a light-coloured panel), and the h1/lede's text-shadow alone can't hold up against a
+ * near-white patch of footage passing directly behind it — the words functionally
+ * disappeared. Two layers, same idea as .hero-light-scrim above (dark toward the text and
+ * the header, fading out fast so the rest of the frame — most of it, especially the car
+ * itself — stays as bright and visible as it was with no scrim at all):
+ *   1. a full-width strip along the very top, regardless of where the text column sits —
+ *      this also covers the fixed header, and incidentally sits right over the video's own
+ *      burned-in P91 watermark (top-left of the clip), which is what was reading as a
+ *      second, oversized logo directly under the real one.
+ *   2. a left-to-right fade behind the copy column, same as the other hero.
+ */
+.p91x .hero-bg-scrim {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(6,7,8,.62) 0%, rgba(6,7,8,.3) 12%, transparent 22%),
+    linear-gradient(90deg, rgba(6,7,8,.55) 0%, rgba(6,7,8,.32) 32%, rgba(6,7,8,.1) 55%, transparent 75%);
+}
+@media (max-width: 640px) {
+  /* Text runs full-width on mobile instead of stopping partway across, so the left-right
+     fade needs to cover the full width too, not just the left half — same reasoning as
+     .hero-light-scrim's mobile override. */
+  .p91x .hero-bg-scrim {
+    background:
+      linear-gradient(to bottom, rgba(6,7,8,.65) 0%, rgba(6,7,8,.3) 14%, transparent 26%),
+      linear-gradient(180deg, rgba(6,7,8,.55) 40%, rgba(6,7,8,.4) 100%);
+  }
+}
 /* padding-top is deliberately larger than padding-bottom and independent of the flex
  * centering above: the fixed transparent header (.over-hero) reserves no flow space, so
  * on a short viewport or a hero with tall content (title + description + trust pills +
@@ -313,6 +394,20 @@
 
 /* ---------- sections ---------- */
 .p91x .section { padding: 68px 0; }
+/* Homepage "About" teaser: heading left, copy + button right, same split xpel.com uses
+   for its own About section. Single column on mobile/tablet, same breakpoint the other
+   two-column grids on this page already use. */
+.p91x .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+@media (max-width: 760px) { .p91x .about-grid { grid-template-columns: 1fr; gap: 16px; } }
+/* Homepage only, by request: noticeably more air between sections than the rest of the
+   site, matching XPEL's calmer rhythm — section after section of photo-led content back
+   to back read busy at the old spacing. Kept modest on phones (44px, not the desktop
+   96px) for the same reason the 640px block below already exists: too much padding and
+   the page "scrolls forever" on a phone, which is the opposite of calm. */
+.p91x.home-page .section { padding: 96px 0; }
+@media (max-width: 640px) {
+  .p91x.home-page .section { padding: 44px 0; }
+}
 @media (max-width: 640px) {
   /* The homepage used a 24px gutter while every other page used 16px, and 68px of
      section padding made it scroll forever on a phone. Both matched to the site. */
@@ -438,7 +533,7 @@
    the photo, no card panel underneath. Portrait so more than three peek at once and the
    row visibly continues off the right edge. */
 .p91x .tile {
-  position: relative; flex: 0 0 min(72%, 300px); scroll-snap-align: start;
+  position: relative; flex: 0 0 min(76%, 340px); scroll-snap-align: start;
   aspect-ratio: 3 / 4; border-radius: 16px; overflow: hidden; background: var(--dark-gray);
   display: block; transition: transform .18s;
 }
@@ -532,13 +627,55 @@
 }
 .p91x .strip .cell b { display: block; font-family: Archivo, sans-serif; font-size: 15.5px; margin-bottom: 6px; }
 .p91x .strip .cell span { display: block; color: var(--txt-2); font-size: 13px; max-width: 24ch; margin: 0 auto; }
+/* .cell-link: the same cell, but a real destination (home.tsx's action row) instead of a
+   fact — XPEL's "GET STARTED →" line under the sentence. `em` for that line only because
+   there's no fourth text tag free in .cell's existing b/span pair; font-style reset since
+   this one is a label, not an emphasised word. */
+.p91x .strip .cell.cell-link { display: block; border-radius: 12px; transition: background .15s; }
+.p91x .strip .cell.cell-link:hover { background: rgba(255,255,255,.03); }
+.p91x .strip .cell.cell-link:hover .i:first-child { color: var(--neon-green); }
+.p91x .strip .cell-link em {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
+  color: var(--neon-green); font-style: normal; font-weight: 600; font-size: 13px;
+}
+.p91x .strip .cell-link em .i { width: 14px; height: 14px; margin: 0; }
+/* Dark variant, /ppf page only — XPEL's own trust strip is black regardless of the
+ * rest of that page's theme; .strip's other uses (home.tsx) stay the page's normal
+ * light theme, so this is a modifier, not a change to .strip itself. */
+.p91x .strip.strip-dark { background: #0E1F16; }
+.p91x .strip.strip-dark .cell b { color: #fff; }
+.p91x .strip.strip-dark .cell span { color: rgba(241,244,241,.68); }
+.p91x .strip.strip-dark .cell .i { color: var(--neon-green); }
+
+/* ---------- guide/campaign pages: photo collage + copy, XPEL concept ----------
+ * Up to two small photos top, one wide photo below, real copy beside it — a different
+ * layout from every other image+text section (overview-grid is one photo, feature-grid
+ * is icon bullets with no photo), so this reads as its own moment rather than a repeat.
+ * Used on /ppf and, by request, all four /services/:seoSlug guide pages — generic name,
+ * not ppf-specific, even though it started there. */
+.p91x .guide-collage { display: grid; grid-template-columns: 1.15fr 1fr; gap: 48px; align-items: center; }
+@media (max-width: 860px) { .p91x .guide-collage { grid-template-columns: 1fr; gap: 24px; } }
+.p91x .guide-collage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.p91x .guide-collage-grid img { border-radius: 14px; width: 100%; height: 100%; object-fit: cover; aspect-ratio: 1/1; }
+.p91x .guide-collage-wide { grid-column: 1 / -1; }
+.p91x .guide-collage-wide img { aspect-ratio: 16/9; }
+.p91x .guide-collage-copy h2 { font-size: clamp(24px,3.2vw,34px); max-width: 16ch; }
+.p91x .guide-collage-copy p { margin-top: 14px; color: var(--txt-2); font-size: 15.5px; line-height: 1.7; max-width: 44ch; }
+.p91x .guide-collage-copy p + p { margin-top: 10px; }
 
 /* ---------- blog teasers ----------
    Was a 3-up grid with a 4:1 image — a thin banner strip, not a real photo. XPEL's own
    "image-led" cards never crop that hard. 2-up gives each photo real presence (16:10, the
-   card's actual width) and more air between cards — fewer, bigger, calmer, same 6 posts. */
+   card's actual width) and more air between cards. */
 .p91x .blog-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
 @media (max-width: 640px) { .p91x .blog-grid { grid-template-columns: minmax(0, 1fr); } }
+/* Home only: 3 posts, not 6 — this section already follows two other card rows with only
+   one photo break between them (see home.tsx's featuredPosts comment). A single row of 3
+   even columns reads calmer than 2 columns wrapping 3 cards into an orphaned third row,
+   and each card stays roughly the same size as the Most Booked/Showcase cards above it. */
+.p91x .blog-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .p91x .blog-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .p91x .blog-grid-3 { grid-template-columns: minmax(0, 1fr); } }
 .p91x .post {
   background: var(--dark-gray); border: 1px solid var(--medium-gray); border-radius: 14px;
   overflow: hidden; display: flex; flex-direction: column; color: inherit;
@@ -739,14 +876,59 @@
 }
 
 /* ---------- Overview: video/image left, benefits right (XPEL product-page layout) ---------- */
-.p91x .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; align-items: center; }
+.p91x .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; align-items: stretch; }
 @media (max-width: 860px) { .p91x .overview-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
-.p91x .overview-media { border-radius: 14px; }
-.p91x .overview-benefits { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 22px; }
-.p91x .overview-benefits li { display: flex; align-items: flex-start; gap: 14px; }
-.p91x .overview-benefits .i { width: 22px; height: 22px; color: var(--neon-green); flex: none; margin-top: 2px; }
-.p91x .overview-benefits h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-.p91x .overview-benefits p { color: var(--txt-2); font-size: 13.5px; line-height: 1.55; margin: 0; }
+/* The media column reads as a background rather than a boxed thumbnail: it fills the full
+   height of the benefits column beside it (align-items: stretch above), not a fixed
+   aspect-ratio box centred next to a taller list. min-height is the floor for a short
+   list or a narrow single-column mobile layout, where there's no sibling height to match. */
+.p91x .overview-media-wrap {
+  position: relative; border-radius: 14px; overflow: hidden; min-height: 320px;
+}
+.p91x .overview-media-wrap .overview-media,
+.p91x .overview-media-wrap .card-img.overview-media {
+  position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 0;
+}
+.p91x .overview-media-wrap img.overview-media { object-fit: cover; }
+/* ImageWithFallback wraps the <img> in a <picture> when it has AVIF/WebP variants — a
+   plain inline element that won't fill the wrap on its own the way the <img> rule above
+   does. The wrap only ever holds the one media element, so this is safe unscoped. */
+.p91x .overview-media-wrap picture {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+}
+@media (max-width: 860px) { .p91x .overview-media-wrap { min-height: 260px; } }
+
+/* ---------- explore tabs (XPEL's "Explore Paint Protection Film" tab row) ----------
+   Real catalogue variants as buttons, not links — clicking one swaps the panel below via
+   React state, no navigation. Same underline-tab look as .tier-tab, its own class because
+   these are actual tab-panel controls (role="tab"), not links to other pages. */
+.p91x .explore-tabs { display: flex; flex-wrap: wrap; gap: 28px; margin-bottom: 32px; border-bottom: 1px solid var(--medium-gray); padding-bottom: 0; }
+.p91x .explore-tab {
+  background: none; border: 0; cursor: pointer; font: inherit;
+  font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--txt-2); padding: 0 0 14px; border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.p91x .explore-tab:hover { color: var(--txt); }
+.p91x .explore-tab.is-active { color: var(--neon-green); border-bottom-color: var(--neon-green); }
+
+/* ---------- overview copy column (XPEL's "FUSION PLUS Classic" panel) ----------
+   Product name, one line, one button, a short feature list — left column, text-first,
+   next to one large photo/video instead of a centred heading over a full-width list. */
+.p91x .overview-copy { display: flex; flex-direction: column; }
+.p91x .overview-copy h2 { font-size: clamp(22px, 2.6vw, 28px); margin-bottom: 10px; }
+.p91x .overview-copy-lede { color: var(--txt-2); font-size: 14.5px; line-height: 1.6; margin: 0 0 20px; max-width: 46ch; }
+.p91x .overview-copy .cta-lg { align-self: flex-start; margin-bottom: 26px; }
+.p91x .overview-features { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 20px; }
+.p91x .overview-features li { display: flex; align-items: flex-start; gap: 14px; }
+.p91x .overview-feature-icon {
+  flex: none; width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--medium-gray);
+}
+.p91x .overview-feature-icon .i { width: 18px; height: 18px; color: var(--neon-green); }
+.p91x .overview-features h3, .p91x .overview-features h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.p91x .overview-features p { color: var(--txt-2); font-size: 13.5px; line-height: 1.55; margin: 0; }
 
 /* ---------- FAQ light card (scoped to .faq-light only — see .hero-light-bg for the same
    "one section, opposite palette, by request" pattern) ---------- */
@@ -767,8 +949,10 @@
 .p91x .light-band p { color: #4B4E52; }
 .p91x .light-band .strip .cell b, .p91x .light-band .cell b { color: #0B0C0D; }
 .p91x .light-band .cell span { color: #6C6F73; }
-.p91x .light-band .overview-benefits h3 { color: #0B0C0D; }
-.p91x .light-band .overview-benefits p { color: #4B4E52; }
+.p91x .light-band .overview-copy-lede { color: #4B4E52; }
+.p91x .light-band .overview-feature-icon { border-color: #D8DAD7; }
+.p91x .light-band .overview-features h3, .p91x .light-band .overview-features h4 { color: #0B0C0D; }
+.p91x .light-band .overview-features p { color: #4B4E52; }
 /* RESTORE, not just "don't override": .light-band h2/p two rules above are plain
    descendant selectors, so they don't know or care that .lp-final is its own dark box in
    between — they were darkening this text too, which is what made it unreadable (dark

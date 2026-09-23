@@ -55,6 +55,16 @@ export const SERVICES_SEO: StaticSeoPage = {
     "live — the same ones you will see at checkout.",
 };
 
+export const PRODUCTS_SEO: StaticSeoPage = {
+  path: "/products",
+  title: "Products: STEK, Nasiol & P91 Premium PPF | P91 Car Care",
+  description:
+    "The film and coating brands P91 Car Care fits in Bangalore — STEK, Nasiol and " +
+    "P91 Premium PPF — each backed by the manufacturer's written warranty.",
+  h1: "Products",
+  lede: "The film and coating brands we fit, and what each one is for.",
+};
+
 export const CONTACT_SEO: StaticSeoPage = {
   path: "/contact",
   title: "Contact P91 Car Care | Adugodi, Bangalore",
@@ -116,6 +126,7 @@ export const REFUND_SEO: StaticSeoPage = {
 export const STATIC_SEO_PAGES: StaticSeoPage[] = [
   HOME_SEO,
   SERVICES_SEO,
+  PRODUCTS_SEO,
   PRIVACY_SEO,
   TERMS_SEO,
   REFUND_SEO,
