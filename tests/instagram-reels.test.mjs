@@ -69,14 +69,15 @@ describe('presentation', () => {
     assert.match(component, /if \(unique\.length === 0\) return null;/);
   });
 
-  test('used on service pages, the PPF/ceramic page, blog posts, and linked in the footer', () => {
-    assert.match(read('client/src/pages/service-landing.tsx'), /reels=\{REELS_BY_SERVICE\[service\.slug\] \?\? \[\]\}/);
+  test('used on the PPF/ceramic page, blog posts, and linked in the footer', () => {
     assert.match(read('client/src/pages/ppf-ceramic-landing.tsx'), /reels=\{REELS_FOR_PPF_CERAMIC_PAGE\}/);
     assert.match(read('client/src/pages/blog-post.tsx'), /reels=\{REELS_BY_POST\[post\.slug\] \?\? \[\]\}/);
     assert.match(read('client/src/components/redesign/site-footer.tsx'), /data-testid="link-footer-instagram"/);
-    // service-landing.tsx used to carry a second, page-own Instagram link in its final
-    // "Ready to Transform Your Car?" CTA banner, removed by request from every service
-    // page — the footer's link above is the only one left on these pages now.
+  });
+
+  test('"See it on Instagram" is gone from /service/:slug pages, removed by request', () => {
+    assert.doesNotMatch(read('client/src/pages/service-landing.tsx'), /<InstagramReels\b/);
+    assert.doesNotMatch(read('client/src/pages/service-landing.tsx'), /REELS_BY_SERVICE/);
   });
 
   test('the unverified YouTube shorts are gone from /ppf-ceramic-coating', () => {

@@ -9,9 +9,7 @@ import { CheckCircle, Star, Clock, Shield, MapPin, Play, ArrowRight } from "luci
 import { useState, useEffect, useRef } from "react";
 import BookingModal from "@/components/booking-modal";
 import CallbackPopup from "@/components/callback-popup";
-import InstagramReels from "@/components/instagram-reels";
 import { ImageWithFallback } from "@/components/image-with-fallback";
-import { REELS_BY_SERVICE } from "@/lib/instagram-reels";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
@@ -480,6 +478,11 @@ export default function ServiceLanding() {
    * that isn't on the page.
    */
   const hasOverview = Boolean((service.whatIncluded && service.whatIncluded.length > 0) || service.heroVideo);
+  // The first two real included items, shortened the same way the full list is — floated
+  // as chips on the Overview media instead of duplicated in new wording.
+  const overviewBadgeItems = (service.whatIncluded && service.whatIncluded.length > 0)
+    ? Array.from(new Set(service.whatIncluded.map(cleanIncluded))).slice(0, 2).map(shortIncluded)
+    : [];
   const hasBenefits = Boolean(service.whyChoose) || Boolean(service.guaranteeText);
   const packagesMode: "tiers" | "process" | null =
     tierSiblings.length > 1 ? "tiers" : service.process && service.process.length > 0 ? "process" : null;
@@ -769,20 +772,6 @@ export default function ServiceLanding() {
               ))}
             </div>
 
-            {/* CTA at bottom of before/after section */}
-            <div className="lp-final" style={{ marginTop: 48 }}>
-              <h2>Ready for Your Transformation?</h2>
-              <p>Join hundreds of satisfied customers who've experienced the P91 difference</p>
-              <button
-                type="button"
-                onClick={() => setBookingModalOpen(true)}
-                className="cta-lg"
-                data-testid="button-book-transformation"
-              >
-                Book Your Transformation
-                <ArrowRight className="i" aria-hidden="true" />
-              </button>
-            </div>
           </div>
         </section>
       )}
@@ -812,46 +801,65 @@ export default function ServiceLanding() {
               <h2>Why Choose P91 {service.title.trim()}?</h2>
             </div>
             <div className="overview-grid">
-              {service.heroVideo && isDirectVideoFile(service.heroVideo) ? (
-                <div className="card-img overview-media" style={{ aspectRatio: "16 / 9" }}>
-                  {/* The studio's own reel, saved as a real file — autoplaying background
-                      footage, same treatment as the homepage hero's video (muted,
-                      loop, playsInline so mobile Safari doesn't force fullscreen).
-                      heroImage as poster: never a blank/black frame before it decodes. */}
-                  <video
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    poster={heroImage}
-                    data-testid="video-overview"
-                  >
-                    <source src={service.heroVideo} type="video/mp4" />
-                  </video>
-                </div>
-              ) : service.heroVideo ? (
-                <div className="card-img overview-media" style={{ aspectRatio: "16 / 9" }}>
-                  <iframe
-                    style={{ width: "100%", height: "100%", border: 0 }}
-                    src={service.heroVideo}
-                    title={`${service.title.trim()} — P91 Car Care`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                    data-testid="video-overview"
+              {/* The media column now behaves like a background, not a boxed thumbnail
+                  next to a list: it stretches to the full height of the benefits column
+                  beside it (see .overview-grid's align-items in redesign.css), and the
+                  first couple of real included items float on top of it as chips —
+                  the SAME words already in the full list to the right, not new copy,
+                  just given a second, more visual treatment. Skipped entirely when there
+                  is nothing real to show (no fabricated points). */}
+              <div className="overview-media-wrap">
+                {service.heroVideo && isDirectVideoFile(service.heroVideo) ? (
+                  <div className="card-img overview-media">
+                    {/* The studio's own reel, saved as a real file — autoplaying background
+                        footage, same treatment as the homepage hero's video (muted,
+                        loop, playsInline so mobile Safari doesn't force fullscreen).
+                        heroImage as poster: never a blank/black frame before it decodes. */}
+                    <video
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      poster={heroImage}
+                      data-testid="video-overview"
+                    >
+                      <source src={service.heroVideo} type="video/mp4" />
+                    </video>
+                  </div>
+                ) : service.heroVideo ? (
+                  <div className="card-img overview-media">
+                    <iframe
+                      style={{ width: "100%", height: "100%", border: 0 }}
+                      src={service.heroVideo}
+                      title={`${service.title.trim()} — P91 Car Care`}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      data-testid="video-overview"
+                    />
+                  </div>
+                ) : heroImage ? (
+                  <ImageWithFallback
+                    className="overview-media"
+                    src={heroImage}
+                    alt={`${service.title.trim()} at the P91 Car Care studio in Adugodi, Bangalore`}
+                    sizes="(min-width: 860px) 480px, 100vw"
+                    style={{ objectPosition: "center" }}
+                    loading="lazy"
+                    data-testid="image-overview"
                   />
-                </div>
-              ) : heroImage ? (
-                <ImageWithFallback
-                  className="overview-media"
-                  src={heroImage}
-                  alt={`${service.title.trim()} at the P91 Car Care studio in Adugodi, Bangalore`}
-                  sizes="(min-width: 860px) 480px, 100vw"
-                  style={{ aspectRatio: "4 / 3", objectPosition: "center" }}
-                  loading="lazy"
-                  data-testid="image-overview"
-                />
-              ) : null}
+                ) : null}
+                {overviewBadgeItems.length > 0 && (
+                  <div className="overview-media-badges">
+                    {overviewBadgeItems.map((label, i) => (
+                      <span className="overview-media-badge" key={i}>
+                        <CheckCircle className="i" aria-hidden="true" />
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
               {service.whatIncluded && service.whatIncluded.length > 0 && (
                 <ul className="overview-benefits">
                   {Array.from(new Set(service.whatIncluded.map(cleanIncluded))).map((item, index) => {
@@ -931,13 +939,6 @@ export default function ServiceLanding() {
           </div>
         </section>
       )}
-      {/* The studio's own reels of this service, when there are any (lib/instagram-reels.ts).
-          Pages without a matching reel render nothing here rather than an unrelated one. */}
-      <InstagramReels
-        reels={REELS_BY_SERVICE[service.slug] ?? []}
-        heading="See it on Instagram"
-        intro={`Real ${service.title.trim().toLowerCase()} work from our Adugodi studio.`}
-      />
       {/* XPEL-style statement band ("Let It Roll Off"): a full-width mid-tone panel,
           headline and copy side by side instead of stacked and centred. */}
       {service.whyChoose && (
@@ -1021,20 +1022,6 @@ export default function ServiceLanding() {
               </div>
             )}
 
-            {/* Optional CTA below gallery */}
-            <div className="lp-final" style={{ marginTop: 40 }}>
-              <h2>Experience Professional Car Care</h2>
-              <p>Book your service today and let our experts give your {vehicleNoun} the attention it deserves</p>
-              <button
-                type="button"
-                onClick={() => setBookingModalOpen(true)}
-                className="cta-lg"
-                data-testid="button-book-gallery"
-              >
-                Book Your Service
-                <ArrowRight className="i" aria-hidden="true" />
-              </button>
-            </div>
           </div>
         </section>
       )}
@@ -1183,12 +1170,45 @@ export default function ServiceLanding() {
           </div>
         </div>
       </section>
-      {/* Final CTA banner ("Ready to Transform Your Car?" + price + Book Now + contact
-          row) removed by request from every /service/:slug page. finalCtaRef now watches
-          the footer wrapper below instead — see its declaration above — so the floating
-          sticky CTA bar still hides once the page bottom is reached, same reason it
-          always did: without this, the bar would sit on top of the footer's own contacts
-          for the rest of the scroll. */}
+      {/* Closing video section — replaces the old text/price/contact banner (see history:
+          it used to read "Ready to Transform Your Car?" + price + Book Now + contact row,
+          removed by request). Reuses the SAME heroVideo field as the hero and Overview
+          sections above, not a second per-service asset — one saved reel, three
+          placements. Video-only by design: a service with no saved reel gets nothing
+          here rather than falling back to a photo, unlike the hero/Overview. */}
+      {service.heroVideo && isDirectVideoFile(service.heroVideo) && (
+        <section
+          className="section cta-banner"
+          style={{ minHeight: "56vh", display: "flex", alignItems: "center", justifyContent: "center" }}
+        >
+          <video
+            className="cta-banner-bg"
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={heroImage}
+            aria-hidden="true"
+          >
+            <source src={service.heroVideo} type="video/mp4" />
+          </video>
+          <div className="cta-banner-scrim" aria-hidden="true" />
+          <div className="wrap narrow" style={{ textAlign: "center" }}>
+            <button
+              type="button"
+              onClick={() => setBookingModalOpen(true)}
+              className="cta-lg"
+              data-testid="button-book-now-closing"
+            >
+              Book Now
+              <ArrowRight className="i" aria-hidden="true" />
+            </button>
+          </div>
+        </section>
+      )}
+      {/* Hidden from the footer onwards (finalCtaRef, declared above) — the floating
+          sticky CTA bar hides once the page bottom is reached, so it never sits on top of
+          the footer's own contact links for the rest of the scroll. */}
       <section ref={finalCtaRef}>
         <SiteFooter />
       </section>
