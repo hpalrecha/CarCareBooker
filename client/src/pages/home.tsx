@@ -53,6 +53,13 @@ const HERO_IMAGE_SLUG = "exterior-detailing-hard-water-new";
  */
 const HERO_FALLBACK_IMAGE = "/attached_assets/services/exterior-detailing-hard-water-spot-removal.webp";
 
+/** One real studio photograph and a kind-of-product label per brand (see the Why P91 section). */
+const BRAND_LOOK: Record<string, { src: string; kind: string }> = {
+  stek: { src: "/attached_assets/gallery/p91-lux-nissan-gtr.webp", kind: "Paint protection & window film" },
+  nasiol: { src: "/attached_assets/gallery/p91-ceramic-gloss-wipe.webp", kind: "Nano-ceramic coating" },
+  "p91-premium-ppf": { src: "/attached_assets/gallery/p91-lux-mg-comet-ev.webp", kind: "Our own PPF line" },
+};
+
 export default function Home() {
   const { data: services } = useQuery<ServiceRecord[]>({
     queryKey: ["/api/services"],
@@ -478,23 +485,37 @@ export default function Home() {
             </div>
           </dl>
           {/* Same data as the navbar's Products dropdown (lib/nav-menu.ts), so the two cannot disagree. */}
+          {/* Three brand stories, each with one real studio photograph (the studio's own delivery and
+              application stills), a label, a short line and its two strongest points. Copy is
+              PRODUCT_BRANDS (lib/nav-menu.ts), so it matches the navbar and the brand pages. P91 Premium
+              PPF is marked as our own line; nothing is claimed about how or where it is made. */}
           <div className="ed-brands" data-reveal>
-            <p className="ed-brands-label">Films and coatings we fit</p>
+            <p className="ed-brands-label">The brands behind our work</p>
             <div className="ed-brand-grid">
-              {PRODUCT_BRANDS.map((b) => (
-                <div className="ed-brand" key={b.name} data-testid={`brand-${b.name.toLowerCase().replace(/\s+/g, "-")}`}>
-                  <h3>{b.name}</h3>
-                  <p>{b.line}</p>
-                  <ul>
-                    {b.points.map((p) => (
-                      <li key={p}>{p}</li>
-                    ))}
-                  </ul>
-                  <Link href={b.href} className="ed-link ed-brand-link" data-testid={`link-explore-brand-${b.href.split("/").pop()}`}>
-                    Explore brand →
-                  </Link>
-                </div>
-              ))}
+              {PRODUCT_BRANDS.map((b) => {
+                const slug = b.href.split("/").pop() ?? "";
+                const look = BRAND_LOOK[slug];
+                return (
+                  <div className={"ed-brand" + (slug === "p91-premium-ppf" ? " is-own" : "")} key={b.name} data-testid={`brand-${b.name.toLowerCase().replace(/s+/g, "-")}`}>
+                    {look && (
+                      <Link href={b.href} className="ed-brand-photo" tabIndex={-1} aria-hidden="true">
+                        <ImageWithFallback src={look.src} alt="" sizes="(min-width: 861px) 30vw, 92vw" loading="lazy" />
+                      </Link>
+                    )}
+                    <p className="ed-brand-kind">{look?.kind}</p>
+                    <h3>{b.name}</h3>
+                    <p className="ed-brand-line">{b.line}</p>
+                    <ul>
+                      {b.points.slice(0, 2).map((p) => (
+                        <li key={p}>{p}</li>
+                      ))}
+                    </ul>
+                    <Link href={b.href} className="ed-link ed-brand-link" data-testid={`link-explore-brand-${slug}`}>
+                      Explore brand →
+                    </Link>
+                  </div>
+                );
+              })}
             </div>
           </div>
           <p className="ed-fine" data-reveal>

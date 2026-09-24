@@ -892,17 +892,28 @@
 .p91x .ed-why-grid dd { margin: 0; font-size: 15px; line-height: 1.6; color: var(--txt-2); max-width: 30ch; }
 .p91x .ed-brands { padding-top: 28px; border-top: 1px solid var(--medium-gray); }
 .p91x .ed-brands-label { margin: 0 0 24px; font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--txt-3); }
-.p91x .ed-brand-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.p91x .ed-brand { padding: 4px clamp(20px, 3vw, 44px) 8px; border-left: 1px solid var(--medium-gray); }
-.p91x .ed-brand:first-child { padding-left: 0; border-left: 0; }
-.p91x .ed-brand h3 { font-family: var(--font-display); font-weight: var(--fw-heading); font-size: clamp(30px, 3.1vw, 46px); letter-spacing: -.035em; line-height: 1.04; margin: 0 0 14px; }
-.p91x .ed-brand p { margin: 0 0 18px; font-size: 15px; line-height: 1.55; color: var(--txt-2); max-width: 30ch; }
-.p91x .ed-brand ul { list-style: none; margin: 0 0 20px; padding: 0; }
+.p91x .ed-brands { --bp: clamp(20px, 3vw, 44px); }
+/* Every column has the same content width: the grid is pulled left by one gutter so the first column
+   (which has no divider) still starts on the page margin. */
+.p91x .ed-brand-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-left: calc(var(--bp) * -1); }
+.p91x .ed-brand { padding: 4px var(--bp) 8px; border-left: 1px solid var(--medium-gray); }
+.p91x .ed-brand:first-child { border-left: 0; }
+.p91x .ed-brand-photo { display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 3px; margin-bottom: 22px; background: var(--dark-gray); }
+.p91x .ed-brand-photo img { width: 100%; height: 100%; max-width: none; object-fit: cover; transition: transform .8s cubic-bezier(.22,.61,.36,1); }
+.p91x .ed-brand:hover .ed-brand-photo img { transform: scale(1.04); }
+.p91x .ed-brand-kind { margin: 0 0 12px; font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--txt-3); }
+.p91x .ed-brand h3 { font-family: var(--font-display); font-weight: var(--fw-heading); font-size: clamp(30px, 3.1vw, 46px); letter-spacing: -.035em; line-height: 1.04; margin: 0 0 12px; }
+.p91x .ed-brand .ed-brand-line { margin: 0 0 16px; font-size: 15px; line-height: 1.55; color: var(--txt-2); max-width: 32ch; }
+.p91x .ed-brand ul { list-style: none; margin: 0 0 18px; padding: 0; }
 .p91x .ed-brand li { display: flex; align-items: baseline; gap: 10px; padding: 8px 0; border-top: 1px solid var(--medium-gray); font-size: 14px; color: var(--txt); }
 .p91x .ed-brand li::before { content: ""; flex: none; width: 10px; height: 1px; background: var(--brand-accent); transform: translateY(-3px); }
 .p91x .ed-brand-link { font-size: 14px; }
+/* Our own brand: the mark of ownership is a green rule above the label and the name in the accent ink. */
+.p91x .ed-brand.is-own .ed-brand-kind { color: var(--accent-ink); }
+.p91x .ed-brand.is-own .ed-brand-kind::before { content: ""; display: block; width: 40px; height: 2px; background: var(--brand-accent); margin-bottom: 12px; }
+.p91x .ed-brand.is-own h3 { color: var(--accent-ink); }
 @media (max-width: 860px) {
-  .p91x .ed-brand-grid { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+  .p91x .ed-brand-grid { grid-template-columns: minmax(0, 1fr); gap: 36px; margin-left: 0; }
   .p91x .ed-brand, .p91x .ed-brand:first-child { padding: 0; border-left: 0; }
   .p91x .ed-brand + .ed-brand { padding-top: 32px; border-top: 1px solid var(--medium-gray); }
 }
