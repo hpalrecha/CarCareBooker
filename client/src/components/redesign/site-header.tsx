@@ -77,6 +77,48 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
   const [query, setQuery] = useState("");
   const headerRef = useRef<HTMLElement | null>(null);
 
+  // Hide on scroll down, return on scroll up (Framer-style). Never hides near the top of
+  // the page, and never while a menu, the search panel or the mobile drawer is open — a
+  // panel that vanishes under the pointer is worse than a bar that stays put. The ref
+  // mirrors those three flags so the scroll handler (bound once) always reads current values.
+  const [hidden, setHidden] = useState(false);
+  // True while the bar sits over a section marked data-tone="dark" (the homepage's
+  // Protection & Care screen): the bar then goes dark-glass with light text, instead of
+  // dark text on a half-white blur over near-black, which does not read.
+  const [onDark, setOnDark] = useState(false);
+  const lastY = useRef(0);
+  const menuLock = useRef(false);
+  menuLock.current = open || openMenu !== null || searchOpen;
+  useEffect(() => {
+    let ticking = false;
+    lastY.current = window.scrollY;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const under = document
+          .elementsFromPoint(window.innerWidth / 2, 44)
+          .find((n) => !headerRef.current?.contains(n));
+        setOnDark(!!under?.closest('[data-tone="dark"]'));
+        const y = window.scrollY;
+        const dy = y - lastY.current;
+        if (y < 80 || menuLock.current) {
+          setHidden(false);
+          lastY.current = y;
+        } else if (dy > 6) {
+          setHidden(true);
+          lastY.current = y;
+        } else if (dy < -6) {
+          setHidden(false);
+          lastY.current = y;
+        }
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   // A click anywhere outside the header closes an open mega-menu or search panel opened
   // by clicking (hover-opened panels already close on mouseleave; this covers the
   // click-to-open path, where nothing else would ever close them again).
@@ -131,7 +173,9 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
   return (
     <header
       ref={headerRef}
-      className={"site" + (overHero ? " over-hero" : "") + (transparent ? " is-transparent" : "")}
+      className={"site" + (overHero ? " over-hero" : "") + (transparent ? " is-transparent" : "") + (hidden ? " is-hidden" : "") + (onDark ? " on-dark" : "")}
+      // Keyboard focus landing in the bar always brings it back.
+      onFocus={() => setHidden(false)}
       onKeyDown={(e) => {
         if (e.key === "Escape") closeEverything();
       }}
@@ -157,7 +201,7 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
             {MENUS.map((menu) => (
               <div
                 key={menu.key}
-                className="nav-item"
+                className={"nav-item" + (menu.key === "services" ? " is-wide" : "")}
                 onMouseEnter={() => setOpenMenu(menu.key)}
                 onMouseLeave={() => setOpenMenu((cur) => (cur === menu.key ? null : cur))}
               >
@@ -177,7 +221,7 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
 
                 {openMenu === menu.key && (
                   <div
-                    className={"mega-panel " + (menu.key === "resources" ? "align-right" : "align-left")}
+                    className={"mega-panel " + (menu.key === "resources" ? "align-right" : "align-left") + (menu.key === "services" ? " mega-wide" : "")}
                     data-testid={`panel-nav-${menu.key}`}
                   >
                     {menu.key === "services" && (
@@ -210,24 +254,30 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
                     )}
 
                     {menu.key === "products" && (
-                      <div className="mega-brands">
-                        {/* STEK/Nasiol are external: true (nav-menu.ts) — the
-                            manufacturer's own real site in a new tab, not a wouter
-                            Link, which can only navigate to an internal path.
-                            P91 Premium PPF dropped here by request (2026-09-23) —
-                            this dropdown stays third-party-brands only; it's still
-                            reachable from the /products page and its own service page. */}
-                        {PRODUCT_BRANDS.filter((b) => b.name !== "P91 Premium PPF").map((b) =>
-                          b.external ? (
-                            <a key={b.name} href={b.href} target="_blank" rel="noopener noreferrer" className="mega-brand" onClick={closeEverything}>
-                              <b>{b.name}</b>
+                      <div className="mega-products">
+                        {/* All three brands, one clean list: name, one line, then the points as
+                            a single quiet line. STEK/Nasiol are external: true (nav-menu.ts) — the
+                            manufacturer's own real site in a new tab, not a wouter Link, which
+                            can only navigate to an internal path. P91 Premium PPF is back in this
+                            list (2026-09-24, by request) after being left out on 2026-09-23. */}
+                        {PRODUCT_BRANDS.map((b) => {
+                          const body = (
+                            <>
+                              <span className="mp-name">{b.name}</span>
+                              <span className="mp-line">{b.line}</span>
+                              <span className="mp-points">{b.points.join(" · ")}</span>
+                            </>
+                          );
+                          return b.external ? (
+                            <a key={b.name} href={b.href} target="_blank" rel="noopener noreferrer" className="mp-row" onClick={closeEverything}>
+                              {body}
                             </a>
                           ) : (
-                            <Link key={b.name} href={b.href} className="mega-brand" onClick={closeEverything}>
-                              <b>{b.name}</b>
+                            <Link key={b.name} href={b.href} className="mp-row" onClick={closeEverything}>
+                              {body}
                             </Link>
-                          ),
-                        )}
+                          );
+                        })}
                         <p className="mega-fineprint">{PRODUCT_FINE_PRINT}</p>
                         <Link href="/products" className="mega-promo-cta" onClick={closeEverything}>
                           View all products →
@@ -297,7 +347,7 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
                       ))}
                     {menu.key === "products" && (
                       <div className="m-group">
-                        {PRODUCT_BRANDS.filter((b) => b.name !== "P91 Premium PPF").map((b) =>
+                        {PRODUCT_BRANDS.map((b) =>
                           b.external ? (
                             <a key={b.name} href={b.href} target="_blank" rel="noopener noreferrer" onClick={closeEverything}>{b.name}</a>
                           ) : (

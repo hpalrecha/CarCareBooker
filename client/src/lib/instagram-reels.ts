@@ -84,12 +84,61 @@ export const REELS = {
     topic: "Protection, detailing and upkeep handled by the studio",
     posted: "2026-09-02",
   },
+  // ---- added 2026-09-24 (supplied by the studio). Read from each reel's public page (og:description):
+  // account @p91carcare, and the headline is the caption's own opening words.
+  ceramicService: {
+    id: "DZexmOKmSCs",
+    headline: "Give your car the protection it deserves",
+    topic: "P91's ceramic coating service: deep gloss, paint protection, hydrophobic finish",
+    posted: "2026-06-12",
+  },
+  ppfShield: {
+    id: "DZCrPxNPP4B",
+    headline: "Shield Your Car. Preserve Its Shine.",
+    topic: "Paint protection film (PPF) installation at the studio",
+    posted: "2026-06-01",
+  },
+  ppfConfidence: {
+    id: "DaNVqy5iK1y",
+    headline: "Protection isn't what we sell. Confidence is what you drive away with.",
+    topic: "PPF installation, done the P91 way",
+    posted: "2026-06-30",
+  },
+  headlightRestore: {
+    id: "DaxYiFAgCEA",
+    headline: "Bring your headlights back to life.",
+    topic: "Headlight restoration at the studio",
+    posted: "2026-07-14",
+  },
+  bikePpfRide: {
+    id: "DbS-jwvgYy1",
+    headline: "Because every ride leaves memories... not scratches.",
+    topic: "A motorcycle protected with premium PPF",
+    posted: "2026-07-27",
+  },
+  premiumPaint: {
+    id: "DbvL3SsjWHe",
+    headline: "Premium car. Factory paint.",
+    topic: "Protecting factory paint with PPF before the road does",
+    posted: "2026-08-07",
+  },
 } satisfies Record<string, InstagramReel>;
 
 /** /service/:slug → reels that show that service. */
 export const REELS_BY_SERVICE: Record<string, InstagramReel[]> = {
-  "1-year-ceramic-coating": [REELS.ceramicWater, REELS.ceramicMonsoon],
-  "1-year-bike-ceramic-coating": [REELS.bikePpf],
+  "1-year-ceramic-coating": [REELS.ceramicWater, REELS.ceramicMonsoon, REELS.ceramicService],
+  "1-year-bike-ceramic-coating": [REELS.bikePpfRide, REELS.bikePpf],
+  "headlight-restoration-both": [REELS.headlightRestore],
+  // Car PPF: three reels, two per page, rotated so no two PPF pages show the same pair.
+  "ppf-hatchback": [REELS.ppfShield, REELS.premiumPaint],
+  "ppf-sedan": [REELS.premiumPaint, REELS.ppfConfidence],
+  "ppf-suv": [REELS.ppfConfidence, REELS.ppfShield],
+  "ppf-premium-hatchback": [REELS.premiumPaint, REELS.ppfConfidence],
+  "ppf-premium-sedan": [REELS.ppfConfidence, REELS.ppfShield],
+  "ppf-premium-suv": [REELS.ppfShield, REELS.premiumPaint],
+  "partial-ppf-hatchback": [REELS.ppfConfidence, REELS.ppfShield],
+  "partial-ppf-sedan": [REELS.ppfShield, REELS.premiumPaint],
+  "partial-ppf-suv": [REELS.premiumPaint, REELS.ppfConfidence],
   "stek-suncontrol-films": [REELS.windowFilm],
   "stek-windsheild-suncontrol-films": [REELS.windowFilm],
   "car-polishing": [REELS.scratchRemoval],
@@ -99,7 +148,7 @@ export const REELS_BY_SERVICE: Record<string, InstagramReel[]> = {
 
 /** /blog/:slug → reels that illustrate the article's subject. */
 export const REELS_BY_POST: Record<string, InstagramReel[]> = {
-  "ppf-vs-ceramic-coating-bangalore": [REELS.ceramicWater, REELS.bikePpf],
+  "ppf-vs-ceramic-coating-bangalore": [REELS.ceramicWater, REELS.ppfShield, REELS.bikePpf],
   "hard-water-spot-removal-bangalore": [REELS.ceramicWater, REELS.phShampoo],
   "windshield-heat-rejection-film-summer": [REELS.windowFilm],
   "monsoon-damage-car-bangalore": [REELS.ceramicMonsoon],
@@ -109,8 +158,10 @@ export const REELS_BY_POST: Record<string, InstagramReel[]> = {
 export const REELS_FOR_PPF_CERAMIC_PAGE: InstagramReel[] = [
   REELS.ceramicWater,
   REELS.ceramicMonsoon,
+  REELS.ceramicService,
+  REELS.ppfShield,
+  REELS.bikePpfRide,
   REELS.bikePpf,
-  REELS.scratchRemoval,
 ];
 
 export function reelUrl(reel: InstagramReel): string {

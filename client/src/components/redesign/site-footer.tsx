@@ -97,36 +97,31 @@ export default function SiteFooter() {
             <div className="foot-actions">
               <a className="foot-btn" href="tel:+917406619191" data-testid="link-footer-call">☎&nbsp; 74066 19191</a>
               <a className="foot-btn is-wa" href="https://wa.me/917406619191" data-testid="link-footer-whatsapp">WhatsApp</a>
-              {/* The studio's Instagram, where its work videos are posted. */}
-              <a
-                className="foot-btn"
-                href={INSTAGRAM_PROFILE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                data-testid="link-footer-instagram"
-              >
-                Instagram
-              </a>
             </div>
           </div>
 
           <div className="foot-col">
             <h4>Services</h4>
             <ul>
-              <li><Link href="/services">All services &amp; booking</Link></li>
-              <li><Link href="/services/paint-protection-film-bangalore">Paint protection film</Link></li>
-              <li><Link href="/services/ceramic-coating-bangalore">Ceramic coating</Link></li>
-              <li><Link href="/services/interior-detailing-bangalore">Interior detailing</Link></li>
-              <li><Link href="/services/glass-sun-control-film-bangalore">Glass &amp; sun film</Link></li>
+              <li><Link href="/services/paint-protection-film-bangalore">PPF</Link></li>
+              <li><Link href="/services/ceramic-coating-bangalore">Ceramic</Link></li>
+              <li><Link href="/services/interior-detailing-bangalore">Detailing</Link></li>
+              <li><Link href="/services">All services</Link></li>
             </ul>
           </div>
 
           <div className="foot-col">
             <h4>Company</h4>
             <ul>
-              <li><Link href="/services">Book a service</Link></li>
+              <li><Link href="/#about">About</Link></li>
+              <li><Link href="/contact">Contact</Link></li>
               <li><Link href="/blog">Guides</Link></li>
-              <li><Link href="/contact">Contact us</Link></li>
+              {/* The studio's Instagram, where its work videos are posted. */}
+              <li>
+                <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer" data-testid="link-footer-instagram">
+                  Instagram
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -164,7 +159,7 @@ export default function SiteFooter() {
         </div>
 
         <div className="foot-bottom">
-          <span>© {new Date().getFullYear()} Plus Nine One Inc</span>
+          <span>© {new Date().getFullYear()} P91 Car Care</span>
           <nav className="foot-legal" aria-label="Legal">
             <Link href="/terms-conditions">Terms</Link>
             <Link href="/privacy-policy">Privacy</Link>

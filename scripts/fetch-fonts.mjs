@@ -40,6 +40,8 @@ const FAMILIES = [
   { name: "IBM Plex Sans", weights: [400, 500, 600] },
   { name: "Merriweather", weights: [400, 700] },
   { name: "Inter", weights: [400, 500, 600] },
+  // Small technical labels only (section numbers, "01 / ABOUT"); never body text.
+  { name: "JetBrains Mono", weights: [400, 500] },
 ];
 
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");

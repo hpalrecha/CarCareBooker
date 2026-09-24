@@ -19,6 +19,7 @@ import { useBookingOffer, formatOfferEnd } from "@/hooks/use-booking-offer";
 import { bookingFormSchema, type BlackoutDate, type BusinessHour } from "@shared/schema";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import { resolveServiceImage, formatINR } from "@/lib/canonical-services";
+import { ILLUSTRATIVE_SLUGS } from "@/lib/real-service-images";
 import { formatServiceTime } from "@/lib/service-time";
 import { Check } from "lucide-react";
 
@@ -678,16 +679,20 @@ export default function BookingModal({ service, isOpen, onClose, vehicleContext 
               so the modal never jumps, cover/center so it never stretches, and the shared
               branded placeholder only after a genuine error event (no hardcoded Unsplash
               stand-in, and an HTML error response fails the decode rather than rendering). */}
+          {/* Presentation only: a service with no real photograph yet has no banner, instead of
+              the "image coming soon" placeholder (lib/real-service-images.ts). */}
+          {resolveServiceImage(service) && (
           <div>
             <ImageWithFallback
               src={resolveServiceImage(service)}
-              alt={`${service.title} being carried out at P91 Car Care`}
+              alt={`${service.title} ${ILLUSTRATIVE_SLUGS.has((service as { slug?: string }).slug ?? "") ? "(illustrative image)" : "being carried out at P91 Car Care"}`}
               width={1600}
               height={800}
               className="block w-full aspect-[2/1] object-cover object-center bg-[#1a1a1a] rounded-xl"
               data-testid="img-service-banner"
             />
           </div>
+          )}
           
           {/*
             Booking summary — three tiles. This replaced roughly 300 words that sat between

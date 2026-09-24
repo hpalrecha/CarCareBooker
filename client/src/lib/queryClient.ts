@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { applyRealServiceImages } from "@/lib/real-service-images";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -38,7 +39,10 @@ export const getQueryFn: <T>(options: {
     }
 
     await throwIfResNotOk(res);
-    return await res.json();
+    // Only the two service GETs are touched (see lib/real-service-images.ts): it swaps in P91's
+    // own photographs for rows whose stored images are AI-style renders or stock. Prices, slugs
+    // and everything else in the payload are passed through exactly as the API sent them.
+    return applyRealServiceImages(queryKey.join("/") as string, await res.json()) as any;
   };
 
 export const queryClient = new QueryClient({

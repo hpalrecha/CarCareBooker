@@ -1,6 +1,6 @@
 import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { Shield, Droplet, Eye, Leaf, CheckCircle, ChevronRight } from "lucide-react";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
@@ -8,6 +8,9 @@ import { ImageWithFallback } from "@/components/image-with-fallback";
 import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canonical-services";
+import { GUIDE_IMAGES } from "@/lib/real-service-images";
+import ParallaxFrame from "@/components/redesign/parallax-frame";
+import { useCinematic } from "@/hooks/use-cinematic";
 import { getSeoPage } from "@/lib/seo-pages";
 
 /** Drops the "✓ " some records prefix to each item — the list already draws a tick. */
@@ -75,6 +78,9 @@ export default function SeoServicePage() {
   // the early 404 return, like every other hook in this component.
   const [activeVariant, setActiveVariant] = useState(0);
 
+  // Cinematic scroll motion (hooks/use-cinematic.ts); re-scans when the catalogue arrives.
+  useCinematic([seoSlug, services?.length ?? 0]);
+
   // An unrecognised slug is a genuine 404, not a blank version of this template.
   if (!page) return <NotFound />;
 
@@ -82,7 +88,13 @@ export default function SeoServicePage() {
   const bySlug = new Map(list.map((s) => [s.slug, s]));
 
   const primary = bySlug.get(page.primaryServiceSlug);
-  const heroImage = resolveServiceImage(primary);
+  // Sharp pictures chosen per guide (lib/real-service-images.ts), falling back to the linked
+  // service's own image only for a guide that has none listed.
+  const guideImages = GUIDE_IMAGES[page.slug];
+  const heroImage = guideImages?.hero ?? resolveServiceImage(primary);
+  const heroAlt = guideImages?.illustrative
+    ? `${page.crumb} (illustrative image)`
+    : `${page.crumb} at the P91 Car Care studio in Adugodi, Bangalore`;
 
   // Only rows that exist in the live catalogue. A slug removed in the admin drops out of
   // the table rather than rendering an empty price.
@@ -95,13 +107,15 @@ export default function SeoServicePage() {
   // rows share one photo, or has fewer than three rows (Interior Detailing has exactly
   // one), simply gets fewer collage tiles; the layout (guide-collage-grid) reflows for
   // however many are actually real.
-  const collageImages = Array.from(
-    new Set(
-      [primary, ...priceRows]
-        .map((s) => s && resolveServiceImage(s))
-        .filter((src): src is string => Boolean(src)),
-    ),
-  ).slice(0, 3);
+  const collageImages = guideImages
+    ? guideImages.collage
+    : Array.from(
+        new Set(
+          [primary, ...priceRows]
+            .map((s) => s && resolveServiceImage(s))
+            .filter((src): src is string => Boolean(src)),
+        ),
+      ).slice(0, 3);
 
   const origin = typeof window === "undefined" ? "https://p91carcare.com" : window.location.origin;
 
@@ -174,12 +188,12 @@ export default function SeoServicePage() {
           rather than stacking both onto the photo. Distinct classes from blog-post.tsx's
           .article-h1/.article-lede/.article-hero — those stay exactly as they are, this
           hero only applies to the four /services/:seoSlug guides. */}
-      <section className="seo-hero">
+      <ParallaxFrame as="section" className="seo-hero" strength={0.1} cine="zoom">
         {heroImage && (
           <ImageWithFallback
             className="shot"
             src={heroImage}
-            alt={`${page.crumb} at the P91 Car Care studio in Adugodi, Bangalore`}
+            alt={heroAlt}
             sizes="100vw"
             priority
             data-testid="img-seo-hero"
@@ -192,7 +206,7 @@ export default function SeoServicePage() {
           </span>
           <h1 className="seo-hero-h1" data-testid="text-seo-h1">{page.h1}</h1>
         </div>
-      </section>
+      </ParallaxFrame>
 
       <section className="section" style={{ paddingBottom: 0 }}>
         <div className="wrap narrow">
@@ -219,7 +233,7 @@ export default function SeoServicePage() {
         return (
           <section className="section" id="explore">
             <div className="wrap">
-              <div className="section-head">
+              <div className="section-head" data-cine="rise">
                 <h2>Explore {page.crumb}</h2>
               </div>
               <div className="explore-tabs" role="tablist" aria-label={`${page.crumb} variants`}>
@@ -256,11 +270,8 @@ export default function SeoServicePage() {
                     <p className="overview-copy-lede">{firstSentence(variantDescription)}</p>
                   )}
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 26 }}>
-                    <Link href={`/service/${variant.slug}`} className="cta-lg" data-testid="link-explore-book">
-                      {formatINR(variant.price)} · Book Now
-                    </Link>
                     <Link href={`/service/${variant.slug}`} className="cta-ghost" data-testid="link-explore-learn-more">
-                      Learn More
+                      {formatINR(variant.price)} · Learn More
                     </Link>
                   </div>
                   {variantFeatures.length > 0 && (
@@ -304,7 +315,7 @@ export default function SeoServicePage() {
               const headline = shortIncluded(item);
               const FeatureIcon = iconForIncluded(item);
               return (
-                <div className="cell" key={item}>
+                <div className="cell" key={item} data-cine="rise" style={{ "--i": page.includes.indexOf(item) } as CSSProperties}>
                   <FeatureIcon className="i" aria-hidden="true" />
                   <b>{headline}</b>
                   <span>{item}</span>
@@ -315,19 +326,20 @@ export default function SeoServicePage() {
         </div>
       </section>
 
-      <section className="section" data-testid="section-seo-collage">
+      <section className="section seo-collage-section" data-testid="section-seo-collage">
         <div className="wrap">
-          <div className="guide-collage">
+          <div className={"guide-collage" + (collageImages.length === 0 ? " is-text-only" : "")}>
             {collageImages.length > 0 && (
               <div className="guide-collage-grid">
                 {collageImages.slice(0, 2).map((src) => (
-                  <ImageWithFallback
-                    key={src}
-                    src={src}
-                    alt={`${page.crumb} work at the P91 Car Care studio in Adugodi, Bangalore`}
-                    sizes="(min-width: 860px) 280px, 45vw"
-                    loading="lazy"
-                  />
+                  <ParallaxFrame key={src} className="guide-collage-tile" strength={0.07} cine="frame">
+                    <ImageWithFallback
+                      src={src}
+                      alt={`${page.crumb} work at the P91 Car Care studio in Adugodi, Bangalore`}
+                      sizes="(min-width: 860px) 280px, 45vw"
+                      loading="lazy"
+                    />
+                  </ParallaxFrame>
                 ))}
                 {collageImages[2] && (
                   <div className="guide-collage-wide">
@@ -341,7 +353,7 @@ export default function SeoServicePage() {
                 )}
               </div>
             )}
-            <div className="guide-collage-copy">
+            <div className="guide-collage-copy" data-cine="rise">
               <h2>{page.context.heading}</h2>
               {(page.context.paragraphs || []).map((p, i) => (
                 <p key={i}>{p}</p>

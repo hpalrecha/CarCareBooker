@@ -946,10 +946,6 @@ export default function PpfCeramicLanding() {
           <div style={{ textAlign: "center", marginTop: 32 }}>
             {/* Was "And 500+ more vehicles protected!" — an unverified count. */}
             <p style={{ color: "var(--txt-3)", marginBottom: 16 }}>Recent work from our Adugodi studio.</p>
-            <button type="button" onClick={scrollToForm} className="cta-lg">
-              Get Your Vehicle Protected
-              <ChevronRight className="i" aria-hidden="true" />
-            </button>
           </div>
         </div>
       </section>
@@ -1036,15 +1032,6 @@ export default function PpfCeramicLanding() {
                   ))}
                 </ul>
 
-                <button
-                  type="button"
-                  onClick={scrollToForm}
-                  className={card.popular ? "btn-book" : "cta-ghost"}
-                  style={{ width: "100%", justifyContent: "center" }}
-                  data-testid={`button-pricing-${card.title.toLowerCase().replace(/\s+/g, "-")}`}
-                >
-                  Book Now
-                </button>
               </div>
               );
             })}
@@ -1073,12 +1060,6 @@ export default function PpfCeramicLanding() {
             ))}
           </div>
 
-          <div style={{ textAlign: "center", marginTop: 32 }}>
-            <button type="button" onClick={scrollToForm} className="cta-lg" data-testid="button-cta-features">
-              Protect Your Vehicle Today
-              <ChevronRight className="i" aria-hidden="true" />
-            </button>
-          </div>
         </div>
       </section>
 
@@ -1182,12 +1163,6 @@ export default function PpfCeramicLanding() {
             ))}
           </div>
 
-          <div style={{ textAlign: "center", marginTop: 32 }}>
-            <button type="button" onClick={scrollToForm} className="cta-lg" data-testid="button-cta-faq">
-              Still Have Questions? Get Expert Advice
-              <ChevronRight className="i" aria-hidden="true" />
-            </button>
-          </div>
         </div>
       </section>
 
@@ -1210,10 +1185,6 @@ export default function PpfCeramicLanding() {
               </span>
             </p>
             <div className="hero-cta" style={{ justifyContent: "center" }}>
-              <button type="button" onClick={scrollToForm} className="cta-lg" data-testid="button-final-cta">
-                Book Now
-                <ChevronRight className="i" aria-hidden="true" />
-              </button>
               <a href="tel:+917406619191" className="cta-ghost">
                 <Phone className="i" aria-hidden="true" /> Call Now
               </a>

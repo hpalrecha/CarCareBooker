@@ -29,7 +29,8 @@ before(async () => {
 describe('reel data', () => {
   test('every reel is a real Instagram reel id with a quoted caption and a date', () => {
     const reels = Object.values(m.REELS);
-    assert.equal(reels.length, 9);
+    assert.equal(reels.length, 15);
+    assert.equal(new Set(reels.map((r) => r.id)).size, 15, 'no reel is listed twice');
     for (const r of reels) {
       assert.match(r.id, /^[A-Za-z0-9_-]{11}$/, r.id);
       assert.ok(r.headline.length > 5 && r.headline.length <= 70, r.headline);
@@ -41,11 +42,22 @@ describe('reel data', () => {
 
   test('pages only get reels about their own service', () => {
     const byService = m.REELS_BY_SERVICE;
-    // No car-PPF reel exists, so car PPF pages borrow nothing (not even the motorcycle one).
-    for (const slug of ['ppf-hatchback', 'ppf-sedan', 'ppf-suv', 'partial-ppf-hatchback', 'headlight-restoration-both', 'windshield-glass-polishing', 'windshield-glass-coating-new', 'interior-detailing-service']) {
+    // Still nothing for the services with no reel of their own — and no borrowing.
+    for (const slug of ['windshield-glass-polishing', 'windshield-glass-coating-new', 'interior-detailing-service', 'annual-car-wash-package']) {
       assert.equal(byService[slug], undefined, `${slug} must not show an unrelated reel`);
     }
-    assert.deepEqual(byService['1-year-ceramic-coating'].map((r) => r.id), ['DciryBCjLvC', 'Dc8N-qdDiLm']);
+    // Car PPF pages carry PPF reels only (the studio's June-August 2026 PPF posts)...
+    const ppfIds = new Set(['DZCrPxNPP4B', 'DbvL3SsjWHe', 'DaNVqy5iK1y']);
+    for (const slug of ['ppf-hatchback', 'ppf-sedan', 'ppf-suv', 'ppf-premium-hatchback', 'ppf-premium-sedan', 'ppf-premium-suv', 'partial-ppf-hatchback', 'partial-ppf-sedan', 'partial-ppf-suv']) {
+      assert.equal(byService[slug].length, 2, slug);
+      for (const r of byService[slug]) assert.ok(ppfIds.has(r.id), `${slug} has a non-PPF reel ${r.id}`);
+    }
+    // ...and no two of them show the same pair, so the PPF pages do not all look alike.
+    const pairs = Object.entries(byService).filter(([s]) => /ppf-/.test(s)).map(([, rs]) => rs.map((r) => r.id).join('+'));
+    assert.equal(new Set(pairs).size, 3, 'three distinct pairs, each used by three pages');
+    assert.deepEqual(byService['1-year-ceramic-coating'].map((r) => r.id), ['DciryBCjLvC', 'Dc8N-qdDiLm', 'DZexmOKmSCs']);
+    assert.deepEqual(byService['1-year-bike-ceramic-coating'].map((r) => r.id), ['DbS-jwvgYy1', 'DdBlZC_mxWJ']);
+    assert.deepEqual(byService['headlight-restoration-both'].map((r) => r.id), ['DaxYiFAgCEA']);
     assert.deepEqual(byService['stek-suncontrol-films'].map((r) => r.id), ['DclQq-Pijvy']);
     assert.deepEqual(m.REELS_BY_POST['windshield-heat-rejection-film-summer'].map((r) => r.id), ['DclQq-Pijvy']);
   });
@@ -75,9 +87,10 @@ describe('presentation', () => {
     assert.match(read('client/src/components/redesign/site-footer.tsx'), /data-testid="link-footer-instagram"/);
   });
 
-  test('"See it on Instagram" is gone from /service/:slug pages, removed by request', () => {
+  test('"See it on Instagram" is gone from /service/:slug pages (removed by request, again, 2026-09-24); /ppf keeps it', () => {
     assert.doesNotMatch(read('client/src/pages/service-landing.tsx'), /<InstagramReels\b/);
     assert.doesNotMatch(read('client/src/pages/service-landing.tsx'), /REELS_BY_SERVICE/);
+    assert.match(read('client/src/pages/campaign-landing.tsx'), /<InstagramReels\b/);
   });
 
   test('the unverified YouTube shorts are gone from /ppf-ceramic-coating', () => {

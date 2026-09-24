@@ -19,16 +19,18 @@ import { deriveCategory, deriveVehicle } from "@/lib/service-taxonomy";
 import { formatServiceTime } from "@/lib/service-time";
 import { serviceSeoTitle, serviceSeoDescription, serviceStructuredData } from "@/lib/service-seo";
 import { useHeroVideoGate } from "@/hooks/use-hero-video";
+import { ILLUSTRATIVE_SLUGS } from "@/lib/real-service-images";
+import ParallaxFrame from "@/components/redesign/parallax-frame";
+import { useCinematic } from "@/hooks/use-cinematic";
 import type { BusinessHour } from "@shared/schema";
 
-// Before/after images
-import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029992282.webp";
-import headlightAfter from "@assets/GVXjDlbWcAAoQD1_1754029992281.jpg";
-import glassCoating from "@assets/Before-and-After-Ceramic-Coating-on-Glass (1)_1754028454560.jpg";
-import glassPolishing from "@assets/67437605d9533141c047dea3_1758534676222.avif";
-import exteriorDetailingBefore from "@assets/WhatsApp Image 2025-01-03 at 3.39.31 PM_1754032180088.jpeg";
-import exteriorDetailingAfter from "@assets/20241227_164016_1754031651194.jpg";
-import interiorDetailingComparison from "@assets/ff034468a03ea55ea0924270de1e42bd_1754032817032.jpg";
+// The one before/after pair that is verifiably P91's own: the studio's photographs of a customer's
+// orange Hyundai, before (WhatsApp image, 2025-01-03) and after (camera original 20241227_164016).
+// Both are saved upright here; the camera original's rotation flag was lost by the responsive
+// variants, which showed the car sideways. Every other pair that used to live in this file was
+// a third-party or unverifiable image and was removed — see fixedComparisonFor below.
+const exteriorDetailingBefore = "/attached_assets/gallery/p91-exterior-before-orange-hyundai.webp";
+const exteriorDetailingAfter = "/attached_assets/about/p91-studio-nasiol-floor-orange-hyundai.webp";
 
 /**
  * Slugs whose testimonial section is hidden in the UI.
@@ -105,7 +107,12 @@ function shortIncluded(item: string) {
   // Hyphen, en dash and em dash all introduce an explanation ("6 Hybrid Washes – exterior
   // foam wash…"), so each is a break; a trailing dash or colon left by a cut is stripped.
   const cut = text.search(/\s+[-–—]\s+|,|\s+(to|for|before|with|on|that|which)\s+/i);
-  const head = cut > 5 ? text.slice(0, cut).trim() : text;
+  let head = cut > 5 ? text.slice(0, cut).trim() : text;
+  // A cut that lands inside brackets ("Long-lasting protection (up" from "... (up to 12 months)")
+  // drops the unclosed bracket instead of leaving a dangling headline; the full item still shows
+  // as the line beneath it.
+  const open = head.lastIndexOf('(');
+  if (open > 5 && head.indexOf(')', open) === -1) head = head.slice(0, open).trim();
   return head.replace(/\s*[-–—:]+$/, '');
 }
 
@@ -162,36 +169,11 @@ type Comparison =
 
 function fixedComparisonFor(slug: string, vehicleNoun: string): Comparison | null {
   switch (slug) {
-    case 'headlight-restoration-both':
-      return {
-        layout: "pair",
-        before: headlightBefore, beforeAlt: "Foggy headlight before restoration",
-        beforeLabel: "BEFORE", beforeCaption: "Foggy & Yellowed",
-        after: headlightAfter, afterAlt: "Crystal clear headlight after restoration",
-        afterLabel: "AFTER", afterCaption: "Crystal Clear",
-        testId: "headlight",
-        video: { src: "https://www.youtube.com/embed/XXb4J6cBze0", title: "Headlight Restoration Process - P91 Car Care" },
-        heading: "Watch The Complete Process",
-        sub: "See how we transform foggy headlights to crystal clear",
-      };
-    case 'windshield-glass-coating-new':
-      return {
-        layout: "single",
-        image: glassCoating, alt: "Water beading on ceramic coated windshield",
-        badge: "COATED GLASS", caption: "Water Beading Effect", testId: "glass-coating",
-        video: { src: "https://www.youtube.com/embed/Oak9CKJMz6E", title: "Glass Coating Water Repelling Demo - P91 Car Care" },
-        heading: "See The Water Repelling Effect",
-        sub: "Watch how water slides off instantly after coating",
-      };
-    case 'windshield-glass-polishing':
-      return {
-        layout: "single",
-        image: glassPolishing, alt: "Crystal clear polished windshield",
-        badge: "POLISHED GLASS", caption: "Crystal Clear Clarity", testId: "glass-polishing",
-        video: { src: "https://www.youtube.com/embed/Oak9CKJMz6E", title: "Glass Polishing Process - P91 Car Care" },
-        heading: "See The Polishing Process",
-        sub: "Watch how we restore crystal-clear visibility by removing water spots and scratches",
-      };
+    // headlight-restoration-both, windshield-glass-coating-new, windshield-glass-polishing and
+    // interior-detailing-service had before/after images that are NOT P91's: a Twitter-hosted photo,
+    // a web article image, a stock/web comparison, a web collage — and YouTube embeds captioned
+    // "- P91 Car Care" that are Nasiol's own manufacturer videos. All removed until the studio
+    // supplies its own. Those pages simply have no "Dramatic Transformations" section.
     case 'exterior-detailing-hard-water-new':
       return {
         layout: "pair",
@@ -204,15 +186,6 @@ function fixedComparisonFor(slug: string, vehicleNoun: string): Comparison | nul
         heading: "Watch The Detailing Process",
         sub: "See how we transform dull cars into showroom perfection",
       } as Comparison;
-    case 'interior-detailing-service':
-      return {
-        layout: "single",
-        image: interiorDetailingComparison, alt: "Interior detailing before and after comparison - dirty vs clean car interior",
-        badge: "SEE THE DIFFERENCE", caption: "Before vs After", testId: "interior",
-        note: `Transform your ${vehicleNoun}'s interior from dirty and stained to fresh and spotless. Our deep cleaning process removes dirt, stains, and odors, leaving your interior looking and smelling like new.`,
-        heading: "Interior Detailing Process",
-        sub: "See our comprehensive interior cleaning transformation",
-      };
     default:
       return null;
   }
@@ -279,7 +252,7 @@ function ComparisonBlock({ comparison }: { comparison: Comparison }) {
 
       {comparison.video && (
         <div style={{ marginTop: 34, maxWidth: 900, marginLeft: "auto", marginRight: "auto" }}>
-          <div className="section-head" style={{ textAlign: "center", marginBottom: 20 }}>
+          <div className="section-head" data-cine="rise" style={{ textAlign: "center", marginBottom: 20 }}>
             <h3 style={{ fontSize: 19, fontWeight: 700 }}>{comparison.heading}</h3>
             <p>{comparison.sub}</p>
           </div>
@@ -349,7 +322,7 @@ export default function ServiceLanding() {
   const showHeroVideo = useHeroVideoGate({ allowMobile: true, immediate: true });
   const [heroVideoReady, setHeroVideoReady] = useState(false);
 
-  const { data: service, isLoading } = useQuery<Service>({
+  const { data: fetched, isLoading: fetching } = useQuery<Service>({
     queryKey: ["/api/services", slug],
     enabled: !!slug,
   });
@@ -357,6 +330,35 @@ export default function ServiceLanding() {
   // The full catalogue, only to find this service's real PPF tier siblings (Basic /
   // Premium / Partial, same vehicle size) — never to invent variants that don't exist.
   const { data: allServices } = useQuery<ServiceRecord[]>({ queryKey: ["/api/services"] });
+
+  // Switching package (a tab in the PPF row) changes `slug`. The catalogue list is already in
+  // the cache and carries the full record, so the page shows the chosen package's title, price,
+  // includes and photos immediately, and the single-record GET quietly refreshes it. Without
+  // this, each tab click showed a full-page spinner while that GET ran. The record is the same
+  // data either way — same price, same booking — only the wait is gone.
+  const listed = allServices?.find((s) => s.slug === slug) as unknown as Service | undefined;
+  const service = fetched ?? listed;
+  const isLoading = !service && fetching;
+
+  // A new package starts on its own first photo.
+  useEffect(() => {
+    setActiveThumbIndex(0);
+  }, [slug]);
+
+  // Cinematic scroll motion for the whole page (hero push-in, unmasked overview picture, content
+  // rising into place). Marked in the JSX with data-cine; see hooks/use-cinematic.ts.
+  useCinematic([service?.slug, isLoading]);
+
+  // Hero slideshow: the service's photos, one at a time on the big frame, advancing by itself
+  // (paused while the pointer or keyboard focus is on it, and never under reduced motion).
+  const [slidePaused, setSlidePaused] = useState(false);
+  const slideCount = Math.min(service?.images?.length ?? 0, 6);
+  useEffect(() => {
+    if (slideCount < 2 || slidePaused) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = window.setInterval(() => setActiveThumbIndex((i) => (i + 1) % slideCount), 4800);
+    return () => window.clearInterval(id);
+  }, [slideCount, slidePaused]);
 
   // Hide the floating CTA once the footer scrolls into view.
   useEffect(() => {
@@ -424,7 +426,7 @@ export default function ServiceLanding() {
         <SiteHeader />
         <section className="section">
           <div className="wrap" style={{ textAlign: "center", maxWidth: 640 }}>
-            <div className="section-head">
+            <div className="section-head" data-cine="rise">
               <h1 style={{ fontSize: "clamp(26px,4.6vw,40px)", fontWeight: 800 }}>We couldn't find that service</h1>
               <p>
                 It may have been renamed or is no longer offered. All of our current services
@@ -467,10 +469,18 @@ export default function ServiceLanding() {
   // car"). Derive the noun from the service itself. "P91 Car Care" is the brand name
   // and is deliberately left alone.
   const heroImage = resolveServiceImage(service);
+  // A service with no real photograph and no real video gets a text-led hero (see .is-text-only)
+  // rather than an empty picture frame.
+  const hasHeroMedia = Boolean(heroImage) || Boolean(service.heroVideo && isDirectVideoFile(service.heroVideo));
   const isBikeService = /\bbike\b|\bmotorcycle\b/i.test(service.title);
   const vehicleNoun = isBikeService ? "bike" : "car";
 
   const heroCategory = deriveCategory(service);
+
+  // Overview media: a third photo, or a non-file video embed. Never the hero's own photo/video.
+  const overviewEmbed = Boolean(service.heroVideo && !isDirectVideoFile(service.heroVideo));
+  const overviewImage = service.images?.[2];
+  const hasOverviewMedia = overviewEmbed || Boolean(overviewImage);
 
   const comparison = fixedComparisonFor(service.slug, vehicleNoun);
   const genericComparisons = service.beforeAfter && service.beforeAfter.length > 0 ? service.beforeAfter : [];
@@ -566,37 +576,79 @@ export default function ServiceLanding() {
           ground rather than a full-bleed photo behind the text. Content is unchanged
           (same trust facts, same offer card fields, same video/photo logic); only the
           container changed shape. */}
-      <section className="pdp-hero">
-        <div className="wrap pdp-hero-grid">
+      <section className="pdp-hero" data-cine="zoom">
+        <div className={"wrap pdp-hero-grid" + (hasHeroMedia ? "" : " is-text-only")}>
+          {hasHeroMedia && (
           <div className="pdp-media">
-            {service.images && service.images.length > 1 && (
-              <div className="pdp-thumbs" data-testid="hero-thumbs">
-                {service.images.slice(0, 6).map((img, i) => (
-                  <button
-                    key={img}
-                    type="button"
-                    onClick={() => setActiveThumbIndex(i)}
-                    className={"pdp-thumb" + (i === activeThumbIndex ? " is-active" : "")}
-                    data-testid={`button-thumb-${i}`}
-                    aria-label={`Photo ${i + 1} of ${service.title.trim()}`}
-                    aria-pressed={i === activeThumbIndex}
-                  >
-                    <ImageWithFallback src={img} alt="" sizes="64px" />
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="pdp-main-image">
-              {heroImage && (
-                <ImageWithFallback
-                  className="shot"
-                  src={service.images?.[activeThumbIndex] ?? heroImage}
-                  alt={`${service.title.trim()} at the P91 Car Care studio in Adugodi, Bangalore`}
-                  sizes="(min-width: 900px) 640px, 100vw"
-                  priority
-                  data-testid="img-hero"
-                />
-              )}
+            <div
+              className="pdp-main-image"
+              data-testid="hero-slides"
+              onMouseEnter={() => setSlidePaused(true)}
+              onMouseLeave={() => setSlidePaused(false)}
+              onFocus={(e) => {
+                // Only keyboard focus pauses. A mouse click on an arrow also leaves focus on the
+                // button, which used to freeze the slideshow until you clicked elsewhere.
+                if ((e.target as HTMLElement).matches(":focus-visible")) setSlidePaused(true);
+              }}
+              onBlur={() => setSlidePaused(false)}
+            >
+              {heroImage && (() => {
+                const photos = (service.images ?? []).slice(0, 6);
+                const alt = ILLUSTRATIVE_SLUGS.has(service.slug)
+                  ? `${service.title.trim()} (illustrative image)`
+                  : `${service.title.trim()} at the P91 Car Care studio in Adugodi, Bangalore`;
+                if (photos.length < 2) {
+                  return (
+                    <ImageWithFallback
+                      className="shot"
+                      src={heroImage}
+                      alt={alt}
+                      sizes="(min-width: 900px) 640px, 100vw"
+                      priority
+                      data-testid="img-hero"
+                    />
+                  );
+                }
+                const current = activeThumbIndex % photos.length;
+                return (
+                  <>
+                    {photos.map((img, i) => (
+                      <ImageWithFallback
+                        key={img}
+                        className={"shot pdp-slide" + (i === current ? " is-active" : "")}
+                        src={img}
+                        alt={i === current ? alt : ""}
+                        aria-hidden={i !== current}
+                        sizes="(min-width: 900px) 640px, 100vw"
+                        priority={i === 0}
+                        data-testid={i === 0 ? "img-hero" : undefined}
+                      />
+                    ))}
+                    <div className="pdp-slide-ui">
+                      <span className="pdp-slide-count" aria-hidden="true">
+                        <b>{String(current + 1).padStart(2, "0")}</b> / {String(photos.length).padStart(2, "0")}
+                      </span>
+                      <span className="pdp-slide-dots" role="group" aria-label="Choose photo">
+                        {photos.map((img, i) => (
+                          <button
+                            key={img}
+                            type="button"
+                            onClick={() => setActiveThumbIndex(i)}
+                            className={"pdp-slide-dot" + (i === current ? " is-active" : "")}
+                            aria-label={`Photo ${i + 1} of ${photos.length}`}
+                            aria-pressed={i === current}
+                            data-testid={`button-slide-${i}`}
+                          />
+                        ))}
+                      </span>
+                      <span className="pdp-slide-arrows">
+                        <button type="button" className="pdp-slide-btn" onClick={() => setActiveThumbIndex(current - 1 + photos.length)} aria-label="Previous photo" data-testid="button-slide-prev">‹</button>
+                        <button type="button" className="pdp-slide-btn" onClick={() => setActiveThumbIndex(current + 1)} aria-label="Next photo" data-testid="button-slide-next">›</button>
+                      </span>
+                    </div>
+                  </>
+                );
+              })()}
               {/* Layered directly over the photo above: invisible until `onPlaying`
                   actually fires, so the photo is always what's visible until there is a
                   real frame to replace it with. Only when the record's heroVideo is a
@@ -628,8 +680,9 @@ export default function ServiceLanding() {
               </span>
             </div>
           </div>
+          )}
 
-          <div className="pdp-panel">
+          <div className="pdp-panel" key={service.slug}>
             <a href="/services" className="pdp-crumb" data-testid="link-hero-crumb">
               ← {heroCategory}
             </a>
@@ -806,7 +859,7 @@ export default function ServiceLanding() {
       {hasComparisons && (
         <section className="section light-band" id="gallery">
           <div className="wrap">
-            <div className="section-head" style={{ textAlign: "center" }}>
+            <div className="section-head" data-cine="rise" style={{ textAlign: "center" }}>
               <h2>Dramatic Transformations</h2>
               <p style={{ margin: "10px auto 0" }}>
                 See the incredible before and after results of our expert car detailing services.
@@ -871,18 +924,10 @@ export default function ServiceLanding() {
                 button, then a short (four-item) feature list — text and CTA on one side,
                 one large photo/video on the other. Replaces the earlier centred heading +
                 full-width checklist. */}
-            <div className="overview-grid overview-grid-xpel">
-              <div className="overview-copy">
+            <div className={"overview-grid overview-grid-xpel" + (hasOverviewMedia ? "" : " is-text-only")}>
+              <div className="overview-copy" key={service.slug} data-cine="rise">
                 <h2>{service.title.trim()}</h2>
                 {service.description && <p className="overview-copy-lede">{firstSentence(service.description)}</p>}
-                <button
-                  type="button"
-                  onClick={() => setBookingModalOpen(true)}
-                  className="cta-lg"
-                  data-testid="button-overview-book"
-                >
-                  Book Now
-                </button>
                 {overviewFeatureItems.length > 0 && (
                   <ul className="overview-features">
                     {overviewFeatureItems.map((item, index) => {
@@ -903,114 +948,46 @@ export default function ServiceLanding() {
                   </ul>
                 )}
               </div>
-              <div className="overview-media-wrap">
-                {service.heroVideo && isDirectVideoFile(service.heroVideo) ? (
-                  <div className="card-img overview-media">
-                    {/* The studio's own reel, saved as a real file — autoplaying background
-                        footage, same treatment as the homepage hero's video (muted,
-                        loop, playsInline so mobile Safari doesn't force fullscreen).
-                        heroImage as poster: never a blank/black frame before it decodes. */}
-                    <video
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      poster={heroImage}
-                      data-testid="video-overview"
-                    >
-                      <source src={service.heroVideo} type="video/mp4" />
-                    </video>
-                  </div>
-                ) : service.heroVideo ? (
-                  <div className="card-img overview-media">
-                    <iframe
-                      style={{ width: "100%", height: "100%", border: 0 }}
-                      src={service.heroVideo}
-                      title={`${service.title.trim()} — P91 Car Care`}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                      data-testid="video-overview"
+              {/* The hero above already shows this service's first photo and its video, so this
+                  shows a DIFFERENT photo (the third), or nothing — never the same picture twice
+                  on one page. A non-file video URL (an embed) is the only video shown here. */}
+              {hasOverviewMedia && (
+                <ParallaxFrame className="overview-media-wrap" strength={0.09} cine="frame">
+                  {overviewEmbed ? (
+                    <div className="card-img overview-media">
+                      <iframe
+                        style={{ width: "100%", height: "100%", border: 0 }}
+                        src={service.heroVideo}
+                        title={`${service.title.trim()} — P91 Car Care`}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                        data-testid="video-overview"
+                      />
+                    </div>
+                  ) : (
+                    <ImageWithFallback
+                      className="overview-media"
+                      src={overviewImage}
+                      alt={`${service.title.trim()} at the P91 Car Care studio in Adugodi, Bangalore`}
+                      sizes="(min-width: 860px) 560px, 100vw"
+                      style={{ objectPosition: "center" }}
+                      loading="lazy"
+                      data-testid="image-overview"
                     />
-                  </div>
-                ) : heroImage ? (
-                  <ImageWithFallback
-                    className="overview-media"
-                    src={heroImage}
-                    alt={`${service.title.trim()} at the P91 Car Care studio in Adugodi, Bangalore`}
-                    sizes="(min-width: 860px) 560px, 100vw"
-                    style={{ objectPosition: "center" }}
-                    loading="lazy"
-                    data-testid="image-overview"
-                  />
-                ) : null}
-              </div>
+                  )}
+                </ParallaxFrame>
+              )}
             </div>
           </div>
         </section>
       )}
-      {/* Full-bleed photo break, XPEL-style: one large real photo as a visual pause between
-          content blocks, not a hero and not a gallery. Uses the service's SECOND photo when
-          the catalogue record has one (only the first is ever used, as the hero above), so
-          this is never a duplicate of what the visitor already scrolled past — and falls
-          back to the same hero photo for the (more common) single-image record rather than
-          rendering nothing. No new or downloaded images; no new claim in the overlay text,
-          just the service name and the studio's real location. */}
-      {(service.images?.[1] ?? heroImage) && (
-        <section
-          className="section"
-          style={{
-            padding: 0,
-            position: "relative",
-            minHeight: "clamp(260px, 40vw, 420px)",
-            display: "flex",
-            alignItems: "flex-end",
-            overflow: "hidden",
-          }}
-          data-testid="section-photo-break"
-        >
-          <ImageWithFallback
-            src={service.images?.[1] ?? heroImage}
-            alt={`${service.title.trim()} at the P91 Car Care studio in Adugodi, Bangalore`}
-            sizes="100vw"
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              objectPosition: "center",
-            }}
-            data-testid="image-photo-break"
-          />
-          <div
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              inset: 0,
-              // Lightened alongside the hero and the final CTA banner (same request):
-              // the photo shows brighter, text leans on its own shadow instead.
-              background: "linear-gradient(to top, rgba(9,9,11,.55) 0%, rgba(9,9,11,.2) 45%, transparent 75%)",
-            }}
-          />
-          <div className="wrap" style={{ position: "relative", zIndex: 1, paddingBlock: 24 }}>
-            <p style={{ color: "var(--neon-green)", fontSize: 13, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", marginBottom: 6, textShadow: "0 1px 8px rgba(0,0,0,.85)" }}>
-              Adugodi, Bangalore
-            </p>
-            {/* color: "#fff" explicit — see home.tsx's photo-break h2 for why this is
-                needed now (theme flip made the inherited --txt dark; this sits on a
-                dark photo scrim regardless of page theme). */}
-            <h2 style={{ fontSize: "clamp(22px,3.6vw,32px)", fontWeight: 800, color: "#fff", textShadow: "0 2px 16px rgba(0,0,0,.85), 0 1px 3px rgba(0,0,0,.9)" }}>
-              {service.title.trim()}
-            </h2>
-          </div>
-        </section>
-      )}
+      {/* Removed by request (2026-09-24), from every service page: the "See it on Instagram" reel
+          cards and the full-width photo band with the service title over it. */}
       {/* XPEL-style statement band ("Let It Roll Off"): a full-width mid-tone panel,
           headline and copy side by side instead of stacked and centred. */}
       {service.whyChoose && (
         <section className="statement-band light-band" id="benefits">
-          <div className="wrap statement-grid">
+          <div className="wrap statement-grid" data-cine="rise">
             <h2>Why choose P91 in Adugodi?</h2>
             <p>{firstSentence(service.whyChoose)}</p>
           </div>
@@ -1023,7 +1000,7 @@ export default function ServiceLanding() {
       {service.gallery && service.gallery.some(item => item.type === 'video') && (
         <section className="section light-band" id={!hasComparisons ? "gallery" : undefined}>
           <div className="wrap">
-            <div className="section-head" style={{ textAlign: "center" }}>
+            <div className="section-head" data-cine="rise" style={{ textAlign: "center" }}>
               <h2>Inside the Studio</h2>
               <p style={{ margin: "10px auto 0" }}>
                 See our expert technicians in action as they transform your {vehicleNoun} with precision and care.
@@ -1080,7 +1057,7 @@ export default function ServiceLanding() {
       {showTestimonials && service.testimonials && service.testimonials.length > 0 && (
         <section className="section light-band">
           <div className="wrap">
-            <div className="section-head" style={{ textAlign: "center" }}>
+            <div className="section-head" data-cine="rise" style={{ textAlign: "center" }}>
               <h2>What Our Customers Say</h2>
             </div>
             <div className="grid">
@@ -1123,7 +1100,7 @@ export default function ServiceLanding() {
       {service.faq && service.faq.length > 0 && (
         <section className="section faq-light" id="faqs">
           <div className="wrap narrow">
-            <div className="section-head">
+            <div className="section-head" data-cine="rise">
               <h2>{service.title.trim()} in Adugodi, Bangalore: FAQs</h2>
             </div>
             {/*
@@ -1156,7 +1133,7 @@ export default function ServiceLanding() {
       {relatedServices.length > 0 && (
         <section className="section light-band">
           <div className="wrap narrow">
-            <div className="section-head">
+            <div className="section-head" data-cine="rise">
               <h2>Other {heroCategory.toLowerCase()} services for your {vehicleNoun}</h2>
             </div>
             <div className="mini-grid">
@@ -1190,7 +1167,7 @@ export default function ServiceLanding() {
         <section className="section light-band" id={!service.whyChoose ? "benefits" : undefined}>
           <div className="wrap narrow" style={{ textAlign: "center" }}>
             <Shield className="i" style={{ width: 40, height: 40, color: "var(--neon-green)", margin: "0 auto 16px" }} aria-hidden="true" />
-            <div className="section-head">
+            <div className="section-head" data-cine="rise">
               <h2>Our Guarantee</h2>
             </div>
             <p style={{ fontSize: 17 }}>{service.guaranteeText}</p>
@@ -1224,42 +1201,8 @@ export default function ServiceLanding() {
           </div>
         </div>
       </section>
-      {/* Closing video section — replaces the old text/price/contact banner (see history:
-          it used to read "Ready to Transform Your Car?" + price + Book Now + contact row,
-          removed by request). Reuses the SAME heroVideo field as the hero and Overview
-          sections above, not a second per-service asset — one saved reel, three
-          placements. Video-only by design: a service with no saved reel gets nothing
-          here rather than falling back to a photo, unlike the hero/Overview. */}
-      {service.heroVideo && isDirectVideoFile(service.heroVideo) && (
-        <section
-          className="section cta-banner"
-          style={{ minHeight: "56vh", display: "flex", alignItems: "center", justifyContent: "center" }}
-        >
-          <video
-            className="cta-banner-bg"
-            autoPlay
-            muted
-            loop
-            playsInline
-            poster={heroImage}
-            aria-hidden="true"
-          >
-            <source src={service.heroVideo} type="video/mp4" />
-          </video>
-          <div className="cta-banner-scrim" aria-hidden="true" />
-          <div className="wrap narrow" style={{ textAlign: "center" }}>
-            <button
-              type="button"
-              onClick={() => setBookingModalOpen(true)}
-              className="cta-lg"
-              data-testid="button-book-now-closing"
-            >
-              Book Now
-              <ArrowRight className="i" aria-hidden="true" />
-            </button>
-          </div>
-        </section>
-      )}
+      {/* (The closing video banner was removed: it played the hero's video a third time, with
+          no button of its own. One video per page.) */}
       {/* Hidden from the footer onwards (finalCtaRef, declared above) — the floating
           sticky CTA bar hides once the page bottom is reached, so it never sits on top of
           the footer's own contact links for the rest of the scroll. */}

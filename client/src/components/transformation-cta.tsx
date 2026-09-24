@@ -88,7 +88,7 @@ export default function TransformationCTA({ service, services, action = "Get", t
           aria-label={`${action} ${row.title.trim()} — ${formatINR(row.price)}`}
           data-testid={testId}
         >
-          Book Now
+          View details
           <ArrowRight className="ml-2 w-4 h-4 shrink-0" />
         </Button>
       </Link>

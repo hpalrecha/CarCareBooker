@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { ArrowUpRight } from "lucide-react";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import ServiceCard from "@/components/service-card";
@@ -7,6 +8,7 @@ import ServiceFilter from "@/components/service-filter";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { type ServiceRecord } from "@/lib/canonical-services";
 import { SERVICES_SEO } from "@/lib/static-seo";
+import { groupPpf } from "@/lib/ppf-groups";
 
 /**
  * The service catalogue as its own page.
@@ -25,6 +27,16 @@ import { SERVICES_SEO } from "@/lib/static-seo";
  * Everything on it comes from GET /api/services — the same query the homepage uses, so
  * react-query serves it from cache when arriving from the homepage.
  */
+/**
+ * Records left out of the /services LIST (their pages, prices and booking are untouched).
+ * premium-wash-detail carries the same title as Exterior Detailing with Hard Water Spot Removal
+ * (₹5,999), so the catalogue showed two cards with one name and different prices. The list keeps
+ * the ₹5,999 one; the other stays reachable at /service/premium-wash-detail.
+ */
+const HIDDEN_FROM_LIST = new Set(["premium-wash-detail"]);
+const listable = (services: unknown): any[] =>
+  Array.isArray(services) ? (services as any[]).filter((s) => !HIDDEN_FROM_LIST.has(s?.slug)) : [];
+
 export default function Services() {
   const { data: services, isLoading } = useQuery<ServiceRecord[]>({
     queryKey: ["/api/services"],
@@ -42,15 +54,16 @@ export default function Services() {
     <div className="p91x min-h-screen">
       <SiteHeader />
 
-      <section className="section">
+      <section className="sv-page">
         <div className="wrap">
-          <div className="section-head">
-            <h1>All Services</h1>
-            <p>
+          <header className="sv-head">
+            <p className="ed-label">Services</p>
+            <h1 className="sv-title">All Services</h1>
+            <p className="sv-lede">
               Filter by what your vehicle is and what it needs. Prices, offers and availability are
               live — the same ones you will see at checkout.
             </p>
-          </div>
+          </header>
 
           {/*
             Direct routes to the three focused service pages.
@@ -65,37 +78,35 @@ export default function Services() {
             partial). Someone who simply wants PPF has to know which body type maps to
             their car before they can see a price. /ppf asks that question properly.
 
-            Deliberately a small row above the grid, not a replacement for it: the 17 cards
+            Deliberately a small list above the grid, not a replacement for it: the 17 cards
             and their /service/:slug pages are indexed and stay exactly as they are.
           */}
-          <nav style={{ marginBottom: 40 }} aria-label="Popular services">
-            <h2 style={{ fontSize: 13, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".08em", color: "var(--txt-3)", marginBottom: 14 }}>
-              Book by service
-            </h2>
-            <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+          <nav className="sv-forks" aria-label="Popular services">
+            <h2 className="sv-label">Book by service</h2>
+            <ul>
               {[
                 { href: "/ceramic-coating/car", label: "Ceramic Coating", sub: "For your car" },
                 { href: "/ceramic-coating/bike", label: "Ceramic Coating", sub: "For your motorcycle" },
                 { href: "/ppf", label: "Paint Protection Film", sub: "Hatchback, sedan or SUV" },
               ].map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="card"
-                  data-testid={`link-fork-${item.href.replace(/\//g, "-").replace(/^-/, "")}`}
-                >
-                  <div className="card-body">
-                    <h3>{item.label}</h3>
-                    <p className="card-note">{item.sub}</p>
-                  </div>
-                </Link>
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className="sv-fork"
+                    data-testid={`link-fork-${item.href.replace(/\//g, "-").replace(/^-/, "")}`}
+                  >
+                    <span className="sv-fork-name">{item.label}</span>
+                    <span className="sv-fork-sub">{item.sub}</span>
+                    <ArrowUpRight className="sv-fork-arrow" aria-hidden="true" />
+                  </Link>
+                </li>
               ))}
-            </div>
+            </ul>
           </nav>
 
           {isLoading ? (
-            <div className="grid">
-              {Array.from({ length: 9 }).map((_, i) => (
+            <div className="sv-grid">
+              {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="card-skel" data-testid="skeleton-service">
                   <div className="img" />
                   <div style={{ padding: 20 }}>
@@ -107,9 +118,9 @@ export default function Services() {
               ))}
             </div>
           ) : (
-            <ServiceFilter services={Array.isArray(services) ? services : []}>
+            <ServiceFilter services={groupPpf(listable(services))}>
               {(filtered) => (
-                <div className="grid">
+                <div className="sv-grid">
                   {filtered.map((service: any) => (
                     <ServiceCard key={service.id} service={service} />
                   ))}

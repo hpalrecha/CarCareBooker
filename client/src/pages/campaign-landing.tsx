@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { Link } from "wouter";
 // `.lp-*` (landing-pages.css) is also used by ppf-ceramic-landing.tsx and
 // service-landing.tsx, each importing it themselves. Only this component uses the
@@ -6,11 +6,14 @@ import { Link } from "wouter";
 // in this lazy chunk instead of blocking every other route.
 import "@/styles/landing.css";
 import "@/styles/landing-pages.css";
-import { Phone, Clock, ShieldCheck, MapPin, CheckCircle, Wrench, Layers, ArrowRight } from "lucide-react";
+import { Phone, Clock, ShieldCheck, MapPin, CheckCircle, Wrench, Layers } from "lucide-react";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import SlideCarousel from "@/components/redesign/slide-carousel";
+import WorkCarousel, { type WorkSlide } from "@/components/redesign/work-carousel";
+import LazyVideo from "@/components/redesign/lazy-video";
+import { useCinematic } from "@/hooks/use-cinematic";
 import BookingModal from "@/components/booking-modal";
 import CampaignOffer from "@/components/campaign-offer";
 import VehicleSelector from "@/components/vehicle-selector";
@@ -58,6 +61,34 @@ import {
  * BookingModal — so the page cannot advertise a price checkout will not charge.
  */
 
+/**
+ * Real PPF work for the /ppf portfolio carousel. All three are P91's own: two stills from the
+ * studio's PPF-fitting reel (attached_assets/reels/ppf-car-hero.mp4, extracted with ffmpeg)
+ * and a frame of the studio's own Instagram story handing over a Vellfire, cropped to the car.
+ * Each title/note/alt says only what is visible in that image. No other real PPF photograph
+ * exists in the project yet — see the hand-off note — so the carousel is three slides, not padded.
+ */
+const PPF_WORK_SLIDES: WorkSlide[] = [
+  {
+    src: "/attached_assets/gallery/p91-ppf-vellfire-handover.webp",
+    alt: "A white Toyota Vellfire in the studio, from the studio's own story captioned 'Handing over Vellfire protected with Stek PPF'",
+    title: "Handed over",
+    note: "A Toyota Vellfire, handed over protected with STEK PPF.",
+  },
+  {
+    src: "/attached_assets/gallery/p91-ppf-edge-trim.webp",
+    alt: "A technician trimming paint protection film at the edge of a panel near the wheel arch of a black car",
+    title: "Trimmed to the panel",
+    note: "The film is cut back to the panel edges by hand.",
+  },
+  {
+    src: "/attached_assets/gallery/p91-ppf-film-lift.webp",
+    alt: "A technician's hands lifting clear paint protection film over the door of a black car in the studio",
+    title: "Film, fitted by hand",
+    note: "Clear film is worked over each panel by hand, one panel at a time.",
+  },
+];
+
 interface CampaignLandingProps {
   /** The route this instance serves. Passed by App.tsx so one component covers three paths. */
   path: string;
@@ -82,6 +113,10 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
   const [bookingOpen, setBookingOpen] = useState(false);
   const showHeroVideo = useHeroVideoGate();
   const [heroVideoReady, setHeroVideoReady] = useState(false);
+
+  // Cinematic scroll motion (hooks/use-cinematic.ts). Re-scans when the catalogue arrives and when
+  // the body type changes, since sections like "what's included" only appear once the record does.
+  useCinematic([path, categoryKey, bySlug]);
 
   // An unrecognised path is a genuine 404, not an empty version of this template.
   if (!page) return <NotFound />;
@@ -205,12 +240,253 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
     structuredData: schemas,
   });
 
+  /**
+   * /ppf gets the editorial service-page layout. The ceramic pages keep the layout below
+   * until they are redesigned. Everything that carries business logic is the SAME code as the
+   * shared layout — the selector, the live price, the offer block and its countdown, the
+   * includes filter, the booking modal, the JSON-LD above — only its presentation moved.
+   *
+   * Order: hero, body type + price, why PPF, real work carousel, what the job includes, how it
+   * works, guides, page-specific closing CTA, then the shared footer.
+   *
+   * Dropped from /ppf because they are not P91 work but were captioned as if they were: the
+   * three services/*.webp renders (collage + full-bleed banner), the "Real photos from the
+   * studio" row that read them from the catalogue record, and ppf-application.jpg, a stock
+   * photograph of someone else's car and hands.
+   */
+  if (path === "/ppf") {
+    const includes = displayableIncludes(service?.whatIncluded);
+    return (
+      <div className="p91x lp lp-ppf min-h-screen">
+        <SiteHeader onBookNow={() => setBookingOpen(true)} />
+
+        {/* 1 · hero */}
+        <section className="pp-hero" data-testid="section-ppf-hero" data-cine="zoom">
+          <div className="wrap">
+            <div className="pp-hero-grid">
+              <div className="pp-hero-copy">
+                <p className="ed-label">PPF / Paint protection film</p>
+                <h1 className="pp-h1" data-testid="text-landing-h1">{page.h1}</h1>
+                <p className="pp-lede">{page.lede}</p>
+                <div className="pp-hero-actions">
+                  <a className="cta-ghost" href="tel:+917406619191" data-testid="link-hero-call">
+                    <Phone className="i" aria-hidden="true" /> 74066 19191
+                  </a>
+                </div>
+                <div className="hero-facts">
+                  <span><Clock className="i" aria-hidden="true" /><b>Same-day</b> slots</span>
+                  <span><ShieldCheck className="i" aria-hidden="true" />Written warranty</span>
+                  <span><MapPin className="i" aria-hidden="true" />Adugodi, Bangalore</span>
+                </div>
+              </div>
+              <div className="pp-hero-media">
+                <figure className="ed-figure ed-figure-video pp-video">
+                  <LazyVideo
+                    src="/attached_assets/reels/ppf-car-hero.mp4"
+                    poster="/attached_assets/gallery/p91-ppf-fitting.webp"
+                    testId="video-ppf-hero"
+                  />
+                </figure>
+                <p className="ed-caption pp-caption">PPF fitting at the P91 studio</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 2 · body type + price. The selector sits ABOVE any price, exactly as before. */}
+        <section className="pp-choose" id="choose" data-testid="section-ppf-choose">
+          <div className="wrap">
+            <div className="pp-choose-grid">
+              <div className="pp-choose-main" data-cine="rise">
+                <p className="ed-label">02 / Your car</p>
+                <h2 className="pp-h2" data-cine="rise">Choose your body type.</h2>
+                {page.categories && (
+                  <VehicleSelector
+                    categories={page.categories}
+                    bySlug={bySlug}
+                    selectedKey={selectedCategory?.key ?? ""}
+                    onSelect={(cat) => setCategoryKey(cat.key)}
+                    hideDuration={page.hideDuration}
+                    showIncludes={false}
+                    compact
+                  />
+                )}
+                <HeroOfferStrip landingPage={page.path} servicePrice={service?.price} />
+                <div className="pp-offer">
+                  <CampaignOffer
+                    landingPage={page.path}
+                    servicePrice={service?.price}
+                    serviceTitle={service?.title?.trim()}
+                    onBook={() => setBookingOpen(true)}
+                  />
+                </div>
+              </div>
+              {page.heroCarousel && (
+                <div className="pp-choose-media" data-cine="rise" style={{ "--i": 1 } as CSSProperties}>
+                  <SlideCarousel
+                    variant="hero"
+                    autoAdvanceMs={0}
+                    dir={page.heroCarousel.dir}
+                    caption={page.heroCarousel.caption}
+                    slides={page.heroCarousel.slides}
+                    testId="carousel-landing-hero"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* 3 · why PPF */}
+        <section className="pp-why" data-testid="section-ppf-why">
+          <div className="wrap">
+            <p className="ed-label">03 / Why PPF</p>
+            <h2 className="pp-h2" data-cine="rise">{page.benefitsHeading}</h2>
+            <ol className="pp-why-list">
+              {page.benefits.map((b, idx) => (
+                <li key={b.title} data-cine="rise" style={{ "--i": idx } as CSSProperties}>
+                  <span className="pp-idx">{String(idx + 1).padStart(2, "0")}</span>
+                  <h3>{b.title}</h3>
+                  <p>{b.body}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* 4 · real PPF work */}
+        <WorkCarousel
+          label="04 / Real PPF work"
+          heading="Real PPF work."
+          slides={PPF_WORK_SLIDES}
+          testId="carousel-ppf-work"
+        />
+
+        {/* 5 · what the job includes — from the catalogue row, self-healing filtered as before */}
+        {includes.length > 0 && (
+          <section className="pp-includes" data-testid="section-ppf-includes">
+            <div className="wrap">
+              <p className="ed-label">05 / Included</p>
+              <h2 className="pp-h2" data-cine="rise">What the job includes</h2>
+              <ul className="pp-includes-list" data-testid="landing-includes">
+                {includes.map((item, idx) => (
+                  <li key={idx} data-cine="rise" style={{ "--i": idx } as CSSProperties}>
+                    <CheckCircle className="i" aria-hidden="true" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
+
+        {/* 6 · how it works, then the warranty wording carried over verbatim */}
+        <section className="pp-steps" data-testid="section-ppf-steps">
+          <div className="wrap">
+            <p className="ed-label">06 / How it works</p>
+            <h2 className="pp-h2" data-cine="rise">How it works</h2>
+            <ol className="pp-steps-list" data-testid="landing-steps">
+              {page.howItWorks.map((step, idx) => (
+                <li key={step} data-cine="rise" style={{ "--i": idx } as CSSProperties}>
+                  <span className="pp-idx">{String(idx + 1).padStart(2, "0")}</span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+            <p className="lp-warranty pp-warranty" data-testid="landing-warranty">
+              Warranty on any job is the film or coating manufacturer's, issued in writing at
+              handover. Ask to see the batch details before work starts.
+            </p>
+          </div>
+        </section>
+
+        {faqs.length > 0 && (
+          <section className="pp-faqs">
+            <div className="wrap narrow">
+              <h2 className="pp-h2" data-cine="rise">Common questions</h2>
+              <div className="lp-faqs" data-testid="landing-faqs">
+                {faqs.map((f, idx) => (
+                  <details className="lp-faq" key={idx}>
+                    <summary>{f.question}</summary>
+                    <p>{f.answer}</p>
+                  </details>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* The studio's own PPF reels for the selected body type (two per type, rotated). */}
+        <div className="ig-band" data-tone="dark">
+          <InstagramReels
+            reels={REELS_BY_SERVICE[service?.slug ?? ""] ?? []}
+            heading="See it on Instagram"
+            intro="Real paint protection film work from our Adugodi studio."
+          />
+        </div>
+
+        {/* 7 · guides / related */}
+        <div className="pp-guides">
+          <BlogCarousel posts={posts} bySlug={bySlug} />
+          {page.related.length > 0 && (
+            <div className="wrap">
+              <nav className="lp-related" aria-label="Related pages">
+                {page.related.map((r) => (
+                  <Link key={r.href} href={r.href} data-testid={`link-related-${r.href}`}>
+                    <span>{r.label}</span>
+                  </Link>
+                ))}
+              </nav>
+            </div>
+          )}
+        </div>
+
+        {/* 8 · page-specific closing CTA, straight into the shared footer */}
+        <section className="ed-cta pp-cta" data-tone="dark" data-testid="section-ppf-final-cta">
+          <div className="wrap">
+            <h2 className="ed-title" data-cine="rise">Ready to protect your car's paint?</h2>
+            <div className="ed-cta-actions">
+              <button type="button" className="cta-lg" onClick={() => setBookingOpen(true)} data-testid="button-final-cta">
+                Book Now
+              </button>
+              <a
+                className="cta-ghost"
+                href="https://wa.me/917406619191?text=Hi%20P91%20Car%20Care!%20I'm%20interested%20in%20PPF%20for%20my%20car."
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="link-final-whatsapp"
+              >
+                WhatsApp
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <SiteFooter />
+
+        {service && (
+          <BookingModal
+            service={service as any}
+            isOpen={bookingOpen}
+            onClose={() => setBookingOpen(false)}
+            vehicleContext={{
+              vehicleType: page.vehicle,
+              vehicleCategory: page.categories ? selectedCategory?.key : undefined,
+            }}
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="p91x lp min-h-screen">
-      <SiteHeader />
+      {/* The one Book Now on this page. It used to link to /services; with the in-page Book
+          Now buttons removed it opens the same booking modal they did, so the ad visitor stays here. */}
+      <SiteHeader onBookNow={() => setBookingOpen(true)} />
 
       {/* ---------- 1-3. hero: what, for whom, how much ---------- */}
-      <section className="section lp-hero">
+      <section className="section lp-hero" data-cine="zoom">
         <div className="wrap">
           <div className="lp-hero-grid">
             <div className="lp-hero-copy">
@@ -278,14 +554,6 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
                 )}
 
               <div className="lp-hero-cta">
-                <button
-                  type="button"
-                  className="cta-lg"
-                  onClick={() => setBookingOpen(true)}
-                  data-testid="button-hero-book"
-                >
-                  Book Now
-                </button>
                 <a className="cta-ghost" href="tel:+917406619191" data-testid="link-hero-call">
                   <Phone className="i" aria-hidden="true" /> 74066 19191
                 </a>
@@ -477,16 +745,6 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
               <h2 style={{ color: "#fff", fontSize: "clamp(24px,3.4vw,36px)", fontWeight: 800, maxWidth: "16ch", textShadow: "0 2px 16px rgba(0,0,0,.7)" }}>
                 Ready to protect your car's paint?
               </h2>
-              <button
-                type="button"
-                onClick={() => setBookingOpen(true)}
-                className="cta-lg"
-                style={{ marginTop: 20 }}
-                data-testid="button-ppf-banner-cta"
-              >
-                Book Now
-                <ArrowRight className="i" aria-hidden="true" />
-              </button>
             </div>
           </section>
         </>
@@ -507,13 +765,13 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
       {/* ---------- 5. what the treatment does ---------- */}
       <section className="section">
         <div className="wrap">
-          <div className="section-head">
+          <div className="section-head" data-cine="rise">
             <h2>{page.benefitsHeading}</h2>
           </div>
           {/* XPEL-style icon-feature bullets, shared with /service/* (redesign.css). */}
           <div className="feature-grid">
-            {page.benefits.map((b) => (
-              <div className="feature-item" key={b.title}>
+            {page.benefits.map((b, idx) => (
+              <div className="feature-item" key={b.title} data-cine="rise" style={{ "--i": idx } as CSSProperties}>
                 <CheckCircle className="i" aria-hidden="true" />
                 <h3>{b.title}</h3>
                 <p>{b.body}</p>
@@ -527,12 +785,12 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
       {displayableIncludes(service?.whatIncluded).length > 0 && (
         <section className="section lp-tight">
           <div className="wrap narrow">
-            <div className="section-head">
+            <div className="section-head" data-cine="rise">
               <h2>What the job includes</h2>
             </div>
             <div className="feature-grid" data-testid="landing-includes">
               {displayableIncludes(service?.whatIncluded).map((item, i) => (
-                <div className="feature-item" key={i}>
+                <div className="feature-item" key={i} data-cine="rise" style={{ "--i": i } as CSSProperties}>
                   <CheckCircle className="i" aria-hidden="true" />
                   <p>{item}</p>
                 </div>
@@ -553,7 +811,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
       {service?.images && service.images.length > 0 && (
         <section className="section lp-tight">
           <div className="wrap">
-            <div className="section-head" style={{ textAlign: "center" }}>
+            <div className="section-head" data-cine="rise" style={{ textAlign: "center" }}>
               <h2>Real photos from the studio</h2>
             </div>
             <div className="grid" style={{ gridTemplateColumns: `repeat(${Math.min(service.images.length, 3)}, minmax(0, 1fr))` }}>
@@ -587,7 +845,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
       {/* ---------- how it works ---------- */}
       <section className="section lp-tight">
         <div className="wrap narrow">
-          <div className="section-head">
+          <div className="section-head" data-cine="rise">
             <h2>How it works</h2>
           </div>
           {/* An ordered list because the order is real, not decorative — numbered markers
@@ -614,7 +872,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
       {faqs.length > 0 && (
         <section className="section">
           <div className="wrap narrow">
-            <div className="section-head">
+            <div className="section-head" data-cine="rise">
               <h2>Common questions</h2>
             </div>
             {/* Native <details>/<summary>, collapsed by default — same accordion as

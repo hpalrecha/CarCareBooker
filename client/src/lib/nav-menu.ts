@@ -64,7 +64,8 @@ export const SERVICES_COLUMNS: NavColumn[] = [
     heading: "Packages",
     links: [
       { label: "Premium Car Wash Special", href: "/service/premium-car-wash-special" },
-      { label: "1 Year Car Wash Package", href: "/service/annual-car-wash-package" },
+      { label: "Annual Car Wash", href: "/service/annual-car-wash-package" },
+      { label: "Annual Maintenance Package", href: "/service/annual-maintenance-package" },
     ],
   },
 ];
@@ -78,6 +79,12 @@ export const SERVICES_COLUMNS: NavColumn[] = [
 export interface ProductBrand {
   name: string;
   tagline: string;
+  /** One line on what the brand is. Shown under the name in the Products dropdown and on the
+   *  homepage's "Why P91" section. Every word is taken from wording the site already uses
+   *  (nav taglines above, the PPF/ceramic landing page's brand table) — nothing new is claimed. */
+  line: string;
+  /** Two or three short points, same sourcing rule as `line`. */
+  points: string[];
   href: string;
   /** True for STEK/Nasiol: the manufacturer's own real site, opened in a new tab —
    *  not the /services page for the P91 job that fits their film/coating. False (or
@@ -89,9 +96,29 @@ export const PRODUCT_BRANDS: ProductBrand[] = [
   // By request (2026-09-23): the brand card now sends the visitor to the
   // manufacturer's own real site — verified official domains, not guessed — rather
   // than P91's own service page for the film/coating.
-  { name: "STEK", tagline: "Paint protection film — self-healing, matte & gloss", href: "https://stek-india.in/", external: true },
-  { name: "Nasiol", tagline: "Ceramic coating — long-term gloss & hydrophobic protection", href: "https://www.nasiol.in/", external: true },
-  { name: "P91 Premium PPF", tagline: "Our own PPF line, fitted and warranty-backed in-studio", href: "/service/ppf-suv" },
+  {
+    name: "STEK",
+    tagline: "Paint protection film — self-healing, matte & gloss",
+    line: "Paint protection film, fitted in our Adugodi studio.",
+    points: ["Gloss & matte finishes", "Self-healing film", "Written manufacturer warranty"],
+    href: "https://stek-india.in/",
+    external: true,
+  },
+  {
+    name: "Nasiol",
+    tagline: "Ceramic coating — long-term gloss & hydrophobic protection",
+    line: "Nano-ceramic coating technology from Turkey.",
+    points: ["Long-term gloss", "Hydrophobic protection", "Written manufacturer warranty"],
+    href: "https://www.nasiol.in/",
+    external: true,
+  },
+  {
+    name: "P91 Premium PPF",
+    tagline: "Our own PPF line, fitted and warranty-backed in-studio",
+    line: "Our own PPF line, fitted in-studio.",
+    points: ["Hatchback, sedan and SUV packages", "Self-healing film", "Warranty-backed, in-studio"],
+    href: "/service/ppf-suv",
+  },
 ];
 
 export const PRODUCT_FINE_PRINT =

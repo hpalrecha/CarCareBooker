@@ -17,8 +17,8 @@
 .p91x {
   background: var(--deep-black);
   color: var(--txt);
-  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  font-size: 15px;
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
@@ -26,7 +26,8 @@
 .p91x * { box-sizing: border-box; }
 .p91x img { max-width: 100%; display: block; }
 .p91x h1, .p91x h2, .p91x h3, .p91x h4 {
-  font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading);
   margin: 0; line-height: 1.15; text-wrap: balance; letter-spacing: -.02em;
 }
 .p91x a { text-decoration: none; color: inherit; }
@@ -44,8 +45,20 @@
   position: sticky; top: 0; z-index: 60;
   /* Hardcoded, not a var(--deep-black) reference, so the token swap above did not
      already fix it — white ground, matching the page. */
-  background: rgba(255, 255, 255, .94); backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--medium-gray);
+  /* Translucent + blurred so the page reads through the bar once you scroll. */
+  background: rgba(255, 255, 255, .5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6); backdrop-filter: blur(24px) saturate(1.6);
+  border-bottom: 1px solid rgba(255, 255, 255, .35);
+  transition: transform .32s cubic-bezier(.22,.61,.36,1), opacity .25s ease, background .25s ease, border-color .25s ease, backdrop-filter .25s ease;
+}
+/* Scrolling down: fade and lift out. visibility flips only after the transition ends (and
+   is instant on the way back), so the hidden bar is not reachable by Tab or pointer. */
+.p91x header.site.is-hidden {
+  transform: translateY(-100%); opacity: 0; visibility: hidden; pointer-events: none;
+  transition: transform .32s cubic-bezier(.22,.61,.36,1), opacity .25s ease, visibility 0s linear .32s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .p91x header.site, .p91x header.site.is-hidden { transition: none; }
 }
 /* XPEL-style: on pages with a full-bleed hero directly underneath (home, service pages),
  * the header floats OVER the photo/video instead of reserving its own solid bar above it.
@@ -53,30 +66,51 @@
  * show through; `sticky` would still reserve its box height like every other page. */
 .p91x header.site.over-hero {
   position: fixed; top: 0; left: 0; right: 0;
-  transition: background .25s ease, border-color .25s ease, backdrop-filter .25s ease;
 }
+/* Legibility over the photo comes from this gradient layer, not from text-shadow. It is a
+   pseudo-element so it can run ~36px past the bar (the header's own box is only ~64px, and
+   a gradient confined to it has faded out by the time the text baseline is reached).
+   z-index -1 stays inside the header's own stacking context (fixed + z-index 60), so it
+   paints behind the nav content and above the page. Fading it with opacity, rather than
+   swapping backgrounds, is what lets the solid bar cross-fade in on scroll. */
+.p91x header.site.over-hero::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: calc(100% + 36px);
+  z-index: -1; pointer-events: none; opacity: 0;
+  background: linear-gradient(to bottom, rgba(6,7,8,.72) 0%, rgba(6,7,8,.44) 50%, rgba(6,7,8,0) 100%);
+  transition: opacity .25s ease;
+}
+.p91x header.site.over-hero.is-transparent::before { opacity: 1; }
+/* Solid state keeps the base 1px hairline (var(--medium-gray)); transparent state hides it
+   by colour, not by removing the border, so the bar does not change height as it switches
+   and the hairline fades in with the background instead of popping. */
 .p91x header.site.over-hero.is-transparent {
-  background: linear-gradient(to bottom, rgba(6,7,8,.55) 0%, rgba(6,7,8,.16) 65%, transparent 100%);
-  border-bottom: 0; backdrop-filter: none;
+  background: transparent; border-bottom-color: transparent; backdrop-filter: none;
 }
 /* `--txt`/`--txt-2` are dark (site-wide light-theme tokens, for the white solid header
-   above). Over a photo, with only the thin dark gradient behind them, that dark text has
-   no reliable contrast — so this state needs its own light colors, not the token values,
-   plus a shadow as a floor for the gradient's transparent tail near the bottom. */
+   above), so the transparent state needs its own light colours. Contrast is carried by the
+   ::before gradient above. Hover is white text + a faint white tint, never green: the
+   accent is 2.5:1 on a light photo. */
 .p91x header.site.over-hero.is-transparent .nav-trigger,
 .p91x header.site.over-hero.is-transparent .nav-plain,
 .p91x header.site.over-hero.is-transparent .icon-btn,
-.p91x header.site.over-hero.is-transparent .btn-call {
-  color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.55);
-}
-.p91x header.site.over-hero.is-transparent .icon-btn,
-.p91x header.site.over-hero.is-transparent .btn-call { border-color: rgba(255,255,255,.5); }
+.p91x header.site.over-hero.is-transparent .btn-call,
+.p91x header.site.over-hero.is-transparent .burger { color: #fff; }
 .p91x header.site.over-hero.is-transparent .nav-trigger:hover,
 .p91x header.site.over-hero.is-transparent .nav-trigger[aria-expanded="true"],
-.p91x header.site.over-hero.is-transparent .nav-plain:hover { color: var(--neon-green); }
+.p91x header.site.over-hero.is-transparent .nav-plain:hover,
 .p91x header.site.over-hero.is-transparent .icon-btn:hover,
-.p91x header.site.over-hero.is-transparent .btn-call:hover { border-color: var(--neon-line); color: var(--neon-green); }
+.p91x header.site.over-hero.is-transparent .btn-call:hover { color: #fff; background: rgba(255,255,255,.16); }
 .p91x .nav { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 8px 0; position: relative; }
+/* Desktop: logo left, links centred, actions right (three tracks, so the centre column is
+   truly centred whatever the width of the two sides). Phone drawer layout is the flex above. */
+@media (min-width: 861px) {
+  .p91x .nav { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; }
+  .p91x .nav .megabar { margin-left: 0; justify-self: center; }
+  .p91x .nav .right { justify-self: end; }
+}
+/* Not enough room for the number beside the centred links below ~1100px; the number stays
+   in the Resources panel, the footer and the mobile drawer. */
+@media (max-width: 1100px) { .p91x .btn-call { display: none; } }
 .p91x .nav img { height: 34px; width: auto; }
 
 /* ---------- desktop mega-nav (XPEL-style: Services / Products / Resources dropdowns) ---------- */
@@ -88,7 +122,7 @@
   color: var(--txt-2); font-size: 14px; font-weight: 600; letter-spacing: .01em;
   padding: 10px; border-radius: 6px;
 }
-.p91x .nav-trigger:hover, .p91x .nav-trigger[aria-expanded="true"], .p91x .nav-plain:hover { color: var(--neon-green); }
+.p91x .nav-trigger:hover, .p91x .nav-trigger[aria-expanded="true"], .p91x .nav-plain:hover { color: var(--txt); background: var(--dark-gray); }
 .p91x .nav-trigger .chev { width: 14px; height: 14px; transition: transform .15s ease; }
 .p91x .nav-trigger[aria-expanded="true"] .chev { transform: rotate(180deg); }
 
@@ -99,23 +133,54 @@
    that gap in the actual hoverable area. */
 .p91x .mega-panel {
   position: absolute; top: 100%; margin-top: 0;
-  background: var(--dark-gray); border: 1px solid var(--medium-gray); border-radius: 12px;
-  box-shadow: 0 20px 50px rgba(0,0,0,.5);
-  padding: 16px 26px 26px; z-index: 61;
+  background: rgba(255, 255, 255, .88);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5);
+  border: 1px solid rgba(16, 36, 26, .08); border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(6, 20, 12, .18), 0 2px 8px rgba(6, 20, 12, .06);
+  padding: 20px 26px 26px; z-index: 61;
+}
+/* Enter animation only: the panel is mounted/unmounted by React on hover, so there is no
+   element left to animate out. It slides DOWN into place (from -6px) rather than up from
+   below: starting 6px low would open a 6px gap between trigger and panel, exactly the dead
+   zone the top:100% comment above exists to prevent, for the length of the animation. */
+@keyframes p91-panel-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .p91x .mega-panel { animation: p91-panel-in .16s ease-out both; }
 }
 .p91x .mega-panel.align-left { left: 0; }
+/* Hover bridge that survives the panel now hanging off the nav row rather than the trigger: a
+   14px invisible strip above the panel, still a descendant of .nav-item, so moving the pointer
+   from the trigger down into the panel never fires mouseleave. */
+.p91x .mega-panel::before { content: ""; position: absolute; left: 0; right: 0; top: -14px; height: 14px; }
+/* Services has five columns plus a promo, wider than most laptop windows. It is anchored to the
+   whole nav row (its .nav-item stops being the positioning parent) and spans it, and the columns
+   wrap, so it is always fully inside the viewport instead of running off the right edge. */
+.p91x .nav-item.is-wide { position: static; }
+.p91x .mega-panel.mega-wide { left: 0; right: 0; width: auto; }
+.p91x .mega-wide .mega-cols { flex-wrap: wrap; gap: 24px 32px; }
+.p91x .mega-wide .mega-col { flex: 1 1 140px; min-width: 0; }
+.p91x .mega-wide .mega-promo { flex: 1 1 200px; }
 .p91x .mega-panel.align-right { right: 0; }
 .p91x .mega-cols { display: flex; gap: 28px; }
 .p91x .mega-col { flex: 0 0 152px; }
 .p91x .mega-col h5 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--txt-3); margin: 0 0 12px; }
 .p91x .mega-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .p91x .mega-col a { color: var(--txt); font-size: 14px; }
-.p91x .mega-col a:hover { color: var(--neon-green); }
+.p91x .mega-col a:hover { color: var(--txt); text-decoration: underline; text-underline-offset: 3px; }
 .p91x .mega-promo { flex: 0 0 200px; border-left: 1px solid var(--medium-gray); padding-left: 24px; display: flex; flex-direction: column; gap: 10px; }
 .p91x .mega-promo img { border-radius: 8px; aspect-ratio: 4/3; object-fit: cover; }
 .p91x .mega-promo p { font-size: 13px; color: var(--txt-2); margin: 0; }
-.p91x .mega-promo-cta { color: var(--neon-green); font-size: 13px; font-weight: 700; }
+.p91x .mega-promo-cta { color: var(--txt); font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .p91x .mega-brands { display: flex; flex-wrap: wrap; gap: 20px; width: 580px; max-width: 78vw; }
+/* Products dropdown: three plain rows separated by hairlines, not boxed cards. */
+.p91x .mega-products { width: 420px; max-width: 86vw; display: flex; flex-direction: column; }
+.p91x .mp-row { display: flex; flex-direction: column; gap: 3px; padding: 14px 0; border-top: 1px solid var(--medium-gray); }
+.p91x .mp-row:first-child { border-top: 0; padding-top: 4px; }
+.p91x .mp-name { color: var(--txt); font-size: 16px; font-weight: 600; letter-spacing: -.01em; text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 4px; text-decoration-thickness: 2px; transition: text-decoration-color .2s ease; width: fit-content; }
+.p91x .mp-row:hover .mp-name, .p91x .mp-row:focus-visible .mp-name { text-decoration-color: var(--brand-accent); }
+.p91x .mp-line { color: var(--txt-2); font-size: 13.5px; line-height: 1.5; }
+.p91x .mp-points { color: var(--txt-3); font-size: 12.5px; line-height: 1.5; }
+.p91x .mega-products .mega-fineprint { margin: 6px 0 10px; padding-top: 14px; border-top: 1px solid var(--medium-gray); }
 .p91x .mega-brand { flex: 1 1 170px; min-width: 170px; border: 1px solid var(--medium-gray); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 6px; }
 .p91x .mega-brand:hover { border-color: var(--neon-line); }
 .p91x .mega-brand b { color: var(--txt); font-size: 15px; }
@@ -123,12 +188,14 @@
 .p91x .mega-fineprint { flex-basis: 100%; color: var(--txt-3); font-size: 12px; margin: 4px 0 0; }
 
 .p91x .nav .right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+/* Secondary actions (search, directions, phone): borderless, so "Book Now" is the only
+   element in the bar with a fill or an outline. */
 .p91x .icon-btn {
   display: inline-flex; align-items: center; justify-content: center;
   width: 40px; height: 40px; border-radius: 8px;
-  border: 1px solid var(--medium-gray); color: var(--txt-2); background: none; cursor: pointer;
+  border: 0; color: var(--txt-2); background: none; cursor: pointer;
 }
-.p91x .icon-btn:hover { border-color: var(--neon-line); color: var(--neon-green); }
+.p91x .icon-btn:hover { background: var(--dark-gray); color: var(--txt); }
 .p91x .icon-btn .i { width: 18px; height: 18px; }
 .p91x .nav-search { position: relative; }
 .p91x .search-panel {
@@ -143,23 +210,23 @@
 .p91x .search-panel input:focus { outline: 2px solid var(--neon-green); outline-offset: 1px; }
 .p91x .search-results { display: flex; flex-direction: column; margin-top: 8px; max-height: 260px; overflow-y: auto; }
 .p91x .search-results a { padding: 8px 6px; font-size: 13.5px; color: var(--txt); border-radius: 6px; }
-.p91x .search-results a:hover { background: rgba(255,255,255,.05); color: var(--neon-green); }
+.p91x .search-results a:hover { background: var(--medium-gray); color: var(--txt); }
 
 .p91x .btn-call {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
   min-height: 44px;
-  border: 1px solid var(--medium-gray); color: var(--txt);
-  padding: 7px 13px; border-radius: 8px; font-size: 13.5px; white-space: nowrap;
+  border: 0; color: var(--txt-2);
+  padding: 7px 11px; border-radius: 8px; font-size: 13.5px; white-space: nowrap;
 }
-.p91x .btn-call:hover { border-color: var(--neon-line); }
+.p91x .btn-call:hover { background: var(--dark-gray); color: var(--txt); }
 .p91x .btn-book {
   display: inline-flex; align-items: center; justify-content: center;
   min-height: 44px;
-  background: var(--neon-green); color: #04120A; font-weight: 700;
-  padding: 8px 17px; border-radius: 8px; font-size: 13.5px; white-space: nowrap;
+  background: var(--brand-accent); color: var(--surface-dark); font-weight: 700;
+  padding: 8px 20px; border-radius: 999px; font-size: 13.5px; white-space: nowrap;
 }
 /* min-width keeps the 44px tap target square without enlarging the glyph itself. */
-.p91x .burger { display: none; margin-left: auto; padding: 8px; min-width: 44px; text-align: center; color: var(--neon-green); background: none; border: 0; cursor: pointer; font-size: 18px; }
+.p91x .burger { display: none; margin-left: auto; padding: 8px; min-width: 44px; text-align: center; color: var(--txt); background: none; border: 0; cursor: pointer; font-size: 18px; }
 
 /* ---------- mobile: mega-nav collapses to an accordion inside the burger panel ---------- */
 .p91x .nav .links { display: none; }
@@ -189,7 +256,7 @@
   .p91x .m-group { display: flex; flex-direction: column; gap: 2px; }
   .p91x .m-group span { color: var(--txt-3); font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; margin-top: 6px; }
   .p91x .m-group a { padding: 8px 0; font-size: 14.5px; color: var(--txt-2); }
-  .p91x .m-group a:hover { color: var(--neon-green); }
+  .p91x .m-group a:hover { color: var(--txt); text-decoration: underline; text-underline-offset: 3px; }
 }
 
 /* ---------- hero ---------- */
@@ -199,7 +266,7 @@
      reserving space above it, so this is a plain full-viewport height — no --chrome
      subtraction to make room for a header box that no longer occupies one. */
   min-height: 100svh;
-  display: flex; align-items: center;
+  display: flex; align-items: flex-end;
   border-bottom: 1px solid var(--medium-gray);
   overflow: hidden; padding: 0;
 }
@@ -225,6 +292,9 @@
   .p91x .pdp-hero-grid { grid-template-columns: 1fr; gap: 20px; padding-bottom: 32px; }
 }
 .p91x .pdp-media { display: flex; gap: 14px; }
+/* No real photograph or video for this service: the panel takes the whole row. */
+.p91x .pdp-hero-grid.is-text-only { grid-template-columns: minmax(0, 1fr); }
+.p91x .pdp-hero-grid.is-text-only .pdp-panel { max-width: 860px; }
 @media (max-width: 640px) { .p91x .pdp-media { flex-direction: column-reverse; } }
 .p91x .pdp-thumbs { display: flex; flex-direction: column; gap: 10px; flex: none; }
 @media (max-width: 640px) { .p91x .pdp-thumbs { flex-direction: row; overflow-x: auto; } }
@@ -244,6 +314,69 @@
      lift on the photo itself, not a colour wash on top of it, so the car reads clean. */
   filter: brightness(1.18) contrast(1.05) saturate(1.08);
 }
+/* Parallax frames (components/redesign/parallax-frame.tsx): the picture is 16% taller than the box
+   and drifts by --px, so an edge never shows. No --px is ever set under reduced motion. */
+.p91x .px-frame { overflow: hidden; }
+.p91x .px-frame img { height: 116%; top: -8%; bottom: auto; transform: translate3d(0, var(--px, 0px), 0); will-change: transform; }
+.p91x .px-frame.seo-hero .shot, .p91x .px-frame.overview-media-wrap img.overview-media { height: 116%; top: -8%; bottom: auto; }
+
+/* ---------- Cinematic scroll (hooks/use-cinematic.ts) ----------
+   --cp is a 0-1 progress the hook keeps in step with the scroll position (eased, so fast scrolling is
+   smoothed). Without it (no JS, or reduced motion) everything sits in its resting, fully shown state:
+   the fallbacks below are the resting values. Only transform, opacity, clip-path and scale change. */
+.p91x [data-cine="rise"] {
+  --cq: clamp(0, calc(var(--cp, 1) * 1.25 - var(--i, 0) * .12), 1);
+  opacity: var(--cq);
+  transform: translate3d(0, calc((1 - var(--cq)) * 30px), 0);
+}
+.p91x [data-cine="frame"] {
+  --cq: clamp(0, var(--cp, 1), 1);
+  clip-path: inset(calc((1 - var(--cq)) * 9%) calc((1 - var(--cq)) * 6%) round 16px);
+  opacity: calc(.4 + .6 * var(--cq));
+}
+.p91x [data-cine="frame"] img { scale: calc(1.16 - .16 * var(--cq)); }
+/* The hero: the photo pushes in slowly as you scroll away from it, and the info panel lifts a touch. */
+.p91x [data-cine="zoom"] .pdp-main-image .shot,
+.p91x [data-cine="zoom"] .lp-hero-img,
+.p91x [data-cine="zoom"] .lp-hero-video,
+.p91x [data-cine="zoom"] .pp-video video,
+.p91x [data-cine="zoom"] .pp-video img,
+.p91x .seo-hero[data-cine="zoom"] .shot { scale: calc(1 + var(--cp, 0) * .07); }
+.p91x [data-cine="zoom"] .pdp-panel { translate: 0 calc(var(--cp, 0) * -14px); }
+@media (prefers-reduced-motion: reduce) {
+  .p91x [data-cine] { opacity: 1; transform: none; clip-path: none; }
+  .p91x [data-cine] img, .p91x [data-cine] video, .p91x [data-cine] .shot, .p91x [data-cine] .pdp-panel { scale: none; translate: none; }
+}
+
+/* Changing package fades the changed content in (the record swaps without a page load). */
+@keyframes p91-swap { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .p91x .pdp-panel { animation: p91-swap .45s cubic-bezier(.22,.61,.36,1) both; }
+}
+
+/* Hero slideshow: photos stacked on the big frame, cross-fading; the controls sit on a soft
+   gradient along the bottom. The video (when the service has one) layers above the photos. */
+.p91x .pdp-main-image .pdp-slide { opacity: 0; transition: opacity .9s ease; }
+.p91x .pdp-main-image .pdp-slide.is-active { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .p91x .pdp-main-image .pdp-slide { transition: none; } }
+.p91x .pdp-slide-ui {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 3;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 44px 18px 16px; background: linear-gradient(to top, rgba(6,7,8,.6), rgba(6,7,8,0));
+}
+.p91x .pdp-slide-count { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; color: rgba(255,255,255,.8); }
+.p91x .pdp-slide-count b { color: #fff; font-weight: 500; }
+.p91x .pdp-slide-dots { display: flex; gap: 8px; }
+.p91x .pdp-slide-dot { width: 26px; height: 3px; border: 0; padding: 0; background: rgba(255,255,255,.4); cursor: pointer; position: relative; }
+.p91x .pdp-slide-dot::after { content: ""; position: absolute; inset: -14px 0; }
+.p91x .pdp-slide-dot.is-active { background: var(--brand-accent); }
+.p91x .pdp-slide-arrows { display: flex; gap: 8px; }
+.p91x .pdp-slide-btn {
+  width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,.55);
+  background: rgba(6,7,8,.25); color: #fff; font-size: 20px; line-height: 1; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; transition: background .2s, border-color .2s;
+}
+.p91x .pdp-slide-btn:hover { background: rgba(255,255,255,.2); border-color: #fff; }
 .p91x .pdp-expand {
   position: absolute; top: 14px; right: 14px; z-index: 2;
   width: 38px; height: 38px; border-radius: 9px; background: var(--neon-green); color: #062D12;
@@ -316,18 +449,22 @@
  */
 .p91x .hero-bg-scrim {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  /* Bottom-left only, where the copy now sits (the hero is bottom-aligned). Replaces the
+     full-frame wash so the car stays bright. The header has its own gradient, so the thin
+     top strip here exists only for the clip's burned-in P91 watermark (top-left), which
+     would otherwise read as a second logo under the real one. */
   background:
-    linear-gradient(to bottom, rgba(6,7,8,.62) 0%, rgba(6,7,8,.3) 12%, transparent 22%),
-    linear-gradient(90deg, rgba(6,7,8,.55) 0%, rgba(6,7,8,.32) 32%, rgba(6,7,8,.1) 55%, transparent 75%);
+    linear-gradient(to bottom, rgba(6,7,8,.34) 0%, transparent 14%),
+    linear-gradient(to top, rgba(6,7,8,.84) 0%, rgba(6,7,8,.55) 32%, rgba(6,7,8,0) 62%),
+    linear-gradient(to right, rgba(6,7,8,.62) 0%, rgba(6,7,8,.3) 38%, rgba(6,7,8,0) 68%);
 }
 @media (max-width: 640px) {
-  /* Text runs full-width on mobile instead of stopping partway across, so the left-right
-     fade needs to cover the full width too, not just the left half — same reasoning as
-     .hero-light-scrim's mobile override. */
+  /* Copy spans the full width on a phone, so the left-anchored layer would leave the right
+     half of the text unbacked; a taller bottom gradient covers it instead. */
   .p91x .hero-bg-scrim {
     background:
-      linear-gradient(to bottom, rgba(6,7,8,.65) 0%, rgba(6,7,8,.3) 14%, transparent 26%),
-      linear-gradient(180deg, rgba(6,7,8,.55) 40%, rgba(6,7,8,.4) 100%);
+      linear-gradient(to bottom, rgba(6,7,8,.34) 0%, transparent 14%),
+      linear-gradient(to top, rgba(6,7,8,.88) 0%, rgba(6,7,8,.7) 42%, rgba(6,7,8,0) 78%);
   }
 }
 /* padding-top is deliberately larger than padding-bottom and independent of the flex
@@ -336,55 +473,77 @@
  * offer card, on service pages) vertical centering alone can push text right up under
  * the nav with nothing keeping them apart. This is that clearance, guaranteed regardless
  * of viewport height. */
-.p91x .hero-bg .copy { position: relative; z-index: 2; width: 100%; padding-block: 24px; padding-top: 108px; }
+.p91x .hero-bg .copy { position: relative; z-index: 2; width: 100%; padding-top: 108px; padding-bottom: clamp(48px, 9vh, 96px); }
 
 @media (max-width: 640px) {
   .p91x .hero-bg { min-height: 74svh; }
-  .p91x .hero-bg .copy { padding-block: 18px; padding-top: 88px; }
-  .p91x .hero-bg .hero-cta .cta-lg { flex: 1 1 100%; text-align: center; }
+  .p91x .hero-bg .copy { padding-top: 88px; padding-bottom: 32px; }
+  .p91x .hero-bg .hero-cta .cta-lg, .p91x .hero-bg .hero-cta .cta-ghost { flex: 1 1 100%; text-align: center; }
 }
 /* XPEL's hero is one plain-white headline, one weight, no split colour — not a headline
    half-painted in the accent colour. .hero-solid overrides the shared .gradient-text
    look other pages may still use elsewhere; the accent stays alive in the eyebrow and
    the button, which is enough "brand" without competing with the headline itself. */
 .p91x .hero-bg h1.hero-solid {
-  font-size: clamp(27px, 6.2vw, 60px); font-weight: 800; letter-spacing: -.035em;
-  max-width: 18ch; margin-bottom: 14px;
-  text-shadow: 0 2px 20px rgba(0,0,0,.75), 0 1px 3px rgba(0,0,0,.9);
-  color: #fff;
+  font-size: var(--fs-display); font-weight: var(--fw-heading); letter-spacing: -.03em;
+  line-height: 1.04; max-width: 20ch; margin-bottom: 18px; color: #fff;
 }
 .p91x .hero-bg .lede {
-  color: #EDEFF1; font-size: clamp(15px, 2.2vw, 18px); margin: 0; max-width: 50ch;
-  text-shadow: 0 1px 10px rgba(0,0,0,.85);
+  color: rgba(255,255,255,.9); font-size: clamp(16px, 2vw, 19px); margin: 0; max-width: 46ch;
 }
-/* One plain sentence under the lede, XPEL's "Price starting at ₹X" spot — no icons,
-   no bold-green chips, just a quiet fact line before the single button. */
-.p91x .hero-bg .hero-caption {
-  margin: 10px 0 0; color: #EDEFF1; font-size: 13.5px; max-width: 50ch;
-  text-shadow: 0 1px 8px rgba(0,0,0,.85);
+.p91x .hero-bg .hero-cta { margin-top: 28px; gap: 12px; }
+/* Secondary CTA on the photo: outline only, so the filled green button stays the one
+   dominant action. */
+.p91x .hero-bg .cta-ghost { color: #fff; border-color: rgba(255,255,255,.6); background: rgba(255,255,255,.06); }
+.p91x .hero-bg .cta-ghost:hover { border-color: #fff; background: rgba(255,255,255,.16); }
+/* The former caption sentence, now a quiet trust row under the buttons. */
+.p91x .hero-bg .hero-trust {
+  list-style: none; margin: 22px 0 0; padding: 0;
+  display: flex; flex-wrap: wrap; gap: 4px 0;
+  color: rgba(255,255,255,.85); font-size: 13.5px;
 }
-.p91x .hero-bg .hero-cta { margin-top: 22px; }
+.p91x .hero-bg .hero-trust li + li::before { content: "·"; margin: 0 10px; opacity: .6; }
+
+/* Entrance: copy rises 12px and fades in, ~60ms apart, and the photo settles from 1.04.
+   The scale is on the <img> only, not the video (which mounts later, after idle, and would
+   replay the zoom over an already-settled photo). Nothing animates under reduced motion.
+   Opacity/transform only, so none of it touches layout or the LCP measurement. */
+@keyframes p91-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes p91-settle { from { transform: scale(1.04); } to { transform: scale(1); } }
+@media (prefers-reduced-motion: no-preference) {
+  .p91x .hero-bg .copy > * { animation: p91-rise .7s cubic-bezier(.22,.61,.36,1) both; }
+  .p91x .hero-bg .copy > :nth-child(1) { animation-delay: 60ms; }
+  .p91x .hero-bg .copy > :nth-child(2) { animation-delay: 120ms; }
+  .p91x .hero-bg .copy > :nth-child(3) { animation-delay: 180ms; }
+  .p91x .hero-bg .copy > :nth-child(4) { animation-delay: 240ms; }
+  .p91x .hero-bg .copy > :nth-child(5) { animation-delay: 300ms; }
+  .p91x .hero-bg img.shot { animation: p91-settle 1.2s cubic-bezier(.22,.61,.36,1) both; }
+}
+/* "See our work" jumps here; the fixed header would otherwise cover the section top. */
+
 /* XPEL's eyebrow is plain caption text sitting directly on the photo — no pill, no
    background chip. The base .eyebrow (used elsewhere as a small badge) still gets one,
    but the hero overrides it back to flat text so the hero reads as one clean block:
    label, headline, one line of support copy, one line of facts, one button. */
 .p91x .hero-bg .eyebrow {
   display: block; background: none; border: 0; backdrop-filter: none;
-  padding: 0; border-radius: 0; color: var(--neon-green);
-  text-shadow: 0 1px 8px rgba(0,0,0,.85);
+  padding: 0; border-radius: 0; color: var(--brand-accent);
 }
 
 .p91x .eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
   background: var(--neon-soft); border: 1px solid var(--neon-line); color: var(--neon-green);
-  font-size: 11.5px; letter-spacing: .09em; text-transform: uppercase; font-weight: 600;
+  font-size: var(--fs-eyebrow); letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; font-weight: 600;
   padding: 4px 10px; border-radius: 100px; margin-bottom: 12px;
 }
+/* Homepage eyebrows sit on white: accent-ink (5.1:1) instead of the 2.5:1 logo green. The
+   hero's own eyebrow is on the photo and is styled separately above. */
+.p91x.home-page .section .eyebrow { color: var(--accent-ink); }
 .p91x .hero-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; margin-top: 18px; }
 /* display/align/min-height guarantee a >=44px tap target even where a narrower
    context below (contact-actions, article-cta, inline-cta, etc.) shrinks the padding
    or font-size — those overrides don't redeclare min-height, so this still applies. */
-.p91x .cta-lg { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; background: var(--neon-green); color: #04120A; font-weight: 700; font-size: 15.5px; padding: 13px 26px; border-radius: 10px; }
+.p91x .cta-lg { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; background: var(--brand-accent); color: var(--surface-dark); font-weight: 700; font-size: 15.5px; padding: 13px 26px; border-radius: 10px; }
 .p91x .cta-ghost { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; border: 1px solid var(--medium-gray); padding: 13px 22px; border-radius: 10px; font-size: 15.5px; color: var(--txt); }
 .p91x .cta-ghost:hover { border-color: var(--neon-line); }
 .p91x .hero-facts { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 16px; color: var(--txt-2); font-size: 13.5px; }
@@ -394,11 +553,6 @@
 
 /* ---------- sections ---------- */
 .p91x .section { padding: 68px 0; }
-/* Homepage "About" teaser: heading left, copy + button right, same split xpel.com uses
-   for its own About section. Single column on mobile/tablet, same breakpoint the other
-   two-column grids on this page already use. */
-.p91x .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
-@media (max-width: 760px) { .p91x .about-grid { grid-template-columns: 1fr; gap: 16px; } }
 /* Homepage only, by request: noticeably more air between sections than the rest of the
    site, matching XPEL's calmer rhythm — section after section of photo-led content back
    to back read busy at the old spacing. Kept modest on phones (44px, not the desktop
@@ -408,6 +562,386 @@
 @media (max-width: 640px) {
   .p91x.home-page .section { padding: 44px 0; }
 }
+
+/* ---------- homepage: editorial rhythm ----------
+   Natural scrolling, no scroll-snap. Each major screen gets its own generous vertical
+   padding, and the About screen is a full viewport tall with its content centred, so when
+   you scroll on, the next screen enters cleanly and the previous heading is not left
+   dangling at the bottom edge. Sections that are only content (results, closing) size to
+   their content plus the same generous padding. */
+.p91x.home-page .section:not(.photo-break) { padding-block: clamp(88px, 13vh, 150px); }
+.p91x.home-page .screen-fill { padding-block: clamp(72px, 10vh, 120px); display: grid; gap: clamp(28px, 6vh, 64px); }
+@media (max-width: 640px) {
+  .p91x.home-page .section:not(.photo-break) { padding-block: 64px; }
+  .p91x.home-page .screen-fill { padding-block: 56px; }
+}
+
+/* The photo break is a flex row (copy bottom-aligned over the photo); without a width its .wrap
+   shrinks to its content and floats mid-page instead of sitting on the page's left edge. */
+.p91x.home-page .photo-break > .wrap { width: 100%; }
+
+/* ---------- 01 About (editorial) ---------- */
+.p91x.home-page .ed-about {
+  min-height: 100svh; display: flex; align-items: center;
+  padding: clamp(104px, 15vh, 168px) 0 clamp(72px, 10vh, 120px);
+}
+.p91x .ed-about-grid {
+  width: 100%; display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  gap: clamp(40px, 7vw, 112px); align-items: center;
+}
+/* Technical label: mono, small, quiet. The green is a 28px rule (non-text), not the text. */
+.p91x .ed-label {
+  display: flex; align-items: center; gap: 12px; margin: 0 0 28px;
+  font-family: var(--font-mono); font-size: var(--fs-eyebrow); font-weight: 500;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--txt-3);
+}
+.p91x .ed-label::before { content: ""; width: 28px; height: 1px; background: var(--brand-accent); }
+.p91x .ed-title {
+  font-size: clamp(40px, 4.8vw, 72px); font-weight: var(--fw-heading-strong);
+  letter-spacing: -.035em; line-height: 1.04; margin: 0 0 28px; text-wrap: balance;
+}
+.p91x .ed-lede { font-size: clamp(17px, 1.4vw, 19px); line-height: 1.7; color: var(--txt-2); max-width: 44ch; margin: 0 0 34px; }
+.p91x .ed-specs { margin: 0 0 34px; padding: 0; border-top: 1px solid var(--medium-gray); }
+.p91x .ed-specs > div {
+  display: grid; grid-template-columns: 112px 1fr; gap: 16px;
+  padding: 14px 0; border-bottom: 1px solid var(--medium-gray); font-size: 15px;
+}
+.p91x .ed-specs dt {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--txt-3); padding-top: 3px;
+}
+.p91x .ed-specs dd { margin: 0; color: var(--txt); }
+.p91x .ed-link {
+  display: inline-block; color: var(--txt); font-weight: 500;
+  text-decoration: underline; text-decoration-color: var(--brand-accent);
+  text-decoration-thickness: 2px; text-underline-offset: 6px;
+}
+.p91x .ed-link:hover { text-decoration-color: var(--txt); }
+/* The photo is 9:16; the frame crops it to 4:5 around the car. The image is 12% taller than
+   the frame so its small parallax drift never shows an edge. */
+.p91x .ed-figure { margin: 0; position: relative; overflow: hidden; border-radius: 4px; aspect-ratio: 4 / 5; background: var(--dark-gray); }
+.p91x .ed-figure img { position: absolute; left: 0; top: -6%; width: 100%; height: 112%; max-width: none; object-fit: cover; object-position: center 62%; }
+@media (max-width: 860px) {
+  .p91x .ed-about-grid { grid-template-columns: minmax(0, 1fr); gap: 44px; }
+  .p91x.home-page .ed-about { min-height: 0; }
+}
+
+/* ---------- 02 Protection & Care (dark band) ---------- */
+.p91x.home-page .ed-care {
+  background: var(--surface-dark); color: #fff;
+  min-height: 100svh; display: flex; align-items: center;
+  padding: clamp(104px, 15vh, 168px) 0 clamp(72px, 10vh, 120px);
+}
+.p91x .ed-care-grid {
+  width: 100%; display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
+  gap: clamp(40px, 7vw, 120px); align-items: center;
+}
+/* Video on the left on desktop; on a phone the copy leads and the video follows. */
+.p91x .ed-care-media { order: -1; }
+.p91x .ed-care .ed-label { color: rgba(255,255,255,.62); }
+.p91x .ed-care .ed-title { color: #fff; }
+.p91x .ed-care .ed-lede { color: rgba(255,255,255,.74); }
+.p91x .ed-figure-video { background: #141a17; aspect-ratio: 4 / 5; }
+/* Bottom-anchored crop of the 9:16 reel: keeps the bonnet and finished car, drops the top
+   strip where the clip's own watermark sits. */
+.p91x .ed-figure-video video {
+  position: absolute; inset: 0; width: 100%; height: 100%; max-width: none;
+  object-fit: cover; object-position: 50% 88%;
+}
+.p91x .ed-caption {
+  margin: 14px 0 0; font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em;
+  text-transform: uppercase; color: rgba(255,255,255,.58);
+}
+.p91x .ed-services { list-style: none; margin: 40px 0 36px; padding: 0; border-top: 1px solid rgba(255,255,255,.16); }
+.p91x .ed-service {
+  display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 12px;
+  padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,.16); color: #fff;
+  transition: opacity .3s ease;
+}
+.p91x .ed-service-idx { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; color: rgba(255,255,255,.55); }
+.p91x .ed-service-name {
+  display: block; font-family: var(--font-display); font-weight: var(--fw-heading-strong);
+  font-size: clamp(40px, 5vw, 72px); letter-spacing: -.035em; line-height: 1.05;
+}
+.p91x .ed-service-sub { display: block; margin-top: 6px; font-size: 15px; color: rgba(255,255,255,.68); }
+.p91x .ed-service-arrow { width: 26px; height: 26px; color: var(--brand-accent); transition: transform .3s cubic-bezier(.22,.61,.36,1); }
+/* Hover / keyboard focus: the hovered row stays, its siblings step back. */
+.p91x .ed-services:hover .ed-service, .p91x .ed-services:focus-within .ed-service { opacity: .42; }
+.p91x .ed-services:hover .ed-service:hover, .p91x .ed-services:focus-within .ed-service:focus-visible { opacity: 1; }
+.p91x .ed-service:hover .ed-service-arrow, .p91x .ed-service:focus-visible .ed-service-arrow { transform: translate(4px, -4px); }
+@media (max-width: 860px) {
+  .p91x .ed-care-grid { grid-template-columns: minmax(0, 1fr); gap: 44px; }
+  .p91x .ed-care-media { order: 0; }
+  .p91x.home-page .ed-care { min-height: 0; }
+}
+
+/* "Explore services" on the dark band. */
+.p91x .ed-care .ed-link, .p91x .ed-cta .ed-link { color: #fff; }
+.p91x .ed-care .ed-link:hover { text-decoration-color: #fff; }
+
+.p91x .ed-care-sub { margin: 0 0 22px; color: rgba(255,255,255,.72); font-size: 16px; line-height: 1.6; max-width: 40ch; }
+.p91x .ed-care .ed-services { margin-bottom: 24px; }
+
+/* ---------- /services: editorial catalogue ----------
+   Presentation only (services.tsx, service-card.tsx, service-filter.tsx). No boxed cards: images,
+   hairlines and type. Two columns of large visuals instead of a dense three-across grid. */
+.p91x .sv-page { padding: clamp(112px, 15vh, 160px) 0 clamp(72px, 10vh, 120px); }
+.p91x .sv-head { margin-bottom: clamp(40px, 6vh, 64px); }
+.p91x .sv-title { font-size: var(--fs-display); font-weight: var(--fw-heading-strong); letter-spacing: -.035em; line-height: 1.04; margin: 0 0 20px; }
+.p91x .sv-lede { margin: 0; max-width: 52ch; font-size: clamp(16px, 1.3vw, 18px); line-height: 1.7; color: var(--txt-2); }
+.p91x .sv-label { margin: 0; font-family: var(--font-mono); font-size: 12px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--txt-3); }
+
+/* "Book by service": three plain rows, like the homepage's What we do list. */
+.p91x .sv-forks { margin-bottom: clamp(48px, 7vh, 80px); }
+.p91x .sv-forks .sv-label { margin-bottom: 14px; }
+.p91x .sv-forks ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--medium-gray); }
+.p91x .sv-fork { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto; align-items: baseline; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--medium-gray); }
+.p91x .sv-fork-name { font-family: var(--font-display); font-weight: var(--fw-heading-strong); font-size: clamp(22px, 2.4vw, 32px); letter-spacing: -.025em; line-height: 1.1; }
+.p91x .sv-fork-sub { color: var(--txt-2); font-size: 15px; }
+.p91x .sv-fork-arrow { width: 22px; height: 22px; color: var(--accent-ink); align-self: center; transition: transform .3s cubic-bezier(.22,.61,.36,1); }
+.p91x .sv-fork:hover .sv-fork-arrow, .p91x .sv-fork:focus-visible .sv-fork-arrow { transform: translate(3px, -3px); }
+.p91x .sv-fork:hover .sv-fork-name { text-decoration: underline; text-decoration-color: var(--brand-accent); text-decoration-thickness: 2px; text-underline-offset: 6px; }
+@media (max-width: 640px) { .p91x .sv-fork { grid-template-columns: minmax(0, 1fr) auto; } .p91x .sv-fork-sub { grid-column: 1; grid-row: 2; } .p91x .sv-fork-arrow { grid-column: 2; grid-row: 1 / 3; } }
+
+/* Filters */
+.p91x .sv-vehicle { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-bottom: 20px; }
+.p91x .sv-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.p91x .sv-chip { border: 1px solid var(--medium-gray); border-radius: 999px; padding: 6px 16px; font-size: 14px; color: var(--txt-2); background: transparent; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+.p91x .sv-chip:hover { border-color: var(--txt); color: var(--txt); }
+.p91x .sv-chip.is-active { background: var(--surface-dark); border-color: var(--surface-dark); color: #fff; }
+.p91x .sv-tabbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 32px; border-bottom: 1px solid var(--medium-gray); }
+.p91x .sv-tabs { display: flex; flex-wrap: wrap; gap: 4px 26px; }
+.p91x .sv-tab { position: relative; background: none; border: 0; padding: 8px 0; font-size: 15px; color: var(--txt-2); cursor: pointer; }
+.p91x .sv-tab::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: transparent; transition: background .2s; }
+.p91x .sv-tab:hover { color: var(--txt); }
+.p91x .sv-tab.is-active { color: var(--txt); font-weight: 600; }
+.p91x .sv-tab.is-active::after { background: var(--brand-accent); }
+.p91x .sv-search { display: flex; align-items: center; gap: 10px; min-width: 220px; padding: 8px 0; color: var(--txt-3); }
+.p91x .sv-search input { width: 100%; background: transparent; border: 0; outline: none; font: inherit; font-size: 15px; color: var(--txt); }
+.p91x .sv-search input::placeholder { color: var(--txt-3); }
+.p91x .sv-search:focus-within { color: var(--txt); }
+.p91x .sv-hint { margin: 16px 0 0; font-size: 13px; color: var(--txt-3); }
+.p91x .sv-hint b { color: var(--txt-2); font-weight: 600; }
+.p91x .sv-count { margin: 14px 0 clamp(28px, 4vh, 44px); font-family: var(--font-mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--txt-3); }
+.p91x .sv-count b { color: var(--txt); font-weight: 500; }
+.p91x .sv-clear { margin-left: 12px; background: none; border: 0; color: var(--txt); text-decoration: underline; text-decoration-color: var(--brand-accent); text-underline-offset: 4px; text-transform: none; letter-spacing: 0; font-family: var(--font-body); font-size: 13px; cursor: pointer; }
+.p91x .sv-empty { padding: 56px 0; border-top: 1px solid var(--medium-gray); }
+.p91x .sv-empty b { display: block; font-family: var(--font-display); font-size: 22px; margin-bottom: 8px; }
+.p91x .sv-empty p { margin: 0; color: var(--txt-2); }
+
+/* Cards with no photograph: original depth panel in the brand's own colours (charcoal, green glow,
+   outlined bubbles, a large outlined category word). Each layer moves by a different multiple of
+   --px, so they separate as you scroll. Nothing here is a photograph or claims to be one. */
+.p91x .sv-media.sv-depth { position: relative; aspect-ratio: 2 / 1; background: var(--surface-dark); border-radius: 4px; }
+.p91x .sv-depth > span { position: absolute; will-change: transform; }
+.p91x .sv-depth-glow {
+  inset: -20% -10%; background: radial-gradient(60% 70% at 70% 30%, rgba(78,184,72,.32), rgba(78,184,72,0) 70%);
+  transform: translate3d(0, calc(var(--px, 0px) * .5), 0);
+}
+.p91x .sv-bubble { border-radius: 50%; border: 1px solid rgba(255,255,255,.28); background: radial-gradient(circle at 30% 28%, rgba(255,255,255,.22), rgba(255,255,255,.02) 60%); }
+.p91x .sv-bubble.b1 { width: 74px; height: 74px; left: 12%; top: 46%; transform: translate3d(0, calc(var(--px, 0px) * -1.5), 0); }
+.p91x .sv-bubble.b2 { width: 34px; height: 34px; left: 30%; top: 16%; transform: translate3d(0, calc(var(--px, 0px) * 1.9), 0); }
+.p91x .sv-bubble.b3 { width: 110px; height: 110px; left: 58%; top: 42%; transform: translate3d(0, calc(var(--px, 0px) * -.9), 0); }
+.p91x .sv-bubble.b4 { width: 22px; height: 22px; left: 82%; top: 20%; transform: translate3d(0, calc(var(--px, 0px) * 2.4), 0); }
+.p91x .sv-bubble.b5 { width: 52px; height: 52px; left: 44%; top: 62%; transform: translate3d(0, calc(var(--px, 0px) * -2.1), 0); }
+.p91x .sv-depth-word {
+  left: 6%; bottom: 8%; font-family: var(--font-display); font-weight: 800; letter-spacing: -.03em; line-height: 1;
+  font-size: clamp(38px, 6vw, 76px); text-transform: uppercase; color: transparent;
+  -webkit-text-stroke: 1px rgba(255,255,255,.4); transform: translate3d(0, calc(var(--px, 0px) * .6), 0);
+}
+
+/* Catalogue */
+.p91x .sv-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(40px, 6vh, 64px) clamp(28px, 4vw, 56px); }
+.p91x .sv-link { display: block; color: inherit; }
+.p91x .sv-media { overflow: hidden; border-radius: 4px; background: var(--dark-gray); }
+.p91x .sv-media img { width: 100%; max-width: none; transition: transform .8s cubic-bezier(.22,.61,.36,1); }
+.p91x .sv-link:hover .sv-media img { transform: scale(1.03); }
+.p91x .sv-body { padding-top: 18px; }
+.p91x .sv-cat { margin: 0 0 8px; font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--txt-3); }
+.p91x .sv-body h3 { font-size: clamp(22px, 2vw, 28px); font-weight: var(--fw-heading-strong); letter-spacing: -.025em; line-height: 1.15; margin: 0 0 8px; }
+.p91x .sv-meta { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: 13.5px; color: var(--txt-3); }
+.p91x .sv-desc { margin: 0 0 16px; font-size: 15px; line-height: 1.65; color: var(--txt-2); max-width: 56ch; }
+.p91x .sv-foot { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; padding-top: 14px; border-top: 1px solid var(--medium-gray); }
+.p91x .sv-prices { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.p91x .sv-now { font-family: var(--font-display); font-weight: var(--fw-heading-strong); font-size: 22px; letter-spacing: -.02em; color: var(--txt); }
+.p91x .sv-from { font-size: 13px; color: var(--txt-3); align-self: baseline; }
+.p91x .sv-was { font-size: 14px; color: var(--txt-3); text-decoration: line-through; }
+.p91x .sv-off { font-size: 12.5px; color: var(--accent-ink); font-weight: 600; }
+.p91x .sv-go { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; color: var(--txt); text-decoration: underline; text-decoration-color: var(--brand-accent); text-decoration-thickness: 2px; text-underline-offset: 5px; }
+.p91x .sv-go .i { transition: transform .3s cubic-bezier(.22,.61,.36,1); }
+.p91x .sv-link:hover .sv-go .i { transform: translateX(3px); }
+@media (max-width: 860px) { .p91x .sv-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Instagram reel cards on service pages: dark band, and no band at all when there are no reels. */
+.p91x .ig-band { background: var(--surface-dark); color: #fff; }
+.p91x .ig-band:not(:has(section, button)) { display: none; }
+.p91x .ig-band section { padding-block: clamp(56px, 8vh, 96px); }
+
+/* ---------- 03 Real work ---------- */
+.p91x.home-page .ed-work { padding-block: clamp(96px, 14vh, 168px); }
+.p91x .ed-title-wide { max-width: 16ch; margin-bottom: clamp(36px, 6vh, 64px); }
+.p91x .ed-work-grid {
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: clamp(12px, 1.6vw, 24px);
+}
+.p91x .ed-work-fig { position: relative; margin: 0; overflow: hidden; border-radius: 4px; background: var(--dark-gray); }
+.p91x .ed-work-fig img { width: 100%; height: 100%; max-width: none; object-fit: cover; transition: transform .8s cubic-bezier(.22,.61,.36,1); }
+.p91x .ed-work-fig:hover img { transform: scale(1.03); }
+/* One tall photo beside a wide one over two small ones. The tall figure spans both rows and
+   takes their combined height, so its size follows the others rather than a fixed ratio. */
+.p91x .ed-work-tall { grid-column: 1 / 5; grid-row: 1 / 3; min-height: 360px; }
+.p91x .ed-work-tall img { position: absolute; inset: 0; }
+.p91x .ed-work-wide { grid-column: 5 / 13; aspect-ratio: 16 / 9; }
+.p91x .ed-work-half { grid-column: span 4; aspect-ratio: 4 / 3; }
+.p91x .ed-work-cap {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 36px 16px 14px;
+  background: linear-gradient(to top, rgba(6,7,8,.62), rgba(6,7,8,0));
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #fff;
+}
+@media (max-width: 860px) {
+  .p91x .ed-work-grid { grid-template-columns: minmax(0, 1fr); }
+  .p91x .ed-work-tall, .p91x .ed-work-wide, .p91x .ed-work-half { grid-column: auto; grid-row: auto; }
+  .p91x .ed-work-tall { aspect-ratio: 4 / 5; min-height: 0; }
+}
+
+/* ---------- 04 Why P91 + brands (compact) ---------- */
+.p91x.home-page .ed-why { padding-block: clamp(64px, 9vh, 104px); border-top: 1px solid var(--medium-gray); }
+.p91x .ed-why-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px clamp(20px, 3vw, 44px); margin: 0 0 clamp(36px, 5vh, 56px); }
+.p91x .ed-why-grid dt { font-family: var(--font-display); font-weight: var(--fw-heading-strong); font-size: 20px; letter-spacing: -.02em; line-height: 1.2; margin: 0 0 8px; }
+.p91x .ed-why-grid dd { margin: 0; font-size: 15px; line-height: 1.6; color: var(--txt-2); max-width: 30ch; }
+.p91x .ed-brands { padding-top: 28px; border-top: 1px solid var(--medium-gray); }
+.p91x .ed-brands-label { margin: 0 0 24px; font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--txt-3); }
+.p91x .ed-brand-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px clamp(24px, 4vw, 56px); }
+.p91x .ed-brand h3 { font-family: var(--font-display); font-weight: var(--fw-heading-strong); font-size: clamp(24px, 2.4vw, 32px); letter-spacing: -.025em; line-height: 1.1; margin: 0 0 10px; }
+.p91x .ed-brand p { margin: 0 0 14px; font-size: 15px; line-height: 1.55; color: var(--txt-2); max-width: 34ch; }
+.p91x .ed-brand ul { list-style: none; margin: 0; padding: 0; }
+.p91x .ed-brand li { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; border-top: 1px solid var(--medium-gray); font-size: 14px; color: var(--txt); }
+.p91x .ed-brand li::before { content: ""; flex: none; width: 10px; height: 1px; background: var(--brand-accent); transform: translateY(-3px); }
+@media (max-width: 860px) { .p91x .ed-brand-grid { grid-template-columns: minmax(0, 1fr); } }
+.p91x .ed-fine { margin: 20px 0 0; font-size: 13.5px; line-height: 1.6; color: var(--txt-3); max-width: 64ch; }
+@media (max-width: 860px) { .p91x .ed-why-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .p91x .ed-why-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- final CTA (dark) ---------- */
+.p91x.home-page .ed-cta {
+  background: var(--surface-dark); color: #fff;
+  padding: clamp(72px, 11vh, 112px) 0;
+}
+/* Flex row section: without a width its .wrap shrinks to its content and floats mid-page. */
+.p91x.home-page .ed-cta > .wrap, .p91x.home-page .ed-care > .wrap { width: 100%; }
+.p91x .ed-cta .ed-title { color: #fff; font-size: clamp(40px, 6vw, 88px); max-width: 12ch; margin-bottom: 28px; }
+.p91x .ed-cta-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.p91x .ed-cta .cta-ghost { color: #fff; border-color: rgba(255,255,255,.6); background: rgba(255,255,255,.06); }
+.p91x .ed-cta .cta-ghost:hover { border-color: #fff; background: rgba(255,255,255,.16); }
+
+/* ---------- portfolio carousel (components/redesign/work-carousel.tsx) ---------- */
+.p91x .wc {
+  background: var(--surface-dark); color: #fff;
+  padding: clamp(88px, 13vh, 150px) 0;
+}
+.p91x .wc-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(40px, 7vw, 112px); align-items: center; }
+.p91x .wc .ed-label { color: rgba(255,255,255,.62); }
+.p91x .wc-heading { color: #fff; margin-bottom: clamp(28px, 5vh, 56px); }
+.p91x .wc-slide-copy { min-height: 150px; }
+.p91x .wc-title { font-family: var(--font-display); font-weight: var(--fw-heading-strong); font-size: clamp(26px, 2.8vw, 38px); letter-spacing: -.03em; line-height: 1.1; margin: 0 0 12px; color: #fff; }
+.p91x .wc-note { margin: 0; max-width: 40ch; color: rgba(255,255,255,.74); font-size: 16px; line-height: 1.65; }
+.p91x .wc-controls { display: flex; align-items: center; gap: 14px; margin-top: 28px; }
+.p91x .wc-count { font-family: var(--font-mono); font-size: 13px; letter-spacing: .1em; color: rgba(255,255,255,.62); white-space: nowrap; }
+.p91x .wc-count b { color: #fff; font-weight: 500; }
+.p91x .wc-bar { flex: 1; height: 1px; background: rgba(255,255,255,.22); position: relative; min-width: 40px; }
+.p91x .wc-bar i { position: absolute; left: 0; top: -1px; height: 3px; background: var(--brand-accent); transition: width .5s cubic-bezier(.22,.61,.36,1); }
+.p91x .wc-btn {
+  width: 48px; height: 48px; border-radius: 50%; border: 1px solid rgba(255,255,255,.4);
+  background: transparent; color: #fff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: background .2s ease, border-color .2s ease;
+}
+.p91x .wc-btn:hover { background: rgba(255,255,255,.14); border-color: #fff; }
+.p91x .wc-stage { position: relative; aspect-ratio: 4 / 5; max-height: 78svh; width: 100%; justify-self: center; border-radius: 4px; overflow: hidden; background: #141a17; touch-action: pan-y; }
+.p91x .wc-slide { position: absolute; inset: 0; margin: 0; opacity: 0; transform: scale(1.03); transition: opacity .7s ease, transform 1.1s cubic-bezier(.22,.61,.36,1); pointer-events: none; }
+.p91x .wc-slide.is-active { opacity: 1; transform: none; pointer-events: auto; }
+.p91x .wc-slide img { width: 100%; height: 100%; max-width: none; object-fit: cover; }
+@keyframes p91-wc-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) { .p91x .wc-slide-copy { animation: p91-wc-in .5s cubic-bezier(.22,.61,.36,1) both; } }
+@media (prefers-reduced-motion: reduce) { .p91x .wc-slide, .p91x .wc-bar i { transition: none; } }
+@media (max-width: 860px) {
+  .p91x .wc-grid { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+  .p91x .wc-stage { order: -1; max-height: 70svh; }
+}
+
+/* ---------- /ppf editorial service page ---------- */
+.p91x.lp-ppf .pp-hero { padding: clamp(112px, 16vh, 168px) 0 clamp(64px, 9vh, 104px); }
+.p91x .pp-hero-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: clamp(40px, 7vw, 112px); align-items: center; }
+.p91x .pp-h1 { font-size: var(--fs-display); font-weight: var(--fw-heading-strong); letter-spacing: -.035em; line-height: 1.04; margin: 0 0 24px; text-wrap: balance; }
+.p91x .pp-h2 { font-size: var(--fs-h2); font-weight: var(--fw-heading-strong); letter-spacing: -.03em; line-height: 1.08; margin: 0 0 clamp(28px, 4vh, 44px); text-wrap: balance; }
+.p91x .pp-lede { font-size: clamp(17px, 1.4vw, 19px); line-height: 1.7; color: var(--txt-2); max-width: 46ch; margin: 0 0 28px; }
+.p91x .pp-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; }
+.p91x .pp-hero-media { min-width: 0; }
+.p91x .pp-video { aspect-ratio: 4 / 5; max-height: 78svh; }
+.p91x .pp-caption { color: var(--txt-3); }
+.p91x.lp-ppf .pp-choose, .p91x.lp-ppf .pp-why, .p91x.lp-ppf .pp-includes, .p91x.lp-ppf .pp-steps { padding: clamp(72px, 11vh, 128px) 0; }
+.p91x.lp-ppf .pp-choose { background: var(--dark-gray); }
+.p91x .pp-choose-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: clamp(36px, 6vw, 96px); align-items: center; }
+.p91x .pp-choose-media { min-width: 0; }
+.p91x .pp-offer { margin-top: 28px; }
+.p91x .pp-why-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 clamp(32px, 6vw, 96px); }
+.p91x .pp-why-list li { padding: 28px 0; border-top: 1px solid var(--medium-gray); }
+.p91x .pp-idx { display: block; font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; color: var(--txt-3); margin-bottom: 12px; }
+.p91x .pp-why-list h3 { font-size: 22px; font-weight: var(--fw-heading-strong); letter-spacing: -.02em; line-height: 1.2; margin: 0 0 10px; }
+.p91x .pp-why-list p { margin: 0; color: var(--txt-2); line-height: 1.7; max-width: 46ch; }
+.p91x .pp-includes-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 clamp(32px, 6vw, 96px); }
+.p91x .pp-includes-list li { display: flex; gap: 14px; align-items: flex-start; padding: 18px 0; border-top: 1px solid var(--medium-gray); font-size: 17px; }
+.p91x .pp-includes-list .i { color: var(--accent-ink); margin-top: 3px; }
+.p91x.lp-ppf .pp-steps { background: var(--dark-gray); }
+.p91x .pp-steps-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 clamp(24px, 4vw, 56px); }
+.p91x .pp-steps-list li { padding: 26px 0; border-top: 1px solid var(--medium-gray); line-height: 1.6; }
+.p91x .pp-steps-list .pp-idx { margin-bottom: 10px; }
+.p91x .pp-warranty { margin-top: clamp(28px, 4vh, 48px); max-width: 64ch; }
+.p91x.lp-ppf .pp-faqs { padding: clamp(64px, 9vh, 104px) 0; }
+.p91x.lp-ppf .pp-guides { padding-bottom: clamp(48px, 7vh, 88px); }
+.p91x.home-page .ed-cta, .p91x.lp-ppf .ed-cta { background: var(--surface-dark); color: #fff; }
+.p91x.lp-ppf .pp-cta { padding: clamp(72px, 11vh, 112px) 0; }
+.p91x.lp-ppf .pp-cta > .wrap { width: 100%; }
+.p91x.lp-ppf .ed-cta .ed-title { color: #fff; font-size: clamp(38px, 6vw, 80px); max-width: 14ch; margin-bottom: 28px; }
+.p91x.lp-ppf .ed-cta .cta-ghost { color: #fff; border-color: rgba(255,255,255,.6); background: rgba(255,255,255,.06); }
+@media (max-width: 860px) {
+  .p91x .pp-hero-grid, .p91x .pp-choose-grid { grid-template-columns: minmax(0, 1fr); }
+  .p91x .pp-video { aspect-ratio: 4 / 5; }
+  .p91x .pp-why-list, .p91x .pp-includes-list { grid-template-columns: minmax(0, 1fr); }
+  .p91x .pp-steps-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) { .p91x .pp-steps-list { grid-template-columns: minmax(0, 1fr); } }
+
+/* Header over a dark section: dark glass, light text. Set by site-header.tsx. */
+.p91x header.site.on-dark { background: rgba(11, 15, 13, .5); border-bottom-color: rgba(255,255,255,.12); }
+.p91x header.site.on-dark .nav-trigger,
+.p91x header.site.on-dark .nav-plain,
+.p91x header.site.on-dark .icon-btn,
+.p91x header.site.on-dark .btn-call,
+.p91x header.site.on-dark .burger { color: #fff; }
+.p91x header.site.on-dark .nav-trigger:hover,
+.p91x header.site.on-dark .nav-trigger[aria-expanded="true"],
+.p91x header.site.on-dark .nav-plain:hover,
+.p91x header.site.on-dark .icon-btn:hover,
+.p91x header.site.on-dark .btn-call:hover { color: #fff; background: rgba(255,255,255,.14); }
+
+/* Reveal on view (see the effect in pages/home.tsx). The hidden state exists only when
+   html.has-reveal is set by that effect, so it can never leave content invisible. */
+.p91x.home-page [data-reveal] { transition: opacity .7s cubic-bezier(.22,.61,.36,1), transform .7s cubic-bezier(.22,.61,.36,1); }
+.has-reveal .p91x.home-page [data-reveal]:not(.is-in) { opacity: 0; transform: translateY(18px); }
+.p91x .ed-about-copy > :nth-child(2) { transition-delay: 70ms; }
+.p91x .ed-about-copy > :nth-child(3) { transition-delay: 140ms; }
+.p91x .ed-about-copy > :nth-child(4) { transition-delay: 210ms; }
+.p91x .ed-about-copy > :nth-child(5) { transition-delay: 280ms; }
+
+/* Parallax targets (see the effect in pages/home.tsx). The hero wrapper is the positioned box
+   the photo and video already filled, so their absolute inset:0 is unchanged. */
+.p91x .hero-bg .hero-media { position: absolute; inset: 0; z-index: 0; }
+.p91x.home-page [data-parallax] { will-change: transform; }
+
+/* Section label pills ("ABOUT P91", "SERVICES", ...) are gone site-wide. Kept: the hero's
+   own flat label, and any eyebrow carrying an inline style, which is an offer/status badge
+   rather than a section title. */
+.p91x .eyebrow:not([style]) { display: none; }
+.p91x .hero-bg .copy > .eyebrow { display: block; }
 @media (max-width: 640px) {
   /* The homepage used a 24px gutter while every other page used 16px, and 68px of
      section padding made it scroll forever on a phone. Both matched to the site. */
@@ -416,14 +950,15 @@
   .p91x .section-head { margin-bottom: 20px; }
 }
 .p91x .section-head { margin-bottom: 28px; }
-.p91x .section-head h2 { font-size: clamp(24px, 4vw, 36px); font-weight: 800; }
+.p91x .section-head h2 { font-size: var(--fs-h2); font-weight: var(--fw-heading); }
+.p91x.home-page .tile-label h3, .p91x.home-page .showcase-card h3 { font-size: var(--fs-h3); font-weight: var(--fw-heading); }
 .p91x .section-head p { color: var(--txt-2); margin: 14px 0 0; max-width: 58ch; }
 .p91x .teaser-head {
   display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
   gap: 16px; margin-bottom: 28px;
 }
 .p91x .teaser-head .section-head { margin-bottom: 0; }
-.p91x .teaser-head a.teaser-more { display: inline-flex; align-items: center; min-height: 40px; color: var(--neon-green); font-weight: 600; font-size: 14px; white-space: nowrap; }
+.p91x .teaser-head a.teaser-more { display: inline-flex; align-items: center; min-height: 40px; color: var(--txt); font-weight: 600; font-size: 14px; white-space: nowrap; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--brand-accent); }
 .p91x .teaser-head a.teaser-more:hover { text-decoration: underline; }
 
 /* ---------- service cards ---------- */
@@ -618,6 +1153,7 @@
 .p91x .strip { padding: 56px 0; }
 .p91x .strip .row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px 24px; }
 .p91x .strip .row.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.p91x .strip .row.cols-2 { grid-template-columns: repeat(2, 1fr); }
 @media (max-width: 760px) {
   .p91x .strip .row, .p91x .strip .row.cols-3 { grid-template-columns: repeat(2, 1fr); }
 }
@@ -657,7 +1193,24 @@
 @media (max-width: 860px) { .p91x .guide-collage { grid-template-columns: 1fr; gap: 24px; } }
 .p91x .guide-collage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .p91x .guide-collage-grid img { border-radius: 14px; width: 100%; height: 100%; object-fit: cover; aspect-ratio: 1/1; }
+/* Each tile is one grid item (a div), not a bare <picture>, so two pictures sit side by side
+   instead of stepping down the grid. With no wide third picture the tiles are taller (3:4) so the
+   pair has the presence the text beside it needs. */
+.p91x .guide-collage-tile { border-radius: 14px; aspect-ratio: 1 / 1; min-width: 0; }
+.p91x .guide-collage-tile img { border-radius: 0; width: 100%; aspect-ratio: auto; position: absolute; left: 0; object-fit: cover; }
+.p91x .guide-collage-tile { position: relative; }
+.p91x .guide-collage-grid:not(:has(.guide-collage-wide)) .guide-collage-tile { aspect-ratio: 3 / 4; }
 .p91x .guide-collage-wide { grid-column: 1 / -1; }
+/* A guide with no pictures of its own: the copy is a single readable column, not half a page of nothing. */
+/* The band above (dark trust strip) ends flush against this section and the FAQ section below
+   brings its own top padding, so this one gets no bottom padding: the gap under the content then
+   equals the gap above it, instead of one and a half times as much. The columns are centred
+   against each other whichever is taller. */
+.p91x .seo-collage-section { padding-bottom: 0; }
+.p91x .seo-collage-section + .section { padding-top: 44px; }
+.p91x .guide-collage { align-items: center; }
+.p91x .guide-collage-grid { align-content: center; }
+.p91x .guide-collage.is-text-only { grid-template-columns: minmax(0, 1fr); max-width: 720px; margin-inline: auto; }
 .p91x .guide-collage-wide img { aspect-ratio: 16/9; }
 .p91x .guide-collage-copy h2 { font-size: clamp(24px,3.2vw,34px); max-width: 16ch; }
 .p91x .guide-collage-copy p { margin-top: 14px; color: var(--txt-2); font-size: 15.5px; line-height: 1.7; max-width: 44ch; }
@@ -877,6 +1430,7 @@
 
 /* ---------- Overview: video/image left, benefits right (XPEL product-page layout) ---------- */
 .p91x .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; align-items: stretch; }
+.p91x .overview-grid.is-text-only { grid-template-columns: minmax(0, 1fr); max-width: 760px; margin-inline: auto; }
 @media (max-width: 860px) { .p91x .overview-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
 /* The media column reads as a background rather than a boxed thumbnail: it fills the full
    height of the benefits column beside it (align-items: stretch above), not a fixed
@@ -1158,6 +1712,48 @@
    booking form in place) rather than a link. Reset the UA button chrome so it is visually
    identical to the link version. */
 .p91x button.btn-book { border: 0; cursor: pointer; font-family: inherit; line-height: inherit; }
+
+/* ---------- global footer: compact, dark ----------
+   (Deliberately after the base footer rules further up so it wins, and before the .p91-brand block, which a test requires to be the last thing in the file.)
+   One footer for every page. Dark so it continues a dark closing CTA instead of leaving a white
+   gap after it, and compact (tighter padding, no top margin). The existing footer rules all read
+   the colour tokens, so re-pointing the tokens inside the footer re-themes it without rewriting
+   them. */
+.p91x footer.site {
+  --txt: #fff; --txt-2: rgba(255,255,255,.74); --txt-3: rgba(255,255,255,.56);
+  --medium-gray: rgba(255,255,255,.16); --dark-gray: rgba(255,255,255,.06);
+  --neon-line: rgba(255,255,255,.4);
+  background: var(--surface-dark); color: var(--txt-2);
+  margin-top: 0; border-top: 0; padding: clamp(48px, 7vh, 72px) 0 12px;
+}
+.p91x footer.site .foot-btn:hover, .p91x footer.site .foot-col a:hover, .p91x footer.site .foot-legal a:hover { color: #fff; }
+.p91x footer.site .foot-btn.is-wa { color: #7BE8A6; }
+.p91x footer.site .foot-more { color: #fff; text-decoration: underline; text-decoration-color: var(--brand-accent); text-underline-offset: 4px; }
+.p91x footer.site .foot-col h4 { font-family: var(--font-mono); font-weight: 500; letter-spacing: .14em; }
+.p91x footer.site .foot-bottom { margin-top: 28px; }
+/* CTA -> footer transition: the footer is a shade lighter than the CTA and opens with a hairline
+   plus a short green rule, so the two dark bands read as two things without a gap or a colour change. */
+.p91x footer.site.site {
+  background: #101613; border-top: 1px solid rgba(255,255,255,.1); position: relative;
+  padding-top: clamp(44px, 6vh, 60px);
+}
+.p91x footer.site.site::before {
+  content: ""; position: absolute; left: max(24px, calc((100% - 1180px) / 2 + 24px)); top: -1px;
+  width: 56px; height: 2px; background: var(--brand-accent);
+}
+/* Logo: larger, full-strength. */
+.p91x footer.site .foot-brand img { height: 40px; margin-bottom: 16px; opacity: 1; }
+/* Tighter link, address and hours spacing. */
+.p91x footer.site .foot-col ul { gap: 0; }
+.p91x footer.site .foot-col address { line-height: 1.6; margin-bottom: 8px; }
+.p91x footer.site .foot-hours { gap: 2px 14px; margin-bottom: 4px; }
+.p91x footer.site .foot-more { min-height: 40px; }
+.p91x footer.site .foot-brand p { margin-bottom: 14px; }
+@media (max-width: 640px) {
+  .p91x footer.site.site::before { left: 16px; }
+  .p91x footer.site .foot-grid { gap: 24px; }
+  .p91x footer.site .foot-bottom { gap: 8px; }
+}
 
 /* ============================================================================
    .p91-brand — the redesign's TYPE on pages that cannot opt into .p91x.

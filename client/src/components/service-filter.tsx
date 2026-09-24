@@ -83,14 +83,12 @@ export default function ServiceFilter<T extends ServiceLike>({ services, childre
   };
 
   return (
-    <div>
-      {/* ---- vehicle bar ---- */}
+    <div className="sv-filters">
+      {/* ---- vehicle ---- */}
       {availableVehicles.length > 1 && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-3 sm:gap-4 rounded-[14px] border border-[var(--medium-gray)] bg-[var(--dark-gray)] px-4 py-4 mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.13em] text-[var(--txt-3)] whitespace-nowrap">
-            Your vehicle
-          </span>
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by vehicle">
+        <div className="sv-vehicle">
+          <span className="sv-label">Your vehicle</span>
+          <div className="sv-chips" role="group" aria-label="Filter by vehicle">
             {availableVehicles.map((v) => {
               const active = vehicle === v.key;
               return (
@@ -100,12 +98,7 @@ export default function ServiceFilter<T extends ServiceLike>({ services, childre
                   aria-pressed={active}
                   onClick={() => setVehicle(v.key)}
                   data-testid={`filter-vehicle-${v.key}`}
-                  className={
-                    "inline-flex items-center justify-center min-h-[40px] rounded-full border px-4 py-1.5 text-[13px] whitespace-nowrap transition-colors " +
-                    (active
-                      ? "border-[var(--neon-green)] text-[var(--neon-green)] font-bold shadow-[inset_0_0_0_1px_var(--neon-green)] bg-transparent"
-                      : "border-[var(--medium-gray)] bg-[var(--deep-black)] text-[var(--txt-2)] hover:border-[var(--neon-line)] hover:text-[var(--txt)]")
-                  }
+                  className={"sv-chip inline-flex items-center justify-center min-h-[40px]" + (active ? " is-active" : "")}
                 >
                   {v.label}
                 </button>
@@ -115,14 +108,9 @@ export default function ServiceFilter<T extends ServiceLike>({ services, childre
         </div>
       )}
 
-      <p className="text-[13px] text-[var(--txt-3)] mb-5">
-        Vehicle and category apply <b className="text-[var(--txt-2)]">together</b> — choosing SUV then PPF
-        shows only the SUV paint protection packages.
-      </p>
-
       {/* ---- category tabs + search ---- */}
-      <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-4">
-        <div className="flex flex-wrap gap-2 order-1" role="group" aria-label="Filter by category">
+      <div className="sv-tabbar">
+        <div className="sv-tabs" role="group" aria-label="Filter by category">
           {(["All", ...availableCategories] as (ServiceCategory | "All")[]).map((c) => {
             const active = category === c;
             return (
@@ -132,12 +120,7 @@ export default function ServiceFilter<T extends ServiceLike>({ services, childre
                 aria-pressed={active}
                 onClick={() => setCategory(c)}
                 data-testid={`filter-category-${c}`}
-                className={
-                  "inline-flex items-center justify-center min-h-[40px] rounded-full border px-3.5 py-1.5 text-[13px] whitespace-nowrap transition-colors " +
-                  (active
-                    ? "bg-[var(--neon-green)] border-[var(--neon-green)] text-[#04120A] font-bold"
-                    : "border-[var(--medium-gray)] text-[var(--txt-2)] hover:border-[var(--neon-line)] hover:text-[var(--txt)]")
-                }
+                className={"sv-tab inline-flex items-center justify-center min-h-[40px]" + (active ? " is-active" : "")}
               >
                 {c}
               </button>
@@ -145,8 +128,8 @@ export default function ServiceFilter<T extends ServiceLike>({ services, childre
           })}
         </div>
 
-        <label className="order-2 lg:ml-auto flex items-center gap-2.5 rounded-[10px] border border-[var(--medium-gray)] px-3.5 py-2 lg:min-w-[230px] focus-within:border-[var(--neon-line)]">
-          <Search className="w-[15px] h-[15px] flex-none text-[var(--txt-3)]" aria-hidden="true" />
+        <label className="sv-search">
+          <Search className="w-[15px] h-[15px] flex-none" aria-hidden="true" />
           <input
             type="search"
             value={query}
@@ -154,14 +137,19 @@ export default function ServiceFilter<T extends ServiceLike>({ services, childre
             placeholder="Search services…"
             aria-label="Search services"
             data-testid="filter-search"
-            className="w-full bg-transparent border-0 outline-none text-sm text-[var(--txt)] placeholder:text-[var(--txt-3)]"
           />
         </label>
       </div>
 
+      {/* Vehicle and category combine; one quiet line says so. */}
+      <p className="sv-hint">
+        Vehicle and category apply <b>together</b> — choosing SUV then PPF shows only the SUV paint
+        protection packages.
+      </p>
+
       {/* ---- result count ---- */}
-      <p className="text-[13px] text-[var(--txt-3)] mb-6" data-testid="filter-count" aria-live="polite">
-        <b className="text-[var(--txt)]">{filtered.length}</b>
+      <p className="sv-count" data-testid="filter-count" aria-live="polite">
+        <b>{filtered.length}</b>
         {filtered.length === 1 ? " service" : " services"}
         {isFiltered && (
           <>
@@ -171,7 +159,7 @@ export default function ServiceFilter<T extends ServiceLike>({ services, childre
               type="button"
               onClick={clearAll}
               data-testid="filter-clear"
-              className="ml-3 inline-flex items-center min-h-[40px] gap-1 text-[var(--neon-green)] hover:underline"
+              className="sv-clear inline-flex items-center min-h-[40px] gap-1"
             >
               <X className="w-3 h-3" aria-hidden="true" />
               Clear filters
@@ -181,14 +169,11 @@ export default function ServiceFilter<T extends ServiceLike>({ services, childre
       </p>
 
       {filtered.length === 0 ? (
-        <div
-          className="rounded-[14px] border border-[var(--medium-gray)] bg-[var(--dark-gray)] px-6 py-12 text-center"
-          data-testid="filter-empty"
-        >
-          <b className="block text-lg text-[var(--txt)] mb-2">Nothing matches that</b>
-          <p className="text-[var(--txt-2)]">
+        <div className="sv-empty" data-testid="filter-empty">
+          <b>Nothing matches that</b>
+          <p>
             Try another category, or{" "}
-            <button type="button" onClick={clearAll} className="inline-flex items-center min-h-[40px] text-[var(--neon-green)] hover:underline">
+            <button type="button" onClick={clearAll} className="sv-clear inline-flex items-center min-h-[40px]">
               clear the filters
             </button>{" "}
             to see all {services.length} services.

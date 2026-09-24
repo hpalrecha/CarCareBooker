@@ -56,6 +56,36 @@
      were tuned to sit on near-black cards and fail contrast on white/light ones. */
   --warn:       #8A6D1D;
   --danger:     #C9273A;
+
+  /* P0 design tokens (2026-09-24). Additive: --neon-green is NOT renamed. It has ~280
+   * references, and the admin console re-declares it (.dark .admin-x below), so a rename
+   * would silently drop the admin's green. Neither is the accent named `--accent`:
+   * shadcn/ui already owns `--accent` (hover/highlight surface, #F3F6F3 in .dark below),
+   * and redefining it would recolour every shadcn Select/Dialog/Button hover on the site.
+   *
+   *   --brand-accent  the logo green, for FILLED buttons and non-text accents only.
+   *                   2.54:1 on white, so never use it for text on a white ground.
+   *   --accent-ink    the same hue darkened for small text on white/light-grey:
+   *                   5.13:1 on #FFF, 4.71:1 on #F3F6F3 (both pass WCAG AA 4.5:1).
+   *   --surface-dark  near-black for dark bands and for text sitting on the green fill:
+   *                   7.60:1 on --brand-accent. */
+  --brand-accent: #4EB848;
+  --accent-ink:   #2E7D32;
+  --surface-dark: #0B0F0D;
+
+  /* Type. Families are the self-hosted subsets declared in styles/fonts.css. */
+  --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  /* Small technical labels and numbers only ("01 / ABOUT P91", spec keys). Never body copy. */
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-body: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --fs-display: clamp(36px, 5.5vw, 68px);   /* 56-72px band on desktop, scales down on phones */
+  --fs-h2: clamp(28px, 3.4vw, 40px);
+  --fs-h3: 22px;
+  --fs-body: 16px;
+  --fs-eyebrow: 12px;
+  --tracking-eyebrow: .12em;
+  --fw-heading: 700;
+  --fw-heading-strong: 600;
 }
 
 /* The wrapper div in App.tsx keeps className="dark" (a leftover name from the old
@@ -85,6 +115,47 @@
   --destructive: #C9273A;
   --destructive-foreground: #FFFFFF;
   --ring: #4EB848;
+}
+
+/* Admin console (admin-login/admin-dashboard/admin-whatsapp) keeps the original
+   black/green theme by request (2026-09-23) — it's a staff tool, not the public
+   site, so it's exempt from the green/white flip above. Every page's root div
+   carries `admin-x`; scoping the override to `.dark .admin-x` beats the plain
+   `.dark` block above on specificity and restores the pre-flip dark-ground values
+   (same hex/hsl this codebase used before the theme change) for both the P91
+   custom tokens and the shadcn/ui tokens admin's own dialogs/selects read. */
+.dark .admin-x {
+  --neon-green: hsl(142, 100%, 50%);
+  --deep-black: hsl(240, 10%, 3.9%);
+  --dark-gray: hsl(240, 3.7%, 10.2%);
+  --medium-gray: hsl(240, 3.7%, 20%);
+  --neon-soft:  hsla(142, 100%, 50%, .12);
+  --neon-line:  hsla(142, 100%, 50%, .28);
+  --txt:        #EDEEF0;
+  --txt-2:      #A0A4AB;
+  --txt-3:      #868C95;
+  --warn:       #E9B949;
+  --danger:     #FF6B7D;
+
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(142, 100%, 50%);
+  --primary-foreground: hsl(240, 10%, 3.9%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
 }
 
 @layer base {

@@ -117,7 +117,7 @@ export default function AdminWhatsApp() {
   };
 
   return (
-    <div className="min-h-screen bg-deep-black text-white p-6">
+    <div className="admin-x min-h-screen bg-deep-black text-white p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center gap-3 mb-8">
           <MessageCircle className="w-8 h-8 text-[var(--neon-green)]" />

@@ -66,7 +66,7 @@ export default function AdminLogin() {
   });
 
   return (
-    <div className="min-h-screen bg-[var(--deep-black)] text-white">
+    <div className="admin-x min-h-screen bg-[var(--deep-black)] text-white">
       <div className="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-4 py-10 sm:px-6">
         <div className="grid gap-10 md:grid-cols-[1fr_minmax(0,26rem)] md:items-center md:gap-14">
           {/* Context: who this is for, and what is behind it. No claims, no ornament. */}

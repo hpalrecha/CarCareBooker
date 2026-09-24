@@ -173,7 +173,6 @@ export default function BlogPost() {
               <p>Pick a service and hold a slot. The balance is settled at the studio in Adugodi.</p>
             </div>
             <div className="article-cta-btns">
-              <Link href="/services" className="cta-lg" data-testid="link-post-book">Book a service</Link>
               <a className="cta-ghost" href="tel:+917406619191">74066 19191</a>
             </div>
           </div>

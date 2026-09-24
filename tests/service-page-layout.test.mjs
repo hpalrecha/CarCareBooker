@@ -57,11 +57,11 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
     assert.match(read('client/src/components/redesign/site-header.tsx'), /href="tel:\+917406619191"/);
   });
 
-  test('product-page hero: thumbnail rail + boxed photo on one side, dark info panel on the other', () => {
+  test('product-page hero: boxed photo slideshow on one side, dark info panel on the other', () => {
     assert.ok(hero.includes('pdp-hero-grid'), 'two-column grid');
     assert.ok(hero.includes('className="pdp-media"'), 'photo column');
     assert.ok(hero.includes('className="pdp-panel"'), 'dark info panel');
-    assert.ok(hero.includes('data-testid="hero-thumbs"'), 'thumbnail rail (only rendered for >1 photo — see below)');
+    assert.ok(hero.includes('data-testid="hero-slides"'), 'photo slideshow frame');
     assert.ok(hero.includes('data-testid="img-hero"'));
     assert.ok(hero.includes('data-testid="offer-card"'));
     // Offer card content lives directly inside the dark panel now, not a separately
@@ -77,9 +77,14 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
     assert.ok(!/<QuoteForm\b/.test(hero), 'no form in the hero');
   });
 
-  test('thumbnail rail only renders for a service with more than one photo', () => {
-    assert.match(hero, /service\.images && service\.images\.length > 1 && \(/);
-    assert.match(hero, /setActiveThumbIndex\(i\)/, 'clicking a thumbnail switches the main photo');
+  test('the hero photos are a slideshow: big frame, advances by itself, controls only for 2+ photos', () => {
+    // (2026-09-24, by request) This replaced a thumbnail rail beside the photo.
+    assert.doesNotMatch(hero, /data-testid="hero-thumbs"/);
+    assert.match(hero, /photos\.length < 2/, 'a single photo is shown plainly, with no controls');
+    assert.match(src, /setInterval\(\(\) => setActiveThumbIndex/, 'advances on its own');
+    assert.match(src, /prefers-reduced-motion: reduce/, 'and not under reduced motion');
+    assert.match(src, /setSlidePaused\(true\)/, 'paused while hovered or focused');
+    assert.match(hero, /setActiveThumbIndex\(i\)/, 'the dots switch the photo');
   });
 
   test('hero + overview video only play a service\'s own saved footage, muted and looping', () => {
@@ -90,9 +95,12 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
     assert.match(hero, /<video\b/);
     assert.match(hero, /service\.heroVideo && isDirectVideoFile\(service\.heroVideo\) && showHeroVideo/);
     assert.match(hero, /autoPlay[\s\S]{0,40}muted[\s\S]{0,40}loop[\s\S]{0,40}playsInline/);
-    assert.match(overview, /<video\b/);
-    assert.match(overview, /service\.heroVideo && isDirectVideoFile\(service\.heroVideo\)/);
-    assert.match(overview, /autoPlay[\s\S]{0,40}muted[\s\S]{0,40}loop[\s\S]{0,40}playsInline/);
+    // One video per page (2026-09-24, "don't use the same image in all the places"): the hero plays
+    // the footage; the overview and the old closing banner used to play the SAME clip again. The
+    // overview now shows a different photo (images[2]) or nothing, and the closing banner is gone.
+    assert.doesNotMatch(overview, /<video/);
+    assert.doesNotMatch(src, /Closing video section — replaces/);
+    assert.match(overview, /overviewImage/);
     // The OLD generic homepage clips this page used to (wrongly) share must never come back.
     assert.doesNotMatch(src, /attached_assets\/(Exterior|Interior) Detailing_/);
   });

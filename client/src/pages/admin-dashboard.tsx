@@ -869,7 +869,7 @@ export default function AdminDashboard() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-deep-black flex items-center justify-center">
+      <div className="admin-x min-h-screen bg-deep-black flex items-center justify-center">
         <div className="text-white">Loading...</div>
       </div>
     );
@@ -933,7 +933,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-deep-black text-white">
+    <div className="admin-x min-h-screen bg-deep-black text-white">
       {/* Header */}
       <div className="glass-effect border-b border-[var(--medium-gray)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

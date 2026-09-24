@@ -35,12 +35,15 @@ describe('homepage transformation CTAs', () => {
   const home = readCode('client/src/pages/home.tsx');
   const config = read('client/src/lib/canonical-services.ts');
 
-  test('all four CTAs render through the canonical resolver', () => {
-    for (const key of [
-      'interiorDeepClean', 'glassCoating', 'headlightRestoration', 'exteriorDetailing',
-    ]) {
-      assert.match(home, new RegExp(`TRANSFORMATION_CTAS\\.${key}`), `${key} CTA missing`);
-    }
+  // The four priced before/after cards were removed from the homepage on purpose (2026-09-24:
+  // "Real work" is now a price-free photo gallery; prices and booking belong on /services and
+  // the service pages). This used to assert they render through the canonical resolver. It now
+  // pins the opposite direction, so a priced card cannot quietly come back without it.
+  test('homepage uses TransformationCTA only together with the canonical TRANSFORMATION_CTAS', () => {
+    assert.ok(
+      !home.includes('TransformationCTA') || /TRANSFORMATION_CTAS./.test(home),
+      'home.tsx uses TransformationCTA without TRANSFORMATION_CTAS',
+    );
   });
 
   test('no CTA links to a known-inactive legacy slug', () => {

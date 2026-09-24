@@ -303,9 +303,6 @@ export default function Contact() {
               <h3>Rather just book?</h3>
               <p>Pick a service and hold a slot. The balance is settled at the studio.</p>
             </div>
-            <div className="article-cta-btns">
-              <Link href="/services" className="cta-lg" data-testid="link-contact-book">Book a service</Link>
-            </div>
           </div>
         </div>
       </section>

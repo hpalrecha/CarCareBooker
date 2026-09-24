@@ -2,10 +2,13 @@ import { useEffect, useState } from "react";
 
 export interface HeroVideoGateOptions {
   /**
-   * Autoplay on viewports under 769px too. Default false: the shared exterior-detailing
-   * clip (home.tsx, campaign-landing.tsx) is a 61MB produced promo edit, unfit for mobile
-   * data. The per-service reels (service-landing.tsx) are ~5-7MB — small enough, and the
-   * studio's own reels play on mobile Instagram anyway — so those pages opt in.
+   * Autoplay on viewports under 769px too. Default false here — campaign-landing.tsx
+   * doesn't opt in, since that page is paid ad traffic and mobile data cost matters more
+   * there specifically, not because the file is too big. (The shared exterior-detailing
+   * clip, also used by home.tsx, is ffmpeg-compressed to ~9.8MB — home.tsx enables it on
+   * mobile directly rather than through this hook.) The per-service reels
+   * (service-landing.tsx) are ~5-7MB — small enough, and the studio's own reels play on
+   * mobile Instagram anyway — so that page opts in.
    */
   allowMobile?: boolean;
   /**
