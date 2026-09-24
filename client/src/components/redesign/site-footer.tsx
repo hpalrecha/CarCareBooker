@@ -105,7 +105,7 @@ export default function SiteFooter() {
             <ul>
               <li><Link href="/services/paint-protection-film-bangalore">PPF</Link></li>
               <li><Link href="/services/ceramic-coating-bangalore">Ceramic</Link></li>
-              <li><Link href="/services/interior-detailing-bangalore">Detailing</Link></li>
+              <li><Link href="/service/exterior-detailing-hard-water-new">Detailing</Link></li>
               <li><Link href="/services">All services</Link></li>
             </ul>
           </div>

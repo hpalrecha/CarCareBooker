@@ -124,7 +124,10 @@
    `.dark` block above on specificity and restores the pre-flip dark-ground values
    (same hex/hsl this codebase used before the theme change) for both the P91
    custom tokens and the shadcn/ui tokens admin's own dialogs/selects read. */
-.dark .admin-x {
+/* .admin-dialog: admin dialogs are portalled to <body>, outside both .dark and the page's .admin-x,
+   so without this they got the light public-site tokens under hard-coded white text. */
+.dark .admin-x,
+.admin-x.admin-dialog {
   --neon-green: hsl(142, 100%, 50%);
   --deep-black: hsl(240, 10%, 3.9%);
   --dark-gray: hsl(240, 3.7%, 10.2%);

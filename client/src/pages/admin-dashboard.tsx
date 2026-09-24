@@ -1673,7 +1673,7 @@ export default function AdminDashboard() {
 
       {/* Booking detail (View) */}
       <Dialog open={!!viewingBooking} onOpenChange={(o) => !o && setViewingBooking(null)}>
-        <DialogContent className="max-w-lg bg-dark-gray border-[var(--medium-gray)] text-white max-h-[85vh] overflow-y-auto">
+        <DialogContent className="admin-x admin-dialog max-w-lg bg-dark-gray border-[var(--medium-gray)] text-white max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Booking details</DialogTitle></DialogHeader>
           {viewingBooking && (() => {
             const b = viewingBooking;
@@ -1714,7 +1714,7 @@ export default function AdminDashboard() {
 
       {/* Edit booking */}
       <Dialog open={!!editingBooking} onOpenChange={(o) => !o && setEditingBooking(null)}>
-        <DialogContent className="max-w-lg bg-dark-gray border-[var(--medium-gray)] text-white">
+        <DialogContent className="admin-x admin-dialog max-w-lg bg-dark-gray border-[var(--medium-gray)] text-white">
           <DialogHeader><DialogTitle>Edit booking</DialogTitle></DialogHeader>
           {editingBooking && (
             <div className="space-y-3">

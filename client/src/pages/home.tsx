@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { ArrowUpRight } from "lucide-react";
@@ -52,48 +52,6 @@ const HERO_IMAGE_SLUG = "exterior-detailing-hard-water-new";
  * LCP and CLS-causing "box appears from nothing" path.
  */
 const HERO_FALLBACK_IMAGE = "/attached_assets/services/exterior-detailing-hard-water-spot-removal.webp";
-
-/**
- * The one visual for the Protection & Care screen: P91's own polishing reel
- * (attached_assets/reels/car-polishing-hero.mp4, 720x1280, 6.5 MB).
- *
- * Nothing is fetched until the screen is actually on view: preload="none" plus a poster
- * (a 58 KB still of the finished car), then play() when it is at least 35% visible and
- * pause() when it leaves, so it costs the critical path nothing and does not run off-screen.
- * With reduced motion, or Save-Data on, it stays a poster and never downloads the video.
- */
-function CareVideo() {
-  const ref = useRef<HTMLVideoElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || !("IntersectionObserver" in window)) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    if ((navigator as any).connection?.saveData) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) el.play().catch(() => {});
-        else el.pause();
-      },
-      { threshold: 0.35 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  return (
-    <video
-      ref={ref}
-      muted
-      loop
-      playsInline
-      preload="none"
-      poster="/attached_assets/reels/car-polishing-poster.webp"
-      aria-hidden="true"
-      data-testid="video-care"
-    >
-      <source src="/attached_assets/reels/car-polishing-hero.mp4" type="video/mp4" />
-    </video>
-  );
-}
 
 export default function Home() {
   const { data: services } = useQuery<ServiceRecord[]>({
@@ -375,8 +333,8 @@ export default function Home() {
             </div>
             <figure className="ed-figure" data-reveal>
               <ImageWithFallback
-                src="/attached_assets/about/p91-studio-nasiol-floor-orange-hyundai.webp"
-                alt="A finished orange Hyundai hatchback on the polished studio floor, under linear lighting, in front of a Nasiol India wall logo"
+                src="/attached_assets/gallery/p91-lux-mercedes-gle.webp"
+                alt="A white Mercedes GLE in the P91 Car Care studio in front of a Nasiol India wall"
                 sizes="(min-width: 861px) 46vw, 92vw"
                 data-parallax="0.06"
               />
@@ -407,9 +365,9 @@ export default function Home() {
               <h2 className="ed-title" data-reveal>Protection. Finish. Care.</h2>
               <ul className="ed-services" data-reveal>
                 {[
-                  { href: "/ppf", idx: "01", name: "PPF", id: "ppf" },
-                  { href: "/ceramic-coating/car", idx: "02", name: "Ceramic", id: "ceramic" },
-                  { href: "/services", idx: "03", name: "Detailing", id: "detailing" },
+                  { href: "/services/paint-protection-film-bangalore", idx: "01", name: "PPF", id: "ppf" },
+                  { href: "/services/ceramic-coating-bangalore", idx: "02", name: "Ceramic", id: "ceramic" },
+                  { href: "/service/exterior-detailing-hard-water-new", idx: "03", name: "Detailing", id: "detailing" },
                 ].map((s) => (
                   <li key={s.id}>
                     <Link href={s.href} className="ed-service" data-testid={`link-care-${s.id}`}>
@@ -429,9 +387,14 @@ export default function Home() {
             </div>
             <div className="ed-care-media" data-reveal>
               <figure className="ed-figure ed-figure-video">
-                <CareVideo />
+                <ImageWithFallback
+                  src="/attached_assets/gallery/p91-lux-range-rover-evoque.webp"
+                  alt="A white Range Rover Evoque in the P91 studio, protected with P91 Premium PPF"
+                  sizes="(min-width: 861px) 46vw, 92vw"
+                  loading="lazy"
+                />
               </figure>
-              <p className="ed-caption">Polishing at the P91 studio</p>
+              <p className="ed-caption">Range Rover Evoque · P91 Premium PPF</p>
             </div>
           </div>
         </div>
@@ -448,39 +411,42 @@ export default function Home() {
         <div className="wrap">
           <p className="ed-label" data-reveal>03 / Real work</p>
           <h2 className="ed-title ed-title-wide" data-reveal>Real work, from our studio.</h2>
+          <Link href="/gallery" className="ed-link ed-work-more" data-reveal data-testid="link-work-gallery">
+            See all our work →
+          </Link>
           <div className="ed-work-grid">
-            <figure className="ed-work-fig ed-work-tall" data-reveal>
+            <Link href="/gallery" className="ed-work-fig ed-work-tall" data-reveal data-testid="link-work-photo">
               <ImageWithFallback
                 src="/attached_assets/gallery/p91-ppf-fitting.webp"
                 alt="A P91 technician fitting clear paint protection film on the rear door of a black car"
                 sizes="(min-width: 861px) 30vw, 92vw"
               />
               <figcaption className="ed-work-cap">PPF fitting</figcaption>
-            </figure>
-            <figure className="ed-work-fig ed-work-wide" data-reveal>
+            </Link>
+            <Link href="/gallery" className="ed-work-fig ed-work-wide" data-reveal data-testid="link-work-photo">
               <ImageWithFallback
-                src="/attached_assets/unnamed_1765537193657.webp"
-                alt="A black Hyundai SUV on the studio floor in front of a STEK wall"
+                src="/attached_assets/gallery/p91-lux-vellfire.webp"
+                alt="A white Toyota Vellfire protected with STEK PPF, in the P91 studio"
                 sizes="(min-width: 861px) 62vw, 92vw"
               />
-              <figcaption className="ed-work-cap">Delivery</figcaption>
-            </figure>
-            <figure className="ed-work-fig ed-work-half" data-reveal>
+              <figcaption className="ed-work-cap">Toyota Vellfire · STEK PPF</figcaption>
+            </Link>
+            <Link href="/gallery" className="ed-work-fig ed-work-half" data-reveal data-testid="link-work-photo">
               <ImageWithFallback
-                src="/attached_assets/gallery/p91-polish-bonnet-pass.webp"
-                alt="A polishing pad working the bonnet of a red car in the studio"
+                src="/attached_assets/gallery/p91-lux-nissan-gtr.webp"
+                alt="A white Nissan GT-R with a black bonnet in front of a STEK wall in the P91 studio"
                 sizes="(min-width: 861px) 30vw, 92vw"
               />
-              <figcaption className="ed-work-cap">Polishing</figcaption>
-            </figure>
-            <figure className="ed-work-fig ed-work-half" data-reveal>
+              <figcaption className="ed-work-cap">Nissan GT-R · STEK PPF</figcaption>
+            </Link>
+            <Link href="/gallery" className="ed-work-fig ed-work-half" data-reveal data-testid="link-work-photo">
               <ImageWithFallback
-                src="/attached_assets/unnamed_(1)_1765537193655.webp"
-                alt="A dark blue hatchback on the studio floor in front of a green hexagon wall"
+                src="/attached_assets/gallery/p91-lux-innova-hycross.webp"
+                alt="A white Toyota Innova Hycross with STEK ForceShield PPF, in the P91 studio"
                 sizes="(min-width: 861px) 30vw, 92vw"
               />
-              <figcaption className="ed-work-cap">Delivery</figcaption>
-            </figure>
+              <figcaption className="ed-work-cap">Innova Hycross · STEK PPF</figcaption>
+            </Link>
           </div>
         </div>
       </section>
@@ -524,6 +490,9 @@ export default function Home() {
                       <li key={p}>{p}</li>
                     ))}
                   </ul>
+                  <Link href={b.href} className="ed-link ed-brand-link" data-testid={`link-explore-brand-${b.href.split("/").pop()}`}>
+                    Explore brand →
+                  </Link>
                 </div>
               ))}
             </div>

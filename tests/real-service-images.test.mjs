@@ -23,7 +23,7 @@ describe('real service images', () => {
     // Only the REAL map is held to this. The realistic AI renders that are deliberately used, and
     // labelled illustrative, for services with no photograph live in ILLUSTRATIVE_IMAGES.
     const start = code.indexOf('export const REAL_SERVICE_IMAGES');
-    const end = code.indexOf('const AI = {');
+    const end = code.indexOf('export const ILLUSTRATIVE_IMAGES');
     assert.ok(start > 0 && end > start, 'markers');
     for (const re of banned) assert.doesNotMatch(code.slice(start, end), re, `real mapping references ${re}`);
   });

@@ -106,10 +106,8 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
         if (y < 80 || menuLock.current) {
           setHidden(false);
           lastY.current = y;
-        } else if (dy > 6) {
-          setHidden(true);
-          lastY.current = y;
-        } else if (dy < -6) {
+        } else {
+          // The bar sticks and stays visible while scrolling (was: hid on scroll down).
           setHidden(false);
           lastY.current = y;
         }
@@ -240,8 +238,8 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
                         ))}
                         <div className="mega-promo">
                           <ImageWithFallback
-                            src="/attached_assets/services/exterior-detailing-hard-water-spot-removal.webp"
-                            alt="Exterior detailing at the P91 Car Care studio"
+                            src="/attached_assets/gallery/p91-lux-range-rover-evoque.webp"
+                            alt="A Range Rover Evoque in the P91 Car Care studio"
                             sizes="220px"
                             loading="lazy"
                           />

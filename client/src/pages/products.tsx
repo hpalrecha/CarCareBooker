@@ -26,7 +26,7 @@ export default function Products() {
     image: "/Car Care (4)_1753951564515.png",
   });
 
-  const brands = PRODUCT_BRANDS.filter((b) => b.name !== "P91 Premium PPF");
+  const brands = PRODUCT_BRANDS;
 
   return (
     <div className="p91x min-h-screen">

@@ -90,7 +90,8 @@ describe('presentation', () => {
   test('"See it on Instagram" is gone from /service/:slug pages (removed by request, again, 2026-09-24); /ppf keeps it', () => {
     assert.doesNotMatch(read('client/src/pages/service-landing.tsx'), /<InstagramReels\b/);
     assert.doesNotMatch(read('client/src/pages/service-landing.tsx'), /REELS_BY_SERVICE/);
-    assert.match(read('client/src/pages/campaign-landing.tsx'), /<InstagramReels\b/);
+    // /ppf and the ceramic pages had them and lost them again on 2026-09-24, by request.
+    assert.doesNotMatch(read('client/src/pages/campaign-landing.tsx'), /<InstagramReels\b/);
   });
 
   test('the unverified YouTube shorts are gone from /ppf-ceramic-coating', () => {

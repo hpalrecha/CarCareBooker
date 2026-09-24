@@ -1,6 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
-import { ArrowUpRight } from "lucide-react";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import ServiceCard from "@/components/service-card";
@@ -34,8 +32,21 @@ import { groupPpf } from "@/lib/ppf-groups";
  * the ₹5,999 one; the other stays reachable at /service/premium-wash-detail.
  */
 const HIDDEN_FROM_LIST = new Set(["premium-wash-detail"]);
+/**
+ * Where a catalogue entry opens. The ceramic services open the ceramic guide page (the same one the
+ * homepage and menus link to) instead of the older /service/:slug template; every other
+ * service opens its own /service/:slug page. The records themselves are untouched.
+ */
+const OPENS_AT: Record<string, string> = {
+  "1-year-ceramic-coating": "/services/ceramic-coating-bangalore",
+  "1-year-bike-ceramic-coating": "/services/ceramic-coating-bangalore",
+};
 const listable = (services: unknown): any[] =>
-  Array.isArray(services) ? (services as any[]).filter((s) => !HIDDEN_FROM_LIST.has(s?.slug)) : [];
+  Array.isArray(services)
+    ? (services as any[])
+        .filter((s) => !HIDDEN_FROM_LIST.has(s?.slug))
+        .map((s) => (OPENS_AT[s?.slug] ? { ...s, href: OPENS_AT[s.slug] } : s))
+    : [];
 
 export default function Services() {
   const { data: services, isLoading } = useQuery<ServiceRecord[]>({
@@ -65,44 +76,8 @@ export default function Services() {
             </p>
           </header>
 
-          {/*
-            Direct routes to the three focused service pages.
-
-            Without this the campaign landing pages were unreachable from anywhere on the
-            site — a browser trace found ZERO internal links to them from the homepage,
-            this page, the SEO guides or the service pages. They existed only for someone
-            arriving from an advertisement or typing the URL.
-
-            The problem it solves for a visitor is concrete: this grid lists all 17
-            catalogue rows, including SIX separate PPF cards (three body types x full and
-            partial). Someone who simply wants PPF has to know which body type maps to
-            their car before they can see a price. /ppf asks that question properly.
-
-            Deliberately a small list above the grid, not a replacement for it: the 17 cards
-            and their /service/:slug pages are indexed and stay exactly as they are.
-          */}
-          <nav className="sv-forks" aria-label="Popular services">
-            <h2 className="sv-label">Book by service</h2>
-            <ul>
-              {[
-                { href: "/ceramic-coating/car", label: "Ceramic Coating", sub: "For your car" },
-                { href: "/ceramic-coating/bike", label: "Ceramic Coating", sub: "For your motorcycle" },
-                { href: "/ppf", label: "Paint Protection Film", sub: "Hatchback, sedan or SUV" },
-              ].map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="sv-fork"
-                    data-testid={`link-fork-${item.href.replace(/\//g, "-").replace(/^-/, "")}`}
-                  >
-                    <span className="sv-fork-name">{item.label}</span>
-                    <span className="sv-fork-sub">{item.sub}</span>
-                    <ArrowUpRight className="sv-fork-arrow" aria-hidden="true" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          {/* The "Book by service" row that used to sit here is gone (2026-09-24): it duplicated the PPF
+              and ceramic entries in the list below and pointed at the same pages. */}
 
           {isLoading ? (
             <div className="sv-grid">

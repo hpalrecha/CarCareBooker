@@ -428,7 +428,7 @@ export default function AdminCampaigns() {
 
       {/* ---------------- create / edit ---------------- */}
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent className="bg-dark-gray border-medium-gray max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="admin-x admin-dialog bg-dark-gray border-medium-gray max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-neon-green">
               {editing ? "Edit campaign" : "New campaign"}
@@ -643,7 +643,7 @@ export default function AdminCampaigns() {
           confirmed — and if the server then reports a conflict, nothing is changed and the
           conflicting campaign is named. */}
       <Dialog open={confirming !== null} onOpenChange={(open) => !open && setConfirming(null)}>
-        <DialogContent className="bg-dark-gray border-medium-gray">
+        <DialogContent className="admin-x admin-dialog bg-dark-gray border-medium-gray">
           <DialogHeader>
             <DialogTitle className="text-neon-green flex items-center gap-2">
               <AlertCircle className="h-5 w-5" />
@@ -701,7 +701,7 @@ export default function AdminCampaigns() {
           unaffected — they hold their own snapshot of the identifier, not a link to this
           row. */}
       <Dialog open={deleting !== null} onOpenChange={(open) => !open && setDeleting(null)}>
-        <DialogContent className="bg-dark-gray border-medium-gray">
+        <DialogContent className="admin-x admin-dialog bg-dark-gray border-medium-gray">
           <DialogHeader>
             <DialogTitle className="text-red-400 flex items-center gap-2">
               <AlertCircle className="h-5 w-5" />

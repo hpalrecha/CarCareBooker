@@ -114,7 +114,7 @@ export default function AdminServiceForm({ isOpen, onClose, editingService }: Ad
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg bg-dark-gray text-white border-medium-gray">
+      <DialogContent className="admin-x admin-dialog max-w-lg bg-dark-gray text-white border-medium-gray">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold gradient-text" data-testid="text-service-form-title">
             {editingService ? `Edit Service: ${editingService.title}` : "Create New Service"}

@@ -56,6 +56,7 @@ export function groupPpf<T extends GroupableService>(services: T[]): (T | Listed
     duration: 0,
     images: lead.images,
     fromPrice: true,
+    href: "/services/paint-protection-film-bangalore",
   };
   const out: (T | ListedService)[] = [];
   let placed = false;

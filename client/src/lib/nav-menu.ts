@@ -29,18 +29,17 @@ export interface NavColumn {
 
 export const SERVICES_COLUMNS: NavColumn[] = [
   {
-    // Individual service links removed — the overview page (Explore tabs, see
-    // seo-service-page.tsx) already lists every variant with real pricing/images, so this
-    // column just points straight at it instead of duplicating the list here.
+    // ONE current page per service (2026-09-24): the same redesigned pages the /services catalogue
+    // opens. The older /services/:seoSlug guide pages are no longer linked from the menus.
     heading: "Ceramic Coating",
     links: [
-      { label: "Ceramic coating overview", href: "/services/ceramic-coating-bangalore" },
+      { label: "Ceramic coating", href: "/services/ceramic-coating-bangalore" },
     ],
   },
   {
     heading: "Paint Protection Film",
     links: [
-      { label: "PPF overview", href: "/services/paint-protection-film-bangalore" },
+      { label: "Paint protection film", href: "/services/paint-protection-film-bangalore" },
     ],
   },
   {
@@ -57,10 +56,7 @@ export const SERVICES_COLUMNS: NavColumn[] = [
     ],
   },
   {
-    // The three prepaid/one-time wash and maintenance products — previously reachable only
-    // by browsing /services, with no dedicated nav entry (Annual Maintenance Package used
-    // to sit under Detailing, which is where it least belongs). Ordered by commitment:
-    // one-time, then wash-only for a year, then the fuller wash+detailing year plan.
+    // The three prepaid/one-time wash and maintenance products, ordered by commitment.
     heading: "Packages",
     links: [
       { label: "Premium Car Wash Special", href: "/service/premium-car-wash-special" },
@@ -93,31 +89,29 @@ export interface ProductBrand {
 }
 
 export const PRODUCT_BRANDS: ProductBrand[] = [
-  // By request (2026-09-23): the brand card now sends the visitor to the
-  // manufacturer's own real site — verified official domains, not guessed — rather
-  // than P91's own service page for the film/coating.
+  // 2026-09-24: each brand has its own page on this site (pages/brand-page.tsx). The manufacturer's
+  // site is linked from that page, not from here. Benefit points come from the manufacturer's own
+  // site or from wording P91 already publishes (see lib/brand-pages.ts).
   {
     name: "STEK",
-    tagline: "Paint protection film — self-healing, matte & gloss",
-    line: "Paint protection film, fitted in our Adugodi studio.",
-    points: ["Gloss & matte finishes", "Self-healing film", "Written manufacturer warranty"],
-    href: "https://stek-india.in/",
-    external: true,
+    tagline: "Paint protection film and window film",
+    line: "Paint protection film and sun-control film, fitted in our Adugodi studio.",
+    points: ["Gloss & matte finishes", "Self-healing film", "PPF and sun-control films"],
+    href: "/products/stek",
   },
   {
     name: "Nasiol",
-    tagline: "Ceramic coating — long-term gloss & hydrophobic protection",
-    line: "Nano-ceramic coating technology from Turkey.",
-    points: ["Long-term gloss", "Hydrophobic protection", "Written manufacturer warranty"],
-    href: "https://www.nasiol.in/",
-    external: true,
+    tagline: "Nano-ceramic coating from Turkey",
+    line: "Nano-ceramic coating from Turkey, applied in our Adugodi studio.",
+    points: ["Water & stain repellent", "Scratch, UV & chemical resistant", "Easy to keep clean"],
+    href: "/products/nasiol",
   },
   {
     name: "P91 Premium PPF",
-    tagline: "Our own PPF line, fitted and warranty-backed in-studio",
-    line: "Our own PPF line, fitted in-studio.",
-    points: ["Hatchback, sedan and SUV packages", "Self-healing film", "Warranty-backed, in-studio"],
-    href: "/service/ppf-suv",
+    tagline: "Our own PPF line, fitted in-studio",
+    line: "Our own paint protection film line, fitted in-studio.",
+    points: ["Hatchback, sedan & SUV packages", "Self-healing film", "Fitted and warranty-backed"],
+    href: "/products/p91-premium-ppf",
   },
 ];
 

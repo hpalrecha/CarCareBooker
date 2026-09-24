@@ -8,7 +8,7 @@ import { ImageWithFallback } from "@/components/image-with-fallback";
 import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canonical-services";
-import { GUIDE_IMAGES } from "@/lib/real-service-images";
+import { GUIDE_IMAGES, GUIDE_LAYOUT } from "@/lib/real-service-images";
 import ParallaxFrame from "@/components/redesign/parallax-frame";
 import { useCinematic } from "@/hooks/use-cinematic";
 import { getSeoPage } from "@/lib/seo-pages";
@@ -91,7 +91,8 @@ export default function SeoServicePage() {
   // Sharp pictures chosen per guide (lib/real-service-images.ts), falling back to the linked
   // service's own image only for a guide that has none listed.
   const guideImages = GUIDE_IMAGES[page.slug];
-  const heroImage = guideImages?.hero ?? resolveServiceImage(primary);
+  const layout = GUIDE_LAYOUT[page.slug];
+  const heroImage = (guideImages ? guideImages.hero : resolveServiceImage(primary)) || undefined;
   const heroAlt = guideImages?.illustrative
     ? `${page.crumb} (illustrative image)`
     : `${page.crumb} at the P91 Car Care studio in Adugodi, Bangalore`;
@@ -179,7 +180,7 @@ export default function SeoServicePage() {
 
   return (
     <div className="p91x min-h-screen">
-      <SiteHeader overHero />
+      <SiteHeader overHero={!layout} />
 
       {/* Hero: XPEL guide-page layout by request — full-bleed photo, header floating
           over it, a breadcrumb pill, one bold uppercase title. The lede moves to its
@@ -188,6 +189,30 @@ export default function SeoServicePage() {
           rather than stacking both onto the photo. Distinct classes from blog-post.tsx's
           .article-h1/.article-lede/.article-hero — those stay exactly as they are, this
           hero only applies to the four /services/:seoSlug guides. */}
+      {layout ? (
+        // Framed hero (see GUIDE_LAYOUT): the title block and, where there is one, a framed picture.
+        <section className={`seo-alt seo-alt--${layout}`} data-testid="section-seo-hero">
+          <div className="wrap seo-alt-grid">
+            <div className="seo-alt-copy" data-cine="rise">
+              <span className="seo-crumb" data-testid="crumb-seo-hero">
+                Services <ChevronRight className="i" aria-hidden="true" /> {page.crumb}
+              </span>
+              <h1 className="seo-hero-h1" data-testid="text-seo-h1">{page.h1}</h1>
+            </div>
+            {heroImage && (
+              <ParallaxFrame className="seo-alt-figure" strength={0.08} cine="frame">
+                <ImageWithFallback
+                  src={heroImage}
+                  alt={heroAlt}
+                  sizes="(min-width: 861px) 46vw, 92vw"
+                  priority
+                  data-testid="img-seo-hero"
+                />
+              </ParallaxFrame>
+            )}
+          </div>
+        </section>
+      ) : (
       <ParallaxFrame as="section" className="seo-hero" strength={0.1} cine="zoom">
         {heroImage && (
           <ImageWithFallback
@@ -207,6 +232,7 @@ export default function SeoServicePage() {
           <h1 className="seo-hero-h1" data-testid="text-seo-h1">{page.h1}</h1>
         </div>
       </ParallaxFrame>
+      )}
 
       <section className="section" style={{ paddingBottom: 0 }}>
         <div className="wrap narrow">
@@ -328,7 +354,7 @@ export default function SeoServicePage() {
 
       <section className="section seo-collage-section" data-testid="section-seo-collage">
         <div className="wrap">
-          <div className={"guide-collage" + (collageImages.length === 0 ? " is-text-only" : "")}>
+          <div className={"guide-collage" + (collageImages.length === 0 ? " is-text-only" : "") + (layout === "split-dark" ? " is-flipped" : "")}>
             {collageImages.length > 0 && (
               <div className="guide-collage-grid">
                 {collageImages.slice(0, 2).map((src) => (

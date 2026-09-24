@@ -25,6 +25,18 @@
  * images. To use a different photo, change it HERE.
  */
 
+// Studio delivery stills of real customer cars (the studio's own Instagram stories, cropped to the
+// car: overlay captions and readable number plates cut out). Luxury / premium vehicles first.
+const LUX = {
+  rangeRover: "/attached_assets/gallery/p91-lux-range-rover-evoque.webp",
+  mercedes: "/attached_assets/gallery/p91-lux-mercedes-gle.webp",
+  gtr: "/attached_assets/gallery/p91-lux-nissan-gtr.webp",
+  innova: "/attached_assets/gallery/p91-lux-innova-hycross.webp",
+  xuv: "/attached_assets/gallery/p91-lux-xuv700.webp",
+  bmw: "/attached_assets/gallery/p91-lux-bmw-3-series.webp",
+  vellfire: "/attached_assets/gallery/p91-lux-vellfire.webp",
+};
+
 const PPF_FITTING = "/attached_assets/gallery/p91-ppf-fitting.webp";
 const PPF_FILM_LIFT = "/attached_assets/gallery/p91-ppf-film-lift.webp";
 const PPF_EDGE_TRIM = "/attached_assets/gallery/p91-ppf-edge-trim.webp";
@@ -33,9 +45,9 @@ const PPF_EDGE_TRIM = "/attached_assets/gallery/p91-ppf-edge-trim.webp";
 // differ, and the same body type differs across tiers — the most variety the real assets allow.
 // More PPF photographs would let these stop repeating; see the hand-off notes.
 const PPF_ROTATION: Record<string, string[]> = {
-  a: [PPF_FILM_LIFT, PPF_EDGE_TRIM, PPF_FITTING],
-  b: [PPF_EDGE_TRIM, PPF_FITTING, PPF_FILM_LIFT],
-  c: [PPF_FITTING, PPF_FILM_LIFT, PPF_EDGE_TRIM],
+  a: [LUX.rangeRover, PPF_FILM_LIFT, PPF_EDGE_TRIM, PPF_FITTING],
+  b: [LUX.gtr, PPF_EDGE_TRIM, PPF_FITTING, PPF_FILM_LIFT],
+  c: [LUX.vellfire, PPF_FITTING, PPF_FILM_LIFT, PPF_EDGE_TRIM],
 };
 
 export const REAL_SERVICE_IMAGES: Record<string, string[]> = {
@@ -52,6 +64,7 @@ export const REAL_SERVICE_IMAGES: Record<string, string[]> = {
 
   // ---- Ceramic ----
   "1-year-ceramic-coating": [
+    LUX.mercedes,
     "/attached_assets/gallery/p91-ceramic-gloss-wipe.webp",
     "/attached_assets/gallery/p91-ceramic-door-finish.webp",
     "/attached_assets/gallery/p91-ceramic-hood-wipe.webp",
@@ -67,6 +80,7 @@ export const REAL_SERVICE_IMAGES: Record<string, string[]> = {
   // (attached_assets/reels/stek-suncontrol-films-hero.mp4), handheld shop footage with the
   // studio's watermark. Three different stills per page, none shared between the two pages.
   "stek-suncontrol-films": [
+    LUX.innova,
     "/attached_assets/gallery/p91-stek-film-squeegee.webp",
     "/attached_assets/gallery/p91-stek-heat-glove.webp",
     "/attached_assets/gallery/p91-stek-blade-trim.webp",
@@ -79,50 +93,27 @@ export const REAL_SERVICE_IMAGES: Record<string, string[]> = {
 };
 
 /**
- * Services with NO authentic photograph (2026-09-24, by request): they use the project's
- * realistic AI renders, flagged in ILLUSTRATIVE_SLUGS so their alt text says "illustrative"
- * rather than "at the P91 studio". Each gets THREE different renders (hero, then the overview
- * picture and the slideshow), so no service page has an empty half or shows one picture twice.
- * The renders are shared across services because there are only a handful; that repetition is
- * across pages, never within one. Replace an entry here as soon as a real photograph exists.
+ * Services with NO authentic photograph. Since 2026-09-24 (premium/real-image pass) they show NO
+ * picture: no AI render, no stock, no third-party image — a typographic layout instead (a depth panel
+ * on the /services card, a text-led hero and overview). An entry here overrides whatever image the
+ * database row stores; an empty list means "nothing to show". Add real photographs here as they exist.
  */
-const AI = {
-  exterior: "/attached_assets/services/exterior-detailing-hard-water-spot-removal.webp",
-  polishing: "/attached_assets/services/car-polishing.webp",
-  maintenance: "/attached_assets/services/annual-maintenance-package.webp",
-  interior: "/attached_assets/services/interior-detailing-service.webp",
-  headlight: "/attached_assets/services/headlight-restoration-both-lights.webp",
-  glassCoating: "/attached_assets/services/windshield-glass-coating.webp",
-  glassPolishing: "/attached_assets/services/windshield-glass-polishing.webp",
-  bike: "/attached_assets/services/bike-ceramic-coating-1-year.webp",
-  carCeramic: "/attached_assets/services/car-ceramic-coating-1-year.webp",
-};
 export const ILLUSTRATIVE_IMAGES: Record<string, string[]> = {
-  "premium-car-wash-special": [AI.exterior, AI.polishing, AI.maintenance],
-  "annual-car-wash-package": [AI.polishing, AI.maintenance, AI.exterior],
-  "annual-maintenance-package": [AI.maintenance, AI.polishing, AI.interior],
-  "headlight-restoration-both": [AI.headlight, AI.glassPolishing, AI.exterior],
-  "interior-detailing-service": [AI.interior, AI.maintenance, AI.polishing],
-  "windshield-glass-coating-new": [AI.glassCoating, AI.glassPolishing, AI.headlight],
-  "windshield-glass-polishing": [AI.glassPolishing, AI.glassCoating, AI.polishing],
-  "1-year-bike-ceramic-coating": [AI.bike, AI.carCeramic, AI.polishing],
-  "premium-wash-detail": [AI.exterior, AI.polishing, AI.maintenance],
+  "premium-car-wash-special": [],
+  "annual-car-wash-package": [],
+  "annual-maintenance-package": [],
+  "headlight-restoration-both": [],
+  "interior-detailing-service": [],
+  "windshield-glass-coating-new": [],
+  "windshield-glass-polishing": [],
+  "1-year-bike-ceramic-coating": [],
+  "premium-wash-detail": [],
 };
 
 /**
  * Services whose picture is an AI render, not a photograph of P91 work. Their alt text says so.
  */
-export const ILLUSTRATIVE_SLUGS = new Set<string>([
-  "1-year-bike-ceramic-coating",
-  "interior-detailing-service",
-  "windshield-glass-coating-new",
-  "windshield-glass-polishing",
-  "headlight-restoration-both",
-  "annual-maintenance-package",
-  "annual-car-wash-package",
-  "premium-car-wash-special",
-  "premium-wash-detail",
-]);
+export const ILLUSTRATIVE_SLUGS = new Set<string>([]); // no AI renders are shown any more
 
 /** Alt text for a service picture: honest about what it is. */
 export function serviceImageAlt(service: { title: string; slug?: string }): string {
@@ -138,26 +129,37 @@ export function serviceImageAlt(service: { title: string; slug?: string }): stri
  * they read as blurry). Real studio photographs where a suitable sharp one exists; the realistic
  * AI render (flagged `illustrative`) where none does.
  */
-const SHARP = {
-  suvStekWall: "/attached_assets/unnamed_1765537193657.webp", // black SUV, STEK wall, 3420px
-  blueHatch: "/attached_assets/unnamed_(1)_1765537193655.webp", // dark blue hatchback, 2616px
-  orangeAfter: "/attached_assets/about/p91-studio-nasiol-floor-orange-hyundai.webp", // finished orange Hyundai
-  vellfire: "/attached_assets/gallery/p91-ppf-vellfire-handover.webp", // the studio's own story frame
+/**
+ * Each guide page gets its own hero composition, so the four pages no longer look like one template:
+ *   split-light  white ground, picture left in a frame, large title right      (ceramic)
+ *   split-dark   charcoal ground, title left, picture right in a frame          (PPF)
+ *   banner       light ground, centred title, one wide picture beneath          (sun-control film)
+ *   text         no picture: a large centred title on a soft green ground       (interior)
+ * A guide with no entry keeps the original full-bleed photo hero. Framing the picture, rather than
+ * stretching it edge to edge, also stops these 1000px-wide photos looking blurry on a wide screen.
+ */
+export type GuideLayout = "split-light" | "split-dark" | "banner" | "text";
+export const GUIDE_LAYOUT: Record<string, GuideLayout> = {
+  "ceramic-coating-bangalore": "split-light",
+  "paint-protection-film-bangalore": "split-dark",
+  "glass-sun-control-film-bangalore": "banner",
+  "interior-detailing-bangalore": "text",
 };
+
 export const GUIDE_IMAGES: Record<string, { hero: string; collage: string[]; illustrative?: boolean }> = {
-  "ceramic-coating-bangalore": { hero: SHARP.blueHatch, collage: [SHARP.orangeAfter, SHARP.suvStekWall] },
-  "paint-protection-film-bangalore": { hero: SHARP.suvStekWall, collage: [SHARP.vellfire, SHARP.blueHatch] },
-  "interior-detailing-bangalore": { hero: "/attached_assets/services/interior-detailing-service.webp", collage: [], illustrative: true },
-  // Hero is the AI render (flagged); the collage under it is the studio's own window-film footage.
+  "ceramic-coating-bangalore": { hero: LUX.mercedes, collage: [LUX.rangeRover, LUX.innova] },
+  "paint-protection-film-bangalore": { hero: LUX.xuv, collage: [LUX.gtr, LUX.vellfire] },
+  // Hero: the studio's STEK delivery of a Vellfire (sharper than the BMW frame); collage: its window-film footage.
   "glass-sun-control-film-bangalore": {
-    hero: "/attached_assets/services/windshield-glass-coating.webp",
+    hero: "/attached_assets/gallery/p91-lux-vellfire-wide.webp",
     collage: [
       "/attached_assets/gallery/p91-stek-film-squeegee.webp",
       "/attached_assets/gallery/p91-stek-heat-glove.webp",
       "/attached_assets/gallery/p91-stek-film-edge.webp",
     ],
-    illustrative: true,
   },
+  // No real interior photograph: text only.
+  "interior-detailing-bangalore": { hero: "", collage: [] },
 };
 
 /**

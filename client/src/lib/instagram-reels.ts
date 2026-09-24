@@ -164,6 +164,16 @@ export const REELS_FOR_PPF_CERAMIC_PAGE: InstagramReel[] = [
   REELS.bikePpf,
 ];
 
+/**
+ * Every reel the studio has posted (the ones in REELS), most-liked first. Instagram does not publish
+ * view counts, so likes (read from each reel's public page, 2026-09-24) decide the order; the newest
+ * first among equals. Used by the /gallery page.
+ */
+const LIKES_ORDER = ["DbS-jwvgYy1","Dc8N-qdDiLm","DZexmOKmSCs","DZCrPxNPP4B","DclQq-Pijvy","DaNVqy5iK1y","DciryBCjLvC","DbvL3SsjWHe","DaxYiFAgCEA","DdGUDrkD577","Dca9mVzAN_9","DdBlZC_mxWJ","DcyIoXDj72u","DdGu4eKDRw2","Dc3SH_2EtWO"];
+export const GALLERY_REELS: InstagramReel[] = LIKES_ORDER
+  .map((id) => Object.values(REELS).find((r) => r.id === id))
+  .filter((r): r is InstagramReel => Boolean(r));
+
 export function reelUrl(reel: InstagramReel): string {
   return `https://www.instagram.com/reel/${reel.id}/`;
 }
