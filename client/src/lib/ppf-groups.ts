@@ -1,17 +1,18 @@
 /**
- * /services lists PPF as two entries, not nine.
+ * /services lists PPF as one entry, not nine.
  *
  * The catalogue holds nine separate PPF rows (Basic, Premium and Partial, each for hatchback,
  * sedan and SUV). Listing them all made the catalogue one long run of near-identical cards. The
- * /services page now shows ONE "PPF for cars" card, and one "PPF for bikes" card; opening the car
- * card lands on a PPF service page whose tab row already lists all nine packages, so nothing is
- * lost — it is just one click further in.
+ * /services page now shows ONE "PPF for cars" card; opening it lands on a PPF service page whose
+ * tab row already lists all nine packages, so nothing is lost — it is just one click further in.
  *
  * Presentation only. The nine records are untouched and still served, priced, booked and linked
- * (/service/:slug) exactly as before; this only decides what the /services LIST shows. The car
- * card's price is the lowest live price among the nine rows ("from"), computed from the same
- * records, never typed in. There is no bike PPF row in the catalogue, so the bike card carries no
- * price and sends the visitor to the contact page to ask.
+ * (/service/:slug) exactly as before; this only decides what the /services LIST shows. The card's
+ * price is the lowest live price among the nine rows ("from"), computed from the same records.
+ *
+ * A "PPF for bikes" card used to sit beside it (no price, linking to /contact). It was removed
+ * 2026-09-24 by request until a bike PPF service exists; the studio's bike PPF reel is shown on
+ * the bike ceramic page in the meantime (lib/instagram-reels.ts).
  */
 export interface GroupableService {
   id: string;
@@ -56,24 +57,12 @@ export function groupPpf<T extends GroupableService>(services: T[]): (T | Listed
     images: lead.images,
     fromPrice: true,
   };
-  const bike: ListedService = {
-    id: "group-ppf-bike",
-    title: "Paint Protection Film (PPF) for Bikes",
-    slug: "ppf-bike",
-    description: "Paint protection film for motorcycles. Ask the studio for a quote.",
-    price: "",
-    duration: 0,
-    images: [],
-    href: "/contact",
-    priceNote: "Ask for a quote",
-  };
-
   const out: (T | ListedService)[] = [];
   let placed = false;
   for (const s of services) {
     if (PPF_SLUG.test(s.slug)) {
       if (!placed) {
-        out.push(car, bike);
+        out.push(car);
         placed = true;
       }
       continue;
