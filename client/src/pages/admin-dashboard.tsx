@@ -366,6 +366,71 @@ function BusinessHoursTab() {
   );
 }
 
+function ContactMessagesTab() {
+  const { toast } = useToast();
+  const { data: messages = [], isLoading } = useQuery<any[]>({ queryKey: ["/api/contact-messages"] });
+  const setStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const response = await apiRequest("PATCH", `/api/contact-messages/${id}/status`, { status });
+      return response.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/contact-messages"] }),
+    onError: () => toast({ title: "Failed to update", description: "Could not change the status.", variant: "destructive" }),
+  });
+  const alertColor = (s: string) =>
+    s === "sent" ? "bg-green-900 text-green-300" : s === "failed" ? "bg-red-900 text-red-300" : "bg-gray-900 text-gray-300";
+  return (
+    <div className="space-y-6">
+      <Card className="glass-effect border-[var(--medium-gray)]">
+        <CardHeader>
+          <CardTitle className="text-xl text-[var(--neon-green)]">Website messages</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8 text-gray-400">Loading messages...</div>
+          ) : messages.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              <p>No messages yet.</p>
+              <p className="text-sm mt-2">Messages sent from the Contact page appear here.</p>
+            </div>
+          ) : (
+            <div className="space-y-4" data-testid="contact-messages-list">
+              {messages.map((m: any) => (
+                <div key={m.id} className="rounded-lg border border-gray-700 p-4" data-testid={`contact-message-${m.id}`}>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="font-medium text-white">
+                      {m.name} <span className="text-sm text-gray-400">· {m.phone} · {m.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className={`rounded px-2 py-1 ${alertColor(m.whatsappAlertStatus)}`} title={m.whatsappAlertError ?? ""}>
+                        WhatsApp alert: {m.whatsappAlertStatus}
+                      </span>
+                      <select
+                        value={m.status}
+                        onChange={(e) => setStatus.mutate({ id: m.id, status: e.target.value })}
+                        className="rounded border border-gray-600 bg-transparent px-2 py-1 text-gray-200"
+                        aria-label="Message status"
+                      >
+                        <option value="new">new</option>
+                        <option value="read">read</option>
+                        <option value="replied">replied</option>
+                        <option value="closed">closed</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-sm font-semibold text-gray-200">{m.subject}</div>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-gray-300">{m.message}</p>
+                  <div className="mt-2 text-xs text-gray-500">{new Date(m.createdAt).toLocaleString()}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function PpfLeadsTab() {
   const { toast } = useToast();
   
@@ -1042,6 +1107,14 @@ export default function AdminDashboard() {
               Business Hours
             </Button>
             <Button
+              variant={activeTab === "messages" ? "default" : "ghost"}
+              onClick={() => setActiveTab("messages")}
+              className={activeTab === "messages" ? "bg-neon-green text-[var(--deep-black)]" : "text-gray-400 hover:text-white"}
+              data-testid="tab-messages"
+            >
+              Messages
+            </Button>
+            <Button
               variant={activeTab === "ppf-leads" ? "default" : "ghost"}
               onClick={() => setActiveTab("ppf-leads")}
               className={activeTab === "ppf-leads" ? "bg-neon-green text-[var(--deep-black)]" : "text-gray-400 hover:text-white"}
@@ -1657,6 +1730,7 @@ export default function AdminDashboard() {
           <BusinessHoursTab />
         )}
 
+        {activeTab === "messages" && <ContactMessagesTab />}
         {activeTab === "ppf-leads" && (
           <PpfLeadsTab />
         )}

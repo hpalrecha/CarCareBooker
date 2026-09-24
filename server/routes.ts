@@ -2294,32 +2294,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Contact form submission route
+  // Contact form submission route.
+  //
+  // Saves the message (contact_messages), then alerts the studio on WhatsApp. The message is saved
+  // FIRST and the alert never affects the response: a WhatsApp failure is recorded on the row
+  // (whatsapp_alert_status / whatsapp_alert_error) and shown in the admin "Messages" tab, not shown
+  // to the visitor. If the save itself fails, the full submission is written to the server log as a
+  // last-resort record and the visitor is told to call, instead of being told it was sent.
   const contactFormSchema = z.object({
-    name: z.string().min(2),
-    email: z.string().email(),
-    phone: z.string().min(10),
-    subject: z.string().min(5),
-    message: z.string().min(10),
+    name: z.string().trim().min(2).max(120),
+    email: z.string().trim().email().max(200),
+    phone: z.string().trim().min(10).max(20),
+    subject: z.string().trim().min(5).max(200),
+    message: z.string().trim().min(10).max(4000),
+    // Honeypot: real visitors never see or fill this field.
+    website: z.string().optional(),
   });
 
-  app.post("/api/contact", async (req, res) => {
+  app.post(
+    "/api/contact",
+    rateLimit({
+      bucket: "contact-messages",
+      windowMs: 10 * 60_000,
+      max: 5,
+      message: "You've already sent us a message. We'll get back to you shortly, or call +91 74066 19191.",
+    }),
+    async (req, res) => {
+      const parsed = contactFormSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid contact form data" });
+      }
+      const { website, ...data } = parsed.data;
+      if (website && website.trim() !== "") {
+        console.warn(`[contact] honeypot tripped from ${req.ip} — discarded silently`);
+        return res.json({ message: "Contact form submitted successfully" });
+      }
+
+      let saved;
+      try {
+        saved = await storage.createContactMessage(data);
+      } catch (error) {
+        console.error("[contact] SAVE FAILED — submission follows so it is not lost:", JSON.stringify(data), error);
+        return res.status(500).json({
+          message: "We couldn't save your message. Please call us on +91 74066 19191.",
+        });
+      }
+      console.log(`[contact] saved ${saved.id}`);
+      res.json({ message: "Contact form submitted successfully", id: saved.id });
+
+      // After the response: alert the studio. Never throws into the request.
+      void (async () => {
+        try {
+          const to = process.env.ADMIN_ALERT_PHONE || "917406619191";
+          const text =
+            `New website message\n` +
+            `From: ${data.name}\nPhone: ${data.phone}\nEmail: ${data.email}\n` +
+            `Subject: ${data.subject}\n\n${data.message}`;
+          const result = await whatsappService.sendTextAlert(to, text);
+          await storage.updateContactMessage(saved.id, {
+            whatsappAlertStatus: result.success ? "sent" : "failed",
+            whatsappAlertError: result.success ? null : (result.error ?? "unknown"),
+          });
+        } catch (err) {
+          console.error("[contact] alert error:", err);
+          try {
+            await storage.updateContactMessage(saved.id, { whatsappAlertStatus: "failed", whatsappAlertError: "alert threw" });
+          } catch { /* the message is already saved */ }
+        }
+      })();
+    },
+  );
+
+  // Admin: list and update contact messages.
+  app.get("/api/contact-messages", authenticateAdmin, async (_req, res) => {
     try {
-      const contactData = contactFormSchema.parse(req.body);
-      
-      // Store contact submission (you can add a contacts table if needed)
-      console.log("Contact form submission:", contactData);
-      
-      // For now, we'll just log the contact form submission
-      // In a real application, you would:
-      // 1. Store it in database
-      // 2. Send email notification to admin
-      // 3. Send auto-reply to customer
-      
-      res.json({ message: "Contact form submitted successfully" });
+      res.json(await storage.getAllContactMessages());
     } catch (error) {
-      console.error("Contact form error:", error);
-      res.status(400).json({ message: "Invalid contact form data" });
+      console.error("List contact messages error:", error);
+      res.status(500).json({ message: "Failed to load messages" });
+    }
+  });
+
+  app.patch("/api/contact-messages/:id/status", authenticateAdmin, async (req, res) => {
+    try {
+      const status = String(req.body?.status ?? "");
+      if (!["new", "read", "replied", "closed"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      const row = await storage.updateContactMessage(req.params.id, { status });
+      if (!row) return res.status(404).json({ message: "Message not found" });
+      res.json(row);
+    } catch (error) {
+      console.error("Update contact message error:", error);
+      res.status(500).json({ message: "Failed to update message" });
     }
   });
 

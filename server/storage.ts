@@ -6,6 +6,9 @@ import {
   siteSettings,
   blackoutDates,
   ppfLeads,
+  contactMessages,
+  type ContactMessage,
+  type InsertContactMessage,
   businessHours,
   campaigns,
   type Admin,
@@ -95,6 +98,9 @@ export interface IStorage {
   deleteCampaign(id: string): Promise<void>;
 
   // PPF leads operations
+  createContactMessage(m: InsertContactMessage): Promise<ContactMessage>;
+  getAllContactMessages(): Promise<ContactMessage[]>;
+  updateContactMessage(id: string, patch: Partial<Pick<ContactMessage, "status" | "whatsappAlertStatus" | "whatsappAlertError">>): Promise<ContactMessage | undefined>;
   getAllPpfLeads(): Promise<PpfLead[]>;
   getPpfLead(id: string): Promise<PpfLead | undefined>;
   createPpfLead(lead: InsertPpfLead): Promise<PpfLead>;
@@ -444,6 +450,23 @@ export class DatabaseStorage implements IStorage {
     // booking or corrupt attribution history — see the schema comment on
     // bookings.campaignIdentifier.
     await db.delete(campaigns).where(eq(campaigns.id, id));
+  }
+
+  async createContactMessage(m: InsertContactMessage): Promise<ContactMessage> {
+    const [row] = await db.insert(contactMessages).values(m).returning();
+    return row;
+  }
+
+  async getAllContactMessages(): Promise<ContactMessage[]> {
+    return await db.select().from(contactMessages).orderBy(desc(contactMessages.createdAt));
+  }
+
+  async updateContactMessage(
+    id: string,
+    patch: Partial<Pick<ContactMessage, "status" | "whatsappAlertStatus" | "whatsappAlertError">>,
+  ): Promise<ContactMessage | undefined> {
+    const [row] = await db.update(contactMessages).set(patch).where(eq(contactMessages.id, id)).returning();
+    return row;
   }
 
   async getAllPpfLeads(): Promise<PpfLead[]> {

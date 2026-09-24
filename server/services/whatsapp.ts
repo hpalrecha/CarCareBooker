@@ -1,7 +1,7 @@
 import { db } from "../db";
 import { whatsappConfig, whatsappTemplates, type WhatsappConfig, type WhatsappTemplate } from "@shared/schema";
 import { eq } from "drizzle-orm";
-import { normalizeIndianMobile } from "../lib/phone";
+import { normalizeIndianMobile, maskPhoneDigits } from "../lib/phone";
 
 interface WhatsAppMessage {
   messaging_product: "whatsapp";
@@ -221,6 +221,41 @@ export class WhatsAppService {
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       console.error(`Failed to send WhatsApp message to=${maskPhone(message.to)}: ${msg}`);
+      return { success: false, error: msg.slice(0, 200) };
+    }
+  }
+
+  /**
+   * Plain-text WhatsApp message to the studio (used for contact-form alerts).
+   *
+   * LIMIT: WhatsApp only delivers a free-form (non-template) message to a number that has messaged
+   * this business number within the last 24 hours. Outside that window Meta rejects it, and this
+   * returns { success: false } with Meta's reason. There is no approved template for contact alerts;
+   * add one in Meta Business Manager and switch this to it for guaranteed delivery.
+   */
+  async sendTextAlert(to: string, body: string): Promise<WhatsAppSendResult> {
+    const config = await this.getConfig();
+    if (!config) return { success: false, error: "WhatsApp not configured" };
+    const norm = normalizeIndianMobile(to);
+    if (!norm.ok) return { success: false, error: `invalid_phone: ${norm.error}` };
+    try {
+      const response = await fetch(`https://graph.facebook.com/v18.0/${config.phoneNumberId}/messages`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${config.accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ messaging_product: "whatsapp", to: norm.e164, type: "text", text: { body: body.slice(0, 1000) } }),
+      });
+      const text = await response.text().catch(() => "");
+      if (!response.ok) {
+        let summary = text.slice(0, 200);
+        try { const p = JSON.parse(text); if (p?.error?.message) summary = String(p.error.message).slice(0, 200); } catch { /* non-JSON */ }
+        console.error(`WhatsApp text alert failed to=${maskPhoneDigits(norm.e164)} http=${response.status} msg="${summary}"`);
+        return { success: false, httpStatus: response.status, error: summary };
+      }
+      let messageId: string | undefined;
+      try { messageId = JSON.parse(text)?.messages?.[0]?.id; } catch { /* ignore */ }
+      return { success: true, messageId, httpStatus: response.status };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
       return { success: false, error: msg.slice(0, 200) };
     }
   }

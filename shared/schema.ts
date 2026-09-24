@@ -310,6 +310,21 @@ export const campaigns = pgTable(
   ],
 );
 
+// Messages from the /contact page's "Send us a message" form.
+export const contactMessages = pgTable("contact_messages", {
+  id: varchar("id").primaryKey().notNull().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  email: varchar("email").notNull(),
+  phone: varchar("phone").notNull(),
+  subject: varchar("subject").notNull(),
+  message: text("message").notNull(),
+  status: varchar("status").default("new").notNull(), // new, read, replied, closed
+  // Outcome of the WhatsApp alert to the studio: pending | sent | failed | skipped
+  whatsappAlertStatus: varchar("whatsapp_alert_status").default("pending").notNull(),
+  whatsappAlertError: text("whatsapp_alert_error"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // PPF & Ceramic Coating leads
 export const ppfLeads = pgTable("ppf_leads", {
   id: varchar("id").primaryKey().notNull().default(sql`gen_random_uuid()`),
@@ -369,6 +384,8 @@ export type InsertBlackoutDate = typeof blackoutDates.$inferInsert;
 export type BusinessHour = typeof businessHours.$inferSelect;
 export type InsertBusinessHour = typeof businessHours.$inferInsert;
 
+export type ContactMessage = typeof contactMessages.$inferSelect;
+export type InsertContactMessage = typeof contactMessages.$inferInsert;
 export type PpfLead = typeof ppfLeads.$inferSelect;
 export type InsertPpfLead = typeof ppfLeads.$inferInsert;
 
