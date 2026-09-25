@@ -27,8 +27,6 @@ export const FESTIVAL_OFFER = {
   callHref: "tel:+917406619191",
 };
 
-const SEEN_KEY = "p91-festival-offer-seen";
-
 export const festivalOfferActive = (now = new Date()) => now.getTime() <= FESTIVAL_OFFER.endsAt.getTime();
 
 /**
@@ -115,28 +113,44 @@ export function FestivalOfferBanner() {
   );
 }
 
-/** Opens once, a couple of seconds after arrival; stays shut for the rest of the visit once closed. */
+/**
+ * Opens on every full page load (including a refresh), a couple of seconds after arrival, and not
+ * again while the visitor moves between pages in the app. Once closed, a small sticky chip (bottom-left, opposite the WhatsApp button) keeps the offer one tap
+ * away and reopens the popup, so closing it never loses the offer.
+ */
 export function FestivalOfferPopup() {
   const [open, setOpen] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const { parts } = useOfferCountdown();
   useEffect(() => {
     if (!festivalOfferActive()) return;
-    try {
-      if (sessionStorage.getItem(SEEN_KEY)) return;
-    } catch {}
     const t = window.setTimeout(() => setOpen(true), 2500);
     return () => window.clearTimeout(t);
   }, []);
   const close = (next: boolean) => {
     setOpen(next);
-    if (!next) {
-      try {
-        sessionStorage.setItem(SEEN_KEY, "1");
-      } catch {}
-    }
+    if (!next) setDismissed(true);
   };
   if (!festivalOfferActive()) return null;
   const o = FESTIVAL_OFFER;
+  const left = parts[0].value > 0 ? `${parts[0].value}d left` : `${parts[1].value}h left`;
   return (
+    <>
+    {dismissed && !open && (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={`Open the ${o.title}, ends ${o.validTill}`}
+        data-testid="festival-offer-chip"
+        className="fixed bottom-[18px] left-3 z-[44] flex items-center gap-2 rounded-full border border-[#ffd27a]/50 bg-[#120a26]/95 py-2 pl-2.5 pr-3.5 text-left text-white shadow-lg backdrop-blur transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#ffd27a]"
+      >
+        <span aria-hidden="true" className="text-lg leading-none">🪔</span>
+        <span className="grid leading-tight">
+          <span className="text-[13px] font-semibold">Diwali offer</span>
+          <span className="text-[11px] text-[#ffd27a]">{left}</span>
+        </span>
+      </button>
+    )}
     <Dialog open={open} onOpenChange={close}>
       <DialogContent
         className="w-[calc(100vw-1.5rem)] max-w-[440px] overflow-hidden rounded-2xl border-0 bg-[#0b0f0d] p-0"
@@ -168,5 +182,6 @@ export function FestivalOfferPopup() {
         </div>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
