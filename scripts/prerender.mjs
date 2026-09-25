@@ -44,13 +44,13 @@ const OG_IMAGE = "/Car Care (4)_1753951564515.png";
 /**
  * The homepage hero/LCP photo, preloaded ONLY on "/" — this same set of widths is what
  * ImageWithFallback (client/src/components/image-with-fallback.tsx) generates into the
- * <picture>'s AVIF <source> for "services/exterior-detailing-hard-water-spot-removal",
+ * <picture>'s AVIF <source> for "exterior-hero-poster" (a colour-matched frame of the hero video),
  * the fallback client/src/pages/home.tsx renders before /api/services answers. Kept in
  * sync by hand (no shared module — this is a Node build script, the other is browser
  * code) rather than duplicated blindly: if the hero photo or its widths ever change,
  * update both, or the browser preloads a variant the <picture> does not end up using.
  */
-const HERO_IMAGE_BASE = "services/exterior-detailing-hard-water-spot-removal";
+const HERO_IMAGE_BASE = "exterior-hero-poster";
 const HERO_IMAGE_WIDTHS = [96, 320, 640, 1280, 1600];
 function heroPreloadTag() {
   const srcset = HERO_IMAGE_WIDTHS.map(

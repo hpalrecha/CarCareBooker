@@ -1,0 +1,172 @@
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+
+/**
+ * The Dussehra & Diwali "De Dhana Dhan" offer, exactly as the studio posted it on Instagram and
+ * Facebook: free dash cam, sun film, sound damping and ceramic coating with a premium-brand PPF
+ * installation, slot booking at ₹99, valid till 8 Nov 2026. Everything below is that post's
+ * wording. The block and the pop-up both stop rendering once the end date has passed, so the site
+ * never advertises an expired offer.
+ */
+export const FESTIVAL_OFFER = {
+  image: "/attached_assets/offers/de-dhana-dhan-diwali-2026.webp",
+  alt: "Happy Dussehra and Diwali, De Dhana Dhan offer from P91 Car Care: free dash cam, sun film, sound damping and ceramic coating on premium brand paint protection film installation. Book your slot at just ₹99. Valid till 8th November 2026. Terms and conditions apply.",
+  title: "De Dhana Dhan offer",
+  kicker: "Dussehra & Diwali",
+  freebies: ["Dash cam", "Sun film", "Sound damping", "Ceramic coating"],
+  condition: "Free with any premium brand paint protection film installation.",
+  slot: "Book your slot for just ₹99.",
+  validTill: "8 November 2026",
+  /** End of 8 Nov 2026, India time. */
+  endsAt: new Date("2026-11-08T23:59:59+05:30"),
+  bookHref: "/ppf",
+  whatsappHref:
+    "https://wa.me/917406619191?text=" +
+    encodeURIComponent("Hi P91, I saw the Dussehra & Diwali De Dhana Dhan offer and want to book a slot."),
+  callHref: "tel:+917406619191",
+};
+
+const SEEN_KEY = "p91-festival-offer-seen";
+
+export const festivalOfferActive = (now = new Date()) => now.getTime() <= FESTIVAL_OFFER.endsAt.getTime();
+
+/**
+ * Time left until the offer ends. The clock is the server's, not the visitor's: /api/campaigns/active
+ * reports serverNow, and the gap to the browser clock is applied, so a phone with a wrong date still
+ * shows the true time left. If that request fails the browser clock is used.
+ */
+function useOfferCountdown() {
+  const { data } = useQuery<{ serverNow?: string }>({
+    queryKey: ["/api/campaigns/active?landingPage=/gallery"],
+    staleTime: Infinity,
+    retry: false,
+  });
+  const [skew, setSkew] = useState(0);
+  useEffect(() => {
+    const server = data?.serverNow ? Date.parse(data.serverNow) : NaN;
+    if (!Number.isNaN(server)) setSkew(server - Date.now());
+  }, [data]);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(t);
+  }, []);
+  const left = Math.max(0, FESTIVAL_OFFER.endsAt.getTime() - (now + skew));
+  const secs = Math.floor(left / 1000);
+  return {
+    done: left <= 0,
+    parts: [
+      { label: "Days", value: Math.floor(secs / 86400) },
+      { label: "Hours", value: Math.floor((secs % 86400) / 3600) },
+      { label: "Mins", value: Math.floor((secs % 3600) / 60) },
+      { label: "Secs", value: secs % 60 },
+    ],
+  };
+}
+
+function Countdown({ className = "" }: { className?: string }) {
+  const { parts } = useOfferCountdown();
+  return (
+    <div className={"fest-count " + className} role="timer" aria-label={"Offer ends " + FESTIVAL_OFFER.validTill} data-testid="festival-countdown">
+      {parts.map((p) => (
+        <div key={p.label} className="fest-count-cell">
+          <b>{String(p.value).padStart(2, "0")}</b>
+          <span>{p.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** The offer as a page section: poster beside the details. */
+export function FestivalOfferBanner() {
+  const { done } = useOfferCountdown();
+  if (done || !festivalOfferActive()) return null;
+  const o = FESTIVAL_OFFER;
+  return (
+    <section id="festival-offer" className="gl-fest" data-testid="festival-offer">
+      <div className="wrap gl-fest-row">
+        <img src={o.image} alt={o.alt} className="gl-fest-img" width={1080} height={1350} loading="lazy" />
+        <div className="gl-fest-copy">
+          <p className="gl-fest-kicker">{o.kicker} · Limited time</p>
+          <h2>{o.title}</h2>
+          <p className="gl-fest-lead">{o.condition}</p>
+          <p className="gl-fest-ends">Offer ends in</p>
+          <Countdown />
+          <ul className="gl-fest-list">
+            {o.freebies.map((f) => (
+              <li key={f}>
+                <span>Free</span> {f}
+              </li>
+            ))}
+          </ul>
+          <p className="gl-fest-slot">
+            {o.slot} <small>Valid till {o.validTill}. Terms and conditions apply.</small>
+          </p>
+          <div className="gl-cta-row gl-fest-actions">
+            <a href={o.bookHref} className="gl-btn gl-btn-solid">Book this offer</a>
+            <a href={o.whatsappHref} target="_blank" rel="noopener noreferrer" className="gl-btn gl-btn-light">WhatsApp us</a>
+            <a href={o.callHref} className="gl-btn gl-btn-light">Call 74066 19191</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Opens once, a couple of seconds after arrival; stays shut for the rest of the visit once closed. */
+export function FestivalOfferPopup() {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!festivalOfferActive()) return;
+    try {
+      if (sessionStorage.getItem(SEEN_KEY)) return;
+    } catch {}
+    const t = window.setTimeout(() => setOpen(true), 2500);
+    return () => window.clearTimeout(t);
+  }, []);
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) {
+      try {
+        sessionStorage.setItem(SEEN_KEY, "1");
+      } catch {}
+    }
+  };
+  if (!festivalOfferActive()) return null;
+  const o = FESTIVAL_OFFER;
+  return (
+    <Dialog open={open} onOpenChange={close}>
+      <DialogContent
+        className="w-[calc(100vw-1.5rem)] max-w-[440px] overflow-hidden rounded-2xl border-0 bg-[#0b0f0d] p-0"
+        data-testid="festival-offer-popup"
+      >
+        <DialogTitle className="sr-only">{o.title}</DialogTitle>
+        <DialogDescription className="sr-only">{o.alt}</DialogDescription>
+        <img src={o.image} alt={o.alt} className="block max-h-[54vh] w-full object-contain" width={1080} height={1350} />
+        <div className="px-3 pt-3">
+          <p className="mb-1.5 text-center text-xs font-medium uppercase tracking-widest text-[#ffd27a]">Offer ends in</p>
+          <Countdown className="fest-count-sm" />
+        </div>
+        <div className="flex gap-2 p-3">
+          <a
+            href={o.bookHref}
+            className="flex min-h-[46px] flex-1 items-center justify-center rounded-full bg-[#4EB848] px-4 text-sm font-semibold text-white"
+            onClick={() => close(false)}
+          >
+            Book this offer
+          </a>
+          <a
+            href={o.whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex min-h-[46px] flex-1 items-center justify-center rounded-full border border-white/30 px-4 text-sm font-semibold text-white"
+          >
+            WhatsApp us
+          </a>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -1,5 +1,5 @@
 import { useEffect, lazy, Suspense } from "react";
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, Redirect, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { applyClarityRouteGuard } from "@/lib/clarity";
 import { captureAttribution } from "@/lib/attribution";
@@ -10,6 +10,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import NotFound from "@/pages/not-found";
 import ContactFab from "@/components/contact-fab";
+import SitePopups from "@/components/site-popups";
 
 /**
  * Route-level code splitting.
@@ -67,6 +68,9 @@ function Router() {
     <Suspense fallback={<RouteFallback />}>
       <Switch>
         <Route path="/" component={Home} />
+        <Route path="/admin">
+          <Redirect to="/admin/dashboard" />
+        </Route>
         <Route path="/admin/login" component={AdminLogin} />
         <Route path="/admin/dashboard" component={AdminDashboard} />
         <Route path="/admin/whatsapp" component={AdminWhatsApp} />
@@ -172,6 +176,7 @@ function App() {
           {/* Rendered outside <Router> so it persists across every route rather than
               remounting on navigation. It hides itself on /admin. */}
           <ContactFab />
+          <SitePopups />
         </div>
       </TooltipProvider>
     </QueryClientProvider>

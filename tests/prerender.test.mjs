@@ -39,6 +39,7 @@ describe('prerendered metadata matches the page it represents', () => {
   const PAIRS = [
     ['HOME_SEO', 'client/src/pages/home.tsx'],
     ['CONTACT_SEO', 'client/src/pages/contact.tsx'],
+    ['GALLERY_SEO', 'client/src/pages/gallery.tsx'],
     ['SERVICES_SEO', 'client/src/pages/services.tsx'],
     ['PPF_CERAMIC_SEO', 'client/src/pages/ppf-ceramic-landing.tsx'],
   ];

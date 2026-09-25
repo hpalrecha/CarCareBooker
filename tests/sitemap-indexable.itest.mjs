@@ -274,7 +274,21 @@ describe("served HTML: every sitemap URL is indexable, and only those", { skip: 
     for (const bad of ["/nonsense", "/blog/no-such-post", "/services/no-such-page"]) {
       const r = await get(bad);
       assert.ok(isNoindex(r.html), `${bad} must stay noindex`);
+      assert.equal(r.status, 404, `${bad} must return a real 404, not a soft-404 200`);
     }
+  });
+
+  test("client-only routes keep HTTP 200", async () => {
+    for (const ok of ["/admin/login", "/booking-confirmation/abc123", "/products/stek"]) {
+      assert.equal((await get(ok)).status, 200, ok);
+    }
+  });
+
+  test("/gallery is prerendered with its own title", async () => {
+    const r = await get("/gallery");
+    assert.equal(r.status, 200);
+    assert.match(r.html, /<title>Our Work on Instagram/);
+    assert.ok(!isNoindex(r.html));
   });
 
   test("the three campaign landing pages are indexable and carry their own metadata", async () => {

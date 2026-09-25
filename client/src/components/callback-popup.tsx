@@ -28,8 +28,9 @@ export default function CallbackPopup({
   serviceSlug,
   isBikeService,
 }: {
-  serviceTitle: string;
-  serviceSlug: string;
+  /** Omitted on pages that are not about one service: the popup then asks for a call generally. */
+  serviceTitle?: string;
+  serviceSlug?: string;
   isBikeService: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -54,6 +55,7 @@ export default function CallbackPopup({
     timer = setTimeout(attempt, CALLBACK_DELAY_MS);
     return () => clearTimeout(timer);
   }, [serviceSlug]);
+  const slug = serviceSlug ?? "";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -68,12 +70,12 @@ export default function CallbackPopup({
             screen readers. */}
         <DialogTitle className="sr-only">Prefer a call?</DialogTitle>
         <DialogDescription className="sr-only">
-          Leave your number and the studio will call you about {serviceTitle}.
+          Leave your number and the studio will call you{serviceTitle ? ` about ${serviceTitle}` : ""}.
         </DialogDescription>
         <QuoteForm
           serviceTitle={serviceTitle}
           serviceSlug={serviceSlug}
-          serviceInterest={serviceSlug.includes("ppf") ? "ppf" : serviceSlug.includes("ceramic") ? "ceramic" : "both"}
+          serviceInterest={slug.includes("ppf") ? "ppf" : slug.includes("ceramic") ? "ceramic" : "both"}
           defaultVehicleType={isBikeService ? "bike" : "car"}
           heading="Prefer a call?"
           subheading="No payment now — leave your number and we'll call to fix the slot."

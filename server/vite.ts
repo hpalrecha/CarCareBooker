@@ -27,6 +27,10 @@ const viteLogger = createLogger();
 const ASSET_EXT =
   /\.(png|jpe?g|gif|webp|avif|svg|ico|css|js|mjs|map|json|txt|woff2?|ttf|eot|mp4|webm|pdf)$/i;
 
+// Client-only routes: App.tsx renders a real page for these but the build prerenders no
+// file for them (private screens, or params only the database knows). They keep HTTP 200.
+const SPA_ONLY_ROUTE = /^\/(admin(\/.*)?|booking-confirmation\/[^/]+|products\/[^/]+)\/?$/i;
+
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -281,9 +285,15 @@ export function serveStatic(app: Express, distPathOverride?: string) {
     // shell with a "Page not found" title and noindex, so React still boots and renders
     // the branded 404, but the URL cannot be indexed as homepage content.
     //
-    // Still 200, deliberately: changing the status for unmatched paths would affect
-    // health checks and monitors on a live site and belongs in its own change.
+    // Status: routes that exist only client-side (no prerendered file, but App.tsx renders
+    // a real page) stay 200. Everything else is a genuine miss and gets 404, so crawlers
+    // stop treating every typo URL as a soft-404 page. Keep SPA_ONLY_ROUTE in step with
+    // the non-prerendered <Route>s in client/src/App.tsx.
+    const pathname = req.originalUrl.split("?")[0];
+    const status = SPA_ONLY_ROUTE.test(pathname) ? 200 : 404;
     const notFound = path.resolve(distPath, "404.html");
-    res.sendFile(fs.existsSync(notFound) ? notFound : path.resolve(distPath, "index.html"));
+    res
+      .status(status)
+      .sendFile(fs.existsSync(notFound) ? notFound : path.resolve(distPath, "index.html"));
   });
 }

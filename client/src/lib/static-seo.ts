@@ -77,6 +77,15 @@ export const CONTACT_SEO: StaticSeoPage = {
     "what it needs.",
 };
 
+export const GALLERY_SEO: StaticSeoPage = {
+  path: "/gallery",
+  title: "Our Work on Instagram | P91 Car Care Gallery",
+  description:
+    "Reels of PPF, ceramic coating and detailing work from the P91 Car Care studio in " +
+    "Adugodi, Bangalore, straight from our Instagram.",
+  h1: "Our work, up close.",
+};
+
 export const PPF_CERAMIC_SEO: StaticSeoPage = {
   path: "/ppf-ceramic-coating",
   // Was 67 characters.
@@ -131,4 +140,5 @@ export const STATIC_SEO_PAGES: StaticSeoPage[] = [
   TERMS_SEO,
   REFUND_SEO,
   CONTACT_SEO,
+  GALLERY_SEO,
 ];

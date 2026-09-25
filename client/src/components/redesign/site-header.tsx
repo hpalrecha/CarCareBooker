@@ -311,6 +311,9 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
                 )}
               </div>
             ))}
+            <Link href="/gallery" className="nav-plain" onClick={closeEverything} data-testid="link-nav-gallery">
+              Gallery
+            </Link>
             <Link href="/contact" className="nav-plain" onClick={closeEverything} data-testid="link-nav-contact">
               Contact
             </Link>
@@ -369,6 +372,7 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
                 )}
               </div>
             ))}
+            <Link href="/gallery" onClick={closeEverything} data-testid="link-nav-gallery-mobile">Gallery</Link>
             <Link href="/contact" onClick={closeEverything} data-testid="link-nav-contact-mobile">Contact</Link>
             {/* Under 860px the header hides `.right`, taking the call button with it. The
                 floating action is WhatsApp-only in this design, so without this the phone

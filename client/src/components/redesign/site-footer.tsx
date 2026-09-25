@@ -115,6 +115,7 @@ export default function SiteFooter() {
             <ul>
               <li><Link href="/#about">About</Link></li>
               <li><Link href="/contact">Contact</Link></li>
+              <li><Link href="/gallery">Gallery</Link></li>
               <li><Link href="/blog">Guides</Link></li>
               {/* The studio's Instagram, where its work videos are posted. */}
               <li>

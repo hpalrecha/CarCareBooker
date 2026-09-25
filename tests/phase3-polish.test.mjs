@@ -78,7 +78,7 @@ describe('item 14 — refund policy no longer promises a nonexistent ₹599 serv
     assert.doesNotMatch(src, /Interior Detailing \(₹2,499\)/);
     assert.doesNotMatch(src, /Interior Detailing \(₹2,999\)/);
 
-    assert.match(src, /Exterior Detailing \(₹5,999\)/);
+    assert.match(src, /Exterior Detailing \(₹3,500\)/);
     assert.doesNotMatch(src, /Exterior Detailing \(₹1,999\)/);
     assert.doesNotMatch(src, /Exterior Detailing \(₹3,499\)/);
 

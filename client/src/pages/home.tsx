@@ -13,6 +13,7 @@ import { useBookingOffer } from "@/hooks/use-booking-offer";
 import { PRODUCT_BRANDS } from "@/lib/nav-menu";
 import type { BusinessHour } from "@shared/schema";
 
+
 /**
  * Homepage in the senior-approved redesign (p91-cc-audit.web.app/preview).
  *
@@ -51,7 +52,7 @@ const HERO_IMAGE_SLUG = "exterior-detailing-hard-water-new";
  * DB value once it arrives (normally the same file), removes that entire wait from the
  * LCP and CLS-causing "box appears from nothing" path.
  */
-const HERO_FALLBACK_IMAGE = "/attached_assets/services/exterior-detailing-hard-water-spot-removal.webp";
+const HERO_FALLBACK_IMAGE = "/attached_assets/exterior-hero-poster.webp";
 
 /** One real studio photograph and a kind-of-product label per brand (see the Why P91 section). */
 const BRAND_LOOK: Record<string, { src: string; kind: string }> = {
@@ -121,8 +122,6 @@ export default function Home() {
    */
   const [showHeroVideo, setShowHeroVideo] = useState(false);
   const [heroVideoReady, setHeroVideoReady] = useState(false);
-  const HERO_VIDEO_LOOP_START = 3.7;
-  const HERO_VIDEO_LOOP_END = 7.7;
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const enable = () => setShowHeroVideo(true);
@@ -254,30 +253,23 @@ export default function Home() {
             className="shot"
             autoPlay
             muted
+            loop
             playsInline
             preload="auto"
             poster={heroImage}
             aria-hidden="true"
             data-testid="video-hero"
-            /* The full clip is a produced promo edit: title cards, a motion-blur scene
-               transition, a multi-panel collage, and a noticeably darker graded stretch.
-               Looping the whole thing would cycle back through all of that. This source
-               range (in the same file, nothing new fetched) is the one continuous, bright,
-               single-frame, in-focus stretch — a daylight rinse — so playback is confined
-               to it instead of the full timeline. */
-            onLoadedMetadata={(e) => { e.currentTarget.currentTime = HERO_VIDEO_LOOP_START; }}
-            onTimeUpdate={(e) => {
-              if (e.currentTarget.currentTime >= HERO_VIDEO_LOOP_END) {
-                e.currentTarget.currentTime = HERO_VIDEO_LOOP_START;
-              }
-            }}
+            /* exterior-hero-loop.mp4 is a 4s cut (3.7s-7.7s of the 65s promo edit: the one
+               bright, single-frame, in-focus daylight rinse), ~0.86MB instead of 9.8MB, so
+               the photo is swapped for footage within a beat rather than after a big
+               download. */
             onPlaying={() => setHeroVideoReady(true)}
             /* This stretch still reads a touch flat next to the photo hero — a brightness/
                contrast/saturation lift brings it up to match without touching the photo,
                which this same .shot class also styles. */
             style={{ opacity: heroVideoReady ? 1 : 0, transition: "opacity .6s ease, filter .6s ease", filter: "brightness(1.25) contrast(1.1) saturate(1.25)" }}
           >
-            <source src="/attached_assets/Exterior Detailing_1754031679196.mp4" type="video/mp4" />
+            <source src="/attached_assets/exterior-hero-loop.mp4" type="video/mp4" />
           </video>
         )}
         </div>

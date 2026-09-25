@@ -738,8 +738,18 @@ export default function AdminDashboard() {
     setViewingBooking(booking);
   };
 
+  const [pendingConfirm, setPendingConfirm] = useState<{ kind: "whatsapp" | "paid"; booking: any } | null>(null);
+
   const handleSendWhatsApp = (booking: any) => {
-    sendWhatsAppMutation.mutate(booking.id);
+    setPendingConfirm({ kind: "whatsapp", booking });
+  };
+
+  const runPendingConfirm = () => {
+    if (!pendingConfirm) return;
+    const { kind, booking } = pendingConfirm;
+    setPendingConfirm(null);
+    if (kind === "whatsapp") sendWhatsAppMutation.mutate(booking.id);
+    else markPaidMutation.mutate(booking.id);
   };
 
   const handleEditBooking = (booking: any) => {
@@ -1302,7 +1312,7 @@ export default function AdminDashboard() {
                               variant="ghost" 
                               className="text-green-400 hover:text-green-300" 
                               data-testid={`button-mark-paid-${booking.id}`}
-                              onClick={() => markPaidMutation.mutate(booking.id)}
+                              onClick={() => setPendingConfirm({ kind: "paid", booking })}
                               disabled={markPaidMutation.isPending}
                             >
                               <CheckCircle className="h-4 w-4" />
@@ -1835,6 +1845,32 @@ export default function AdminDashboard() {
               className="bg-neon-green text-black hover:bg-green-400"
             >
               {editBookingMutation.isPending ? "Saving…" : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm mark-paid / send WhatsApp */}
+      <Dialog open={!!pendingConfirm} onOpenChange={(o) => !o && setPendingConfirm(null)}>
+        <DialogContent className="admin-x admin-dialog max-w-md bg-dark-gray border-[var(--medium-gray)] text-white" data-testid="dialog-confirm-action">
+          <DialogHeader>
+            <DialogTitle>
+              {pendingConfirm?.kind === "paid" ? "Mark payment as paid?" : "Send WhatsApp notification?"}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-300">
+            {pendingConfirm?.kind === "paid"
+              ? `This marks ${pendingConfirm?.booking?.customerName ?? "this customer"}'s booking as paid manually, without a gateway payment.`
+              : `This sends a WhatsApp message to ${pendingConfirm?.booking?.customerName ?? "this customer"} now.`}
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPendingConfirm(null)} data-testid="button-confirm-cancel">Cancel</Button>
+            <Button
+              onClick={runPendingConfirm}
+              className="bg-neon-green text-black hover:bg-green-400"
+              data-testid="button-confirm-ok"
+            >
+              {pendingConfirm?.kind === "paid" ? "Yes, mark paid" : "Yes, send"}
             </Button>
           </DialogFooter>
         </DialogContent>

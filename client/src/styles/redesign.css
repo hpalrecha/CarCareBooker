@@ -863,7 +863,6 @@
   display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: clamp(12px, 1.6vw, 24px);
 }
 .p91x .ed-work-more { display: inline-block; margin: 0 0 clamp(28px, 4vh, 44px); }
-.p91x .gl-head { padding: clamp(112px, 15vh, 160px) 0 clamp(40px, 6vh, 64px); }
 .p91x a.ed-work-fig { display: block; }
 .p91x .ed-work-fig { position: relative; margin: 0; overflow: hidden; border-radius: 4px; background: var(--dark-gray); }
 .p91x .ed-work-fig img { width: 100%; height: 100%; max-width: none; object-fit: cover; transition: transform .8s cubic-bezier(.22,.61,.36,1); }
@@ -935,9 +934,12 @@
 
 /* ---------- navbar width ----------
    The standard full-width bar (as before the floating experiment), only a little broader: its content
-   spans up to 1320px instead of 1180px. It is sticky and stays visible while scrolling. */
-.p91x header.site .wrap { max-width: 1320px; }
-.p91x header.site .nav { min-height: 60px; padding: 6px 0; }
+   spans up to 1680px instead of 1180px. It is sticky and stays visible while scrolling. */
+.p91x header.site .wrap { max-width: 1680px; padding: 0 clamp(20px, 2.6vw, 44px); }
+.p91x header.site .nav { min-height: 68px; padding: 8px 0; }
+@media (min-width: 1100px) {
+  .p91x header.site .nav-trigger, .p91x header.site .nav-plain { font-size: 15px; padding-inline: 14px; }
+}
 
 /* ---------- portfolio carousel (components/redesign/work-carousel.tsx) ---------- */
 .p91x .wc {
@@ -1861,6 +1863,120 @@
   .p91x footer.site .foot-bottom { gap: 8px; }
 }
 
+/* ---------- /gallery (pages/gallery.tsx) ---------- */
+.p91x .gl-head { padding: clamp(112px, 15vh, 160px) 0 clamp(36px, 5vh, 56px); }
+.p91x .gl-head-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 28px 48px; }
+.p91x .gl-jump { display: flex; flex-wrap: wrap; gap: 8px; }
+.p91x .gl-jump a { padding: 9px 16px; border: 1px solid var(--medium-gray); border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--txt); background: #fff; transition: border-color .2s, background .2s; }
+.p91x .gl-jump a:hover { border-color: var(--brand-accent); background: var(--neon-soft); }
+
+.p91x .gl-dark, .p91x .gl-light { padding-block: clamp(56px, 9vh, 104px); }
+.p91x .gl-dark { background: var(--surface-dark); color: #fff; }
+.p91x .gl-light { background: var(--dark-gray); }
+.p91x .gl-sec-head { margin-bottom: clamp(24px, 4vh, 40px); max-width: 640px; }
+.p91x .gl-sec-head h2 { font-size: var(--fs-h2); margin-bottom: 8px; }
+.p91x .gl-sec-head p { margin: 0; color: var(--txt-2); }
+.p91x .gl-dark .gl-sec-head p { color: rgba(255,255,255,.7); }
+.p91x .gl-dark .gl-sec-head a { color: #7ad775; text-decoration: underline; text-underline-offset: 3px; }
+
+/* footage */
+.p91x .gl-videos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(12px, 1.6vw, 22px); }
+.p91x .gl-video { margin: 0; position: relative; border-radius: 14px; overflow: hidden; background: #000; aspect-ratio: 9 / 16; }
+.p91x .gl-video video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; max-width: none; }
+.p91x .gl-video figcaption { position: absolute; inset: auto 0 0 0; padding: 56px 16px 16px; display: grid; gap: 2px; background: linear-gradient(to top, rgba(0,0,0,.78), transparent); pointer-events: none; }
+.p91x .gl-video figcaption strong { font-size: 16px; }
+.p91x .gl-video figcaption span { font-size: 13px; color: rgba(255,255,255,.78); }
+
+/* offers */
+.p91x .gl-offers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 1.8vw, 24px); }
+.p91x .gl-offer { display: flex; flex-direction: column; background: #fff; border: 1px solid var(--medium-gray); border-radius: 14px; overflow: hidden; transition: transform .3s cubic-bezier(.22,.61,.36,1), box-shadow .3s; }
+.p91x .gl-offer:hover { transform: translateY(-4px); box-shadow: 0 14px 32px rgba(16,36,26,.12); }
+.p91x .gl-offer-img { position: relative; aspect-ratio: 16 / 10; background: var(--medium-gray); overflow: hidden; }
+.p91x .gl-offer-img img { width: 100%; height: 100%; object-fit: cover; max-width: none; }
+.p91x .gl-badge { position: absolute; top: 12px; left: 12px; font-style: normal; font-weight: 700; font-size: 13px; padding: 6px 11px; border-radius: 999px; background: var(--brand-accent); color: #fff; }
+.p91x .gl-offer-body { display: grid; gap: 6px; padding: 16px 18px 18px; }
+.p91x .gl-offer-body strong { font-size: 17px; line-height: 1.3; }
+.p91x .gl-price { font-size: 20px; font-weight: 700; color: var(--accent-ink); }
+.p91x .gl-price s { font-size: 14px; font-weight: 400; color: var(--txt-3); margin-left: 6px; }
+.p91x .gl-go { font-size: 14px; font-weight: 600; }
+
+/* posts */
+.p91x .gl-posts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(12px, 1.6vw, 22px); }
+.p91x .gl-post { position: relative; padding: 0; border: 0; border-radius: 12px; overflow: hidden; cursor: pointer; background: #111; text-align: left; aspect-ratio: 4 / 5; transition: transform .3s cubic-bezier(.22,.61,.36,1); }
+.p91x .gl-post:hover { transform: translateY(-4px); }
+.p91x .gl-post img { width: 100%; height: 100%; object-fit: cover; max-width: none; }
+.p91x .gl-post-cap { position: absolute; inset: auto 0 0 0; display: grid; gap: 2px; padding: 44px 14px 14px; color: #fff; background: linear-gradient(to top, rgba(0,0,0,.82), transparent); }
+.p91x .gl-post-cap strong { font-size: 15px; }
+.p91x .gl-post-cap span { font-size: 12.5px; color: rgba(255,255,255,.72); }
+.p91x .gl-slides { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; max-height: 88vh; }
+.p91x .gl-slides img { flex: 0 0 100%; width: 100%; height: auto; max-width: none; object-fit: contain; scroll-snap-align: center; }
+
+/* studio photos */
+.p91x .gl-masonry { columns: 4; column-gap: clamp(10px, 1.4vw, 18px); }
+.p91x .gl-photo { position: relative; display: block; width: 100%; margin: 0 0 clamp(10px, 1.4vw, 18px); padding: 0; border: 0; border-radius: 12px; overflow: hidden; break-inside: avoid; cursor: zoom-in; background: var(--medium-gray); }
+.p91x .gl-photo img { width: 100%; height: auto; transition: transform .6s cubic-bezier(.22,.61,.36,1); }
+.p91x .gl-photo:hover img { transform: scale(1.04); }
+.p91x .gl-photo span { position: absolute; left: 10px; bottom: 10px; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; color: #fff; background: rgba(0,0,0,.55); backdrop-filter: blur(6px); opacity: 0; transform: translateY(4px); transition: opacity .25s, transform .25s; }
+.p91x .gl-photo:hover span, .p91x .gl-photo:focus-visible span { opacity: 1; transform: none; }
+
+/* instagram reels */
+.p91x .gl-rail { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 14px; -webkit-overflow-scrolling: touch; }
+.p91x .gl-embed { flex: 0 0 min(340px, 84vw); height: 620px; scroll-snap-align: start; border-radius: 14px; overflow: hidden; background: #fff; }
+.p91x .gl-embed iframe { width: 100%; height: 100%; border: 0; display: block; }
+.p91x .gl-embed-ph { height: 100%; display: grid; place-content: center; justify-items: center; gap: 10px; color: var(--txt-2); background: var(--dark-gray); }
+.p91x .gl-embed-ph svg { width: 28px; height: 28px; }
+
+/* festival offer (components/festival-offer.tsx) */
+.p91x .gl-jump a.gl-jump-hot { background: var(--brand-accent); border-color: var(--brand-accent); color: #fff; }
+.p91x .gl-fest { padding-block: clamp(48px, 8vh, 88px); background: radial-gradient(120% 90% at 20% 0%, #2a1a4a 0%, #120a26 55%, #0b0f0d 100%); color: #fff; }
+.p91x .gl-fest-row { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: clamp(28px, 5vw, 72px); align-items: center; }
+.p91x .gl-fest-img { width: 100%; height: auto; border-radius: 16px; box-shadow: 0 24px 60px rgba(0,0,0,.5); }
+.p91x .gl-fest-kicker { margin: 0 0 10px; font-family: var(--font-mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #ffd27a; }
+.p91x .gl-fest h2 { font-size: clamp(32px, 4.4vw, 56px); margin-bottom: 14px; }
+.p91x .gl-fest-lead { margin: 0 0 20px; font-size: 17px; color: rgba(255,255,255,.82); }
+.p91x .gl-fest-ends { margin: 0 0 8px; font-family: var(--font-mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #ffd27a; }
+.fest-count { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 0 22px; max-width: 420px; }
+.fest-count-cell { display: grid; justify-items: center; gap: 2px; padding: 12px 6px; border-radius: 12px; border: 1px solid rgba(255, 210, 122, .35); background: rgba(255, 210, 122, .08); color: #fff; }
+.fest-count-cell b { font-family: var(--font-display, inherit); font-size: clamp(26px, 3.4vw, 38px); line-height: 1; font-variant-numeric: tabular-nums; }
+.fest-count-cell span { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.7); }
+.fest-count-sm { margin: 0; gap: 6px; max-width: none; }
+.fest-count-sm .fest-count-cell { padding: 8px 4px; }
+.fest-count-sm .fest-count-cell b { font-size: 22px; }
+.p91x .gl-fest-list { list-style: none; margin: 0 0 22px; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.p91x .gl-fest-list li { padding: 12px 14px; border: 1px solid rgba(255,255,255,.18); border-radius: 12px; background: rgba(255,255,255,.06); font-weight: 600; }
+.p91x .gl-fest-list li span { display: inline-block; margin-right: 6px; padding: 2px 8px; border-radius: 999px; background: #ffd27a; color: #2a1a00; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.p91x .gl-fest-slot { margin: 0 0 22px; font-size: 20px; font-weight: 700; }
+.p91x .gl-fest-slot small { display: block; margin-top: 4px; font-size: 13px; font-weight: 400; color: rgba(255,255,255,.66); }
+.p91x .gl-cta-row.gl-fest-actions { justify-content: flex-start; }
+.p91x .gl-btn.gl-btn-light { border-color: rgba(255,255,255,.4); color: #fff; }
+.p91x .gl-btn.gl-btn-light:hover { background: #fff; color: #120a26; }
+@media (max-width: 760px) {
+  .p91x .gl-fest-row { grid-template-columns: minmax(0, 1fr); }
+  .p91x .gl-fest-img { max-width: 420px; margin-inline: auto; }
+}
+
+/* closing call */
+.p91x .gl-cta { padding-block: clamp(64px, 10vh, 112px); text-align: center; }
+.p91x .gl-cta h2 { font-size: var(--fs-h2); margin-bottom: 24px; }
+.p91x .gl-cta-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.p91x .gl-btn { display: inline-flex; align-items: center; min-height: 48px; padding: 0 26px; border-radius: 999px; font-weight: 600; border: 1px solid var(--txt); color: var(--txt); transition: background .2s, color .2s; }
+.p91x .gl-btn:hover { background: var(--txt); color: #fff; }
+.p91x .gl-btn-solid { background: var(--brand-accent); border-color: var(--brand-accent); color: #fff; }
+.p91x .gl-btn-solid:hover { background: var(--accent-ink); border-color: var(--accent-ink); }
+
+@media (max-width: 960px) {
+  .p91x .gl-videos, .p91x .gl-posts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .p91x .gl-offers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .p91x .gl-masonry { columns: 3; }
+}
+@media (max-width: 600px) {
+  .p91x .gl-offers { grid-template-columns: minmax(0, 1fr); }
+  .p91x .gl-masonry { columns: 2; }
+  .p91x .gl-video figcaption { padding: 40px 10px 10px; }
+  .p91x .gl-video figcaption strong { font-size: 14px; }
+  .p91x .gl-video figcaption span { display: none; }
+}
+
 /* ============================================================================
    .p91-brand — the redesign's TYPE on pages that cannot opt into .p91x.
 
@@ -1879,3 +1995,4 @@
   font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
   letter-spacing: -.02em;
 }
+
