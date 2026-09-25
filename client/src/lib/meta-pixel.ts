@@ -247,6 +247,23 @@ export function trackWhatsAppContinuation(args: { eventId: string; service?: str
   return trackCustom("WhatsAppContinuation", args.eventId, { content_name: args.service ?? undefined });
 }
 
+/**
+ * Festival-offer engagement, as custom events so they never pool with Lead/Schedule.
+ * `eventId` is per placement and action, so a re-render cannot count one view twice.
+ */
+export function trackFestivalOffer(args: {
+  kind: "view" | "click";
+  slot: string;
+  cta?: string;
+  offer: string;
+}): boolean {
+  return trackCustom(
+    args.kind === "view" ? "FestivalOfferView" : "FestivalOfferClick",
+    `fo-${args.offer}-${args.kind}-${args.slot}-${args.cta ?? ""}`,
+    { content_name: args.offer, content_category: args.slot, content_type: args.cta ?? undefined },
+  );
+}
+
 /** Test-only reset so the dedupe guard does not leak between cases. */
 export function __resetMetaPixelForTests(): void {
   reportedEvents.clear();

@@ -109,6 +109,7 @@ export function buildLlmsTxt(input: {
     "## Optional",
     "",
     link("All services", "/services"),
+    link("Gallery: our work, reels and current offers", "/gallery"),
     link("Contact and directions", "/contact"),
     link("Refund policy", "/refund-policy"),
     "",

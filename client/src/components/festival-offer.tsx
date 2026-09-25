@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { trackPromotion } from "@/lib/offer-tracking";
+import { trackFestivalOffer } from "@/lib/meta-pixel";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 /**
@@ -26,6 +28,19 @@ export const FESTIVAL_OFFER = {
     encodeURIComponent("Hi P91, I saw the Dussehra & Diwali De Dhana Dhan offer and want to book a slot."),
   callHref: "tel:+917406619191",
 };
+
+const OFFER_ID = "de-dhana-dhan-2026";
+type Slot = "popup" | "banner" | "chip";
+
+/** One call reports the same moment to Google (GA4/Ads) and Meta. Never throws. */
+function reportOffer(kind: "view" | "select", slot: Slot, cta?: string): void {
+  try {
+    trackPromotion({ kind, promotionId: OFFER_ID, promotionName: FESTIVAL_OFFER.title, slot, cta });
+    trackFestivalOffer({ kind: kind === "view" ? "view" : "click", slot, cta, offer: OFFER_ID });
+  } catch {
+    // Measurement must never get in the way of the offer.
+  }
+}
 
 export const festivalOfferActive = (now = new Date()) => now.getTime() <= FESTIVAL_OFFER.endsAt.getTime();
 
@@ -80,6 +95,9 @@ function Countdown({ className = "" }: { className?: string }) {
 /** The offer as a page section: poster beside the details. */
 export function FestivalOfferBanner() {
   const { done } = useOfferCountdown();
+  useEffect(() => {
+    if (!done && festivalOfferActive()) reportOffer("view", "banner");
+  }, [done]);
   if (done || !festivalOfferActive()) return null;
   const o = FESTIVAL_OFFER;
   return (
@@ -103,9 +121,9 @@ export function FestivalOfferBanner() {
             {o.slot} <small>Valid till {o.validTill}. Terms and conditions apply.</small>
           </p>
           <div className="gl-cta-row gl-fest-actions">
-            <a href={o.bookHref} className="gl-btn gl-btn-solid">Book this offer</a>
-            <a href={o.whatsappHref} target="_blank" rel="noopener noreferrer" className="gl-btn gl-btn-light">WhatsApp us</a>
-            <a href={o.callHref} className="gl-btn gl-btn-light">Call 74066 19191</a>
+            <a href={o.bookHref} className="gl-btn gl-btn-solid" onClick={() => reportOffer("select", "banner", "book")}>Book this offer</a>
+            <a href={o.whatsappHref} target="_blank" rel="noopener noreferrer" className="gl-btn gl-btn-light" onClick={() => reportOffer("select", "banner", "whatsapp")}>WhatsApp us</a>
+            <a href={o.callHref} className="gl-btn gl-btn-light" onClick={() => reportOffer("select", "banner", "call")}>Call 74066 19191</a>
           </div>
         </div>
       </div>
@@ -124,7 +142,10 @@ export function FestivalOfferPopup() {
   const { parts } = useOfferCountdown();
   useEffect(() => {
     if (!festivalOfferActive()) return;
-    const t = window.setTimeout(() => setOpen(true), 2500);
+    const t = window.setTimeout(() => {
+      setOpen(true);
+      reportOffer("view", "popup");
+    }, 2500);
     return () => window.clearTimeout(t);
   }, []);
   const close = (next: boolean) => {
@@ -139,7 +160,10 @@ export function FestivalOfferPopup() {
     {dismissed && !open && (
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true);
+          reportOffer("select", "chip", "open");
+        }}
         aria-label={`Open the ${o.title}, ends ${o.validTill}`}
         data-testid="festival-offer-chip"
         className="fixed bottom-[18px] left-3 z-[44] flex items-center gap-2 rounded-full border border-[#ffd27a]/50 bg-[#120a26]/95 py-2 pl-2.5 pr-3.5 text-left text-white shadow-lg backdrop-blur transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#ffd27a]"
@@ -167,7 +191,10 @@ export function FestivalOfferPopup() {
           <a
             href={o.bookHref}
             className="flex min-h-[46px] flex-1 items-center justify-center rounded-full bg-[#4EB848] px-4 text-sm font-semibold text-white"
-            onClick={() => close(false)}
+            onClick={() => {
+              reportOffer("select", "popup", "book");
+              close(false);
+            }}
           >
             Book this offer
           </a>
@@ -176,6 +203,7 @@ export function FestivalOfferPopup() {
             target="_blank"
             rel="noopener noreferrer"
             className="flex min-h-[46px] flex-1 items-center justify-center rounded-full border border-white/30 px-4 text-sm font-semibold text-white"
+            onClick={() => reportOffer("select", "popup", "whatsapp")}
           >
             WhatsApp us
           </a>
