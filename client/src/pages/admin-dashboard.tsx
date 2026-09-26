@@ -14,7 +14,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import AdminServiceForm from "@/components/admin-service-form";
 import AdminCampaigns from "@/components/admin-campaigns";
-import { Plus, Eye, MessageCircle, Edit, Users, Clock, CheckCircle, DollarSign, Settings, Phone, Calendar, Trash2, AlertCircle, Play, Copy } from "lucide-react";
+import { Plus, Eye, MessageCircle, Edit, Users, Clock, CheckCircle, DollarSign, Settings, Phone, Calendar, Trash2, AlertCircle, Play, Copy, Lock } from "lucide-react";
 import { format } from "date-fns";
 
 function BlackoutDatesTab() {
@@ -431,10 +431,17 @@ function ContactMessagesTab() {
   );
 }
 
+/** Payment badge for a paid-offer lead: Paid / Pending / Failed. */
+function leadPaymentBadge(status: string): string {
+  if (status === "paid") return "bg-green-900 text-green-300";
+  if (status === "failed") return "bg-red-900 text-red-300";
+  return "bg-yellow-900 text-yellow-300"; // pending
+}
+
 function PpfLeadsTab() {
   const { toast } = useToast();
   
-  const { data: leads = [], isLoading } = useQuery({
+  const { data: leads = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/ppf-leads"],
   });
 
@@ -521,6 +528,7 @@ function PpfLeadsTab() {
                     <TableHead className="text-gray-300">Vehicle</TableHead>
                     <TableHead className="text-gray-300">Interest</TableHead>
                     <TableHead className="text-gray-300">Source</TableHead>
+                    <TableHead className="text-gray-300">Payment</TableHead>
                     <TableHead className="text-gray-300">Status</TableHead>
                     <TableHead className="text-gray-300">Date</TableHead>
                     <TableHead className="text-gray-300">Actions</TableHead>
@@ -534,6 +542,9 @@ function PpfLeadsTab() {
                         {lead.vehicleModel && (
                           <div className="text-xs text-gray-400">{lead.vehicleModel}</div>
                         )}
+                        {lead.source === "diwali_offer" && lead.message && (
+                          <div className="mt-1 max-w-[260px] whitespace-normal text-xs font-normal text-amber-300/90">{lead.message}</div>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="text-white">{lead.phone}</div>
@@ -544,9 +555,30 @@ function PpfLeadsTab() {
                         {lead.serviceInterest === "both" ? "PPF + Ceramic" : lead.serviceInterest.toUpperCase()}
                       </TableCell>
                       <TableCell>
-                        <Badge className={lead.source === "exit_intent" ? "bg-purple-900 text-purple-300" : "bg-blue-900 text-blue-300"}>
-                          {lead.source === "exit_intent" ? "Exit Offer" : "Landing Page"}
+                        <Badge className={lead.source === "diwali_offer" ? "bg-amber-900 text-amber-200" : lead.source === "exit_intent" ? "bg-purple-900 text-purple-300" : "bg-blue-900 text-blue-300"}>
+                          {lead.source === "diwali_offer" ? "Diwali Offer" : lead.source === "exit_intent" ? "Exit Offer" : "Landing Page"}
                         </Badge>
+                      </TableCell>
+                      <TableCell data-testid={`lead-payment-${lead.id}`}>
+                        {lead.paymentStatus ? (
+                          <div className="max-w-[210px] whitespace-normal">
+                            <Badge className={leadPaymentBadge(lead.paymentStatus)}>
+                              {lead.paymentStatus.charAt(0).toUpperCase() + lead.paymentStatus.slice(1)}
+                            </Badge>
+                            {lead.amount != null && (
+                              <div className="mt-1 text-sm font-medium text-white">₹{Number(lead.amount).toLocaleString("en-IN")}</div>
+                            )}
+                            {lead.offerName && <div className="text-xs text-amber-300/90">{lead.offerName}</div>}
+                            {lead.razorpayOrderId && (
+                              <div className="mt-1 break-all font-mono text-[10px] text-gray-500">Order {lead.razorpayOrderId}</div>
+                            )}
+                            {lead.paymentId && (
+                              <div className="break-all font-mono text-[10px] text-gray-400">Payment {lead.paymentId}</div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-600">—</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Select
@@ -577,18 +609,34 @@ function PpfLeadsTab() {
                               <Phone className="h-4 w-4" />
                             </Button>
                           </a>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              if (confirm("Are you sure you want to delete this lead?")) {
-                                deleteLeadMutation.mutate(lead.id);
-                              }
-                            }}
-                            className="text-red-400 hover:bg-red-900/20"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {lead.paymentStatus === "paid" ? (
+                            // A paid lead is a payment record: no delete. (The server refuses it as well.)
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled
+                              title="Paid leads can't be deleted. Set the status to Closed instead."
+                              aria-label="Paid leads can't be deleted"
+                              data-testid={`button-delete-locked-${lead.id}`}
+                              className="cursor-not-allowed text-gray-600"
+                            >
+                              <Lock className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (confirm("Are you sure you want to delete this lead?")) {
+                                  deleteLeadMutation.mutate(lead.id);
+                                }
+                              }}
+                              className="text-red-400 hover:bg-red-900/20"
+                              data-testid={`button-delete-lead-${lead.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -623,6 +671,21 @@ function PpfLeadsTab() {
               <div className="text-sm text-gray-400">Total Leads</div>
             </div>
           </div>
+          {leads.some((l: any) => l.paymentStatus) && (
+            <div className="mt-4" data-testid="offer-payment-stats">
+              <div className="mb-2 text-xs uppercase tracking-wider text-amber-300/90">Diwali offer payments (₹99)</div>
+              <div className="grid grid-cols-3 gap-4">
+                {(["paid", "pending", "failed"] as const).map((st) => (
+                  <div key={st} className="bg-deep-black/50 p-4 rounded-lg text-center">
+                    <div className={`text-2xl font-bold ${st === "paid" ? "text-green-400" : st === "failed" ? "text-red-400" : "text-yellow-400"}`}>
+                      {leads.filter((l: any) => l.paymentStatus === st).length}
+                    </div>
+                    <div className="text-sm capitalize text-gray-400">{st}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

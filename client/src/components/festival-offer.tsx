@@ -22,7 +22,7 @@ export const FESTIVAL_OFFER = {
   validTill: "8 November 2026",
   /** End of 8 Nov 2026, India time. */
   endsAt: new Date("2026-11-08T23:59:59+05:30"),
-  bookHref: "/ppf",
+  bookHref: "/offer/de-dhana-dhan",
   whatsappHref:
     "https://wa.me/917406619191?text=" +
     encodeURIComponent("Hi P91, I saw the Dussehra & Diwali De Dhana Dhan offer and want to book a slot."),
@@ -30,10 +30,10 @@ export const FESTIVAL_OFFER = {
 };
 
 const OFFER_ID = "de-dhana-dhan-2026";
-type Slot = "popup" | "banner" | "chip";
+type Slot = "popup" | "banner" | "chip" | "page";
 
 /** One call reports the same moment to Google (GA4/Ads) and Meta. Never throws. */
-function reportOffer(kind: "view" | "select", slot: Slot, cta?: string): void {
+export function reportOffer(kind: "view" | "select", slot: Slot, cta?: string): void {
   try {
     trackPromotion({ kind, promotionId: OFFER_ID, promotionName: FESTIVAL_OFFER.title, slot, cta });
     trackFestivalOffer({ kind: kind === "view" ? "view" : "click", slot, cta, offer: OFFER_ID });
@@ -49,7 +49,7 @@ export const festivalOfferActive = (now = new Date()) => now.getTime() <= FESTIV
  * reports serverNow, and the gap to the browser clock is applied, so a phone with a wrong date still
  * shows the true time left. If that request fails the browser clock is used.
  */
-function useOfferCountdown() {
+export function useOfferCountdown() {
   const { data } = useQuery<{ serverNow?: string }>({
     queryKey: ["/api/campaigns/active?landingPage=/gallery"],
     staleTime: Infinity,
@@ -78,7 +78,7 @@ function useOfferCountdown() {
   };
 }
 
-function Countdown({ className = "" }: { className?: string }) {
+export function FestivalCountdown({ className = "" }: { className?: string }) {
   const { parts } = useOfferCountdown();
   return (
     <div className={"fest-count " + className} role="timer" aria-label={"Offer ends " + FESTIVAL_OFFER.validTill} data-testid="festival-countdown">
@@ -109,7 +109,7 @@ export function FestivalOfferBanner() {
           <h2>{o.title}</h2>
           <p className="gl-fest-lead">{o.condition}</p>
           <p className="gl-fest-ends">Offer ends in</p>
-          <Countdown />
+          <FestivalCountdown />
           <ul className="gl-fest-list">
             {o.freebies.map((f) => (
               <li key={f}>
@@ -139,20 +139,21 @@ export function FestivalOfferBanner() {
 export function FestivalOfferPopup() {
   const [open, setOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
-  const { parts } = useOfferCountdown();
+  const { parts, done } = useOfferCountdown();
   useEffect(() => {
-    if (!festivalOfferActive()) return;
+    if (done || !festivalOfferActive()) return;
     const t = window.setTimeout(() => {
       setOpen(true);
       reportOffer("view", "popup");
     }, 2500);
     return () => window.clearTimeout(t);
-  }, []);
+  }, [done]);
   const close = (next: boolean) => {
     setOpen(next);
     if (!next) setDismissed(true);
   };
-  if (!festivalOfferActive()) return null;
+  // Both clocks must agree it is still on: the visitor's (cheap, immediate) and the server's (true).
+  if (done || !festivalOfferActive()) return null;
   const o = FESTIVAL_OFFER;
   const left = parts[0].value > 0 ? `${parts[0].value}d left` : `${parts[1].value}h left`;
   return (
@@ -185,7 +186,7 @@ export function FestivalOfferPopup() {
         <img src={o.image} alt={o.alt} className="block max-h-[54vh] w-full object-contain" width={1080} height={1350} />
         <div className="px-3 pt-3">
           <p className="mb-1.5 text-center text-xs font-medium uppercase tracking-widest text-[#ffd27a]">Offer ends in</p>
-          <Countdown className="fest-count-sm" />
+          <FestivalCountdown className="fest-count-sm" />
         </div>
         <div className="flex gap-2 p-3">
           <a

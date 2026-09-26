@@ -88,6 +88,7 @@ describe('titles and descriptions', () => {
       '/products': 'client/src/pages/products.tsx',
       '/contact': 'client/src/pages/contact.tsx',
       '/gallery': 'client/src/pages/gallery.tsx',
+      '/offer/de-dhana-dhan': 'client/src/pages/offer.tsx',
       '/ppf-ceramic-coating': 'client/src/pages/ppf-ceramic-landing.tsx',
       '/privacy-policy': 'client/src/pages/privacy-policy.tsx',
       '/terms-conditions': 'client/src/pages/terms-conditions.tsx',

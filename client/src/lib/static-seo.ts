@@ -86,6 +86,18 @@ export const GALLERY_SEO: StaticSeoPage = {
   h1: "Our work, up close.",
 };
 
+export const OFFER_SEO: StaticSeoPage = {
+  path: "/offer/de-dhana-dhan",
+  title: "De Dhana Dhan Offer: Free Dash Cam & More | P91",
+  description:
+    "Dussehra and Diwali offer: free dash cam, sun film, sound damping and ceramic coating " +
+    "with premium brand PPF at P91 Car Care, Bangalore. Book your slot for ₹99.",
+  h1: "De Dhana Dhan offer",
+  lede:
+    "Free dash cam, sun film, sound damping and ceramic coating with any premium brand paint " +
+    "protection film installation. Valid till 8 November 2026.",
+};
+
 export const PPF_CERAMIC_SEO: StaticSeoPage = {
   path: "/ppf-ceramic-coating",
   // Was 67 characters.
@@ -141,4 +153,5 @@ export const STATIC_SEO_PAGES: StaticSeoPage[] = [
   REFUND_SEO,
   CONTACT_SEO,
   GALLERY_SEO,
+  OFFER_SEO,
 ];

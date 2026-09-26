@@ -24,6 +24,7 @@
  */
 
 import type { Request, Response, NextFunction } from "express";
+import { clientIp } from "./client-ip";
 
 export interface RateLimitOptions {
   /** Window length in milliseconds. */
@@ -67,14 +68,14 @@ function sweep(now: number): void {
 /**
  * The client identity a quota is charged against.
  *
- * `trust proxy` is set (the app runs behind Cloudflare), so req.ip is already the
- * client address rather than the proxy's. Falling back to a single shared key would put
- * every visitor in one bucket and rate-limit the whole site the moment one person is
- * busy, so an unknown address gets its own key instead and is effectively unlimited —
- * failing open, consistent with the rest of this module.
+ * NOT req.ip on its own. The app sits behind Cloudflare AND nginx but `trust proxy` trusts one hop,
+ * so req.ip is a Cloudflare edge address shared by every visitor on that edge (see lib/client-ip.ts).
+ * clientIp() recovers the real visitor from CF-Connecting-IP, and only when the request provably came
+ * through Cloudflare; anything else keeps the old behaviour. An unknown address still gets its own
+ * key rather than one shared bucket, failing open, consistent with the rest of this module.
  */
 function clientKey(req: Request): string {
-  return req.ip || req.socket?.remoteAddress || "unknown";
+  return clientIp(req);
 }
 
 /** Current state for a key without consuming quota. Exported for tests. */

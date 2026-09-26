@@ -10,12 +10,14 @@ import CallbackPopup from "@/components/callback-popup";
  *   2. "Prefer a call?" follows at 15s. It never opens over another dialog: it waits until the
  *      offer is closed (see lib/callback-popup-state.ts), and shows once per visit.
  *
- * Not shown on /admin (customer data on screen) or the booking confirmation. /service/* mounts
+ * Not shown on /admin (customer data on screen), the booking confirmation, or the offer page
+ * itself (its form must not be covered). /service/* mounts
  * its own "Prefer a call?" named after the service, so the generic one is skipped there.
  */
 export default function SitePopups() {
   const [location] = useLocation();
-  if (location.startsWith("/admin") || location.startsWith("/booking-confirmation")) return null;
+  // The offer page is where "Book this offer" lands: its form is the point, so nothing may open over it.
+  if (location.startsWith("/admin") || location.startsWith("/booking-confirmation") || location.startsWith("/offer/")) return null;
   return (
     <>
       <FestivalOfferPopup />

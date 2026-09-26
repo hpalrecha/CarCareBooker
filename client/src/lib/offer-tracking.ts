@@ -13,7 +13,7 @@ export function trackPromotion(args: {
   kind: "view" | "select";
   promotionId: string;
   promotionName: string;
-  slot: "popup" | "banner" | "chip";
+  slot: "popup" | "banner" | "chip" | "page";
   cta?: string;
 }): void {
   const event = args.kind === "view" ? "view_promotion" : "select_promotion";

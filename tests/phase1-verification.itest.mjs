@@ -447,6 +447,28 @@ describe("checks 9-11 — the public lead endpoint is locked down", () => {
       `${formats.length} phone formats accepted; exit_intent lead stored with channel=${lead.channel} utm_campaign=${lead.utmCampaign}`);
   });
 
+  test("the public lead form cannot create a paid-offer lead or set payment fields", async () => {
+    __resetRateLimitsForTests();
+    const before = db.leads.length;
+    // Claiming the offer source is refused outright.
+    const claim = await post("/api/ppf-leads", { ...validLead, email: "a@example.com", source: "diwali_offer" });
+    assert.equal(claim.status, 400, "diwali_offer leads exist only after a Razorpay order does");
+    assert.equal(db.leads.length, before);
+
+    // Payment fields smuggled into an otherwise valid lead are dropped, never stored.
+    __resetRateLimitsForTests();
+    const smuggle = await post("/api/ppf-leads", {
+      ...validLead, email: "b@example.com",
+      paymentStatus: "paid", amount: "99.00", offerName: "de-dhana-dhan-2026",
+      razorpayOrderId: "order_forged", paymentId: "pay_forged", paymentVerifiedAt: new Date().toISOString(),
+    });
+    assert.equal(smuggle.status, 200);
+    const lead = db.leads[db.leads.length - 1];
+    for (const k of ["paymentStatus", "amount", "offerName", "razorpayOrderId", "paymentId", "paymentVerifiedAt"]) {
+      assert.equal(lead[k], undefined, k + " must not be settable from the public form");
+    }
+  });
+
   test("a booking flood is limited too", async () => {
     const results = [];
     for (let i = 0; i < 13; i++) {

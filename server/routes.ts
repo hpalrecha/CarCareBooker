@@ -20,7 +20,9 @@ import { sendBookingWebhook } from "./services/webhook";
 import { computeAvailability, generateHourlySlots, istNow } from "./lib/slots";
 import { validateAppointmentSlot } from "./lib/booking-validation";
 import { parseAttribution, deriveSource } from "./lib/attribution";
+import { normalizeIndianMobile } from "./lib/phone";
 import { rateLimit } from "./lib/rate-limit";
+import { DIWALI_OFFER, DIWALI_LEAD_MESSAGE, isDiwaliOfferOpen } from "./lib/diwali-offer";
 import {
   validateCampaignInput,
   findOverlaps,
@@ -1208,6 +1210,184 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  /**
+   * ─────────────────────────────────────────────────────────────────────────────────
+   * PAID OFFER LEADS (Dussehra & Diwali "De Dhana Dhan", Rs 99 slot payment)
+   *
+   * The customer fills the offer form, this endpoint records them as a lead with
+   * payment_status "pending" and creates the Razorpay order, and the browser opens the SAME
+   * Razorpay Checkout the booking flow uses. The lead becomes "paid" only through the two
+   * existing verification paths — /api/confirm-payment (signature) and the Razorpay webhook —
+   * which look a booking up by order id first and fall back to a lead only when no booking
+   * has that order. Ordinary Rs 299 bookings therefore take exactly the code they always did.
+   *
+   * The amount is DIWALI_OFFER.amountRupees, a server constant. Nothing in the request can
+   * change it, and it is deliberately not read from site_settings.booking_amount.
+   *
+   * No WhatsApp and no ERP sync for these leads (they are not bookings): the studio sees the
+   * paid lead in the admin Leads tab.
+   * ─────────────────────────────────────────────────────────────────────────────────
+   */
+  const markLeadPaid = async (lead: { id: string }, paymentId: string) => {
+    // One conditional UPDATE in storage: a replay, a webhook/browser race, or a stale read cannot
+    // rewrite an already-paid lead.
+    const { changed } = await storage.markPpfLeadPaid(lead.id, paymentId);
+    if (changed) console.log(`✅ Offer lead ${lead.id} marked paid`);
+    return { alreadyPaid: !changed };
+  };
+
+  const diwaliOrderSchema = z.object({
+    name: z.string().trim().min(2, "Please enter your name").max(120),
+    email: z.string().trim().email("Please enter a valid email address").max(200),
+    phone: z
+      .string()
+      .trim()
+      .max(20)
+      .refine((v) => (v.match(/\d/g) ?? []).length >= 10 && (v.match(/\d/g) ?? []).length <= 15, {
+        message: "Please enter a valid phone number",
+      }),
+    vehicleType: z.enum(["car", "bike"], { errorMap: () => ({ message: "Select car or bike" }) }),
+    vehicleModel: z.string().trim().max(120).optional().nullable(),
+    /** Honeypot, same idea as the lead form. */
+    website: z.string().max(200).optional(),
+  });
+
+  const DIWALI_ALREADY_PAID_MESSAGE =
+    "You've already booked this offer with this number. Our team will call you to confirm your slot, or call +91 74066 19191.";
+
+  app.post(
+    "/api/offers/diwali/order",
+    rateLimit({
+      bucket: "diwali-offer-order",
+      windowMs: 10 * 60_000,
+      max: 8,
+      message: "Too many attempts. Please wait a moment, or call us on +91 74066 19191 and we'll book your slot.",
+    }),
+    async (req, res) => {
+      try {
+        const parsed = diwaliOrderSchema.safeParse(req.body);
+        if (!parsed.success) {
+          const fieldErrors: Record<string, string> = {};
+          for (const issue of parsed.error.issues) {
+            const key = issue.path.join(".") || "form";
+            if (!fieldErrors[key]) fieldErrors[key] = issue.message;
+          }
+          return res.status(400).json({ message: "Please check the highlighted fields and try again.", fieldErrors });
+        }
+        const data = parsed.data;
+
+        if (data.website && data.website.trim() !== "") {
+          console.warn(`[diwali-offer] honeypot tripped from ${req.ip} — refused`);
+          return res.status(400).json({ message: "We couldn't start the payment. Please call us on +91 74066 19191." });
+        }
+
+        // Server clock decides. After the printed end date no new payment can start.
+        if (!isDiwaliOfferOpen()) {
+          return res.status(410).json({ message: "This offer has ended." });
+        }
+
+        const offerPaymentConfigured = !!(process.env.RAZORPAY_KEY_ID || process.env.RAZORPAY_TEST_KEY_ID);
+        if (!offerPaymentConfigured) {
+          console.error("❌ Razorpay is not configured — refusing to start an offer payment.");
+          return res.status(503).json({
+            message: "Online payment is temporarily unavailable. Please call us on +91 74066 19191 to book your slot.",
+          });
+        }
+
+        const attribution = parseAttribution(req.body);
+        const amountPaise = DIWALI_OFFER.amountRupees * 100;
+
+        // One lead per customer per offer. The phone is normalised (+91 / 0 / spaces stripped) so
+        // "+91 98765 43210" and "9876543210" are the same person, and the normalised number is what
+        // is stored. A unique index on (offer_name, phone) enforces this in the database too.
+        const phone = normalizeIndianMobile(data.phone);
+        if (!phone.ok) {
+          return res.status(400).json({
+            message: "Please check the highlighted fields and try again.",
+            fieldErrors: { phone: "Enter a 10-digit mobile number" },
+          });
+        }
+
+        /** The customer's existing state for this offer: a paid lead blocks a second payment; otherwise reuse the unpaid one. */
+        const existingFor = async () => {
+          const all = await storage.findOfferLeadsByPhone(DIWALI_OFFER.name, phone.national);
+          return {
+            paid: all.find((l) => l.paymentStatus === "paid"),
+            open: all.find((l) => l.paymentStatus !== "paid" && l.razorpayOrderId),
+          };
+        };
+
+        let { paid, open } = await existingFor();
+        if (paid) {
+          return res.status(409).json({ message: DIWALI_ALREADY_PAID_MESSAGE, alreadyPaid: true });
+        }
+
+        let lead = open;
+        let orderId: string;
+
+        if (!lead) {
+          const order = await createPaymentOrder(DIWALI_OFFER.amountRupees, `diwali_${Date.now()}`);
+          try {
+            lead = await storage.createPpfLead({
+              name: data.name,
+              email: data.email,
+              phone: phone.national,
+              vehicleType: data.vehicleType,
+              vehicleModel: data.vehicleModel || null,
+              serviceInterest: "ppf",
+              message: DIWALI_LEAD_MESSAGE,
+              source: DIWALI_OFFER.source,
+              channel: deriveSource(attribution),
+              ...attribution,
+              offerName: DIWALI_OFFER.name,
+              amount: DIWALI_OFFER.amountRupees.toFixed(2),
+              paymentStatus: "pending",
+              razorpayOrderId: order.id,
+            });
+            orderId = order.id;
+            console.log(`[diwali-offer] lead ${lead.id} created, order ${orderId}, ₹${DIWALI_OFFER.amountRupees} pending`);
+          } catch (err) {
+            // Two requests for the same customer raced and the unique index let only one in (Postgres
+            // 23505). Not an error: fall back to whichever lead won. This attempt's Razorpay order stays
+            // unused and is never shown to anyone.
+            if ((err as { code?: string })?.code !== "23505") throw err;
+            ({ paid, open } = await existingFor());
+            if (paid) return res.status(409).json({ message: DIWALI_ALREADY_PAID_MESSAGE, alreadyPaid: true });
+            if (!open) throw err;
+            lead = open;
+            orderId = open.razorpayOrderId!;
+          }
+        } else {
+          orderId = lead.razorpayOrderId!;
+        }
+
+        if (open && lead === open) {
+          // Retry after a closed or failed checkout: same lead, same order, latest details. The status is
+          // left as it is: a failed lead stays "failed" until Razorpay reports a payment (or a new failure).
+          lead = (await storage.updatePpfLeadDetails(lead.id, {
+            name: data.name,
+            email: data.email,
+            vehicleType: data.vehicleType,
+            vehicleModel: data.vehicleModel || null,
+          })) ?? lead;
+        }
+
+        res.json({
+          leadId: lead.id,
+          paymentOrder: {
+            id: orderId,
+            amount: amountPaise,
+            currency: "INR",
+            key: process.env.VITE_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || process.env.RAZORPAY_TEST_KEY_ID,
+          },
+        });
+      } catch (error) {
+        console.error("Diwali offer order error:", error);
+        res.status(500).json({ message: "We couldn't start the payment. Please try again, or call us on +91 74066 19191." });
+      }
+    },
+  );
+
   app.patch("/api/ppf-leads/:id/status", authenticateAdmin, async (req, res) => {
     try {
       const { status } = req.body;
@@ -1224,7 +1404,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/ppf-leads/:id", authenticateAdmin, async (req, res) => {
     try {
-      await storage.deletePpfLead(req.params.id);
+      // A PAID lead is the record of a payment (amount, Razorpay order and payment ids). It is never
+      // deletable here, whoever asks: not by a mis-click, not by a stale admin screen. The rule is
+      // enforced twice: here for a clear message, and inside the DELETE statement itself.
+      const lead = await storage.getPpfLead(req.params.id);
+      if (!lead) return res.status(404).json({ message: "Lead not found" });
+      const PAID_LEAD_MESSAGE =
+        "This lead has a verified payment, so it can't be deleted. Change its status to Closed instead.";
+      if (lead.paymentStatus === "paid") return res.status(409).json({ message: PAID_LEAD_MESSAGE, protected: true });
+
+      const deleted = await storage.deletePpfLead(req.params.id);
+      if (!deleted) {
+        // Nothing was deleted: it was paid between the check and the delete, or already gone.
+        const now = await storage.getPpfLead(req.params.id);
+        if (now?.paymentStatus === "paid") return res.status(409).json({ message: PAID_LEAD_MESSAGE, protected: true });
+        return res.status(404).json({ message: "Lead not found" });
+      }
       res.json({ message: "Lead deleted successfully" });
     } catch (error) {
       console.error("Delete PPF lead error:", error);
@@ -1839,6 +2034,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const booking = await storage.getBookingByPaymentOrderId(razorpay_order_id);
 
       if (!booking) {
+        // Not a booking. It may be a paid-offer lead (same order/signature scheme). Bookings are
+        // always tried first, so a real booking can never be treated as a lead.
+        const offerLead = await storage.getPpfLeadByOrderId(razorpay_order_id);
+        if (offerLead) {
+          const { alreadyPaid } = await markLeadPaid(offerLead, razorpay_payment_id);
+          return res.json({
+            message: "Payment confirmed",
+            kind: "lead",
+            offerName: offerLead.offerName,
+            amount: offerLead.amount,
+            paymentStatus: "paid",
+            alreadyConfirmed: alreadyPaid,
+            success: true,
+          });
+        }
         console.error("❌ Booking not found for order ID:", razorpay_order_id);
         return res.status(404).json({ message: "Booking not found" });
       }
@@ -2262,6 +2472,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const booking = await storage.getBookingByPaymentOrderId(orderId);
 
         if (!booking) {
+          // Not a booking: a paid-offer lead? Same idempotent rule — a replay changes nothing.
+          const offerLead = await storage.getPpfLeadByOrderId(orderId);
+          if (offerLead) {
+            // "authorized" only means the bank is holding the money; it can still fail to capture. A lead
+            // is Paid only on "captured" (or a verified browser signature). Bookings keep their old rule.
+            if (event.event === "payment.captured") {
+              await markLeadPaid(offerLead, payment.id);
+            } else {
+              console.log(`ℹ️  Offer lead ${offerLead.id}: payment authorized, waiting for capture — not marked paid`);
+            }
+            return res.status(200).json({ received: true, matched: true, kind: "lead" });
+          }
           // Unknown order: ack so Razorpay stops retrying an event we can never satisfy.
           console.warn(`⚠️  Razorpay webhook: no booking for order ${orderId}`);
           return res.status(200).json({ received: true, matched: false });
@@ -2286,6 +2508,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`   erpSync=${erpSync.status} for booking=${booking.id}`);
 
         return res.status(200).json({ received: true, matched: true, erpSync });
+      }
+
+      // A failed attempt on a paid-offer order. Leads only: bookings have never recorded failed
+      // attempts and that behaviour is unchanged. A lead that is already paid is never downgraded
+      // (a retry can succeed after an earlier attempt failed).
+      if (event.event === "payment.failed") {
+        const failed = event.payload?.payment?.entity;
+        const failedOrderId: string | undefined = failed?.order_id;
+        const offerLead = failedOrderId ? await storage.getPpfLeadByOrderId(failedOrderId) : undefined;
+        if (offerLead) {
+          // The paid-lead guard is in the UPDATE (storage.markPpfLeadFailed), not in a read here, so a
+          // confirmation that lands between this lookup and the write still wins.
+          const { changed } = await storage.markPpfLeadFailed(offerLead.id, failed?.id ?? null);
+          if (changed) console.log(`⚠️  Offer lead ${offerLead.id} payment attempt failed`);
+        }
+        return res.status(200).json({ received: true, matched: !!offerLead, kind: offerLead ? "lead" : undefined });
       }
 
       res.status(200).json({ received: true });

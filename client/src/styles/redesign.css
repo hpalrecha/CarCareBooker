@@ -1094,6 +1094,9 @@
 }
 .p91x .card:hover { border-color: var(--neon-line); transform: translateY(-2px); }
 .p91x .card-img { position: relative; background: #111114; }
+/* The thin 4:1 crop below is for card banners. The landing-page photo strip needs real photo proportions, or the
+   photos shrink to 90px (26px on a phone) tall. */
+.p91x .lp-gallery .card-img img { aspect-ratio: 4 / 3; object-position: center; }
 .p91x .card-img img { aspect-ratio: 4/1; object-fit: cover; object-position: center bottom; width: 100%; }
 
 /* The before/after section is photographs, not banners.
@@ -1954,6 +1957,14 @@
   .p91x .gl-fest-row { grid-template-columns: minmax(0, 1fr); }
   .p91x .gl-fest-img { max-width: 420px; margin-inline: auto; }
 }
+
+/* offer landing page (pages/offer.tsx) */
+.p91x .gl-offer-page { padding-top: clamp(96px, 13vh, 132px); min-height: 70vh; }
+.p91x .gl-offer-page .gl-fest-row { align-items: start; }
+.p91x .gl-offer-page .gl-fest-img { position: sticky; top: 96px; }
+@media (max-width: 760px) { .p91x .gl-offer-page .gl-fest-img { position: static; } }
+.p91x .gl-offer-h1 { font-size: clamp(34px, 4.6vw, 60px); margin-bottom: 14px; color: #fff; }
+.p91x .gl-offer-form { margin: 0 0 20px; max-width: 640px; }
 
 /* closing call */
 .p91x .gl-cta { padding-block: clamp(64px, 10vh, 112px); text-align: center; }

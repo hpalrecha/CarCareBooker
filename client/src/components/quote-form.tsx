@@ -62,7 +62,28 @@ export default function QuoteForm({
   subheading,
   columns = false,
   onSubmitted,
+  submitOverride,
+  footerNote,
+  submitLabel,
 }: {
+  /**
+   * Replaces the built-in send (POST /api/ppf-leads) with the caller's own. Used by the paid offer
+   * page, whose "send" is "create the lead + payment order, then open Razorpay". When set, this form
+   * shows no "thanks" state and fires no Lead event of its own: the caller decides when it is done
+   * (for a paid offer, only after the payment is verified).
+   */
+  submitOverride?: (values: {
+    name: string;
+    phone: string;
+    email: string;
+    vehicleType: "car" | "bike";
+    vehicleModel?: string;
+    website?: string;
+  }) => Promise<void>;
+  /** Button text; defaults to "Book Now". */
+  submitLabel?: string;
+  /** Replaces the small print under the button. */
+  footerNote?: string;
   /** Called once the server has accepted the lead (e.g. so a popup stops re-offering itself). */
   onSubmitted?: () => void;
   /** One line under the heading. Service pages use it to say this is the no-payment path. */
@@ -95,6 +116,10 @@ export default function QuoteForm({
 
   const submit = useMutation({
     mutationFn: async (values: QuoteValues) => {
+      if (submitOverride) {
+        await submitOverride(values);
+        return null;
+      }
       const res = await fetch("/api/ppf-leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -124,6 +149,7 @@ export default function QuoteForm({
     },
     // Lead fires only once the server has accepted the row, never on button press.
     onSuccess: () => {
+      if (submitOverride) return;
       setSubmitted(true);
       onSubmitted?.();
       trackLead({
@@ -265,11 +291,11 @@ export default function QuoteForm({
             className={`min-h-[44px] w-full rounded-[10px] bg-[var(--neon-green)] font-bold text-black hover:brightness-95${columns ? " sm:col-span-2" : ""}`}
             data-testid={`button-${testId}-submit`}
           >
-            {submit.isPending ? "Sending…" : "Book Now"}
+            {submit.isPending ? "Sending…" : submitLabel ?? "Book Now"}
           </Button>
           {/* The subheading already says "no payment now" when one is given; do not repeat it. */}
           <p className={`text-xs text-gray-400${columns ? " sm:col-span-2" : ""}`}>
-            {subheading ? "The service is paid at the studio." : FORM_NOTE}
+            {footerNote ?? (subheading ? "The service is paid at the studio." : FORM_NOTE)}
           </p>
         </form>
       </Form>

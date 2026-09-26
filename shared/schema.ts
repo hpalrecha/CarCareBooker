@@ -354,6 +354,18 @@ export const ppfLeads = pgTable("ppf_leads", {
   gclid: varchar("gclid"),
   landingPage: varchar("landing_page"),
   referrer: varchar("referrer"),
+
+  // --- Paid offers (added 2026-09-26; all nullable, null on every ordinary lead) ---
+  // A lead that comes from a paid offer (source "diwali_offer") carries its payment here, so the
+  // studio sees one row per customer with who they are AND whether they paid. Payment is verified
+  // by the same signature check and webhook as bookings (server/routes.ts). None of these is ever
+  // accepted from the browser: insertPpfLeadSchema below omits every one of them.
+  offerName: varchar("offer_name"),                 // e.g. "de-dhana-dhan-2026"
+  amount: decimal("amount", { precision: 10, scale: 2 }), // what the offer charges, set by the server
+  paymentStatus: varchar("payment_status"),         // pending | paid | failed (null = no payment involved)
+  razorpayOrderId: varchar("razorpay_order_id"),
+  paymentId: varchar("payment_id"),
+  paymentVerifiedAt: timestamp("payment_verified_at"),
 });
 
 // Schema types
@@ -388,6 +400,8 @@ export type ContactMessage = typeof contactMessages.$inferSelect;
 export type InsertContactMessage = typeof contactMessages.$inferInsert;
 export type PpfLead = typeof ppfLeads.$inferSelect;
 export type InsertPpfLead = typeof ppfLeads.$inferInsert;
+export type InsertPpfLeadWithPayment = typeof ppfLeads.$inferInsert;
+export type PpfLeadPaymentStatus = "pending" | "paid" | "failed";
 
 export type Campaign = typeof campaigns.$inferSelect;
 export type InsertCampaign = typeof campaigns.$inferInsert;
@@ -459,10 +473,28 @@ export const insertBlackoutDateSchema = createInsertSchema(blackoutDates).omit({
   createdAt: true,
 });
 
-export const insertPpfLeadSchema = createInsertSchema(ppfLeads).omit({
+/**
+ * Everything the server may write to a lead, including the payment fields.
+ * Only server code that has just created or verified a payment may use this shape.
+ */
+export const insertPpfLeadWithPaymentSchema = createInsertSchema(ppfLeads).omit({
   id: true,
   createdAt: true,
   status: true,
+});
+
+/**
+ * What a public form may submit. The payment columns are OMITTED, not merely ignored: the lead
+ * request schema is built from this and is .passthrough(), so leaving them in would let anyone
+ * POST { paymentStatus: "paid" } to the public lead endpoint.
+ */
+export const insertPpfLeadSchema = insertPpfLeadWithPaymentSchema.omit({
+  offerName: true,
+  amount: true,
+  paymentStatus: true,
+  razorpayOrderId: true,
+  paymentId: true,
+  paymentVerifiedAt: true,
 });
 
 export const insertBusinessHourSchema = createInsertSchema(businessHours).omit({

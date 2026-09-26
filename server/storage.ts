@@ -25,12 +25,14 @@ import {
   type InsertBlackoutDate,
   type PpfLead,
   type InsertPpfLead,
+  type InsertPpfLeadWithPayment,
+  type PpfLeadPaymentStatus,
   type BusinessHour,
   type Campaign,
   type InsertCampaign,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gte, desc, asc, sql } from "drizzle-orm";
+import { eq, and, gte, desc, asc, sql, or, isNull, ne, inArray } from "drizzle-orm";
 import { deriveAutoImage } from "./lib/service-auto-image";
 
 /** Thrown by createBookingWithCapacity when the requested slot is already full. */
@@ -103,9 +105,24 @@ export interface IStorage {
   updateContactMessage(id: string, patch: Partial<Pick<ContactMessage, "status" | "whatsappAlertStatus" | "whatsappAlertError">>): Promise<ContactMessage | undefined>;
   getAllPpfLeads(): Promise<PpfLead[]>;
   getPpfLead(id: string): Promise<PpfLead | undefined>;
-  createPpfLead(lead: InsertPpfLead): Promise<PpfLead>;
+  createPpfLead(lead: InsertPpfLead | InsertPpfLeadWithPayment): Promise<PpfLead>;
+  getPpfLeadByOrderId(orderId: string): Promise<PpfLead | undefined>;
+  /** Every lead a customer (by normalised phone) has for this offer, newest first. */
+  findOfferLeadsByPhone(offerName: string, phone: string): Promise<PpfLead[]>;
+  /**
+   * Paid, atomically: one conditional UPDATE, so it can never be lost to (or race with) another writer.
+   * `changed` is false when the lead was already paid.
+   */
+  markPpfLeadPaid(id: string, paymentId: string): Promise<{ lead: PpfLead | undefined; changed: boolean }>;
+  /**
+   * Failed, atomically, and ONLY from pending/failed: a lead that is paid can never be overwritten,
+   * even by a stale read in the caller. `changed` is false when nothing was updated.
+   */
+  markPpfLeadFailed(id: string, paymentId: string | null): Promise<{ lead: PpfLead | undefined; changed: boolean }>;
+  updatePpfLeadDetails(id: string, patch: Partial<Pick<InsertPpfLead, "name" | "email" | "vehicleType" | "vehicleModel">>): Promise<PpfLead>;
   updatePpfLeadStatus(id: string, status: string): Promise<PpfLead>;
-  deletePpfLead(id: string): Promise<void>;
+  /** Deletes an UNPAID lead. Returns false when nothing was deleted (missing, or paid: paid leads are never deletable). */
+  deletePpfLead(id: string): Promise<boolean>;
 
   // Business hours operations
   getAllBusinessHours(): Promise<BusinessHour[]>;
@@ -478,9 +495,52 @@ export class DatabaseStorage implements IStorage {
     return lead;
   }
 
-  async createPpfLead(lead: InsertPpfLead): Promise<PpfLead> {
+  async createPpfLead(lead: InsertPpfLead | InsertPpfLeadWithPayment): Promise<PpfLead> {
     const [newLead] = await db.insert(ppfLeads).values(lead).returning();
     return newLead;
+  }
+
+  async getPpfLeadByOrderId(orderId: string): Promise<PpfLead | undefined> {
+    const [lead] = await db.select().from(ppfLeads).where(eq(ppfLeads.razorpayOrderId, orderId));
+    return lead;
+  }
+
+  async findOfferLeadsByPhone(offerName: string, phone: string): Promise<PpfLead[]> {
+    return await db
+      .select()
+      .from(ppfLeads)
+      .where(and(eq(ppfLeads.offerName, offerName), eq(ppfLeads.phone, phone)))
+      .orderBy(desc(ppfLeads.createdAt));
+  }
+
+  async markPpfLeadPaid(id: string, paymentId: string): Promise<{ lead: PpfLead | undefined; changed: boolean }> {
+    const [updated] = await db
+      .update(ppfLeads)
+      .set({ paymentStatus: "paid", paymentId, paymentVerifiedAt: new Date() })
+      // The condition lives in the UPDATE itself, so two concurrent confirmations cannot both "win".
+      .where(and(eq(ppfLeads.id, id), or(isNull(ppfLeads.paymentStatus), ne(ppfLeads.paymentStatus, "paid"))))
+      .returning();
+    if (updated) return { lead: updated, changed: true };
+    return { lead: await this.getPpfLead(id), changed: false };
+  }
+
+  async markPpfLeadFailed(id: string, paymentId: string | null): Promise<{ lead: PpfLead | undefined; changed: boolean }> {
+    const [updated] = await db
+      .update(ppfLeads)
+      .set({ paymentStatus: "failed", paymentId })
+      // Only pending/failed rows: a paid lead is never touched, whatever the caller last read.
+      .where(and(eq(ppfLeads.id, id), inArray(ppfLeads.paymentStatus, ["pending", "failed"])))
+      .returning();
+    if (updated) return { lead: updated, changed: true };
+    return { lead: await this.getPpfLead(id), changed: false };
+  }
+
+  async updatePpfLeadDetails(
+    id: string,
+    patch: Partial<Pick<InsertPpfLead, "name" | "email" | "vehicleType" | "vehicleModel">>,
+  ): Promise<PpfLead> {
+    const [lead] = await db.update(ppfLeads).set(patch).where(eq(ppfLeads.id, id)).returning();
+    return lead;
   }
 
   async updatePpfLeadStatus(id: string, status: string): Promise<PpfLead> {
@@ -492,8 +552,14 @@ export class DatabaseStorage implements IStorage {
     return updatedLead;
   }
 
-  async deletePpfLead(id: string): Promise<void> {
-    await db.delete(ppfLeads).where(eq(ppfLeads.id, id));
+  async deletePpfLead(id: string): Promise<boolean> {
+    // The paid guard is part of the DELETE, so a lead that is paid a moment before (or during) the
+    // request cannot be removed by a stale check in the caller. A paid lead is a payment record.
+    const deleted = await db
+      .delete(ppfLeads)
+      .where(and(eq(ppfLeads.id, id), or(isNull(ppfLeads.paymentStatus), ne(ppfLeads.paymentStatus, "paid"))))
+      .returning({ id: ppfLeads.id });
+    return deleted.length > 0;
   }
 
   // Business hours operations

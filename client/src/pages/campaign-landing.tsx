@@ -522,7 +522,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
             <div className="section-head" style={{ textAlign: "center" }}>
               <h2>Real photos from the studio</h2>
             </div>
-            <div className="grid" style={{ gridTemplateColumns: `repeat(${Math.min(service.images.length, 3)}, minmax(0, 1fr))` }}>
+            <div className="grid lp-gallery" style={{ gridTemplateColumns: `repeat(${Math.min(service.images.length, 3)}, minmax(0, 1fr))` }}>
               {service.images.slice(0, 3).map((src, i) => (
                 <div key={src} className="card-img" data-testid={`img-landing-gallery-${i}`}>
                   <ImageWithFallback

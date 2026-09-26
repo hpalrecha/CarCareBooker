@@ -74,6 +74,7 @@ const storage = {
   getBooking: async (id) => db.bookings.get(id),
   getBookingByPaymentOrderId: async (orderId) =>
     [...db.bookings.values()].find((b) => b.razorpayOrderId === orderId),
+  getPpfLeadByOrderId: async () => undefined,
   getTimeSlot: async () => ({ id: 'ts', startTime: '10:00 AM', endTime: '11:00 AM' }),
   getBookingsByStatus: async (status) =>
     [...db.bookings.values()].filter((b) => b.paymentStatus === status),
