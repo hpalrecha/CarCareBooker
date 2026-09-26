@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { trackPromotion } from "@/lib/offer-tracking";
 import { trackFestivalOffer } from "@/lib/meta-pixel";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -140,6 +141,7 @@ export function FestivalOfferPopup() {
   const [open, setOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const { parts, done } = useOfferCountdown();
+  const [, navigate] = useLocation();
   useEffect(() => {
     if (done || !festivalOfferActive()) return;
     const t = window.setTimeout(() => {
@@ -159,13 +161,17 @@ export function FestivalOfferPopup() {
   return (
     <>
     {dismissed && !open && (
-      <button
-        type="button"
-        onClick={() => {
-          setOpen(true);
-          reportOffer("select", "chip", "open");
+      <a
+        href={o.bookHref}
+        onClick={(e) => {
+          // Straight to the offer page (its own form and payment), not back to the popup. A plain
+          // click navigates inside the app; the real href keeps middle-click / open-in-new-tab working.
+          if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+          e.preventDefault();
+          reportOffer("select", "chip", "go_offer");
+          navigate(o.bookHref);
         }}
-        aria-label={`Open the ${o.title}, ends ${o.validTill}`}
+        aria-label={`Go to the ${o.title}, ends ${o.validTill}`}
         data-testid="festival-offer-chip"
         className="fixed bottom-[18px] left-3 z-[44] flex items-center gap-2 rounded-full border border-[#ffd27a]/50 bg-[#120a26]/95 py-2 pl-2.5 pr-3.5 text-left text-white shadow-lg backdrop-blur transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#ffd27a]"
       >
@@ -174,7 +180,7 @@ export function FestivalOfferPopup() {
           <span className="text-[13px] font-semibold">Diwali offer</span>
           <span className="text-[11px] text-[#ffd27a]">{left}</span>
         </span>
-      </button>
+      </a>
     )}
     <Dialog open={open} onOpenChange={close}>
       <DialogContent
