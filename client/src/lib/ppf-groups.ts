@@ -22,6 +22,7 @@ export interface GroupableService {
   price: string;
   originalPrice?: string;
   duration: number;
+  durationText?: string | null;
   images?: string[];
   [key: string]: unknown;
 }
@@ -54,6 +55,7 @@ export function groupPpf<T extends GroupableService>(services: T[]): (T | Listed
       "Full and partial paint protection film for hatchbacks, sedans and SUVs. Open it to pick your body type and package.",
     price: lowest,
     duration: 0,
+    durationText: "2-3 days",
     images: lead.images,
     fromPrice: true,
     href: "/services/paint-protection-film-bangalore",

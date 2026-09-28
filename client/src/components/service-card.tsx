@@ -16,6 +16,7 @@ interface ServiceCardProps {
     price: string;
     originalPrice?: string;
     duration: number;
+    durationText?: string | null;
     images?: string[];
     discountText?: string;
     /** Set on the grouped PPF entries on /services (lib/ppf-groups.ts). */

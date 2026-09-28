@@ -105,7 +105,13 @@ export const services = pgTable("services", {
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   originalPrice: decimal("original_price", { precision: 10, scale: 2 }),
   discountText: varchar("discount_text"), // e.g., "Limited Time Offer!"
-  duration: integer("duration").notNull(), // in minutes
+  duration: integer("duration").notNull(), // in minutes — booking/availability never reads this; display only
+  // Free-text turnaround shown to customers instead of the computed `duration` figure, for
+  // services whose real turnaround is a range or "depends on condition" (e.g. "36-48 hrs",
+  // "2-3 days"), which a single minutes integer cannot express. NULL means: fall back to
+  // formatServiceTime()'s computed value (or its legacy DURATION_RANGE_OVERRIDES entry).
+  // `duration` itself is still required and still stored — this only overrides its display.
+  durationText: varchar("duration_text"),
   // Media
   images: jsonb("images").$type<string[]>(),
   gallery: jsonb("gallery").$type<{url: string, type: 'image' | 'video', caption?: string}[]>(),

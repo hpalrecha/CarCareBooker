@@ -77,6 +77,8 @@ export interface ServiceRecord {
   price: string;
   originalPrice?: string;
   images?: string[];
+  /** Admin-set turnaround override (e.g. "36-48 hrs") — see lib/service-time.ts. */
+  durationText?: string | null;
   [k: string]: unknown;
 }
 

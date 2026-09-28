@@ -21,6 +21,7 @@ import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { useHeroVideoGate } from "@/hooks/use-hero-video";
 import { useQuery } from "@tanstack/react-query";
 import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canonical-services";
+import { formatServiceTime } from "@/lib/service-time";
 import {
   getLandingPage,
   relevantPosts,
@@ -265,16 +266,20 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
               */}
               <HeroOfferStrip landingPage={page.path} servicePrice={service?.price} />
 
-              {/* Duration, but never for PPF — see the data note in lib/landing-pages.ts. */}
-              {!page.hideDuration &&
-                service &&
-                Number.isFinite(Number(service.duration)) &&
-                Number(service.duration) > 0 && (
-                  <p className="lp-meta" data-testid="landing-duration">
-                    Approx. {Math.round(Number(service.duration) / 60)} hours in the studio ·
-                    Adugodi, Bangalore
-                  </p>
-                )}
+              {/* Duration, but never for PPF's raw corrupt minutes — see the data note in
+                  lib/landing-pages.ts. An explicit durationText (e.g. "2-3 days") is
+                  curated, not corrupt, so it is never suppressed by hideDuration. */}
+              {service &&
+                (() => {
+                  const time = formatServiceTime(service);
+                  if (!time) return null;
+                  if (page.hideDuration && !service.durationText) return null;
+                  return (
+                    <p className="lp-meta" data-testid="landing-duration">
+                      Approx. {time} in the studio · Adugodi, Bangalore
+                    </p>
+                  );
+                })()}
 
               <div className="lp-hero-cta">
                 <a className="cta-ghost" href="tel:+917406619191" data-testid="link-hero-call">

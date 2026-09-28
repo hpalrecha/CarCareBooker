@@ -1,5 +1,6 @@
 import { formatINR, type ServiceRecord } from "@/lib/canonical-services";
 import { displayableIncludes, type CategoryOption } from "@/lib/landing-pages";
+import { formatServiceTime } from "@/lib/service-time";
 
 /**
  * Body-category picker for services priced by vehicle size.
@@ -115,10 +116,15 @@ export default function VehicleSelector({
           </p>
 
           {/* Duration is suppressed for PPF: the catalogue holds 2/3/4 in a minutes field
-              for full PPF, which would render as "2 minutes" beside a ₹45,000 price. */}
-          {!hideDuration && Number.isFinite(Number(service.duration)) && Number(service.duration) > 0 && (
-            <p className="vsel-pkg-meta">Approx. {Math.round(Number(service.duration) / 60)} hours in the studio</p>
-          )}
+              for full PPF, which would render as "2 minutes" beside a ₹45,000 price. An
+              explicit durationText (e.g. "2-3 days") is curated, not corrupt, so it is
+              never suppressed by hideDuration. */}
+          {(() => {
+            const time = formatServiceTime(service);
+            if (!time) return null;
+            if (hideDuration && !service.durationText) return null;
+            return <p className="vsel-pkg-meta">Approx. {time} in the studio</p>;
+          })()}
 
           {showIncludes && displayableIncludes(service.whatIncluded).length > 0 && (
             <ul className="vsel-pkg-inc" data-testid="vehicle-package-includes">

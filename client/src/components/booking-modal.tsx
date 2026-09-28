@@ -31,6 +31,7 @@ interface BookingModalProps {
     price: string;
     originalPrice?: string;
     duration: number;
+    durationText?: string | null;
     images?: string[];
     whyChoose?: string;
     whatIncluded?: string[];

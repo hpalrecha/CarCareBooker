@@ -8,9 +8,16 @@
  * which read "Duration: 0 hours" for a full-body film job.
  *
  * Shared by the service page and the booking modal so the two can never disagree.
+ *
+ * `service.durationText` (the admin-editable DB column, added 2026-09-28) takes priority
+ * over everything below when set — it is the studio's own words for a turnaround that is a
+ * range or "depends on condition", which a single minutes figure can't express. The slug
+ * map below is the legacy stopgap for services no admin has entered text for yet; a row
+ * with `durationText` set never consults it.
  */
 /** Services whose turnaround is a range, not a single figure — the `duration`
- *  column only holds one number, so these are shown as text instead. */
+ *  column only holds one number, so these are shown as text instead. Legacy fallback:
+ *  set `durationText` on the row instead of adding new entries here. */
 const DURATION_RANGE_OVERRIDES: Record<string, string> = {
   "windshield-glass-coating-new": "24 hrs",
   "1-year-bike-ceramic-coating": "36-48 hrs",
@@ -19,7 +26,14 @@ const DURATION_RANGE_OVERRIDES: Record<string, string> = {
   "windshield-glass-polishing": "3-4 hrs",
 };
 
-export function formatServiceTime(service: { slug?: string; duration?: number | string }): string | null {
+export function formatServiceTime(service: {
+  slug?: string;
+  duration?: number | string;
+  durationText?: string | null;
+}): string | null {
+  if (typeof service.durationText === "string" && service.durationText.trim() !== "") {
+    return service.durationText.trim();
+  }
   if (service.slug && service.slug in DURATION_RANGE_OVERRIDES) {
     return DURATION_RANGE_OVERRIDES[service.slug];
   }

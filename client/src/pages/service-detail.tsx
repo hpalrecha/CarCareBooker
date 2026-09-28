@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, Check, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
+import { formatServiceTime } from "@/lib/service-time";
 
 // Import images
 import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029992282.webp";
@@ -74,11 +75,16 @@ export default function ServiceDetail() {
   // Cast service to any to avoid TypeScript issues
   const serviceData = service as any;
 
+  // formatServiceTime honours durationText (admin override, e.g. "36-48 hrs") and the
+  // legacy DURATION_RANGE_OVERRIDES map; the inline calc below is only a fallback for the
+  // rare case it returns null (an implausible raw `duration`, e.g. under 15 minutes).
   const durationInHours = Math.floor(serviceData.duration / 60);
   const durationMinutes = serviceData.duration % 60;
-  const durationText = durationInHours > 0 
-    ? `${durationInHours}${durationMinutes > 0 ? `.${Math.round((durationMinutes / 60) * 10)}` : ''} hours`
-    : `${durationMinutes} minutes`;
+  const durationText =
+    formatServiceTime(serviceData) ??
+    (durationInHours > 0
+      ? `${durationInHours}${durationMinutes > 0 ? `.${Math.round((durationMinutes / 60) * 10)}` : ''} hours`
+      : `${durationMinutes} minutes`);
 
 
 
