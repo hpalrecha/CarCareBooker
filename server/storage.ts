@@ -9,6 +9,9 @@ import {
   contactMessages,
   type ContactMessage,
   type InsertContactMessage,
+  chatbotKnowledge,
+  type ChatbotKnowledgeEntry,
+  type InsertChatbotKnowledgeEntry,
   businessHours,
   campaigns,
   type Admin,
@@ -90,6 +93,13 @@ export interface IStorage {
   getBlackoutDate(date: string): Promise<BlackoutDate | undefined>;
   createBlackoutDate(blackoutDate: InsertBlackoutDate): Promise<BlackoutDate>;
   deleteBlackoutDate(id: string): Promise<void>;
+
+  // Chatbot knowledge hub (staff-curated facts fed to the AI chat widget)
+  getAllChatbotKnowledge(): Promise<ChatbotKnowledgeEntry[]>;
+  getActiveChatbotKnowledge(): Promise<ChatbotKnowledgeEntry[]>;
+  createChatbotKnowledge(entry: InsertChatbotKnowledgeEntry): Promise<ChatbotKnowledgeEntry>;
+  updateChatbotKnowledge(id: string, entry: Partial<InsertChatbotKnowledgeEntry>): Promise<ChatbotKnowledgeEntry>;
+  deleteChatbotKnowledge(id: string): Promise<void>;
 
   // Campaign operations
   getAllCampaigns(): Promise<Campaign[]>;
@@ -421,6 +431,40 @@ export class DatabaseStorage implements IStorage {
 
   async deleteBlackoutDate(id: string): Promise<void> {
     await db.delete(blackoutDates).where(eq(blackoutDates.id, id));
+  }
+
+  // Chatbot knowledge hub
+  async getAllChatbotKnowledge(): Promise<ChatbotKnowledgeEntry[]> {
+    return await db.select().from(chatbotKnowledge).orderBy(desc(chatbotKnowledge.createdAt));
+  }
+
+  async getActiveChatbotKnowledge(): Promise<ChatbotKnowledgeEntry[]> {
+    return await db
+      .select()
+      .from(chatbotKnowledge)
+      .where(eq(chatbotKnowledge.isActive, true))
+      .orderBy(desc(chatbotKnowledge.createdAt));
+  }
+
+  async createChatbotKnowledge(entry: InsertChatbotKnowledgeEntry): Promise<ChatbotKnowledgeEntry> {
+    const [created] = await db.insert(chatbotKnowledge).values(entry).returning();
+    return created;
+  }
+
+  async updateChatbotKnowledge(
+    id: string,
+    entry: Partial<InsertChatbotKnowledgeEntry>,
+  ): Promise<ChatbotKnowledgeEntry> {
+    const [updated] = await db
+      .update(chatbotKnowledge)
+      .set({ ...entry, updatedAt: new Date() })
+      .where(eq(chatbotKnowledge.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteChatbotKnowledge(id: string): Promise<void> {
+    await db.delete(chatbotKnowledge).where(eq(chatbotKnowledge.id, id));
   }
 
   // PPF leads operations

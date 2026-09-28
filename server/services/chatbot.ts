@@ -63,6 +63,7 @@ export interface ChatbotStorageDeps extends SlotValidationDeps {
   getAllServices(): ReturnType<typeof storage.getAllServices>;
   getAllBusinessHours(): ReturnType<typeof storage.getAllBusinessHours>;
   getAllBlackoutDates(): Promise<BlackoutDate[]>;
+  getActiveChatbotKnowledge(): ReturnType<typeof storage.getActiveChatbotKnowledge>;
   getService(id: string): ReturnType<typeof storage.getService>;
 }
 

@@ -194,6 +194,7 @@ import {
   insertTimeSlotSchema,
   insertPpfLeadSchema,
   whatsappConfigSchema,
+  insertChatbotKnowledgeSchema,
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -1028,6 +1029,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Delete blackout date error:", error);
       res.status(500).json({ message: "Failed to delete blackout date" });
+    }
+  });
+
+  // Chatbot Knowledge Hub Routes (admin-only — staff-curated facts fed to the AI chat
+  // widget, see server/lib/chatbot-knowledge.ts). Never public: unlike GET /api/services,
+  // there is no reason a browser needs this list outside the admin console, and the chatbot
+  // itself reads it server-side via storage.getActiveChatbotKnowledge(), not over HTTP.
+  app.get("/api/admin/chatbot-knowledge", authenticateAdmin, async (_req, res) => {
+    try {
+      res.json(await storage.getAllChatbotKnowledge());
+    } catch (error) {
+      console.error("Get chatbot knowledge error:", error);
+      res.status(500).json({ message: "Failed to fetch knowledge entries" });
+    }
+  });
+
+  app.post("/api/admin/chatbot-knowledge", authenticateAdmin, async (req, res) => {
+    try {
+      const data = insertChatbotKnowledgeSchema.parse(req.body);
+      const entry = await storage.createChatbotKnowledge(data);
+      res.json(entry);
+    } catch (error) {
+      console.error("Create chatbot knowledge error:", error);
+      res.status(400).json({ message: "Invalid knowledge entry" });
+    }
+  });
+
+  app.put("/api/admin/chatbot-knowledge/:id", authenticateAdmin, async (req, res) => {
+    try {
+      const data = insertChatbotKnowledgeSchema.partial().parse(req.body);
+      const entry = await storage.updateChatbotKnowledge(req.params.id, data);
+      res.json(entry);
+    } catch (error) {
+      console.error("Update chatbot knowledge error:", error);
+      res.status(400).json({ message: "Invalid knowledge entry" });
+    }
+  });
+
+  app.delete("/api/admin/chatbot-knowledge/:id", authenticateAdmin, async (req, res) => {
+    try {
+      await storage.deleteChatbotKnowledge(req.params.id);
+      res.json({ message: "Knowledge entry deleted successfully" });
+    } catch (error) {
+      console.error("Delete chatbot knowledge error:", error);
+      res.status(500).json({ message: "Failed to delete knowledge entry" });
     }
   });
 

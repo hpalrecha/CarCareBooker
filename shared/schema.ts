@@ -331,6 +331,23 @@ export const contactMessages = pgTable("contact_messages", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+/**
+ * Staff-curated facts for the AI chat widget (server/lib/chatbot-knowledge.ts), managed
+ * from the admin "Knowledge Hub" tab. Fed into the chatbot's system prompt alongside the
+ * live services/hours/blackout data — this is how a fact that ISN'T in the database as a
+ * priced catalogue row (e.g. "P91 does bike PPF, but there's no fixed price") gets to the
+ * bot correctly, without editing code. `isActive` lets staff retire an entry without
+ * losing it, same convention as `services.isActive`.
+ */
+export const chatbotKnowledge = pgTable("chatbot_knowledge", {
+  id: varchar("id").primaryKey().notNull().default(sql`gen_random_uuid()`),
+  question: varchar("question").notNull(),
+  answer: text("answer").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // PPF & Ceramic Coating leads
 export const ppfLeads = pgTable("ppf_leads", {
   id: varchar("id").primaryKey().notNull().default(sql`gen_random_uuid()`),
@@ -404,6 +421,9 @@ export type InsertBusinessHour = typeof businessHours.$inferInsert;
 
 export type ContactMessage = typeof contactMessages.$inferSelect;
 export type InsertContactMessage = typeof contactMessages.$inferInsert;
+
+export type ChatbotKnowledgeEntry = typeof chatbotKnowledge.$inferSelect;
+export type InsertChatbotKnowledgeEntry = typeof chatbotKnowledge.$inferInsert;
 export type PpfLead = typeof ppfLeads.$inferSelect;
 export type InsertPpfLead = typeof ppfLeads.$inferInsert;
 export type InsertPpfLeadWithPayment = typeof ppfLeads.$inferInsert;
@@ -477,6 +497,12 @@ export const whatsappTemplateSchema = z.object({
 export const insertBlackoutDateSchema = createInsertSchema(blackoutDates).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertChatbotKnowledgeSchema = createInsertSchema(chatbotKnowledge).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 /**

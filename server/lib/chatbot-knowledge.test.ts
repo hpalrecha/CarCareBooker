@@ -7,10 +7,12 @@ const makeDeps = (over: Partial<{
   services: Array<{ title: string; slug: string; price: string }>;
   businessHours: Array<{ dayOfWeek: number; dayName: string; isOpen: boolean; openTime: string; cutoffTime: string }>;
   blackoutDates: Array<{ date: string; reason: string }>;
+  knowledgeEntries: Array<{ question: string; answer: string }>;
 }> = {}): ChatbotKnowledgeDeps => ({
   getAllServices: async () => (over.services ?? []) as any,
   getAllBusinessHours: async () => (over.businessHours ?? []) as any,
   getAllBlackoutDates: async () => (over.blackoutDates ?? []) as any,
+  getActiveChatbotKnowledge: async () => (over.knowledgeEntries ?? []) as any,
 });
 
 test("live service titles and prices appear in the instructions", async () => {
@@ -46,6 +48,24 @@ test("bike PPF is stated as offered (quote on request), never as unavailable", a
   const instructions = await buildChatbotInstructions(makeDeps());
   assert.match(instructions, /Bike PPF.*P91 DOES offer this/i);
   assert.match(instructions, /never state or estimate a number/i);
+});
+
+test("staff-added Knowledge Hub entries appear in the instructions", async () => {
+  const instructions = await buildChatbotInstructions(
+    makeDeps({
+      knowledgeEntries: [
+        { question: "Do you fit sun film on bikes?", answer: "Yes, sun film is available for bikes on request." },
+      ],
+    }),
+  );
+  assert.match(instructions, /Do you fit sun film on bikes\?/);
+  assert.match(instructions, /Yes, sun film is available for bikes on request\./);
+  assert.match(instructions, /Knowledge Hub/);
+});
+
+test("no Knowledge Hub entries still produces a clear (not empty) section", async () => {
+  const instructions = await buildChatbotInstructions(makeDeps());
+  assert.match(instructions, /None added yet/i);
 });
 
 test("phone/WhatsApp fallback is present for out-of-scope questions", async () => {

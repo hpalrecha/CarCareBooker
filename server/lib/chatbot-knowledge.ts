@@ -11,7 +11,7 @@
 // server/routes.ts already imports from client/src the same way (buildLlmsTxt, for /llms.txt),
 // so this is an established pattern here, not a new one.
 
-import type { Service, BusinessHour, BlackoutDate } from "@shared/schema";
+import type { Service, BusinessHour, BlackoutDate, ChatbotKnowledgeEntry } from "@shared/schema";
 import { buildLlmsTxt } from "../../client/src/lib/llms-txt";
 import { PRODUCT_BRANDS, PRODUCT_FINE_PRINT } from "../../client/src/lib/nav-menu";
 import { PHONE } from "../../client/src/lib/local-business";
@@ -21,6 +21,14 @@ export interface ChatbotKnowledgeDeps {
   getAllServices(): Promise<Service[]>;
   getAllBusinessHours(): Promise<BusinessHour[]>;
   getAllBlackoutDates(): Promise<BlackoutDate[]>;
+  /**
+   * Staff-curated facts from the admin "Knowledge Hub" tab (shared/schema.ts:
+   * chatbotKnowledge). This is the "let it store knowledge" mechanism: when the bot gets a
+   * question wrong (like the bike-PPF one below, before it was fixed), staff add an entry
+   * here instead of waiting on a code change. Only ACTIVE entries — `getActiveChatbotKnowledge`
+   * already filters, this function does not re-filter.
+   */
+  getActiveChatbotKnowledge(): Promise<ChatbotKnowledgeEntry[]>;
 }
 
 export const DIRECTIONS_HREF =
@@ -88,6 +96,19 @@ export async function buildChatbotInstructions(deps: ChatbotKnowledgeDeps): Prom
     deps.getAllBlackoutDates(),
   ]);
 
+  // Fetched separately from the required data above and allowed to fail soft: the
+  // chatbot_knowledge table is new (scripts/migrations/2026-09-28-create-chatbot-knowledge.sql)
+  // and the app code deploys independently of when that migration gets run. Without this
+  // guard, a missing table took the ENTIRE chatbot down — confirmed live, every /api/chat
+  // request 500'd — instead of just running without the staff-added facts. Same "safer to
+  // degrade than block" convention as blackout dates failing to fetch elsewhere in this codebase.
+  let knowledgeEntries: Awaited<ReturnType<ChatbotKnowledgeDeps["getActiveChatbotKnowledge"]>> = [];
+  try {
+    knowledgeEntries = await deps.getActiveChatbotKnowledge();
+  } catch (error) {
+    console.error("[chatbot-knowledge] failed to load Knowledge Hub entries, continuing without them:", error);
+  }
+
   const siteFacts = buildLlmsTxt({
     origin: "https://p91carcare.com",
     services: services.map((s) => ({ title: s.title, slug: s.slug, price: s.price })),
@@ -101,6 +122,10 @@ export async function buildChatbotInstructions(deps: ChatbotKnowledgeDeps): Prom
   const brandLines = PRODUCT_BRANDS.map(
     (b) => `- ${b.name}: ${b.line} (${b.points.join(", ")})`,
   ).join("\n");
+
+  const knowledgeLines = knowledgeEntries.length
+    ? knowledgeEntries.map((k) => `Q: ${k.question}\nA: ${k.answer}`).join("\n\n")
+    : "None added yet.";
 
   // Grounds "today" / "tomorrow" / weekday names to a real calendar date.
   //
@@ -131,6 +156,11 @@ export async function buildChatbotInstructions(deps: ChatbotKnowledgeDeps): Prom
     "",
     "## Services offered but not in the fixed-price catalogue above (quote on request)",
     ...UNPRICED_SERVICES_FACTS.map((f) => `- ${f}`),
+    "",
+    "## Additional facts added by staff (Knowledge Hub)",
+    "These are as authoritative as the live site facts above — added by P91 staff specifically " +
+      "to correct or extend what you know. Use them the same way.",
+    knowledgeLines,
     "",
     "## Cancellation & refund policy",
     ...POLICY_FACTS.map((f) => `- ${f}`),

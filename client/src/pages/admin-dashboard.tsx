@@ -190,6 +190,255 @@ function BlackoutDatesTab() {
   );
 }
 
+interface ChatbotKnowledgeEntry {
+  id: string;
+  question: string;
+  answer: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+/**
+ * "Knowledge Hub" — staff-editable facts fed into the AI chat widget's system prompt
+ * (server/lib/chatbot-knowledge.ts). This is how a wrong or missing answer (like the bot
+ * once saying P91 doesn't do bike PPF) gets fixed by a non-technical staff member here,
+ * instead of needing a code change. Inactive entries are kept, not deleted, so a fact can
+ * be retired and restored without retyping it — same convention as service.isActive.
+ */
+function ChatbotKnowledgeTab() {
+  const { toast } = useToast();
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const { data: entries = [], isLoading } = useQuery<ChatbotKnowledgeEntry[]>({
+    queryKey: ["/api/admin/chatbot-knowledge"],
+  });
+
+  const resetForm = () => {
+    setQuestion("");
+    setAnswer("");
+    setEditingId(null);
+  };
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const body = { question: question.trim(), answer: answer.trim() };
+      const response = editingId
+        ? await apiRequest("PUT", `/api/admin/chatbot-knowledge/${editingId}`, body)
+        : await apiRequest("POST", "/api/admin/chatbot-knowledge", body);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/chatbot-knowledge"] });
+      toast({
+        title: editingId ? "Knowledge Entry Updated" : "Knowledge Entry Added",
+        description: "The chat assistant will use this the next time it answers.",
+      });
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Save",
+        description: error.message || "Failed to save knowledge entry",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const response = await apiRequest("PUT", `/api/admin/chatbot-knowledge/${id}`, { isActive });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/chatbot-knowledge"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Update",
+        description: error.message || "Failed to update knowledge entry",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/admin/chatbot-knowledge/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/chatbot-knowledge"] });
+      toast({ title: "Knowledge Entry Removed" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Remove",
+        description: error.message || "Failed to remove knowledge entry",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSave = () => {
+    if (!question.trim() || !answer.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter both a question and an answer.",
+        variant: "destructive",
+      });
+      return;
+    }
+    saveMutation.mutate();
+  };
+
+  const startEdit = (entry: ChatbotKnowledgeEntry) => {
+    setEditingId(entry.id);
+    setQuestion(entry.question);
+    setAnswer(entry.answer);
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="glass-effect border-[var(--medium-gray)]">
+        <CardHeader>
+          <CardTitle className="text-xl text-[var(--neon-green)] flex items-center gap-2">
+            <MessageCircle className="h-5 w-5" />
+            {editingId ? "Edit Knowledge Entry" : "Add Knowledge Entry"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="knowledge-question" className="text-gray-300">
+                Question customers might ask
+              </Label>
+              <Input
+                id="knowledge-question"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="e.g., Do you fit sun film on bikes?"
+                className="bg-dark-gray border-gray-600 text-white"
+                data-testid="input-knowledge-question"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="knowledge-answer" className="text-gray-300">
+                Answer (exactly what the assistant should say — no invented prices)
+              </Label>
+              <textarea
+                id="knowledge-answer"
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                placeholder="e.g., Yes, sun film is available for bikes. Price depends on the bike — contact the studio for a quote."
+                rows={3}
+                className="flex w-full rounded-md border border-gray-600 bg-dark-gray px-3 py-2 text-sm text-white placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--neon-green)]"
+                data-testid="input-knowledge-answer"
+              />
+            </div>
+          </div>
+          <div className="mt-4 flex gap-2">
+            <Button
+              onClick={handleSave}
+              disabled={saveMutation.isPending}
+              className="bg-neon-green text-[var(--deep-black)] hover:bg-neon-green/80"
+              data-testid="button-save-knowledge"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {saveMutation.isPending ? "Saving..." : editingId ? "Update Entry" : "Add Entry"}
+            </Button>
+            {editingId && (
+              <Button variant="ghost" onClick={resetForm} className="text-gray-400 hover:text-white" data-testid="button-cancel-edit-knowledge">
+                Cancel
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="glass-effect border-[var(--medium-gray)]">
+        <CardHeader>
+          <CardTitle className="text-xl text-[var(--neon-green)]">Knowledge Entries</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8 text-gray-400">Loading knowledge entries...</div>
+          ) : entries.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              <AlertCircle className="h-12 w-12 mx-auto mb-3 text-gray-600" />
+              <p>No knowledge entries yet.</p>
+              <p className="text-sm mt-2">Add one above to teach the chat assistant a fact it's missing.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {entries.map((entry) => (
+                <div
+                  key={entry.id}
+                  className="bg-deep-black/50 border border-gray-700 rounded-lg p-4"
+                  data-testid={`knowledge-${entry.id}`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-white" data-testid={`knowledge-question-${entry.id}`}>
+                          {entry.question}
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className={entry.isActive ? "border-[var(--neon-green)] text-[var(--neon-green)]" : "border-gray-600 text-gray-500"}
+                        >
+                          {entry.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-400 mt-1" data-testid={`knowledge-answer-${entry.id}`}>
+                        {entry.answer}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1 flex-none">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleActiveMutation.mutate({ id: entry.id, isActive: !entry.isActive })}
+                        disabled={toggleActiveMutation.isPending}
+                        className="text-gray-400 hover:text-white"
+                        data-testid={`button-toggle-knowledge-${entry.id}`}
+                      >
+                        {entry.isActive ? "Deactivate" : "Activate"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => startEdit(entry)}
+                        className="text-gray-400 hover:text-white"
+                        data-testid={`button-edit-knowledge-${entry.id}`}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (confirm("Remove this knowledge entry?")) deleteMutation.mutate(entry.id);
+                        }}
+                        disabled={deleteMutation.isPending}
+                        className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                        data-testid={`button-delete-knowledge-${entry.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 interface BusinessHour {
   id: string;
   dayOfWeek: number;
@@ -1203,10 +1452,21 @@ export default function AdminDashboard() {
             >
               Campaigns
             </Button>
+            <Button
+              variant={activeTab === "knowledge" ? "default" : "ghost"}
+              onClick={() => setActiveTab("knowledge")}
+              className={activeTab === "knowledge" ? "bg-neon-green text-[var(--deep-black)]" : "text-gray-400 hover:text-white"}
+              data-testid="tab-knowledge"
+            >
+              <MessageCircle className="mr-2 h-4 w-4" />
+              Knowledge Hub
+            </Button>
           </div>
         </div>
 
         {activeTab === "campaigns" && <AdminCampaigns />}
+
+        {activeTab === "knowledge" && <ChatbotKnowledgeTab />}
 
         {activeTab === "bookings" && (
           <>

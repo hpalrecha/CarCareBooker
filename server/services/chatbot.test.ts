@@ -23,6 +23,7 @@ function makeDeps(over: Partial<{
     getAllServices: async () => (over.services ?? [SERVICE]) as any,
     getAllBusinessHours: async () => [] as any,
     getAllBlackoutDates: async () => over.blackouts ?? [],
+    getActiveChatbotKnowledge: async () => [],
     getBusinessHoursForDay: async () =>
       over.hours ?? { isOpen: true, openTime: "10:30", cutoffTime: "16:30", dayName: "Test" },
     getBookingCountForSlot: async () => over.count ?? 0,
