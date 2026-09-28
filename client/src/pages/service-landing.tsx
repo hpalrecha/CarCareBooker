@@ -1,4 +1,4 @@
-import { useParams, useLocation, Link } from "wouter";
+import { useParams, useLocation, useSearch, Link } from "wouter";
 // `.lp-*` (price, includes, steps, FAQ) is defined in landing-pages.css. This is the
 // highest-traffic consumer of that stylesheet — the 17 indexed /service/:slug pages — so
 // it must import it directly now that main.tsx no longer loads it globally (see main.tsx:
@@ -340,6 +340,34 @@ export default function ServiceLanding() {
   const service = fetched ?? listed;
   const isLoading = !service && fetching;
 
+  // Deep link from the chat widget's "Book this slot" button (?date=&time=), or any other
+  // future link built the same way. Opens the booking modal pre-seeded with that date/time —
+  // BookingModal re-checks the date against blackout/business-hours and the time against a
+  // live slot-availability query before treating either as actually selected (booking-modal.tsx).
+  //
+  // Tracks the last CONSUMED search string, not a plain "ran once" boolean. wouter reuses this
+  // same component instance across client-side navigations to /service/:slug — it does not
+  // remount on every chat "Book this slot" click. A boolean guard therefore only ever applied
+  // the FIRST prefill in a browser session and silently ignored every subsequent one (found
+  // live: asking the chat to book a second, different slot after the first one had already
+  // opened the modal once did nothing). Comparing against the actual search string means a
+  // genuinely new `?date=&time=` is applied every time, while an unrelated re-render (e.g. a
+  // background `service` refetch with the same search) still does not reopen a dismissed modal.
+  const search = useSearch();
+  const [prefillSlot, setPrefillSlot] = useState<{ date: string; time: string } | undefined>(undefined);
+  const consumedSearchRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!service || consumedSearchRef.current === search) return;
+    consumedSearchRef.current = search;
+    const params = new URLSearchParams(search);
+    const date = params.get("date") ?? "";
+    const time = params.get("time") ?? "";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date) && /^\d{2}:\d{2}$/.test(time)) {
+      setPrefillSlot({ date, time });
+      setBookingModalOpen(true);
+    }
+  }, [service, search]);
+
   // A new package starts on its own first photo.
   useEffect(() => {
     setActiveThumbIndex(0);
@@ -406,12 +434,14 @@ export default function ServiceLanding() {
     return (
       <div className="p91x min-h-screen">
         <SiteHeader />
+        <main id="main">
         <section className="section" style={{ minHeight: "50vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div
             className="animate-spin"
             style={{ width: 48, height: 48, borderRadius: "50%", border: "3px solid var(--medium-gray)", borderBottomColor: "var(--neon-green)" }}
           />
         </section>
+        </main>
         <SiteFooter />
       </div>
     );
@@ -424,6 +454,7 @@ export default function ServiceLanding() {
     return (
       <div className="p91x min-h-screen">
         <SiteHeader />
+        <main id="main">
         <section className="section">
           <div className="wrap" style={{ textAlign: "center", maxWidth: 640 }}>
             <div className="section-head" data-cine="rise">
@@ -452,6 +483,7 @@ export default function ServiceLanding() {
             </p>
           </div>
         </section>
+        </main>
         <SiteFooter />
       </div>
     );
@@ -570,6 +602,7 @@ export default function ServiceLanding() {
         away to /services.
       */}
       <SiteHeader onBookNow={() => setBookingModalOpen(true)} />
+      <main id="main">
 
       {/* Hero: XPEL product-page layout by request — thumbnail rail + boxed main photo
           on the left, a dark info panel on the right, both bounded on the page's white
@@ -694,7 +727,7 @@ export default function ServiceLanding() {
               Three trust pills, every one a fact: the service's own first included item,
               its duration from the record, and the studio (which opens Google Maps).
             */}
-            <ul className="hero-facts" data-testid="trust-pills" style={{ marginTop: 18 }}>
+            <div className="hero-facts" data-testid="trust-pills" style={{ marginTop: 18 }}>
               {service.whatIncluded?.[0] && (
                 <span>
                   <CheckCircle className="i" aria-hidden="true" style={{ color: "var(--neon-green)" }} />
@@ -717,7 +750,7 @@ export default function ServiceLanding() {
                 <MapPin className="i" aria-hidden="true" />
                 Adugodi studio
               </a>
-            </ul>
+            </div>
 
             {/* Glass coating needs the vehicle overnight. */}
             {service.slug === 'windshield-glass-coating-new' && (
@@ -1206,6 +1239,7 @@ export default function ServiceLanding() {
       {/* Hidden from the footer onwards (finalCtaRef, declared above) — the floating
           sticky CTA bar hides once the page bottom is reached, so it never sits on top of
           the footer's own contact links for the rest of the scroll. */}
+      </main>
       <section ref={finalCtaRef}>
         <SiteFooter />
       </section>
@@ -1213,8 +1247,8 @@ export default function ServiceLanding() {
         Sticky booking bar. Full width along the bottom on phones — price, what paying
         today does, and one Reserve button, reachable however far down the customer has
         scrolled — and a compact card at bottom-right from sm up. Hidden while the page's
-        own bottom CTA or the booking modal is on screen. The site-wide WhatsApp button
-        lifts above it on /service/* (components/contact-fab.tsx), so the two never touch.
+        own bottom CTA or the booking modal is on screen. The site-wide chat widget
+        lifts above it on /service/* (components/chat-widget.tsx), so the two never touch.
       */}
       {showFloatingCTA && !finalCtaVisible && !bookingModalOpen && !floatingCtaDismissed && (
         <div
@@ -1271,6 +1305,8 @@ export default function ServiceLanding() {
         isOpen={bookingModalOpen}
         onClose={() => setBookingModalOpen(false)}
         service={service}
+        initialDate={prefillSlot?.date}
+        initialTime={prefillSlot?.time}
       />
     </div>
     </>

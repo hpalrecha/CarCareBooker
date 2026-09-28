@@ -19,6 +19,8 @@ import { sendBookingConfirmationEmail } from "./services/email";
 import { sendBookingWebhook } from "./services/webhook";
 import { computeAvailability, generateHourlySlots, istNow } from "./lib/slots";
 import { validateAppointmentSlot } from "./lib/booking-validation";
+import { validateChatRequestBody } from "./lib/chat-guards";
+import { runChat, ChatbotUnavailableError } from "./services/chatbot";
 import { parseAttribution, deriveSource } from "./lib/attribution";
 import { normalizeIndianMobile } from "./lib/phone";
 import { rateLimit } from "./lib/rate-limit";
@@ -2628,6 +2630,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update message" });
     }
   });
+
+  // AI chat widget (replaces the floating WhatsApp button as the default contact action).
+  //
+  // Never creates or confirms a booking — see server/services/chatbot.ts. `rateLimit` here
+  // is the same per-IP module every other public POST uses, but unlike those it is paired
+  // with validateChatRequestBody(), which fails CLOSED (rejects before any OpenAI call) on a
+  // malformed or oversized request. rateLimit() alone fails OPEN by design (a bug there must
+  // never block a real booking) — the wrong failure mode, alone, for an endpoint that spends
+  // real OpenAI credits per call.
+  app.post(
+    "/api/chat",
+    rateLimit({
+      bucket: "chat",
+      windowMs: 10 * 60_000,
+      max: 20,
+      message: "Too many chat messages. Please wait a moment, or call/WhatsApp us on +91 74066 19191.",
+    }),
+    async (req, res) => {
+      const guard = validateChatRequestBody(req.body);
+      if (!guard.ok) {
+        return res.status(guard.status).json({ message: guard.message });
+      }
+      try {
+        const result = await runChat(guard.messages);
+        res.json(result);
+      } catch (error) {
+        if (error instanceof ChatbotUnavailableError) {
+          // Fails closed: no silent no-op bot, no crash — a clear message and a real fallback.
+          return res.status(503).json({
+            message: "Chat isn't available right now. Please call or WhatsApp us on +91 74066 19191.",
+          });
+        }
+        console.error("Chat error:", error);
+        res.status(500).json({
+          message: "Something went wrong. Please call or WhatsApp us on +91 74066 19191.",
+        });
+      }
+    },
+  );
 
   // Test WhatsApp endpoint - send actual booking confirmation
   app.post("/api/test-whatsapp", async (req, res) => {

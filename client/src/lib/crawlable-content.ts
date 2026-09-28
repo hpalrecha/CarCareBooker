@@ -47,12 +47,20 @@ const e = escapeHtml;
 export const PRERENDER_ATTR = 'data-prerender="content"';
 
 /**
- * Minimal inline styling so the brief moment before the app starts reads as a page rather
- * than raw text. Deliberately plain: this is replaced within a moment of load.
+ * The snapshot is for crawlers and other readers of the raw HTML, not for people, so it is taken
+ * OUT OF THE LAYOUT and off screen (the standard visually-hidden pattern: still in the document,
+ * still readable by anything that reads HTML, never painted).
+ *
+ * It used to be painted: pale grey text (#e5e7eb) on the site's white background, i.e. nearly
+ * unreadable for the second or so before the app started, and then replaced by the real page. That
+ * swap moved every element on the page and scored 0.17-0.27 Cumulative Layout Shift on /ppf, the
+ * page the ads land on (Google rates above 0.1 as needing improvement). Hidden this way nothing
+ * moves when the app takes over. The text is the same content the page renders, so it is not a
+ * different page for crawlers; it is the same page without the wait for JavaScript.
  */
 const WRAP_STYLE =
-  "max-width:760px;margin:0 auto;padding:24px 16px;color:#e5e7eb;" +
-  "font-family:system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.6";
+  "position:absolute;left:0;top:0;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;" +
+  "clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0";
 
 const PHONE_DISPLAY = "+91 74066 19191";
 

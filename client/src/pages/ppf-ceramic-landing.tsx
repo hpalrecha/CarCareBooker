@@ -495,6 +495,7 @@ export default function PpfCeramicLanding() {
         Book Now still takes the visitor to this page's enquiry form.
       */}
       <SiteHeader onBookNow={scrollToForm} />
+      <main id="main">
 
       {/* Hero Section with Form — same two-column shape as the other landing templates
           (`.lp-hero-grid`), copy left, an enquiry form (not a photo) fixed-width on the
@@ -1200,6 +1201,8 @@ export default function PpfCeramicLanding() {
           </div>
         </div>
       </section>
+
+      </main>
 
       <SiteFooter />
 

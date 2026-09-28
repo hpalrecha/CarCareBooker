@@ -11,6 +11,7 @@ import { HOME_SEO } from "@/lib/static-seo";
 import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canonical-services";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
 import { PRODUCT_BRANDS } from "@/lib/nav-menu";
+import { FestivalOfferStrip } from "@/components/festival-offer";
 import type { BusinessHour } from "@shared/schema";
 
 
@@ -93,7 +94,7 @@ export default function Home() {
     // Shared with scripts/prerender.mjs so the crawler HTML and the page cannot disagree.
     title: HOME_SEO.title,
     description: HOME_SEO.description,
-    image: "/Car Care (4)_1753951564515.png",
+    image: "/og/og-default.jpg",
     canonicalPath: "/",
     structuredData: localBusinessSchema({
       origin: typeof window === "undefined" ? "https://p91carcare.com" : window.location.origin,
@@ -219,6 +220,7 @@ export default function Home() {
   return (
     <div className="p91x min-h-screen home-page">
       <SiteHeader overHero />
+      <main id="main">
 
       {/* ---------- hero ---------- */}
       <section className="hero-bg">
@@ -281,6 +283,7 @@ export default function Home() {
             fades behind the copy column — see .hero-bg-scrim for why it's two gradients. */}
         <div className="hero-bg-scrim" aria-hidden="true" />
         <div className="wrap copy">
+          <FestivalOfferStrip />
           <span className="eyebrow">Detailing Studio · Adugodi</span>
           <h1 className="hero-solid">
             Car Detailing, PPF &amp; Ceramic Coating Studio in Adugodi, Bangalore
@@ -290,6 +293,17 @@ export default function Home() {
             warranty-backed, and bookable online in under a minute.
           </p>
           <div className="hero-cta">
+            {/* The primary action, in the hero itself: until now the only "Book" was up in the header. */}
+            <Link href="/services" className="cta-lg" data-testid="link-hero-book">Book now</Link>
+            <a
+              href="https://wa.me/917406619191?text=Hi%20P91%20Car%20Care%2C%20I%27d%20like%20to%20know%20more%20about%20your%20detailing%20services."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="cta-ghost"
+              data-testid="link-hero-whatsapp"
+            >
+              WhatsApp us
+            </a>
             <a href="#results" className="cta-ghost" data-testid="link-hero-see-work">See our work</a>
           </div>
           <ul className="hero-trust" aria-label="Why book with P91">
@@ -516,6 +530,8 @@ export default function Home() {
           </p>
         </div>
       </section>
+
+      </main>
 
       <SiteFooter />
     </div>

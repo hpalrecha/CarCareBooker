@@ -93,6 +93,37 @@ export function FestivalCountdown({ className = "" }: { className?: string }) {
   );
 }
 
+/**
+ * A single-line pill for the top of a page (homepage hero): what the offer is and the price, linking to the
+ * offer page. Shares the banner's rules: it renders nothing once the offer has ended (server clock and
+ * visitor clock), so the site never advertises an expired offer.
+ */
+export function FestivalOfferStrip() {
+  const { done } = useOfferCountdown();
+  const [, navigate] = useLocation();
+  if (done || !festivalOfferActive()) return null;
+  const o = FESTIVAL_OFFER;
+  return (
+    <a
+      href={o.bookHref}
+      className="hero-offer-pill"
+      data-testid="hero-offer-pill"
+      onClick={(e) => {
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        reportOffer("select", "banner", "hero_pill");
+        navigate(o.bookHref);
+      }}
+    >
+      <span aria-hidden="true">🪔</span>
+      <span>
+        <strong>Dussehra &amp; Diwali offer:</strong> free dash cam, sun film, sound damping &amp; ceramic coating with PPF. Book your slot for ₹99
+      </span>
+      <span aria-hidden="true" className="hero-offer-arrow">→</span>
+    </a>
+  );
+}
+
 /** The offer as a page section: poster beside the details. */
 export function FestivalOfferBanner() {
   const { done } = useOfferCountdown();

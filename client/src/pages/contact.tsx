@@ -149,6 +149,7 @@ export default function Contact() {
   return (
     <div className="p91x min-h-screen">
       <SiteHeader />
+      <main id="main">
 
       <section className="section">
         <div className="wrap">
@@ -306,6 +307,8 @@ export default function Contact() {
           </div>
         </div>
       </section>
+
+      </main>
 
       <SiteFooter />
     </div>

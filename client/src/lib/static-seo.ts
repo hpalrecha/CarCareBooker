@@ -26,6 +26,8 @@ export interface StaticSeoPage {
   h1: string;
   /** The paragraph under the h1, when the page has one. */
   lede?: string;
+  /** Share image (og:image) when the page has its own; otherwise the site default. Root-relative. */
+  image?: string;
 }
 
 export const HOME_SEO: StaticSeoPage = {
@@ -93,6 +95,8 @@ export const OFFER_SEO: StaticSeoPage = {
     "Dussehra and Diwali offer: free dash cam, sun film, sound damping and ceramic coating " +
     "with premium brand PPF at P91 Car Care, Bangalore. Book your slot for ₹99.",
   h1: "De Dhana Dhan offer",
+  // The poster on a 1200x630 canvas (scripts/make-og-images.mjs): what WhatsApp/Facebook show when the link is shared.
+  image: "/og/og-offer-de-dhana-dhan.jpg",
   lede:
     "Free dash cam, sun film, sound damping and ceramic coating with any premium brand paint " +
     "protection film installation. Valid till 8 November 2026.",

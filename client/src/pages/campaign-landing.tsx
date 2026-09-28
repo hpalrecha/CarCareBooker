@@ -208,6 +208,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
     <div className="p91x lp min-h-screen">
       {/* The one Book Now on this page: it opens the booking modal, so the in-page buttons are not needed. */}
       <SiteHeader onBookNow={() => setBookingOpen(true)} />
+      <main id="main">
 
       {/* ---------- 1-3. hero: what, for whom, how much ---------- */}
       <section className="section lp-hero">
@@ -231,15 +232,19 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
                 dedicated section for it; repeating it would push the CTA below the fold.
               */}
               {page.categories ? (
-                <VehicleSelector
-                  categories={page.categories}
-                  bySlug={bySlug}
-                  selectedKey={selectedCategory?.key ?? ""}
-                  onSelect={(c) => setCategoryKey(c.key)}
-                  hideDuration={page.hideDuration}
-                  showIncludes={false}
-                  compact
-                />
+                // The picker only renders once the catalogue has loaded. Its slot reserves the height it
+                // will take (see .lp-selector-slot), so the hero copy, photo and buttons below do not jump.
+                <div className="lp-selector-slot">
+                  <VehicleSelector
+                    categories={page.categories}
+                    bySlug={bySlug}
+                    selectedKey={selectedCategory?.key ?? ""}
+                    onSelect={(c) => setCategoryKey(c.key)}
+                    hideDuration={page.hideDuration}
+                    showIncludes={false}
+                    compact
+                  />
+                </div>
               ) : service ? (
                 <div className="lp-price" data-testid="landing-price">
                   <span className="lp-price-now">{formatINR(service.price)}</span>
@@ -638,6 +643,8 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
           </div>
         </section>
       )}
+
+      </main>
 
       <SiteFooter />
 

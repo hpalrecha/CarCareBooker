@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -52,13 +52,54 @@ interface BookingModalProps {
     vehicleType?: "car" | "bike";
     vehicleCategory?: string;
   };
+  /**
+   * Seeds the date/time picker from a `?date=&time=` deep link (the chat widget's
+   * "Book this slot" button — see chat-widget.tsx / server/services/chatbot.ts).
+   *
+   * `initialDate` seeds `selectedDate` directly: the calendar itself already disables a
+   * blackout/closed/past date, so a stale link just fails safely the same way a customer
+   * clicking that date would. `initialTime` is NOT trusted the same way — it is only applied
+   * once this modal's own live slot-availability query for that date confirms the slot is
+   * still open (see the effect below); a stale or already-booked slot is simply left
+   * unselected rather than shown as picked.
+   */
+  initialDate?: string;
+  initialTime?: string;
 }
 
-export default function BookingModal({ service, isOpen, onClose, vehicleContext }: BookingModalProps) {
+export default function BookingModal({ service, isOpen, onClose, vehicleContext, initialDate, initialTime }: BookingModalProps) {
   const [selectedDate, setSelectedDate] = useState("");
   const [bookingAmount, setBookingAmount] = useState(299);
   const { toast } = useToast();
   const [, navigate] = useLocation();
+
+  /**
+   * Applies `initialDate` when it arrives OR changes, rather than trusting
+   * `useState(initialDate ?? "")` above to have caught it.
+   *
+   * THE BUG THIS FIXES (part 1). This modal is always mounted by its callers
+   * (service-landing.tsx renders `<BookingModal .../>` unconditionally, toggling only
+   * `isOpen`) — same as the `serviceId` bug documented further down this file. `prefillSlot`
+   * on the parent page is set inside an effect that only runs AFTER the service has loaded,
+   * which is after this component's first render. `useState`'s initializer only runs on that
+   * first render, so by the time `initialDate` actually had a value, `selectedDate` had
+   * already been initialized to "" and stayed there — the deep link silently did nothing.
+   *
+   * THE BUG THIS FIXES (part 2, found live after the first fix). A plain "applied once" ref
+   * only ever caught the FIRST prefill of the browser session: this component instance is
+   * reused across client-side navigations (wouter does not remount it just because the
+   * `/service/:slug` query string changed), so asking the chat for a second, different slot
+   * after the first one had already been applied did nothing — the ref was already tripped.
+   * Comparing against the actual `initialDate` VALUE, not a boolean, means a genuinely new
+   * date is applied every time, while a re-render with the same `initialDate` (or none) is a
+   * no-op, so it still never fights a date the customer picks for themselves afterwards.
+   */
+  const appliedInitialDateRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!initialDate || appliedInitialDateRef.current === initialDate) return;
+    appliedInitialDateRef.current = initialDate;
+    setSelectedDate(initialDate);
+  }, [initialDate]);
 
   /**
    * Send the customer to their confirmation page.
@@ -289,6 +330,23 @@ export default function BookingModal({ service, isOpen, onClose, vehicleContext 
         };
       });
   })();
+
+  // Apply the deep-linked `initialTime`, and only once this modal's own live
+  // slot-availability query for `selectedDate` has loaded and confirms that exact slot is
+  // still open. Tracks the applied (date, time) PAIR rather than a plain "ran once" boolean —
+  // same reason as `appliedInitialDateRef` above: this component instance is reused across
+  // client-side navigations, so a second chat-proposed slot needs its own time re-applied
+  // too. Still never fights a time the customer picks for themselves: once a pair is applied,
+  // the same pair is a no-op, and a different pair only ever comes from a new `initialTime` prop.
+  const appliedInitialTimeRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!initialTime || !selectedDate || slotsLoading) return;
+    const key = `${selectedDate}|${initialTime}`;
+    if (appliedInitialTimeRef.current === key) return;
+    appliedInitialTimeRef.current = key;
+    const match = timeSlots.find((s: any) => s.id === initialTime && s.isAvailable);
+    if (match) form.setValue("timeSlotId", initialTime);
+  }, [initialTime, selectedDate, slotsLoading, timeSlots, form]);
 
   const bookingMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -662,7 +720,7 @@ export default function BookingModal({ service, isOpen, onClose, vehicleContext 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl w-[95vw] max-h-[90vh] overflow-y-auto bg-dark-gray text-white border-gray-800 p-4 sm:p-6">
+      <DialogContent className="max-w-3xl w-[95vw] max-h-[90vh] overflow-y-auto bg-white text-[var(--txt)] border-medium-gray p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold gradient-text pr-14" data-testid="text-booking-modal-title">
             {service.title}
@@ -704,45 +762,45 @@ export default function BookingModal({ service, isOpen, onClose, vehicleContext 
           */}
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" data-testid="booking-summary">
             <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-3">
-              <div className="text-xs text-gray-400">To reserve</div>
-              <div className="mt-0.5 text-xl font-bold text-green-400">
+              <div className="text-xs text-[var(--txt-2)]">To reserve</div>
+              <div className="mt-0.5 text-xl font-bold text-green-600">
                 {isFreeBooking ? 'No fee' : `₹${bookingAmount}`}
               </div>
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-[var(--txt-2)]">
                 {isFreeBooking
                   ? offerEnds ? `Booking fee waived until ${offerEnds}` : 'Booking fee waived'
                   : isAnnualPackage ? 'Full package price' : 'Booking fee'}
               </div>
             </div>
-            <div className="rounded-xl border border-gray-800 bg-black/40 p-3">
-              <div className="text-xs text-gray-400">Service price</div>
+            <div className="rounded-xl border border-medium-gray bg-[var(--dark-gray)] p-3">
+              <div className="text-xs text-[var(--txt-2)]">Service price</div>
               <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2">
-                <span className="text-xl font-bold text-white" data-testid="text-current-price">
+                <span className="text-xl font-bold text-[var(--txt)]" data-testid="text-current-price">
                   {formatINR(service.price)}
                 </span>
                 {service.originalPrice && (
-                  <span className="text-xs text-gray-500 line-through" data-testid="text-original-price">
+                  <span className="text-xs text-[var(--txt-3)] line-through" data-testid="text-original-price">
                     {formatINR(service.originalPrice)}
                   </span>
                 )}
               </div>
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-[var(--txt-2)]">
                 Paid at the studio{serviceTime ? ` · ${serviceTime}` : ''}
               </div>
             </div>
-            <div className="col-span-2 rounded-xl border border-gray-800 bg-black/40 p-3 sm:col-span-1">
-              <div className="text-xs text-gray-400">{isAnnualPackage ? 'Valid for' : 'Bonus'}</div>
-              <div className="mt-0.5 text-xl font-bold text-white">
+            <div className="col-span-2 rounded-xl border border-medium-gray bg-[var(--dark-gray)] p-3 sm:col-span-1">
+              <div className="text-xs text-[var(--txt-2)]">{isAnnualPackage ? 'Valid for' : 'Bonus'}</div>
+              <div className="mt-0.5 text-xl font-bold text-[var(--txt)]">
                 {isAnnualPackage ? '12 months' : '₹500 voucher'}
               </div>
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-[var(--txt-2)]">
                 {isAnnualPackage ? 'All services included' : 'On your 2nd visit'}
               </div>
             </div>
           </div>
 
           {/* Booking Form */}
-          <div className="rounded-xl border border-gray-800 bg-gray-900/60 p-4 sm:p-6">
+          <div className="rounded-xl border border-medium-gray bg-white p-4 sm:p-6">
             <div>
               <h4 className="mb-4 text-lg font-semibold">Pick your date &amp; time</h4>
               
@@ -861,7 +919,7 @@ export default function BookingModal({ service, isOpen, onClose, vehicleContext 
                             <Input
                               {...field}
                               autoComplete="name"
-                              className="bg-dark-gray border-gray-600 text-white"
+                              className="bg-white border-medium-gray text-[var(--txt)]"
                               data-testid="input-name"
                               data-clarity-mask="true"
                             />
@@ -883,7 +941,7 @@ export default function BookingModal({ service, isOpen, onClose, vehicleContext 
                               type="tel"
                               autoComplete="tel"
                               inputMode="tel"
-                              className="bg-dark-gray border-gray-600 text-white"
+                              className="bg-white border-medium-gray text-[var(--txt)]"
                               data-testid="input-phone"
                               data-clarity-mask="true"
                             />
@@ -906,7 +964,7 @@ export default function BookingModal({ service, isOpen, onClose, vehicleContext 
                             type="email"
                             autoComplete="email"
                             inputMode="email"
-                            className="bg-dark-gray border-gray-600 text-white"
+                            className="bg-white border-medium-gray text-[var(--txt)]"
                             data-testid="input-email"
                             data-clarity-mask="true"
                           />

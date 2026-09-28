@@ -133,6 +133,7 @@ export default function Gallery() {
   return (
     <div className="p91x gl-page min-h-screen">
       <SiteHeader />
+      <main id="main">
 
       <section className="gl-head">
         <div className="wrap gl-head-row">
@@ -281,6 +282,8 @@ export default function Gallery() {
           </div>
         </div>
       </section>
+
+      </main>
 
       <SiteFooter />
 

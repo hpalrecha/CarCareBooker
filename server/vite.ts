@@ -219,7 +219,7 @@ export function serveStatic(app: Express, distPathOverride?: string) {
       const rawImage = typeof images[0] === "string" && images[0].trim() ? images[0] : null;
       const image = rawImage
         ? rawImage.startsWith("http") ? rawImage : origin + rawImage
-        : `${origin}/Car Care (4)_1753951564515.png`;
+        : `${origin}/og/og-default.jpg`;
 
       const esc = (s: string) =>
         String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

@@ -79,6 +79,7 @@ export default function BlogPost() {
   return (
     <div className="p91x min-h-screen">
       <SiteHeader />
+      <main id="main">
 
       <article className="section">
         <div className="wrap narrow">
@@ -192,6 +193,8 @@ export default function BlogPost() {
           )}
         </div>
       </article>
+
+      </main>
 
       <SiteFooter />
     </div>

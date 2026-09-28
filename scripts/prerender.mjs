@@ -39,7 +39,9 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(ROOT, "dist", "public");
 const SHELL = path.join(DIST, "index.html");
 const ORIGIN = "https://p91carcare.com";
-const OG_IMAGE = "/Car Care (4)_1753951564515.png";
+// 1200x630, built by scripts/make-og-images.mjs. The old default was the logo PNG, whose file name has spaces
+// and parentheses (some crawlers refuse such URLs) and which says nothing about the studio in a link preview.
+const OG_IMAGE = "/og/og-default.jpg";
 
 /**
  * The homepage hero/LCP photo, preloaded ONLY on "/" — this same set of widths is what
@@ -106,7 +108,8 @@ async function loadContent() {
 
 function headFor(route) {
   const canonical = ORIGIN + route.path;
-  const image = ORIGIN + OG_IMAGE;
+  // encodeURI: a path with spaces or brackets is not a valid URL for every crawler.
+  const image = ORIGIN + encodeURI(route.image || OG_IMAGE);
   const tags = [
     `<title>${esc(route.title)}</title>`,
     `<meta name="description" content="${esc(route.description)}" />`,
@@ -116,6 +119,9 @@ function headFor(route) {
     `<meta property="og:url" content="${esc(canonical)}" />`,
     `<meta property="og:type" content="${route.ogType || "website"}" />`,
     `<meta property="og:image" content="${esc(image)}" />`,
+    `<meta property="og:image:width" content="1200" />`,
+    `<meta property="og:image:height" content="630" />`,
+    `<meta property="og:image:alt" content="${esc(route.title)}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:image" content="${esc(image)}" />`,
   ];
@@ -157,11 +163,12 @@ async function main() {
     title: page.title,
     description: page.description,
     content: content.staticPageContent(page),
+    image: page.image,
     // The homepage and /contact set the business schema at runtime; the raw HTML carried
     // none, so a crawler without JavaScript never saw the address, phone or hours. Emitted
     // here without opening hours — those are live data the build cannot know; the page
     // replaces this block with the full one (hours included) once it loads.
-    jsonLd: page.path === "/" || page.path === "/contact" ? [content.localBusinessSchema(ORIGIN)] : [],
+    jsonLd: page.path === "/" || page.path === "/contact" ? [content.localBusinessSchema(ORIGIN)] : extraJsonLd(page.path, content),
   }));
 
   // /blog — title and description come from the shared constants, not a copy here.
@@ -396,6 +403,17 @@ async function main() {
   console.log(
     `[prerender]   ${STATIC_SEO_PAGES.length} static, ${BLOG_POSTS.length} posts, ${SEO_PAGES.length} service pages, ${LANDING_PAGES.length} campaign pages — each with crawlable body content`,
   );
+}
+
+/** Schema for the hand-written pages other than the homepage and /contact: the live offer, and breadcrumbs. */
+function extraJsonLd(pagePath, content) {
+  if (pagePath === "/offer/de-dhana-dhan") {
+    return [content.festivalOfferSchema(ORIGIN), breadcrumbs([["Home", "/"], ["De Dhana Dhan offer", pagePath]])];
+  }
+  if (pagePath === "/gallery" || pagePath === "/products") {
+    return [breadcrumbs([["Home", "/"], [pagePath === "/gallery" ? "Gallery" : "Products", pagePath]])];
+  }
+  return [];
 }
 
 function breadcrumbs(pairs) {

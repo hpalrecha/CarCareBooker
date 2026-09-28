@@ -67,6 +67,17 @@ test("past same-day time rejected", async () => {
   assert.equal(r.reason, "past");
 });
 
+test("a fully past calendar date is rejected, not just a past time today", async () => {
+  // Regression: this used to pass — the old check only fired when date === todayIST, so a
+  // date from a past YEAR sailed through as long as the weekday's hours were open.
+  const r = await validateAppointmentSlot(makeDeps(), {
+    ...base, date: "2023-10-06", time: "12:00", timeSlotId: "12:00",
+    now: new Date("2026-08-19T00:00:00Z"),
+  });
+  assert.equal(r.ok, false);
+  assert.equal(r.reason, "past");
+});
+
 test("invalid date/time rejected", async () => {
   const r = await validateAppointmentSlot(makeDeps(), { ...base, time: "bad" });
   assert.equal(r.ok, false);

@@ -181,6 +181,7 @@ export default function SeoServicePage() {
   return (
     <div className="p91x min-h-screen">
       <SiteHeader overHero={!layout} />
+      <main id="main">
 
       {/* Hero: XPEL guide-page layout by request — full-bleed photo, header floating
           over it, a breadcrumb pill, one bold uppercase title. The lede moves to its
@@ -409,6 +410,8 @@ export default function SeoServicePage() {
           </div>
         </div>
       </section>
+
+      </main>
 
       <SiteFooter />
     </div>

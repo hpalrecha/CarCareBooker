@@ -37,3 +37,4 @@ export {
   injectRootContent,
 } from "@/lib/crawlable-content";
 export { localBusinessSchema } from "@/lib/local-business";
+export { festivalOfferSchema } from "@/lib/offer-schema";

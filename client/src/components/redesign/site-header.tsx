@@ -178,6 +178,7 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
         if (e.key === "Escape") closeEverything();
       }}
     >
+      <a href="#main" className="skip-link" data-testid="skip-to-content">Skip to main content</a>
       <div className="wrap">
         <div className="nav">
           <Link href="/" onClick={closeEverything} data-testid="link-nav-logo">

@@ -9,7 +9,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import NotFound from "@/pages/not-found";
-import ContactFab from "@/components/contact-fab";
+import ChatWidget from "@/components/chat-widget";
 import SitePopups from "@/components/site-popups";
 
 /**
@@ -176,8 +176,10 @@ function App() {
           <Toaster />
           <Router />
           {/* Rendered outside <Router> so it persists across every route rather than
-              remounting on navigation. It hides itself on /admin. */}
-          <ContactFab />
+              remounting on navigation. It hides itself on /admin. Replaces the old
+              WhatsApp-only ContactFab as the default floating action — WhatsApp is still
+              one tap away inside the open panel. */}
+          <ChatWidget />
           <SitePopups />
         </div>
       </TooltipProvider>

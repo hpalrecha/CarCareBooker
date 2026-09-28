@@ -31,6 +31,7 @@ export default function Products() {
   return (
     <div className="p91x min-h-screen">
       <SiteHeader />
+      <main id="main">
 
       <section className="section">
         <div className="wrap">
@@ -65,6 +66,8 @@ export default function Products() {
           <p className="mega-fineprint" style={{ marginTop: 24 }}>{PRODUCT_FINE_PRINT}</p>
         </div>
       </section>
+
+      </main>
 
       <SiteFooter />
     </div>

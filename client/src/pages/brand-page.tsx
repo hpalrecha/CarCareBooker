@@ -35,6 +35,7 @@ export default function BrandPage() {
   return (
     <div className="p91x br-page min-h-screen">
       <SiteHeader />
+      <main id="main">
 
       <section className="br-hero" data-testid="section-brand-hero">
         <div className="wrap br-hero-grid">
@@ -153,6 +154,8 @@ export default function BrandPage() {
           </div>
         </div>
       </section>
+
+      </main>
 
       <SiteFooter />
     </div>

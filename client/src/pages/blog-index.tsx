@@ -112,6 +112,7 @@ export default function BlogIndex() {
   return (
     <div className="p91x p91x-editorial min-h-screen">
       <SiteHeader />
+      <main id="main">
 
       <div className="ed-wrap">
         <header className="ed-masthead">
@@ -245,6 +246,8 @@ export default function BlogIndex() {
           )
         )}
       </div>
+
+      </main>
 
       <SiteFooter />
     </div>

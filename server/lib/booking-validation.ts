@@ -66,8 +66,21 @@ export async function validateAppointmentSlot(
     }
   }
 
-  // Past time (same-day, IST)
+  // Past date/time, IST.
+  //
+  // WHAT THIS FIXES: the check used to only fire when `date === todayIST` (rejecting a
+  // past TIME today), which meant an entirely past CALENDAR DATE — "2023-10-06", or any
+  // date before today — sailed through as long as that weekday's business hours were open
+  // and the slot wasn't full. The customer-facing calendar (booking-calendar.tsx) already
+  // disables past days client-side, so a human using the UI could never hit this — but
+  // nothing server-side stopped a past date from a non-UI caller. Found via the chat
+  // widget: the model can output any date it likes (a hallucinated "tomorrow"), and the
+  // whole point of re-validating its proposal server-side is that this exact class of bad
+  // input must be caught here, not trusted from the caller.
   const { dateStr: todayIST, minutes: nowMin } = istNow(input.now ?? new Date());
+  if (date < todayIST) {
+    return { ok: false, status: 400, reason: "past", message: "This date has already passed. Please select a future date." };
+  }
   if (date === todayIST) {
     const slotMin = toMinutes(time)!;
     if (slotMin <= nowMin) {

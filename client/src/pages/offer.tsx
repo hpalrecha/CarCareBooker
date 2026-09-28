@@ -6,6 +6,7 @@ import { FESTIVAL_OFFER, FestivalCountdown, festivalOfferActive, reportOffer, us
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { useToast } from "@/hooks/use-toast";
 import { OFFER_SEO } from "@/lib/static-seo";
+import { festivalOfferSchema } from "@/lib/offer-schema";
 import { loadRazorpay } from "@/lib/razorpay";
 import { attributionPayload } from "@/lib/attribution";
 import { trackLead } from "@/lib/meta-pixel";
@@ -69,7 +70,8 @@ export default function OfferPage() {
     title: OFFER_SEO.title,
     description: OFFER_SEO.description,
     canonicalPath: OFFER_SEO.path,
-    image: FESTIVAL_OFFER.image,
+    image: OFFER_SEO.image,
+    structuredData: festivalOfferSchema("https://p91carcare.com"),
   });
   const { toast } = useToast();
   const { done } = useOfferCountdown();
@@ -157,6 +159,7 @@ export default function OfferPage() {
   return (
     <div className="p91x gl-page min-h-screen">
       <SiteHeader />
+      <main id="main">
       <section className="gl-fest gl-offer-page" data-testid="offer-page">
         <div className="wrap gl-fest-row">
           <img src={o.image} alt={o.alt} className="gl-fest-img" width={1080} height={1350} />
@@ -227,6 +230,7 @@ export default function OfferPage() {
           </div>
         </div>
       </section>
+      </main>
       <SiteFooter />
     </div>
   );

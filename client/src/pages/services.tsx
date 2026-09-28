@@ -58,12 +58,13 @@ export default function Services() {
     // different from the one crawlers received.
     title: SERVICES_SEO.title,
     description: SERVICES_SEO.description,
-    image: "/Car Care (4)_1753951564515.png",
+    image: "/og/og-default.jpg",
   });
 
   return (
     <div className="p91x min-h-screen">
       <SiteHeader />
+      <main id="main">
 
       <section className="sv-page">
         <div className="wrap">
@@ -105,6 +106,8 @@ export default function Services() {
           )}
         </div>
       </section>
+
+      </main>
 
       <SiteFooter />
     </div>

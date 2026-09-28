@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import compression from "compression";
 import { registerRoutes } from "./routes";
+import { securityHeaders } from "./middleware/security-headers";
 import { setupVite, serveStatic, log } from "./vite";
 import { schedulerService } from "./services/scheduler";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
@@ -42,6 +43,10 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// Baseline hardening headers (nosniff, referrer policy, clickjacking protection, HSTS in production).
+// Additive and Razorpay-safe; see server/middleware/security-headers.ts.
+app.use(securityHeaders());
 
 // Capture the raw request bytes alongside the parsed body.
 //

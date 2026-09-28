@@ -55,7 +55,7 @@
   font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(30px, 6vw, 42px);
   font-weight: 800;
-  color: var(--neon-green);
+  color: var(--accent-ink);
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
@@ -213,7 +213,7 @@
   font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(24px, 5vw, 32px);
   font-weight: 800;
-  color: var(--neon-green);
+  color: var(--accent-ink);
   font-variant-numeric: tabular-nums;
 }
 .p91x .vsel-pkg-was { color: var(--txt-3); text-decoration: line-through; font-variant-numeric: tabular-nums; }
@@ -301,11 +301,11 @@
 .p91x .blogc-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .p91x .blogc-cat {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--neon-green);
+  font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-ink);
 }
 .p91x .blogc-title { font-size: 16px; font-weight: 700; margin: 0; line-height: 1.3; }
 .p91x .blogc-ex { margin: 0; color: var(--txt-2); font-size: 13.5px; line-height: 1.55; }
-.p91x .blogc-more { margin-top: auto; color: var(--neon-green); font-size: 13.5px; font-weight: 600; }
+.p91x .blogc-more { margin-top: auto; color: var(--accent-ink); font-size: 13.5px; font-weight: 600; }
 
 /* ---------- final CTA ---------- */
 .p91x .lp-final {

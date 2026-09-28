@@ -49,7 +49,7 @@ const DialogContent = React.forwardRef<
       <DialogPrimitive.Close
         aria-label="Close"
         data-testid="button-close-modal"
-        className="absolute right-2 top-2 inline-flex h-11 w-11 items-center justify-center rounded-md opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+        className="absolute right-2 top-2 inline-flex h-11 w-11 items-center justify-center rounded-md text-[var(--txt)] opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
       >
         <X className="h-5 w-5" />
         <span className="sr-only">Close</span>
