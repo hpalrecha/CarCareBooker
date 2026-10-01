@@ -2023,3 +2023,25 @@
   letter-spacing: -.02em;
 }
 
+
+/* ---------- phone type scale ----------
+   The clamp() floors above (36-48px) were tuned for desktop and read as shouting on a
+   ~390px screen: two words per line, headings taller than the photo behind them. Lower the
+   shared tokens and the per-page display headings on phones only; desktop is untouched. */
+@media (max-width: 640px) {
+  .p91x { --fs-display: 30px; --fs-h2: 24px; --fs-h3: 19px; }
+  .p91x .ed-title,
+  .p91x .ed-cta .ed-title,
+  .p91x .br-cta .ed-title,
+  .p91x.lp-ppf .ed-cta .ed-title,
+  .p91x .seo-alt .seo-hero-h1,
+  .p91x .seo-alt--text .seo-hero-h1 { font-size: 30px; line-height: 1.1; max-width: none; }
+  .p91x .seo-hero-h1 { font-size: 26px; }
+  .p91x .br-name { font-size: 38px; }
+  .p91x .ed-brand h3 { font-size: 24px; }
+  .p91x .gl-fest h2 { font-size: 26px; }
+  .p91x .gl-offer-h1 { font-size: 28px; }
+  .p91x .ed-service-name { font-size: 30px; }
+  .p91x .sv-depth-word { font-size: 34px; }
+  .p91x .ed-lede { font-size: 16px; line-height: 1.6; }
+}
