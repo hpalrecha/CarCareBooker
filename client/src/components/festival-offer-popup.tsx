@@ -1,19 +1,15 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import { FESTIVAL_OFFER, FestivalCountdown, festivalOfferActive, reportOffer, useOfferCountdown } from "@/components/festival-offer";
 
 /**
  * Opens on every full page load (including a refresh), a couple of seconds after arrival, and not
- * again while the visitor moves between pages in the app. Once closed, a small sticky chip (bottom-left, opposite the WhatsApp button) keeps the offer one tap
- * away and reopens the popup, so closing it never loses the offer.
+ * again while the visitor moves between pages in the app. The offer also stays in the hero strip.
  */
 export function FestivalOfferPopup() {
   const [open, setOpen] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-  const { parts, done } = useOfferCountdown();
-  const [, navigate] = useLocation();
+  const { done } = useOfferCountdown();
   useEffect(() => {
     if (done || !festivalOfferActive()) return;
     const t = window.setTimeout(() => {
@@ -24,36 +20,12 @@ export function FestivalOfferPopup() {
   }, [done]);
   const close = (next: boolean) => {
     setOpen(next);
-    if (!next) setDismissed(true);
   };
   // Both clocks must agree it is still on: the visitor's (cheap, immediate) and the server's (true).
   if (done || !festivalOfferActive()) return null;
   const o = FESTIVAL_OFFER;
-  const left = parts[0].value > 0 ? `${parts[0].value}d left` : `${parts[1].value}h left`;
   return (
     <>
-    {dismissed && !open && (
-      <a
-        href={o.bookHref}
-        onClick={(e) => {
-          // Straight to the offer page (its own form and payment), not back to the popup. A plain
-          // click navigates inside the app; the real href keeps middle-click / open-in-new-tab working.
-          if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-          e.preventDefault();
-          reportOffer("select", "chip", "go_offer");
-          navigate(o.bookHref);
-        }}
-        aria-label={`Go to the ${o.title}, ends ${o.validTill}`}
-        data-testid="festival-offer-chip"
-        className="fixed bottom-[18px] left-3 z-[44] flex items-center gap-2 rounded-full border border-[#ffd27a]/50 bg-[#120a26]/95 py-2 pl-2.5 pr-3.5 text-left text-white shadow-lg backdrop-blur transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#ffd27a]"
-      >
-        <span aria-hidden="true" className="text-lg leading-none">🪔</span>
-        <span className="grid leading-tight">
-          <span className="text-[13px] font-semibold">Diwali offer</span>
-          <span className="text-[11px] text-[#ffd27a]">{left}</span>
-        </span>
-      </a>
-    )}
     <Dialog open={open} onOpenChange={close}>
       <DialogContent
         className="left-3 right-3 top-1/2 mx-auto w-auto max-w-[440px] translate-x-0 grid-cols-[minmax(0,1fr)] overflow-hidden rounded-2xl border-0 bg-[#0b0f0d] p-0 [&_picture]:block"
