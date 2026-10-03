@@ -216,12 +216,14 @@ export function FestivalOfferPopup() {
     )}
     <Dialog open={open} onOpenChange={close}>
       <DialogContent
-        className="w-[calc(100vw-1.5rem)] max-w-[440px] overflow-hidden rounded-2xl border-0 bg-[#0b0f0d] p-0"
+        className="left-3 right-3 top-1/2 mx-auto w-auto max-w-[440px] translate-x-0 grid-cols-[minmax(0,1fr)] overflow-hidden rounded-2xl border-0 bg-[#0b0f0d] p-0 [&_picture]:block"
         data-testid="festival-offer-popup"
       >
         <DialogTitle className="sr-only">{o.title}</DialogTitle>
         <DialogDescription className="sr-only">{o.alt}</DialogDescription>
-        <ImageWithFallback src={o.image} alt={o.alt} className="block max-h-[54vh] w-full object-contain" width={1080} height={1350} sizes="(max-width: 480px) 90vw, 440px" />
+        <div className="w-full min-w-0">
+          <ImageWithFallback src={o.image} alt={o.alt} className="block max-h-[54vh] w-full object-contain" width={1080} height={1350} sizes="(max-width: 480px) 90vw, 440px" />
+        </div>
         <div className="px-3 pt-3">
           <p className="mb-1.5 text-center text-xs font-medium uppercase tracking-widest text-[#ffd27a]">Offer ends in</p>
           <FestivalCountdown className="fest-count-sm" />

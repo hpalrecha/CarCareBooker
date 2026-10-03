@@ -228,7 +228,7 @@ export function ChatWidget() {
           "bg-neon-green text-deep-black shadow-[0_6px_22px_rgba(0,0,0,.5)] " +
           "transition-transform hover:scale-105 print:hidden " +
           "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white " +
-          (onServicePage ? "bottom-24" : "bottom-[18px]")
+          (onServicePage ? "bottom-24" : "bottom-[96px] md:bottom-[18px]")
         }
       >
         {open ? <X className="h-7 w-7" aria-hidden="true" /> : <MessageCircle className="h-7 w-7" aria-hidden="true" />}
