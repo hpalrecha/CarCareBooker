@@ -34,7 +34,9 @@ export const HOME_SEO: StaticSeoPage = {
   path: "/",
   // Was 77 characters ("P91 Car Care — Car Detailing, PPF & Ceramic Coating in Adugodi,
   // Bangalore") and was cut off in results. Same words, shortened.
-  title: "Car Detailing, PPF & Ceramic Coating in Adugodi | P91",
+  // Both target phrases in full ("paint protection film", "ceramic coating") for the
+  // homepage's search terms. "Car Detailing" dropped to stay under 60 characters.
+  title: "Paint Protection Film & Ceramic Coating in Adugodi | P91",
   description:
     "Ceramic coating, paint protection film and full interior detailing in Adugodi, " +
     "Bangalore — warranty-backed and bookable online in under a minute.",
