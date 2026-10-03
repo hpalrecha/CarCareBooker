@@ -118,6 +118,11 @@ export const BLOG_POSTS: BlogPost[] = [
         text:
           "What PPF does not do is make the car easier to clean. Film has its own surface, and an uncoated film still holds water spots.",
       },
+      {
+        type: "p",
+        text:
+          "P91 fits [STEK](/products/stek) film and our own [P91 Premium PPF](/products/p91-premium-ppf) line, both backed by a written warranty at handover.",
+      },
 
       { type: "h2", text: "What ceramic coating actually does" },
       {
@@ -134,6 +139,10 @@ export const BLOG_POSTS: BlogPost[] = [
         type: "p",
         text:
           "What ceramic coating does not do is stop a stone chip. A 9H coating is still measured in microns. It will not survive gravel.",
+      },
+      {
+        type: "p",
+        text: "P91 applies [Nasiol](/products/nasiol) nano-ceramic coating in the Adugodi studio.",
       },
 
       {
@@ -249,6 +258,10 @@ export const BLOG_POSTS: BlogPost[] = [
         text:
           "Once the paint is corrected, a [ceramic coating](/services/ceramic-coating-bangalore) is what stops it recurring. Water beads and rolls off instead of sitting in a flat puddle and evaporating in place. That is the actual mechanism, and it is why coated cars stay clean longer rather than just looking glossier.",
       },
+      {
+        type: "p",
+        text: "P91 applies [Nasiol](/products/nasiol) nano-ceramic coating for this.",
+      },
     ],
   },
 
@@ -318,6 +331,10 @@ export const BLOG_POSTS: BlogPost[] = [
         type: "p",
         text:
           "A film that is legal on side glass may not be legal at the front, so confirm the windshield limit separately. Our [sun control film and glass coating](/services/glass-sun-control-film-bangalore) page lists what we fit.",
+      },
+      {
+        type: "p",
+        text: "P91 fits [STEK](/products/stek) sun-control film in the Adugodi studio.",
       },
 
       { type: "h2", text: "Film and coating are different jobs" },
@@ -393,6 +410,11 @@ export const BLOG_POSTS: BlogPost[] = [
         type: "p",
         text:
           "Coating over the film matters too — film has its own surface, and an uncoated film holds water spots exactly like paint does. If you want the detail on how the two differ, [we wrote that up separately](/blog/ppf-vs-ceramic-coating-bangalore).",
+      },
+      {
+        type: "p",
+        text:
+          "P91 fits [STEK](/products/stek) and our own [P91 Premium PPF](/products/p91-premium-ppf) film, and applies [Nasiol](/products/nasiol) ceramic coating.",
       },
 
       { type: "h2", text: "What to ask before you agree to coverage" },
@@ -496,6 +518,11 @@ export const BLOG_POSTS: BlogPost[] = [
         text:
           "If a quote is dramatically cheaper than everything around it, the saving is coming from somewhere — usually the film, occasionally the hours. Both show up on the car eventually. Our [paint protection film page](/services/paint-protection-film-bangalore) sets out what we fit and what it costs.",
       },
+      {
+        type: "p",
+        text:
+          "P91 fits [STEK](/products/stek) film and our own [P91 Premium PPF](/products/p91-premium-ppf) line — we make no country-of-origin claim on the latter, for exactly the reason this article explains.",
+      },
     ],
   },
 
@@ -581,6 +608,10 @@ export const BLOG_POSTS: BlogPost[] = [
         type: "p",
         text:
           "A [ceramic coating](/ceramic-coating/car) is the durable answer here: it is measured in years rather than washes, and it makes the water spotting in point one far easier to remove before it etches.",
+      },
+      {
+        type: "p",
+        text: "P91 applies [Nasiol](/products/nasiol) nano-ceramic coating for this.",
       },
 
       { type: "h2", text: "What a post-monsoon reset actually involves" },

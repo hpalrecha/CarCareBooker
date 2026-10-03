@@ -38,7 +38,10 @@ export const HOME_SEO: StaticSeoPage = {
   description:
     "Ceramic coating, paint protection film and full interior detailing in Adugodi, " +
     "Bangalore — warranty-backed and bookable online in under a minute.",
-  h1: "Car Detailing, PPF & Ceramic Coating Studio in Adugodi, Bangalore",
+  // "Car Care" (the brand name and the audit's target keyword) did not appear verbatim in
+  // the H1 before — it only said "Car Detailing" — so the page's most-weighted on-page
+  // signal never matched its own brand/service term. Same facts, brand name restored.
+  h1: "P91 Car Care: Detailing, PPF & Ceramic Coating Studio in Adugodi, Bangalore",
   lede:
     "Ceramic coating, paint protection film and full interior work — done properly, " +
     "warranty-backed, and bookable online in under a minute.",

@@ -163,6 +163,22 @@ describe('crawlable content baked into the initial HTML', () => {
     assert.ok(t.includes(firstParagraph.text.slice(0, 60)));
   });
 
+  test('inline [label](/path) links in blog copy render as real crawlable <a> tags, not literal bracket text', () => {
+    // Every post now links to at least one of these brand pages (SEO audit: connect blog
+    // content to the STEK/Nasiol/P91 Premium PPF product pages). If blogPostContent still
+    // escaped this syntax instead of parsing it, a crawler would see literal
+    // "[STEK](/products/stek)" text — the bug this test pins.
+    const withBrandLink = m.BLOG_POSTS.filter((post) =>
+      post.body.some((b) => (b.type === 'p' || b.type === 'ul') && JSON.stringify(b).includes('/products/')),
+    );
+    assert.ok(withBrandLink.length >= 5, 'expected most posts to link to a brand page');
+    for (const post of withBrandLink) {
+      const html = m.blogPostContent(post);
+      assert.match(html, /<a href="\/products\/(stek|nasiol|p91-premium-ppf)"/, post.slug);
+      assert.ok(!html.includes('](/products/'), `${post.slug}: unparsed markdown link leaked into the snapshot`);
+    }
+  });
+
   test('record values are escaped (they are edited in the admin panel)', () => {
     const html = m.servicePageContent({ ...SERVICE, title: '<script>alert(1)</script>', description: '"quoted" & <b>' });
     assert.ok(!html.includes('<script>'));

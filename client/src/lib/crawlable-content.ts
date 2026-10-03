@@ -4,6 +4,7 @@ import type { BlogPost } from "./blog-posts";
 import type { LandingPage } from "./landing-pages";
 import { formatINR } from "./canonical-services";
 import { ADDRESS_CONFIRMED, STREET_ADDRESS, POSTAL_CODE, PHONE } from "./local-business";
+import { PRODUCT_BRANDS } from "./nav-menu";
 
 /**
  * The page's real content as plain HTML, baked into the initial response inside
@@ -85,6 +86,33 @@ const h2 = (t: string) => `<h2>${e(t)}</h2>`;
 const p = (t: string) => `<p>${e(t)}</p>`;
 const ul = (items: string[]) => (items.length ? `<ul>${items.map((i) => `<li>${e(i)}</li>`).join("")}</ul>` : "");
 
+/**
+ * Renders the tiny inline vocabulary blog copy uses on the live page
+ * (components/redesign/rich-text.tsx: `**bold**` and `[label](/path)`) into real HTML here
+ * too. Without this, an inline link like "[STEK](/products/stek)" was a real, clickable
+ * internal link on the live page but showed up as literal bracket text — "[STEK](/products/stek)"
+ * — to a crawler that does not run JavaScript, in the exact snapshot meant to carry internal
+ * links to crawlers that do not. Same token regex as RichText, kept in sync deliberately
+ * rather than imported: this module has no React dependency and stays that way.
+ */
+const RICH_TOKEN = /(\*\*[^*]+\*\*|\[[^\]]+\]\(\/[^)]*\))/g;
+function richText(text: string): string {
+  return text
+    .split(RICH_TOKEN)
+    .filter((part) => part !== "")
+    .map((part) => {
+      const bold = part.match(/^\*\*([^*]+)\*\*$/);
+      if (bold) return `<strong>${e(bold[1])}</strong>`;
+      const link = part.match(/^\[([^\]]+)\]\((\/[^)]*)\)$/);
+      if (link) return `<a href="${e(link[2])}" style="color:#4ade80">${e(link[1])}</a>`;
+      return e(part);
+    })
+    .join("");
+}
+const pRich = (t: string) => `<p>${richText(t)}</p>`;
+const ulRich = (items: string[]) =>
+  items.length ? `<ul>${items.map((i) => `<li>${richText(i)}</li>`).join("")}</ul>` : "";
+
 function faqList(faqs: { question?: string | null; answer?: string | null }[]): string {
   const real = faqs.filter((f) => f?.question?.trim() && f?.answer?.trim());
   if (!real.length) return "";
@@ -94,6 +122,70 @@ function faqList(faqs: { question?: string | null; answer?: string | null }[]): 
 /** Hand-written pages: their h1 and lede, as the page renders them. */
 export function staticPageContent(page: StaticSeoPage): string {
   return shell(h1(page.h1) + (page.lede ? p(page.lede) : ""));
+}
+
+/**
+ * "/" — the real homepage, not the generic h1+lede treatment every other simple page gets.
+ *
+ * SEO audit finding: the homepage's non-JS snapshot was the generic staticPageContent()
+ * (h1 + one paragraph, ~47 words, 3 nav links) even though home.tsx is a long landing page
+ * with several real sections and dozens of internal links — all invisible to a crawler
+ * that does not execute JavaScript. Every sentence and link below is copied verbatim from
+ * home.tsx (the "About", "What we do", "Why P91" and brand-grid sections) — nothing here
+ * is new copy, a new claim, or a link the page does not already have.
+ */
+export function homePageContent(page: StaticSeoPage): string {
+  // Exact hrefs and labels from the "02 / What we do" section of home.tsx.
+  const whatWeDo = [
+    { href: "/services/paint-protection-film-bangalore", name: "PPF" },
+    { href: "/services/ceramic-coating-bangalore", name: "Ceramic" },
+    { href: "/service/exterior-detailing-hard-water-new", name: "Detailing" },
+  ];
+  // Exact captions and hrefs from the "03 / Real work" gallery grid — every card links to
+  // /gallery, same as the page.
+  const realWork = [
+    "PPF fitting",
+    "Toyota Vellfire · STEK PPF",
+    "Nissan GT-R · STEK PPF",
+    "Innova Hycross · STEK PPF",
+  ];
+  // Same PRODUCT_BRANDS data home.tsx's brand grid renders from, so the two can never
+  // disagree (nav-menu.ts is also what the header's Products menu and the /products page use).
+  const brands = PRODUCT_BRANDS.map(
+    (b) =>
+      `<h3>${e(b.name)}</h3>${p(b.line)}${ul(b.points)}` +
+      `<p><a href="${e(b.href)}" style="color:#4ade80">Explore ${e(b.name)} →</a></p>`,
+  ).join("");
+
+  return shell(
+    h1(page.h1) +
+      (page.lede ? p(page.lede) : "") +
+      h2("Protection, done properly.") +
+      p(
+        "P91 Car Care is a car detailing, ceramic coating and paint protection film studio " +
+          "in Adugodi, Bangalore. Every coating and PPF job is backed by a written warranty " +
+          "from the film or coating manufacturer, issued at handover.",
+      ) +
+      `<p><a href="/contact" style="color:#4ade80">Find the studio →</a></p>` +
+      h2("Protection. Finish. Care.") +
+      `<ul>${whatWeDo.map((s) => `<li><a href="${e(s.href)}" style="color:#4ade80">${e(s.name)}</a></li>`).join("")}</ul>` +
+      `<p><a href="/services" style="color:#4ade80">Explore services →</a></p>` +
+      h2("Real work, from our studio.") +
+      `<ul>${realWork.map((caption) => `<li><a href="/gallery" style="color:#4ade80">${e(caption)}</a></li>`).join("")}</ul>` +
+      `<p><a href="/gallery" style="color:#4ade80">See all our work →</a></p>` +
+      h2("Why P91") +
+      ul([
+        "Warranty-backed: written warranty on every coating and PPF job",
+        "Same-day service: most detailing finished the day you book",
+        "Pickup & drop: available across Bangalore at cost",
+      ]) +
+      h2("The brands behind our work") +
+      brands +
+      p(
+        "Warranty on any job is the film or coating manufacturer's, issued in writing at " +
+          "handover. Ask to see the batch details before work starts.",
+      ),
+  );
 }
 
 /** /services/:slug — the local guide pages (lib/seo-pages.ts). */
@@ -118,8 +210,8 @@ export function blogPostContent(post: BlogPost): string {
       switch (b.type) {
         case "h2": return h2(b.text);
         case "h3": return `<h3>${e(b.text)}</h3>`;
-        case "p": return p(b.text);
-        case "ul": return ul(b.items);
+        case "p": return pRich(b.text);
+        case "ul": return ulRich(b.items);
         case "cta": return p(b.text);
         default: return "";
       }

@@ -162,7 +162,12 @@ async function main() {
     path: page.path,
     title: page.title,
     description: page.description,
-    content: content.staticPageContent(page),
+    // The homepage is the one hand-written page with real depth — sections, internal
+    // links, brand mentions — so it gets its own builder instead of the generic
+    // h1+lede-only staticPageContent() every other simple page uses (SEO audit: the
+    // homepage's non-JS snapshot was ~47 words and 4 internal links; the real page has
+    // dozens of each, just behind client-side rendering).
+    content: page.path === "/" ? content.homePageContent(page) : content.staticPageContent(page),
     image: page.image,
     // The homepage and /contact set the business schema at runtime; the raw HTML carried
     // none, so a crawler without JavaScript never saw the address, phone or hours. Emitted

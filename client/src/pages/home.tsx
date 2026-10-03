@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { ArrowUpRight } from "lucide-react";
@@ -11,6 +11,8 @@ import { HOME_SEO } from "@/lib/static-seo";
 import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canonical-services";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
 import { PRODUCT_BRANDS } from "@/lib/nav-menu";
+import { postsNewestFirst } from "@/lib/blog-posts";
+import BlogCarousel from "@/components/blog-carousel";
 import { FestivalOfferStrip } from "@/components/festival-offer";
 import type { BusinessHour } from "@shared/schema";
 
@@ -66,6 +68,11 @@ export default function Home() {
   const { data: services } = useQuery<ServiceRecord[]>({
     queryKey: ["/api/services"],
   });
+
+  // Latest 3 real posts — same cap BlogCarousel documents itself ("up to three real
+  // articles"), newest first, no topic filtering (unlike a campaign page, the homepage
+  // isn't about one service).
+  const homeBlogPosts = useMemo(() => postsNewestFirst().slice(0, 3), []);
 
   // Feeds the AutoRepair schema its real opening hours. Same query key as the footer,
   // so react-query dedupes it to a single request.
@@ -286,7 +293,7 @@ export default function Home() {
           <FestivalOfferStrip />
           <span className="eyebrow">Detailing Studio · Adugodi</span>
           <h1 className="hero-solid">
-            Car Detailing, PPF &amp; Ceramic Coating Studio in Adugodi, Bangalore
+            P91 Car Care: Detailing, PPF &amp; Ceramic Coating Studio in Adugodi, Bangalore
           </h1>
           <p className="lede">
             Ceramic coating, paint protection film and full interior work — done properly,
@@ -530,6 +537,12 @@ export default function Home() {
           </p>
         </div>
       </section>
+
+      {/* ---------- 05 guides ----------
+          Real editorial content, connecting the homepage to the blog (SEO audit: the blog
+          existed but was never linked from the homepage). Same component campaign-landing.tsx
+          already uses, same live imagery mechanism — nothing new to build or maintain. */}
+      <BlogCarousel posts={homeBlogPosts} bySlug={bySlug} heading="Guides from the studio" />
 
       </main>
 

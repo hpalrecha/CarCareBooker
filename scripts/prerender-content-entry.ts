@@ -30,6 +30,7 @@ export { LANDING_PAGES } from "@/lib/landing-pages";
 export { STATIC_SEO_PAGES, SERVICES_SEO } from "@/lib/static-seo";
 export {
   staticPageContent,
+  homePageContent,
   seoGuideContent,
   blogPostContent,
   blogListContent,

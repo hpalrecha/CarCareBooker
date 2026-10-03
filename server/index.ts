@@ -10,6 +10,27 @@ import fs from "fs";
 
 const app = express();
 
+// Express sends this by default; it costs nothing to a reader but is free reconnaissance for
+// an attacker (confirms the framework) and pure noise for an SEO crawler. No functional effect.
+app.disable("x-powered-by");
+
+// www -> non-www canonical redirect (SEO audit: "one canonical host" — the app previously
+// answered identically on both hosts, splitting ranking signals across two URLs for every page).
+//
+// Cloudflare-safe and loop-safe: matches the exact production hostname only (never matches
+// local dev's "localhost:5000" or any other deploy target's host), and always redirects to the
+// fixed "https://p91carcare.com" origin rather than trusting req.protocol — which can read
+// "http" behind a proxy that already terminated TLS — so this can never downgrade to HTTP or
+// redirect anywhere but the one canonical host. Since it only ever matches the www host and
+// only ever redirects AWAY from it, the redirect target can never match this condition again:
+// no loop is reachable.
+app.use((req, res, next) => {
+  if (req.headers.host === "www.p91carcare.com") {
+    return res.redirect(301, `https://p91carcare.com${req.originalUrl}`);
+  }
+  next();
+});
+
 // gzip/brotli every text response (HTML, JS, CSS, JSON). Typically a 3-4x reduction on
 // the JS bundle and the /api/services payload, on every single request.
 //
