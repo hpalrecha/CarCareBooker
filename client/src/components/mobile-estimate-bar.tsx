@@ -1,13 +1,13 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import QuoteForm from "@/components/quote-form";
+import { lazy, Suspense, useState } from "react";
 
 /**
  * "Get free estimate" pinned to the bottom of the screen on phones only (md and up hide it).
  * Almost all traffic is mobile, and the lead form is otherwise a scroll away. The button opens
  * the same QuoteForm the callback popup uses, so validation, the /api/ppf-leads endpoint and
- * the Meta Lead event are shared, not duplicated.
+ * the Meta Lead event are shared, not duplicated. The dialog code loads on first tap.
  */
+const EstimateDialog = lazy(() => import("@/components/mobile-estimate-dialog"));
+
 export default function MobileEstimateBar() {
   const [open, setOpen] = useState(false);
   return (
@@ -22,21 +22,11 @@ export default function MobileEstimateBar() {
           Get free estimate
         </button>
       </div>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogTitle className="sr-only">Get free estimate</DialogTitle>
-          <DialogDescription className="sr-only">
-            Leave your name, WhatsApp number and car model. We reply with an estimate.
-          </DialogDescription>
-          <QuoteForm
-            serviceInterest="both"
-            heading="Get free estimate"
-            subheading="Leave your WhatsApp number. We reply with a price."
-            testId="mobile-estimate"
-            onSubmitted={() => setOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      {open && (
+        <Suspense fallback={null}>
+          <EstimateDialog open={open} onOpenChange={setOpen} />
+        </Suspense>
+      )}
     </>
   );
 }

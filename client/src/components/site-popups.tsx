@@ -1,7 +1,12 @@
+import { lazy, Suspense } from "react";
 import { useLocation } from "wouter";
-import { FestivalOfferPopup } from "@/components/festival-offer";
-import CallbackPopup from "@/components/callback-popup";
 import MobileEstimateBar from "@/components/mobile-estimate-bar";
+
+// The two popups carry the Dialog and form code, but nothing they render is needed for first
+// paint: the offer opens at 2.5s and the callback at 15s. Loading them lazily keeps that code
+// off the critical path.
+const FestivalOfferPopup = lazy(() => import("@/components/festival-offer").then((m) => ({ default: m.FestivalOfferPopup })));
+const CallbackPopup = lazy(() => import("@/components/callback-popup"));
 
 /**
  * The two visitor popups, mounted once above the router so they cover every public page and
@@ -21,8 +26,10 @@ export default function SitePopups() {
   if (location.startsWith("/admin") || location.startsWith("/booking-confirmation") || location.startsWith("/offer/")) return null;
   return (
     <>
-      <FestivalOfferPopup />
-      {!location.startsWith("/service/") && <CallbackPopup isBikeService={false} />}
+      <Suspense fallback={null}>
+        <FestivalOfferPopup />
+        {!location.startsWith("/service/") && <CallbackPopup isBikeService={false} />}
+      </Suspense>
       {!location.startsWith("/service/") && <MobileEstimateBar />}
     </>
   );
