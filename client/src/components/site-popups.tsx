@@ -1,6 +1,7 @@
 import { useLocation } from "wouter";
 import { FestivalOfferPopup } from "@/components/festival-offer";
 import CallbackPopup from "@/components/callback-popup";
+import MobileEstimateBar from "@/components/mobile-estimate-bar";
 
 /**
  * The two visitor popups, mounted once above the router so they cover every public page and
@@ -22,6 +23,7 @@ export default function SitePopups() {
     <>
       <FestivalOfferPopup />
       {!location.startsWith("/service/") && <CallbackPopup isBikeService={false} />}
+      {!location.startsWith("/service/") && <MobileEstimateBar />}
     </>
   );
 }

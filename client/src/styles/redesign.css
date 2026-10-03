@@ -2014,16 +2014,6 @@
    homepage without touching layout. Header and footer come from the shared components
    (components/redesign/brand-chrome.tsx), each in its own .p91x scope.
    ============================================================================ */
-.p91-brand {
-  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
-.p91-brand h1, .p91-brand h2, .p91-brand h3, .p91-brand h4 {
-  font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
-  letter-spacing: -.02em;
-}
-
-
 /* ---------- phone type scale ----------
    The clamp() floors above (36-48px) were tuned for desktop and read as shouting on a
    ~390px screen: two words per line, headings taller than the photo behind them. Lower the
@@ -2045,3 +2035,13 @@
   .p91x .sv-depth-word { font-size: 34px; }
   .p91x .ed-lede { font-size: 16px; line-height: 1.6; }
 }
+
+.p91-brand {
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.p91-brand h1, .p91-brand h2, .p91-brand h3, .p91-brand h4 {
+  font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -.02em;
+}
+

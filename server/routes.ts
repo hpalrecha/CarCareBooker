@@ -17,6 +17,7 @@ import { whatsappService } from "./services/whatsapp";
 import { schedulerService } from "./services/scheduler";
 import { sendBookingConfirmationEmail } from "./services/email";
 import { sendBookingWebhook } from "./services/webhook";
+import { sendLeadToSheet } from "./services/lead-sheet";
 import { computeAvailability, generateHourlySlots, istNow } from "./lib/slots";
 import { validateAppointmentSlot } from "./lib/booking-validation";
 import { validateChatRequestBody } from "./lib/chat-guards";
@@ -1250,6 +1251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(
           `[ppf-leads] created ${lead.id} channel=${lead.channel} campaign=${lead.utmCampaign ?? "-"}`,
         );
+        sendLeadToSheet(lead);
         res.json(lead);
       } catch (error) {
         console.error("Create PPF lead error:", error);
