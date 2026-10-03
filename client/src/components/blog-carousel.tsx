@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import { resolveServiceImage, type ServiceRecord } from "@/lib/canonical-services";
 import type { BlogPost } from "@/lib/blog-posts";
+import "@/styles/blog-carousel.css";
 
 /**
  * Genuine articles from the blog, shown on a landing page.
