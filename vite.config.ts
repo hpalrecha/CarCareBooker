@@ -48,7 +48,9 @@ export default defineConfig({
             return "react-vendor";
           }
           if (/[\\/]node_modules[\\/]@tanstack[\\/]/.test(id)) return "query-vendor";
-          if (/[\\/]node_modules[\\/]@radix-ui[\\/]/.test(id)) return "radix-vendor";
+          // Radix is NOT grouped. A grouped chunk loads whole whenever any Radix module is
+          // imported statically, even Button's small Slot. Ungrouped, dialog code lands in the
+          // lazy popups and only the Slot ships with the homepage.
           // Charting and date tooling are admin-only and heavy; keeping them in their own
           // chunk stops them reaching a customer who never opens the dashboard.
           if (/[\\/]node_modules[\\/](recharts|d3-|victory|date-fns)/.test(id)) {

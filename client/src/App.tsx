@@ -5,8 +5,8 @@ import { applyClarityRouteGuard } from "@/lib/clarity";
 import { captureAttribution } from "@/lib/attribution";
 import { initMetaPixel, trackPageView } from "@/lib/meta-pixel";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
+// Toaster renders nothing until a toast fires, so its Radix code loads on demand.
+const Toaster = lazy(() => import("@/components/ui/toaster").then((m) => ({ default: m.Toaster })));
 import Home from "@/pages/home";
 import NotFound from "@/pages/not-found";
 import ChatWidget from "@/components/chat-widget";
@@ -169,11 +169,12 @@ function CampaignTracking() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <div className="dark">
+      <div className="dark">
           <CampaignTracking />
           <ClarityRouteGuard />
-          <Toaster />
+          <Suspense fallback={null}>
+            <Toaster />
+          </Suspense>
           <Router />
           {/* Rendered outside <Router> so it persists across every route rather than
               remounting on navigation. It hides itself on /admin. Replaces the old
@@ -181,8 +182,7 @@ function App() {
               one tap away inside the open panel. */}
           <ChatWidget />
           <SitePopups />
-        </div>
-      </TooltipProvider>
+      </div>
     </QueryClientProvider>
   );
 }

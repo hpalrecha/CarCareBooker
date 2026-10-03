@@ -5,7 +5,7 @@ import MobileEstimateBar from "@/components/mobile-estimate-bar";
 // The two popups carry the Dialog and form code, but nothing they render is needed for first
 // paint: the offer opens at 2.5s and the callback at 15s. Loading them lazily keeps that code
 // off the critical path.
-const FestivalOfferPopup = lazy(() => import("@/components/festival-offer").then((m) => ({ default: m.FestivalOfferPopup })));
+const FestivalOfferPopup = lazy(() => import("@/components/festival-offer-popup").then((m) => ({ default: m.FestivalOfferPopup })));
 const CallbackPopup = lazy(() => import("@/components/callback-popup"));
 
 /**
