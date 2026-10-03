@@ -14,7 +14,9 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 
 describe('item 10 — mobile blog carousel no longer bleeds past the viewport on /ppf and /ceramic-coating/car', () => {
-  const landingCss = read('client/src/styles/landing-pages.css');
+  // The blog carousel rules moved out of landing-pages.css into their own file (the homepage
+  // imports the carousel, not the landing pages), so read both files where the rules may live.
+  const landingCss = read('client/src/styles/landing-pages.css') + read('client/src/styles/blog-carousel.css');
   const redesignCss = read('client/src/styles/redesign.css');
 
   test(".wrap's mobile padding is 16px (the value .blogc's bleed must match)", () => {

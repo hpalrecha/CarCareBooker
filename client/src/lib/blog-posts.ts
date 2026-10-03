@@ -357,7 +357,7 @@ export const BLOG_POSTS: BlogPost[] = [
       "Full-body film is not the default answer. Coverage is a decision about where damage actually lands.",
     lede:
       "More film is not automatically more protection. Cars do not get damaged evenly, and the coverage that suits a daily driver on Outer Ring Road is not the coverage that suits a garaged weekend car.",
-    imageServiceSlug: "partial-ppf-sedan",
+    imageServiceSlug: "ppf-sedan",
     body: [
       { type: "h2", text: "Coverage is a decision, not an upsell" },
       {

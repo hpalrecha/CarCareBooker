@@ -1383,7 +1383,17 @@
 /* ---------- footer grid (prototype's .foot-* rules, scoped) ---------- */
 .p91x .foot-grid { display: grid; grid-template-columns: 1.7fr 1fr 1fr 1.25fr; gap: 44px; align-items: start; }
 @media (max-width: 900px) { .p91x .foot-grid { grid-template-columns: 1fr 1fr; gap: 32px 28px; } }
-@media (max-width: 560px) { .p91x .foot-grid { grid-template-columns: 1fr; gap: 28px; } }
+/* Phones: brand and studio span the full row, Services and Company sit side by side, so the
+   footer reads as a short block instead of one long strip of links. */
+@media (max-width: 560px) {
+  .p91x .foot-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px 20px; }
+  .p91x .foot-brand, .p91x .foot-grid > .foot-col:last-child { grid-column: 1 / -1; }
+  .p91x .foot-col h4 { margin-bottom: 10px; }
+  .p91x .foot-col a { padding: 4px 0; }
+}
+/* Below 768px the fixed "Get free estimate" bar sits over the page bottom. Pad the footer so
+   the legal links and GST line scroll clear of it. */
+@media (max-width: 767px) { .p91x footer.site { padding-bottom: 96px; } }
 
 .p91x .foot-brand img { height: 34px; width: auto; margin-bottom: 14px; }
 .p91x .foot-brand p { margin: 0 0 16px; color: var(--txt-2); font-size: 13.5px; line-height: 1.65; max-width: 34ch; }

@@ -63,7 +63,7 @@ export default function CallbackPopup({
           was designed to sit on the page), and on a transparent shell the page text showed
           straight through it. */}
       <DialogContent
-        className="w-[calc(100vw-1.5rem)] max-w-xl overflow-hidden rounded-2xl border-0 bg-gray-950 p-0 shadow-2xl"
+        className="w-[calc(100vw-1.5rem)] max-w-xl overflow-hidden rounded-2xl border-0 bg-gray-950 p-0 shadow-2xl max-md:bottom-0 max-md:left-0 max-md:right-0 max-md:!top-auto max-md:w-full max-md:max-w-none max-md:!translate-x-0 max-md:!translate-y-0 max-md:rounded-b-none max-md:rounded-t-2xl max-md:max-h-[75vh] max-md:overflow-y-auto"
         data-testid="callback-popup"
       >
         {/* QuoteForm draws the visible "Prefer a call?" heading; these name the dialog for
