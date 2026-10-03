@@ -28,7 +28,7 @@ export function FestivalOfferPopup() {
     <>
     <Dialog open={open} onOpenChange={close}>
       <DialogContent
-        className="left-3 right-3 top-1/2 mx-auto w-auto max-w-[440px] translate-x-0 grid-cols-[minmax(0,1fr)] overflow-hidden rounded-2xl border-0 bg-[#0b0f0d] p-0 [&_picture]:block"
+        className="left-3 right-3 top-1/2 mx-auto w-auto max-w-[440px] translate-x-0 grid-cols-[minmax(0,1fr)] overflow-hidden rounded-2xl border-0 bg-[#0b0f0d] p-0 [&_picture]:block [&>button[data-testid=button-close-modal]]:bg-black/70 [&>button[data-testid=button-close-modal]]:text-white [&>button[data-testid=button-close-modal]]:opacity-100 [&>button[data-testid=button-close-modal]]:rounded-full"
         data-testid="festival-offer-popup"
       >
         <DialogTitle className="sr-only">{o.title}</DialogTitle>
