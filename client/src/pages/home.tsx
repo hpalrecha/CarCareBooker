@@ -133,6 +133,17 @@ export default function Home() {
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const enable = () => setShowHeroVideo(true);
+    // Phones: the photo stays the hero and the 845 KB clip waits for the first touch or
+    // keypress. Most visitors are on mobile data, and the photo already carries the LCP.
+    if (window.innerWidth < 769) {
+      const events = ["pointerdown", "keydown", "touchstart"] as const;
+      const onFirst = () => {
+        events.forEach((e) => window.removeEventListener(e, onFirst));
+        enable();
+      };
+      events.forEach((e) => window.addEventListener(e, onFirst, { once: true, passive: true }));
+      return () => events.forEach((e) => window.removeEventListener(e, onFirst));
+    }
     const ric = (window as any).requestIdleCallback as ((cb: () => void) => number) | undefined;
     const id = ric ? ric(enable) : window.setTimeout(enable, 1500);
     return () => {
