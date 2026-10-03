@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { trackPromotion } from "@/lib/offer-tracking";
 import { trackFestivalOffer } from "@/lib/meta-pixel";
+import { ImageWithFallback } from "@/components/image-with-fallback";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 /**
@@ -135,7 +136,7 @@ export function FestivalOfferBanner() {
   return (
     <section id="festival-offer" className="gl-fest" data-testid="festival-offer">
       <div className="wrap gl-fest-row">
-        <img src={o.image} alt={o.alt} className="gl-fest-img" width={1080} height={1350} loading="lazy" />
+        <ImageWithFallback src={o.image} alt={o.alt} className="gl-fest-img" width={1080} height={1350} loading="lazy" sizes="(min-width: 940px) 50vw, 100vw" />
         <div className="gl-fest-copy">
           <p className="gl-fest-kicker">{o.kicker} · Limited time</p>
           <h2>{o.title}</h2>
@@ -220,7 +221,7 @@ export function FestivalOfferPopup() {
       >
         <DialogTitle className="sr-only">{o.title}</DialogTitle>
         <DialogDescription className="sr-only">{o.alt}</DialogDescription>
-        <img src={o.image} alt={o.alt} className="block max-h-[54vh] w-full object-contain" width={1080} height={1350} />
+        <ImageWithFallback src={o.image} alt={o.alt} className="block max-h-[54vh] w-full object-contain" width={1080} height={1350} sizes="(max-width: 480px) 90vw, 440px" />
         <div className="px-3 pt-3">
           <p className="mb-1.5 text-center text-xs font-medium uppercase tracking-widest text-[#ffd27a]">Offer ends in</p>
           <FestivalCountdown className="fest-count-sm" />
