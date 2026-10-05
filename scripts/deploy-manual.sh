@@ -427,11 +427,37 @@ container_env() { # reads $FACTS
 }
 env_names() { container_env | cut -d= -f1; }
 
+# Extra environment for the container that the running one does not have yet (for example a new API
+# key). Lives only on the host, outside Git: $STATE_DIR/extra.env, KEY=VALUE per line, blank lines
+# and # comments allowed. It must be owned by root and not readable by group/other (mode 600), or it
+# is refused. Values are never printed; only the names are. A name already set on the container is
+# overridden by the value here (the later --env-file line wins).
+EXTRA_ENV_FILE="$STATE_DIR/extra.env"
+extra_env() { # prints the validated KEY=VALUE lines of extra.env (nothing if the file is absent)
+  [[ -f "$EXTRA_ENV_FILE" ]] || return 0
+  local perm owner line
+  perm="$(stat -c '%a' "$EXTRA_ENV_FILE")"; owner="$(stat -c '%u' "$EXTRA_ENV_FILE")"
+  [[ "$owner" == "0" && "$perm" =~ ^[0-6]00$ ]] \
+    || die "$EXTRA_ENV_FILE must be owned by root with mode 600 (found owner $owner, mode $perm)"
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line%$'\r'}"
+    [[ -z "${line//[[:space:]]/}" || "$line" == "#"* ]] && continue
+    [[ "$line" =~ ^[A-Za-z_][A-Za-z0-9_]*=.+$ ]] || die "$EXTRA_ENV_FILE has a line that is not KEY=VALUE (name only shown): ${line%%=*}"
+    printf '%s\n' "$line"
+  done <"$EXTRA_ENV_FILE"
+}
+extra_env_names() { extra_env | cut -d= -f1; }
+
 write_env_file() { # container -> ENV_FILE (0600, outside Git, deleted on exit)
-  if [[ "$EXECUTE" != "1" ]]; then ENV_FILE="$STATE_DIR/run/env-$TS"; note "[dry-run] would copy the container env into $ENV_FILE (mode 600)"; return; fi
+  if [[ "$EXECUTE" != "1" ]]; then
+    ENV_FILE="$STATE_DIR/run/env-$TS"; note "[dry-run] would copy the container env into $ENV_FILE (mode 600)"
+    note "[dry-run] extra env from $EXTRA_ENV_FILE (names only): $(extra_env_names | tr '\n' ' ')"
+    return
+  fi
   install -d -m 700 "$STATE_DIR/run"
   ENV_FILE="$STATE_DIR/run/env-$TS"
-  ( umask 077; container_env > "$ENV_FILE" )
+  ( umask 077; container_env > "$ENV_FILE"; extra_env >> "$ENV_FILE" )
+  [[ -z "$(extra_env_names)" ]] || note "  extra env added from $EXTRA_ENV_FILE (names only): $(extra_env_names | tr '\n' ' ')"
 }
 
 container_writes() { # container -> changed paths outside uploads/tmp/npm cache
