@@ -448,6 +448,26 @@ describe('static asset serving', () => {
       'the build must generate the variants the Dockerfile then copies');
   });
 
+  test('the image encoding has its own cached Docker stage, and build:app is build minus that step', () => {
+    const df = read('Dockerfile').replace(/^\s*#.*$/gm, '');
+    const pkg = JSON.parse(read('package.json'));
+    // The slow step (AVIF/WebP encoding) must sit in a stage whose inputs are only the lockfile,
+    // the optimiser and attached_assets/, so a code-only deploy reuses its cached layer.
+    const images = df.slice(df.indexOf('AS images'), df.indexOf('AS build'));
+    assert.match(images, /COPY attached_assets attached_assets/);
+    assert.match(images, /OPTIMIZE_ALL=1 node scripts\/optimize-images\.mjs/);
+    assert.ok(!/COPY \. \./.test(images), 'the images stage must not copy the whole source tree, or code changes bust its cache');
+    assert.ok(!/COPY client/.test(images), 'the images stage must not depend on client/ files');
+    // The build stage takes its output and must not run the optimiser a second time.
+    const build = df.slice(df.indexOf('AS build'), df.indexOf('AS runtime'));
+    assert.match(build, /COPY --from=images \/app\/attached_assets\/_opt/);
+    assert.match(build, /COPY --from=images \/app\/client\/src\/lib\/image-manifest\.json/);
+    assert.match(build, /RUN npm run build:app/);
+    assert.ok(!/RUN npm run build\s*$/m.test(build), 'the build stage must use build:app');
+    // build:app is exactly build without the optimiser, so the two cannot drift apart.
+    assert.equal(pkg.scripts.build, 'node scripts/optimize-images.mjs && ' + pkg.scripts['build:app']);
+  });
+
   test('the runtime install keeps devDependencies (dist/index.js imports vite)', () => {
     // Comments stripped: the trailing "Slimming this image" note discusses
     // `npm ci --omit=dev` in prose, which is documentation, not an instruction.

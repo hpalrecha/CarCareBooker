@@ -1,0 +1,77 @@
+# Builds the production Docker image in GitHub Actions and publishes it to GHCR, so the Lightsail
+# host only has to PULL a finished image instead of building one (npm ci, image encoding, vite and
+# esbuild are what made deploys slow and starved the other containers on that host).
+#
+# This workflow only builds and pushes. It does not deploy and never touches the server: the host's
+# auto-deploy timer decides when to pull (scripts/auto-deploy.sh, scripts/deploy-manual.sh).
+#
+# Image:   ghcr.io/<owner>/<repo>:<full commit SHA>    immutable, the one deploys and rollbacks use
+#          ghcr.io/<owner>/<repo>:main                  moves with every build; convenience only,
+#                                                       never used to deploy or roll back
+# Labels:  org.opencontainers.image.revision = the commit SHA (the deploy script refuses an image
+#          whose label differs), and .source = the repository (this also links the package to it).
+#
+# Credentials: none to add. Publishing uses the workflow's own short-lived GITHUB_TOKEN with
+# `packages: write`. The host pulls with a separate read-only token that lives only on the host.
+name: build-image
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# A newer push makes an older, still-running build pointless: the host only ever deploys the latest
+# origin/main. Cancelling it saves minutes; a cancelled SHA simply never gets an image.
+concurrency:
+  group: build-image-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out the commit
+        uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Work out the (lower-case) image name
+        id: image
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          # The Lightsail host is x86_64.
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ steps.image.outputs.name }}:${{ github.sha }}
+            ${{ steps.image.outputs.name }}:main
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.title=carcarebooker
+          # Layer cache kept by GitHub between runs. mode=max also caches the intermediate stages,
+          # which is what lets a code-only change skip the image-encoding stage (see the Dockerfile).
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # A plain single-platform image (no attestation manifest), so `docker pull` on the host
+          # gets exactly one image whose labels it can check.
+          provenance: false
+          sbom: false

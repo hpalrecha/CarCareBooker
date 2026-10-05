@@ -65,6 +65,10 @@ const SHARP_OPTS = { failOn: "none" };
 
 const SOURCE_EXT = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif"]);
 const FORCE = process.argv.includes("--force");
+// OPTIMIZE_ALL=1 optimises every image on disk instead of only those client/src names. The Docker
+// build sets it in a stage that sees only attached_assets/, so that stage's cache depends on the
+// images alone and a code-only deploy reuses the generated variants instead of re-encoding them.
+const OPTIMIZE_ALL = process.env.OPTIMIZE_ALL === "1";
 
 function log(...args) {
   console.log("[images]", ...args);
@@ -204,7 +208,7 @@ async function main() {
   await fs.mkdir(OUT_DIR, { recursive: true });
 
   const all = await collect(SRC_DIR, "");
-  const files = await onlyReferenced(all);
+  const files = OPTIMIZE_ALL ? all : await onlyReferenced(all);
   log(`${all.length} images on disk, ${files.length} referenced by the site`);
 
   const manifest = {};

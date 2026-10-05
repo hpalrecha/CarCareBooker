@@ -1,6 +1,28 @@
 # syntax=docker/dockerfile:1
 
 ###############################################################################
+# Images stage — generates the responsive AVIF/WebP ladder (attached_assets/_opt)
+# and the image manifest.
+#
+# WHY A STAGE OF ITS OWN. Encoding the ladder is by far the slowest part of the
+# build (about 6 minutes of CPU on an 8-core machine, against ~25 seconds for
+# vite + prerender + esbuild together), and its output is gitignored, so every
+# fresh build used to redo all of it. This stage's inputs are only the lockfile,
+# the optimiser script and attached_assets/, so Docker's layer cache keys it on
+# exactly those: a deploy that changes code but no image reuses it and skips the
+# encoding entirely. OPTIMIZE_ALL=1 because this stage cannot see client/src to
+# work out which images the site references (see scripts/optimize-images.mjs).
+###############################################################################
+FROM node:20-bookworm-slim AS images
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY scripts/optimize-images.mjs scripts/optimize-images.mjs
+COPY attached_assets attached_assets
+RUN OPTIMIZE_ALL=1 node scripts/optimize-images.mjs
+
+
+###############################################################################
 # Build stage — needs the FULL dependency tree, because vite and esbuild are
 # devDependencies.
 ###############################################################################
@@ -12,9 +34,16 @@ RUN npm ci
 
 COPY . .
 
+# The generated variants and their manifest come from the images stage above, laid over the
+# copy of the source (the manifest in Git is overwritten, as `npm run build` would have done).
+COPY --from=images /app/attached_assets/_opt ./attached_assets/_opt
+COPY --from=images /app/client/src/lib/image-manifest.json ./client/src/lib/image-manifest.json
+
 # vite    -> dist/public    (client bundle + everything in client/public)
 # esbuild -> dist/index.js  (server bundle, --packages=external)
-RUN npm run build
+# `build:app` is `npm run build` without its first step, the image optimiser, which the
+# images stage already ran (tests/regression.test.mjs keeps the two in step).
+RUN npm run build:app
 
 
 ###############################################################################
