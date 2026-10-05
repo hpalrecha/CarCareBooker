@@ -46,6 +46,20 @@ const GREETING: WidgetMessage = {
     "what you'd like to book and I'll help you find a slot.",
 };
 
+/**
+ * One-tap choices shown under the conversation. Each sends its `text` exactly as if the visitor had
+ * typed it, through the same /api/chat request and server-side checks, so there is no second code
+ * path to keep safe. The wording only asks questions; answers (prices, hours, slots) still come from
+ * the live data the assistant looks up, never from here.
+ */
+const CHOICES: { label: string; text: string }[] = [
+  { label: "Book a slot", text: "I want to book a slot." },
+  { label: "PPF price", text: "How much does paint protection film cost?" },
+  { label: "Ceramic coating", text: "How much is ceramic coating?" },
+  { label: "Opening hours", text: "What are your opening hours?" },
+  { label: "Where are you?", text: "Where is the studio?" },
+];
+
 function formatSlot(slot: ProposedSlot): string {
   const date = new Date(`${slot.date}T00:00:00`);
   const dateLabel = Number.isNaN(date.getTime())
@@ -62,6 +76,7 @@ export function ChatWidget() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const onServicePage = location.startsWith("/service/");
 
@@ -69,10 +84,17 @@ export function ChatWidget() {
     if (open) listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
   }, [open, messages, isLoading]);
 
+  // Put the cursor back in the box once the reply (or an error) has arrived, so the next message
+  // can be typed straight away. The box used to be `disabled` while waiting, and a disabled field
+  // loses focus and never gets it back.
+  useEffect(() => {
+    if (open && !isLoading) inputRef.current?.focus();
+  }, [open, isLoading]);
+
   if (location.startsWith("/admin")) return null;
 
-  const send = async () => {
-    const text = input.trim();
+  const send = async (override?: string) => {
+    const text = (override ?? input).trim();
     if (!text || isLoading) return;
 
     const next = [...messages, { role: "user" as const, content: text }];
@@ -114,9 +136,11 @@ export function ChatWidget() {
           className={
             "fixed right-[18px] z-50 flex w-[min(360px,calc(100vw-36px))] flex-col overflow-hidden " +
             "rounded-2xl border border-medium-gray bg-white shadow-[0_12px_40px_rgba(0,0,0,.25)] " +
-            (onServicePage ? "bottom-[164px]" : "bottom-[84px]")
+            // The toggle (54px tall) sits at bottom-[96px] below md and bottom-[18px] from md up; the
+            // panel must clear its top edge, or the toggle lands on the panel's send button.
+            (onServicePage ? "bottom-[164px]" : "bottom-[164px] md:bottom-[84px]")
           }
-          style={{ height: "min(70vh, 480px)" }}
+          style={{ height: "min(70vh, 480px, calc(100dvh - 190px))" }}
           role="dialog"
           aria-label="Chat with P91 Car Care"
           data-testid="panel-chat-widget"
@@ -174,6 +198,21 @@ export function ChatWidget() {
                 {error}
               </div>
             )}
+            {!isLoading && (
+              <div role="group" aria-label="Quick choices" className="flex flex-wrap gap-2 pt-1" data-testid="chat-choices">
+                {CHOICES.map((c, i) => (
+                  <button
+                    key={c.label}
+                    type="button"
+                    onClick={() => send(c.text)}
+                    className="rounded-full border border-neon-green/70 bg-white px-3 py-1.5 text-xs font-semibold text-[var(--txt)] hover:bg-neon-green/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-neon-green"
+                    data-testid={`chat-choice-${i}`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <form
@@ -184,17 +223,24 @@ export function ChatWidget() {
             className="flex items-center gap-2 border-t border-medium-gray p-3"
           >
             <input
+              ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about services, hours, booking…"
               maxLength={2000}
-              disabled={isLoading}
+              // readOnly, not disabled: it blocks typing while a reply is pending but keeps focus (and the
+              // phone keyboard) where it is.
+              readOnly={isLoading}
+              aria-busy={isLoading}
               className="flex-1 rounded-full border border-medium-gray bg-white px-3 py-2 text-sm text-[var(--txt)] placeholder:text-gray-400 focus:border-neon-green focus:outline-none"
               data-testid="input-chat-message"
             />
             <button
               type="submit"
+              // Tapping Send must not pull focus off the text box, or the phone keyboard closes after
+              // every message.
+              onMouseDown={(e) => e.preventDefault()}
               disabled={isLoading || !input.trim()}
               aria-label="Send"
               className="grid h-9 w-9 flex-none place-items-center rounded-full bg-neon-green text-deep-black disabled:opacity-40"
