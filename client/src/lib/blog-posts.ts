@@ -28,8 +28,35 @@ import {
 export type BlogBlock =
   | { type: "h2"; text: string }
   | { type: "h3"; text: string }
-  | { type: "p"; text: string }
-  | { type: "ul"; items: string[] }
+  /**
+   * `variant` only changes how a paragraph is dressed: "lead" is larger intro type, "warranty"
+   * a highlighted callout, "price" a callout with quote buttons. The words are unchanged.
+   */
+  | { type: "p"; text: string; variant?: "lead" | "warranty" | "price" }
+  /**
+   * `variant` "areas" shows items as service-area cards; "services" as feature blocks, with
+   * an optional short `tags` label above each (decorative, so it is not repeated to screen readers).
+   */
+  | { type: "ul"; items: string[]; variant?: "areas" | "services"; tags?: string[] }
+  | { type: "ol"; items: string[] }
+  /** Questions and answers as an accessible accordion; the answers are always in the HTML. */
+  | { type: "faq"; items: { q: string; a: string }[] }
+  /**
+   * A small comparison table. `head[0]` labels the row-header column. Cells take the same
+   * inline markup as `p`. Rendered as a real <table> (crawlable) that fits a phone without
+   * horizontal scrolling for two or three short columns.
+   */
+  | { type: "table"; caption: string; head: string[]; rows: string[][] }
+  /** Studio address, phone, map and booking links. Fixed fields, so no raw URLs in prose. */
+  | {
+      type: "contact";
+      address: string;
+      phone: string;
+      phoneHref: string;
+      mapsHref: string;
+      bookHref: string;
+      bookLabel: string;
+    }
   /** Mid-article prompt. `text` is the pitch; the button always goes to /services. */
   | { type: "cta"; text: string; label: string }
   /**
@@ -68,12 +95,170 @@ export interface BlogPost {
   lede: string;
   /** Slug of the live service whose image illustrates this post. */
   imageServiceSlug: string;
+  /**
+   * Own artwork for this post, used instead of the service photo named above. For posts with a
+   * dedicated image (for example a branded poster). `square` makes the article header show it
+   * uncropped instead of as a wide banner.
+   */
+  image?: { src: string; alt: string; square?: boolean };
   body: BlogBlock[];
 }
 
 export const BLOG_AUTHOR = "P91 Car Care";
 
 export const BLOG_POSTS: BlogPost[] = [
+  {
+    slug: "ppf-koramangala-hsr-layout-shanti-nagar-adugodi",
+    title:
+      "Paint Protection Film in Bangalore: A Guide for Koramangala, HSR Layout and Shanti Nagar Car Owners",
+    // Supplied wording, longer than the usual 60 characters; search results may truncate it.
+    seoTitle:
+      "PPF & Ceramic Coating near Koramangala, HSR Layout & Shanti Nagar | P91 Car Care, Adugodi",
+    date: "2026-10-05",
+    readMinutes: 4,
+    category: "Protection",
+    // Also the meta description (blog-post.tsx and prerender.mjs both use the excerpt).
+    // Supplied wording, over 160 characters; search results may truncate it.
+    excerpt:
+      "Looking for paint protection film near Koramangala, HSR Layout or Shanti Nagar? P91 Car Care in Adugodi offers STEK PPF and ceramic coating with a written warranty. Book online.",
+    lede:
+      "If you live in Koramangala, HSR Layout, Shanti Nagar or Adugodi, your car faces the same problems every day: stop-and-go traffic, tight parking, stone chips on the ORR and Hosur Road, monsoon rain and hard water spots. Paint protection film (PPF) is one of the best ways to keep your paint looking new. This guide explains how it works and what to ask before you book a studio near you.",
+    imageServiceSlug: "ppf-sedan",
+    image: {
+      src: "/attached_assets/blog/ppf-koramangala-hsr-layout-shanti-nagar-adugodi.jpg",
+      alt: "P91 Car Care poster: paint protection film and ceramic coating near Koramangala, HSR Layout and Shanti Nagar, on a green sports car. Adugodi, Bengaluru. Call 74066 19191.",
+      square: true,
+    },
+    body: [
+      { type: "h2", text: "What is paint protection film?" },
+      {
+        type: "p",
+        variant: "lead",
+        text:
+          "PPF is a transparent, flexible film fitted over your car's paint. It takes the damage instead of your paint: stone chips, light scratches, and stains from bird droppings and bug splatter.",
+      },
+      {
+        type: "p",
+        text:
+          "Many modern films are self-healing, so light swirl marks in the film fade away. Films come in gloss and matte finishes, so you can keep the factory look or change it.",
+      },
+
+      { type: "h2", text: "PPF vs ceramic coating: which one do you need?" },
+      {
+        type: "table",
+        caption: "PPF compared with ceramic coating",
+        head: ["Compare", "PPF", "Ceramic coating"],
+        rows: [
+          ["What it is", "Physical film layer", "Liquid nano-coating"],
+          ["Best against", "Stone chips, scratches", "Water spots, stains, UV, chemicals"],
+          ["Look", "Gloss or matte", "Deep gloss, easy to clean"],
+          ["Ideal for", "New cars, high-use cars", "Easy maintenance and shine"],
+        ],
+      },
+      {
+        type: "p",
+        text:
+          "If you worry about chips and scratches, choose PPF. If you want easy cleaning and shine, choose ceramic. Many owners use both. Read the full comparison in [PPF vs ceramic coating for Bangalore traffic and weather](/blog/ppf-vs-ceramic-coating-bangalore).",
+      },
+
+      { type: "h2", text: "5 questions to ask before booking PPF in Bangalore" },
+      {
+        type: "ol",
+        items: [
+          "**Is the warranty in writing?** It should be the manufacturer's warranty, handed over with your car.",
+          "**Can I see the batch details before work starts?**",
+          "**Which brand is the film?**",
+          "**Is the work done in a controlled studio?**",
+          "**Is there a package for my car size?** Hatchbacks, sedans and SUVs need different amounts of film.",
+        ],
+      },
+
+      { type: "h2", text: "PPF studio near Koramangala, HSR Layout and Shanti Nagar" },
+      {
+        type: "p",
+        text:
+          "P91 Car Care is in Ayappa Garden, Adugodi, a short drive from some of the city's busiest car-owning neighbourhoods:",
+      },
+      {
+        type: "ul",
+        variant: "areas",
+        // TODO(drive-times): add approx. drive time for each area once the studio confirms
+        // them. Nothing in the project verifies them, so none are stated here.
+        items: [
+          "**Koramangala:** a short drive from the studio",
+          "**Shanti Nagar:** a short drive from the studio",
+          "**HSR Layout:** a short drive from the studio",
+          "**Adugodi:** right here, so you can drop in and see the studio.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Can't make it in? Pickup and drop is available across Bangalore at cost.",
+      },
+
+      { type: "h2", text: "How we do it at P91" },
+      {
+        type: "ul",
+        variant: "services",
+        tags: ["STEK PPF", "P91 Premium PPF", "Nasiol coating"],
+        items: [
+          "[STEK PPF](/products/stek) in gloss and matte, with self-healing film. We've fitted it on the Toyota Vellfire, Nissan GT-R and Innova Hycross. [See our work](/gallery).",
+          "[P91 Premium PPF](/products/p91-premium-ppf), our own film line, in hatchback, sedan and SUV packages.",
+          "[Nasiol](/products/nasiol) nano-ceramic coating for water and stain repellence and UV and chemical resistance.",
+        ],
+      },
+      {
+        type: "p",
+        variant: "warranty",
+        text: "Every PPF and coating job comes with a written manufacturer warranty, issued at handover.",
+      },
+
+      { type: "h2", text: "What does PPF cost?" },
+      {
+        type: "p",
+        variant: "price",
+        // TODO(starting-price): add the starting price per package. Prices live in the
+        // services database, not in this file, so none is typed here.
+        text:
+          "Pricing depends on car size, film and coverage (front-end or full body). Message us your car model for an exact quote.",
+      },
+
+      { type: "h2", text: "FAQ" },
+      {
+        type: "faq",
+        items: [
+          {
+            q: "Where can I get PPF near Koramangala?",
+            a: "P91 Car Care in Adugodi is a short drive from Koramangala. We fit STEK PPF and P91 Premium PPF with a written warranty.",
+          },
+          {
+            q: "Is there a ceramic coating studio near HSR Layout?",
+            a: "Yes. We apply Nasiol nano-ceramic coating in Adugodi and offer pickup and drop across Bangalore, including HSR Layout, at cost.",
+          },
+          { q: "Do you offer PPF near Shanti Nagar?", a: "Yes. We're in Adugodi, close to Shanti Nagar." },
+          { q: "Can I see the film details before work starts?", a: "Yes. Ask for the batch details before we begin." },
+        ],
+      },
+
+      { type: "h2", text: "Book your PPF" },
+      {
+        type: "contact",
+        address: "49, 13th Cross, Ayappa Garden, Adugodi, Bengaluru 560030",
+        phone: "+91 74066 19191",
+        phoneHref: "tel:+917406619191",
+        mapsHref:
+          "https://www.google.com/maps/dir/?api=1&destination=P91+Car+Care+Adugodi+Bengaluru",
+        bookHref: "/services",
+        bookLabel: "Book online in under a minute",
+      },
+      {
+        type: "p",
+        text:
+          "Related: [PPF services](/services/paint-protection-film-bangalore) · [Ceramic coating](/services/ceramic-coating-bangalore)",
+      },
+    ],
+  },
+
   {
     slug: "ppf-vs-ceramic-coating-bangalore",
     title: "PPF vs Ceramic Coating: Which is Best for Bangalore Traffic & Weather?",

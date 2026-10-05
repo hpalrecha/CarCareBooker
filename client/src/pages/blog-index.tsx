@@ -107,7 +107,7 @@ export default function BlogIndex() {
 
   if (unknownCategory) return <NotFound />;
 
-  const imageFor = (post: BlogPost) => resolveServiceImage(bySlug.get(post.imageServiceSlug));
+  const imageFor = (post: BlogPost) => post.image?.src ?? resolveServiceImage(bySlug.get(post.imageServiceSlug));
 
   return (
     <div className="p91x p91x-editorial min-h-screen">

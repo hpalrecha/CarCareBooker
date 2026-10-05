@@ -212,6 +212,18 @@ export function blogPostContent(post: BlogPost): string {
         case "h3": return `<h3>${e(b.text)}</h3>`;
         case "p": return pRich(b.text);
         case "ul": return ulRich(b.items);
+        case "faq": return b.items.map((f) => `<h3>${e(f.q)}</h3>${p(f.a)}`).join("");
+        case "ol": return `<ol>${b.items.map((i) => `<li>${richText(i)}</li>`).join("")}</ol>`;
+        case "table":
+          return (
+            `<table><caption>${e(b.caption)}</caption><thead><tr>${b.head.map((h) => `<th scope="col">${e(h)}</th>`).join("")}</tr></thead><tbody>` +
+            b.rows
+              .map((r) => `<tr>${r.map((c, j) => (j === 0 ? `<th scope="row">${richText(c)}</th>` : `<td>${richText(c)}</td>`)).join("")}</tr>`)
+              .join("") +
+            "</tbody></table>"
+          );
+        case "contact":
+          return `<address><p>${e(b.address)}</p><p><a href="${e(b.phoneHref)}" style="color:#4ade80">${e(b.phone)}</a></p><p><a href="${e(b.bookHref)}" style="color:#4ade80">${e(b.bookLabel)}</a></p></address>`;
         case "cta": return p(b.text);
         default: return "";
       }

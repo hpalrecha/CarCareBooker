@@ -1052,6 +1052,14 @@
 .p91x .ed-about-copy > :nth-child(4) { transition-delay: 210ms; }
 .p91x .ed-about-copy > :nth-child(5) { transition-delay: 280ms; }
 
+/* Stacked sections (homepage; see the effect in pages/home.tsx). Each section pins and the next
+   slides over it. The fill is a zero-specificity default so a section's own background (the dark
+   services band, the hero photo) always wins; the shadow shows the section above lifting off. */
+:where(.p91x.home-page .stack-sec, .p91x.home-page .stack-last) { background-color: #fff; }
+.p91x.home-page .stack-sec { position: sticky; top: var(--stack-top, 0px); }
+.p91x.home-page .stack-sec + * { position: relative; box-shadow: 0 -18px 44px rgba(11, 26, 16, .16); }
+.p91x.home-page .stack-sec + .stack-sec { position: sticky; }
+
 /* Parallax targets (see the effect in pages/home.tsx). The hero wrapper is the positioned box
    the photo and video already filled, so their absolute inset:0 is unchanged. */
 .p91x .hero-bg .hero-media { position: absolute; inset: 0; z-index: 0; }
@@ -1740,6 +1748,8 @@
   width: 100%; aspect-ratio: 4/1; object-fit: cover; object-position: center bottom;
   border: 1px solid var(--medium-gray); border-radius: 14px; margin-bottom: 34px;
 }
+/* Posts with their own square artwork show it whole, not as a 4:1 strip. */
+.p91x .article-hero.article-hero--square { aspect-ratio: 1 / 1; max-width: 560px; margin-inline: auto; object-position: center; }
 .p91x .prose { color: var(--txt-2); font-size: 15.5px; line-height: 1.72; }
 .p91x .prose h2 {
   color: var(--txt); font-size: 22px; font-weight: 700;
@@ -1759,6 +1769,20 @@
 .p91x .pkg-table th { background: var(--dark-gray); color: var(--txt-3); font-size: 11px; letter-spacing: .09em; text-transform: uppercase; font-weight: 600; }
 .p91x .pkg-table td { color: var(--txt-2); }
 .p91x .pkg-table tr:last-child td { border-bottom: 0; }
+/* Blog comparison table: two short columns plus a row header, so it fits a phone without the
+   420px minimum the pricing tables need. */
+.p91x .post-table { margin: 6px 0 22px; }
+.p91x .post-table table { margin: 0; min-width: 0; table-layout: fixed; }
+.p91x .post-table tbody tr:last-child th { border-bottom: 0; }
+.p91x .post-table th, .p91x .post-table td { vertical-align: top; overflow-wrap: anywhere; }
+.p91x .post-table tbody th { background: transparent; color: var(--txt); font-size: 14px; letter-spacing: 0; text-transform: none; font-weight: 600; }
+@media (max-width: 480px) { .p91x .post-table th, .p91x .post-table td { padding: 9px 10px; font-size: 13.5px; } }
+/* Blog contact block: address, phone and booking link as plain stacked rows. */
+.p91x .post-contact { font-style: normal; border: 1px solid var(--medium-gray); border-radius: 11px; padding: 16px 18px; margin: 0 0 22px; display: grid; gap: 10px; }
+.p91x .post-contact p { margin: 0; display: grid; gap: 2px; }
+.p91x .post-contact b { color: var(--txt-3); font-size: 11px; letter-spacing: .09em; text-transform: uppercase; font-weight: 600; }
+.p91x .post-contact a { overflow-wrap: anywhere; }
+.p91x .prose .post-contact a.cta-lg { color: var(--surface-dark); text-decoration: none; justify-self: start; }
 .p91x .pkg-table td.price { color: var(--neon-green); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* "Other services" mini cards at the foot of an article. */
@@ -1886,6 +1910,49 @@
   .p91x footer.site.site::before { left: 16px; }
   .p91x footer.site .foot-grid { gap: 24px; }
   .p91x footer.site .foot-bottom { gap: 8px; }
+}
+
+/* ---------- footer on phones: accordion groups ----------
+   Services / Company / Studio collapse to one row each (site-footer.tsx, FootCol). The brand block
+   with the call and WhatsApp buttons stays open above them. At 561px and up none of this applies. */
+@media (max-width: 560px) {
+  .p91x footer.site.site { padding-top: 36px; }
+  .p91x footer.site .foot-grid { display: block; }
+  .p91x footer.site .foot-brand { padding-bottom: 22px; }
+  .p91x footer.site .foot-brand p { margin-bottom: 14px; max-width: none; }
+  .p91x footer.site .foot-actions { gap: 8px; }
+  .p91x footer.site .foot-col.is-acc { border-top: 1px solid rgba(255,255,255,.14); }
+  .p91x footer.site .foot-col.is-acc:last-child { border-bottom: 1px solid rgba(255,255,255,.14); }
+  .p91x footer.site .foot-col.is-acc h4 { margin: 0; }
+  .p91x footer.site .foot-acc {
+    display: flex; align-items: center; justify-content: space-between; width: 100%;
+    min-height: 52px; padding: 0; background: none; border: 0; cursor: pointer;
+    color: #fff; font: inherit; letter-spacing: inherit; text-transform: inherit; text-align: left;
+  }
+  .p91x footer.site .foot-acc:focus-visible { outline: 2px solid var(--brand-accent); outline-offset: 2px; border-radius: 4px; }
+  .p91x footer.site .foot-chev { width: 18px; height: 18px; flex: none; opacity: .7; transition: transform .2s ease; }
+  .p91x footer.site .foot-col.is-open .foot-chev { transform: rotate(180deg); }
+  .p91x footer.site .foot-col.is-acc .foot-panel {
+    display: grid; grid-template-rows: 0fr; transition: grid-template-rows .22s ease;
+  }
+  .p91x footer.site .foot-col.is-acc.is-open .foot-panel { grid-template-rows: 1fr; }
+  .p91x footer.site .foot-col.is-acc .foot-panel-in { min-height: 0; overflow: hidden; visibility: hidden; transition: visibility 0s .22s; }
+  .p91x footer.site .foot-col.is-acc.is-open .foot-panel-in { visibility: visible; transition-delay: 0s; padding-bottom: 14px; }
+  .p91x footer.site .foot-col a { padding: 10px 0; font-size: 14px; }
+  .p91x footer.site .foot-bottom { margin-top: 0; padding-top: 12px; border-top: 0; gap: 2px; }
+  .p91x footer.site .foot-legal { gap: 4px 18px; }
+}
+/* Keep the legal links and GST line clear of the fixed estimate bar. The global footer rule above
+   resets padding-bottom to 12px and outranks the earlier 96px one, which left them underneath it. */
+@media (max-width: 767px) {
+  .p91x footer.site.site { padding-bottom: 96px; }
+  /* The floating chat bubble (right 18px, 54px wide, chat-widget.tsx) sits over the bottom-right of
+     the page at the very end of the scroll. Reserve its width so the legal links and GST line
+     wrap beside it instead of running underneath it. */
+  .p91x footer.site .foot-bottom { padding-right: 82px; align-items: flex-start; text-align: left; }
+}
+@media (max-width: 560px) and (prefers-reduced-motion: reduce) {
+  .p91x footer.site .foot-col.is-acc .foot-panel, .p91x footer.site .foot-chev, .p91x footer.site .foot-col.is-acc .foot-panel-in { transition: none; }
 }
 
 /* ---------- /gallery (pages/gallery.tsx) ---------- */

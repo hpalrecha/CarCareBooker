@@ -3,25 +3,86 @@
    pages import, and the homepage guides rendered unstyled. */
 /* ---------- blog carousel ---------- */
 .p91x .blogc {
-  list-style: none; margin: 0; padding: 0;
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
+  list-style: none; margin: 0; padding: 0; display: block;
+  /* One timeline per item, so the card BEFORE an item can react to it arriving. */
+  timeline-scope: --g1, --g2, --g3, --g4, --g5, --g6;
 }
+/* Stacked panels. Every item pins at the same offset below the header, and each later item
+   scrolls up over the one before it, so the reader moves through guides one at a time instead
+   of down a long list. Plain CSS sticky: normal page scrolling, no scroll hijacking, no JS. */
+.p91x .blogc-item {
+  position: sticky; top: 84px;
+  height: min(70svh, 540px);
+  margin-bottom: 16svh;
+}
+.p91x .blogc-item:last-child { margin-bottom: 0; }
 .p91x .blogc-card {
-  display: flex; flex-direction: column; height: 100%;
-  border: 1px solid var(--medium-gray); border-radius: 12px; overflow: hidden;
+  position: relative; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  height: 100%;
+  border: 1px solid var(--medium-gray); border-radius: 16px; overflow: hidden;
   background: var(--dark-gray);
+  box-shadow: 0 -14px 40px rgba(16, 36, 26, .14);
+  transform-origin: 50% 0;
   transition: border-color .12s ease;
 }
 .p91x .blogc-card:hover { border-color: var(--neon-line); }
-.p91x .blogc-img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
-.p91x .blogc-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+/* Square artwork with baked-in text (post.image.square): the image column is as wide as the panel
+   is tall, so the poster shows whole instead of being cropped through its own lettering. */
+.p91x .blogc-card--square { grid-template-columns: min(70svh, 540px) minmax(0, 1fr); }
+/* Dark veil that fades in as the next guide slides over this one. */
+.p91x .blogc-card::after {
+  content: ""; position: absolute; inset: 0; background: #0b1a10; opacity: 0; pointer-events: none;
+}
+.p91x .blogc-card > picture, .p91x .blogc-card > img { display: block; min-height: 0; height: 100%; }
+.p91x .blogc-img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 45%; }
+.p91x .blogc-body {
+  padding: clamp(20px, 3vw, 40px); display: flex; flex-direction: column; justify-content: center;
+  gap: 12px; min-height: 0; overflow: hidden;
+}
 .p91x .blogc-cat {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-ink);
 }
-.p91x .blogc-title { font-size: 16px; font-weight: 700; margin: 0; line-height: 1.3; }
-.p91x .blogc-ex { margin: 0; color: var(--txt-2); font-size: 13.5px; line-height: 1.55; }
-.p91x .blogc-more { margin-top: auto; color: var(--accent-ink); font-size: 13.5px; font-weight: 600; }
+.p91x .blogc-title { font-size: clamp(20px, 2.6vw, 30px); font-weight: 700; margin: 0; line-height: 1.2; }
+.p91x .blogc-ex {
+  margin: 0; color: var(--txt-2); font-size: clamp(14px, 1.4vw, 16px); line-height: 1.6;
+  display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;
+}
+.p91x .blogc-more { margin-top: 6px; color: var(--accent-ink); font-size: 14px; font-weight: 600; }
+
+/* The previous card eases back (scale + veil) while the next one rises over it. Where
+   scroll-driven animation is unsupported the panels still stack; they just do not recede. */
+@keyframes blogc-recede { to { transform: scale(.94); } }
+@keyframes blogc-veil { to { opacity: .5; } }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .p91x .blogc-item:nth-child(1) { view-timeline-name: --g1; }
+    .p91x .blogc-item:nth-child(2) { view-timeline-name: --g2; }
+    .p91x .blogc-item:nth-child(3) { view-timeline-name: --g3; }
+    .p91x .blogc-item:nth-child(4) { view-timeline-name: --g4; }
+    .p91x .blogc-item:nth-child(5) { view-timeline-name: --g5; }
+    .p91x .blogc-item:nth-child(6) { view-timeline-name: --g6; }
+    .p91x .blogc-item:not(:last-child) .blogc-card,
+    .p91x .blogc-item:not(:last-child) .blogc-card::after {
+      animation-fill-mode: both; animation-timing-function: linear;
+      animation-range: entry 0% cover 50%;
+    }
+    .p91x .blogc-item:not(:last-child) .blogc-card { animation-name: blogc-recede; }
+    .p91x .blogc-item:not(:last-child) .blogc-card::after { animation-name: blogc-veil; }
+    .p91x .blogc-item:nth-child(1) .blogc-card, .p91x .blogc-item:nth-child(1) .blogc-card::after { animation-timeline: --g2; }
+    .p91x .blogc-item:nth-child(2) .blogc-card, .p91x .blogc-item:nth-child(2) .blogc-card::after { animation-timeline: --g3; }
+    .p91x .blogc-item:nth-child(3) .blogc-card, .p91x .blogc-item:nth-child(3) .blogc-card::after { animation-timeline: --g4; }
+    .p91x .blogc-item:nth-child(4) .blogc-card, .p91x .blogc-item:nth-child(4) .blogc-card::after { animation-timeline: --g5; }
+    .p91x .blogc-item:nth-child(5) .blogc-card, .p91x .blogc-item:nth-child(5) .blogc-card::after { animation-timeline: --g6; }
+  }
+}
+/* Reduced motion: no pinning, no movement. A plain vertical list of the same cards. */
+@media (prefers-reduced-motion: reduce) {
+  .p91x .blogc-item { position: static; height: auto; margin-bottom: 16px; }
+  .p91x .blogc-card { height: auto; }
+  .p91x .blogc-card > picture, .p91x .blogc-card > img { height: auto; }
+  .p91x .blogc-img { aspect-ratio: 16 / 9; height: auto; }
+}
 
 /* ---------- final CTA ---------- */
 .p91x .lp-final {
@@ -57,24 +118,18 @@
 }
 
 @media (max-width: 720px) {
-  /* The grid becomes a scroll-snap track. No JS carousel, no library, no autoplay —
-     native momentum scrolling, keyboard support and accessibility come for free, and a
-     hand-rolled carousel would ship weight to reimplement all three worse. */
-  .p91x .blogc {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    gap: 14px;
-    /* Bleed to the viewport edge so the next card peeks. That is the affordance telling
-       a reader the row scrolls, without needing dots or arrows.
-       Must match .wrap's mobile padding (redesign.css, 16px at <=640px) exactly — a
-       wider bleed here than the container's inset pushes the whole page's scroll width
-       past the viewport, causing a permanent 4px horizontal scrollbar on phones. */
-    margin: 0 -16px;
-    padding: 2px 16px 14px;
-    scrollbar-width: thin;
-  }
-  .p91x .blogc-item { flex: 0 0 82%; scroll-snap-align: start; }
+  /* Phones: the same stacked panels, image above text. No horizontal scrolling anywhere. */
+  .p91x .blogc-item { top: 76px; height: min(calc(100svh - 170px), 520px); margin-bottom: 14svh; }
+  .p91x .blogc-item:last-child { margin-bottom: 0; }
+  .p91x .blogc-card { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 40%) minmax(0, 1fr); }
+  .p91x .blogc-body { justify-content: flex-start; padding: 16px 18px 18px; gap: 8px; }
+  .p91x .blogc-ex { -webkit-line-clamp: 4; }
+  /* Phones show the poster's top (logo and car), which ends above its lettering, so no line of text is cut in half. */
+  .p91x .blogc-card--square { grid-template-columns: minmax(0, 1fr); }
+  .p91x .blogc-card--square .blogc-img { object-position: 50% 0; }
+}
+@media (max-width: 720px) and (prefers-reduced-motion: reduce) {
+  .p91x .blogc-item { height: auto; margin-bottom: 14px; }
+  .p91x .blogc-card { grid-template-rows: auto auto; }
 }
 

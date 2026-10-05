@@ -23,10 +23,11 @@ describe('item 10 — mobile blog carousel no longer bleeds past the viewport on
     assert.match(redesignCss, /\.p91x \.wrap \{ padding: 0 16px; \}/);
   });
 
-  test('.blogc bleeds by exactly 16px, matching .wrap, not the old mismatched 20px', () => {
-    assert.match(landingCss, /\.p91x \.blogc \{[\s\S]*?margin: 0 -16px;[\s\S]*?padding: 2px 16px 14px;/);
-    assert.doesNotMatch(landingCss, /margin: 0 -20px/);
-    assert.doesNotMatch(landingCss, /padding: 2px 20px 14px/);
+  test('.blogc no longer scrolls sideways or bleeds past .wrap (stacked panels replaced the scroll-snap track)', () => {
+    assert.doesNotMatch(landingCss, /scroll-snap-type/);
+    assert.doesNotMatch(landingCss, /overflow-x: auto/);
+    assert.doesNotMatch(landingCss, /margin: 0 -(16|20)px/);
+    assert.match(landingCss, /\.p91x \.blogc-item \{[\s\S]*?position: sticky;/);
   });
 });
 

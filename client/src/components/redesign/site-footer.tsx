@@ -1,3 +1,4 @@
+import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import type { BusinessHour } from "@shared/schema";
@@ -79,7 +80,56 @@ function summariseHours(hours: BusinessHour[]): { label: string; value: string; 
   return rows;
 }
 
+/** True on phones, where the footer link groups collapse into accordions. */
+function useIsPhone(): boolean {
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 560px)");
+    const update = () => setPhone(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return phone;
+}
+
+/**
+ * One footer link group. On desktop it is the plain heading and list it always was. On a
+ * phone the heading becomes a button that opens and closes the group, so the footer is a
+ * short stack of rows instead of every link at once.
+ */
+function FootCol({ id, title, phone, children }: { id: string; title: string; phone: boolean; children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={"foot-col" + (phone ? " is-acc" : "") + (phone && open ? " is-open" : "")}>
+      {phone ? (
+        <h4>
+          <button
+            type="button"
+            className="foot-acc"
+            aria-expanded={open}
+            aria-controls={`foot-${id}`}
+            onClick={() => setOpen((o) => !o)}
+            data-testid={`button-footer-${id}`}
+          >
+            {title}
+            <svg className="foot-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+        </h4>
+      ) : (
+        <h4>{title}</h4>
+      )}
+      <div className="foot-panel" id={`foot-${id}`}>
+        <div className="foot-panel-in">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 export default function SiteFooter() {
+  const phone = useIsPhone();
   const { data: businessHours = [] } = useQuery<BusinessHour[]>({
     queryKey: ["/api/business-hours"],
     retry: 1,
@@ -97,21 +147,25 @@ export default function SiteFooter() {
             <div className="foot-actions">
               <a className="foot-btn" href="tel:+917406619191" data-testid="link-footer-call">☎&nbsp; 74066 19191</a>
               <a className="foot-btn is-wa" href="https://wa.me/917406619191" data-testid="link-footer-whatsapp">WhatsApp</a>
+              {/* Phones: Company is collapsed by default, so the studio's Instagram gets its own button here. */}
+              {phone && (
+                <a className="foot-btn" href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer" data-testid="link-footer-instagram-mobile">
+                  Instagram
+                </a>
+              )}
             </div>
           </div>
 
-          <div className="foot-col">
-            <h4>Services</h4>
+          <FootCol id="services" title="Services" phone={phone}>
             <ul>
               <li><Link href="/services/paint-protection-film-bangalore">PPF</Link></li>
               <li><Link href="/services/ceramic-coating-bangalore">Ceramic</Link></li>
               <li><Link href="/service/exterior-detailing-hard-water-new">Detailing</Link></li>
               <li><Link href="/services">All services</Link></li>
             </ul>
-          </div>
+          </FootCol>
 
-          <div className="foot-col">
-            <h4>Company</h4>
+          <FootCol id="company" title="Company" phone={phone}>
             <ul>
               <li><Link href="/#about">About</Link></li>
               <li><Link href="/contact">Contact</Link></li>
@@ -124,10 +178,9 @@ export default function SiteFooter() {
                 </a>
               </li>
             </ul>
-          </div>
+          </FootCol>
 
-          <div className="foot-col">
-            <h4>Studio</h4>
+          <FootCol id="studio" title="Studio" phone={phone}>
             {/* Kept in step with the contact page and lib/local-business.ts. */}
             <address>
               49, 13th Cross, Ayappa Garden<br />
@@ -156,7 +209,7 @@ export default function SiteFooter() {
             >
               Directions →
             </a>
-          </div>
+          </FootCol>
         </div>
 
         <div className="foot-bottom">

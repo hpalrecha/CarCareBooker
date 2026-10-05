@@ -426,6 +426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { loc: "/services/glass-sun-control-film-bangalore", priority: "0.8", changefreq: "monthly" },
         // Blog. Kept in step with client/src/lib/blog-posts.ts.
         { loc: "/blog", priority: "0.7", changefreq: "weekly" },
+        { loc: "/blog/ppf-koramangala-hsr-layout-shanti-nagar-adugodi", priority: "0.6", changefreq: "yearly" },
         { loc: "/blog/ppf-vs-ceramic-coating-bangalore", priority: "0.6", changefreq: "yearly" },
         { loc: "/blog/hard-water-spot-removal-bangalore", priority: "0.6", changefreq: "yearly" },
         { loc: "/blog/windshield-heat-rejection-film-summer", priority: "0.6", changefreq: "yearly" },

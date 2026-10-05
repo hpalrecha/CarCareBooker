@@ -19,11 +19,12 @@ import "@/styles/blog-carousel.css";
  * ─────────────────────────────────────────────────────────────────────────────────────
  * DESKTOP vs MOBILE, with one piece of markup.
  *
- * A three-column grid above 720px; below it, the same grid becomes a horizontal
- * scroll-snap track. There is no JavaScript carousel, no library, no autoplay and no
- * dots — CSS scroll-snap gives native momentum scrolling, keyboard support and
- * accessibility for free, and a JS carousel would ship weight to reimplement all three
- * worse. Cards stay real links throughout, so they are keyboard-reachable in both modes.
+ * Stacked panels on every screen size: each guide is one large panel that pins below the
+ * header while the next scrolls up over it (CSS `position: sticky`, see blog-carousel.css),
+ * with a subtle scale and veil on the receding panel where scroll-driven animation exists.
+ * No JavaScript, no library, no scroll hijacking, no horizontal scrolling; under
+ * prefers-reduced-motion it is a plain vertical list. Cards stay real links throughout, so
+ * they are keyboard-reachable.
  * ─────────────────────────────────────────────────────────────────────────────────────
  *
  * Images come from the live service record each post nominates (`imageServiceSlug`), the
@@ -65,12 +66,12 @@ export default function BlogCarousel({
         */}
         <ul className="blogc" role="list" data-testid="blog-carousel">
           {posts.map((post) => {
-            const image = resolveServiceImage(bySlug.get(post.imageServiceSlug));
+            const image = post.image?.src ?? resolveServiceImage(bySlug.get(post.imageServiceSlug));
             return (
               <li className="blogc-item" key={post.slug}>
                 <Link
                   href={`/blog/${post.slug}`}
-                  className="blogc-card"
+                  className={"blogc-card" + (post.image?.square ? " blogc-card--square" : "")}
                   data-testid={`link-blog-${post.slug}`}
                 >
                   {image && (

@@ -229,6 +229,42 @@ export default function Home() {
     };
   }, []);
 
+  /**
+   * Stacked sections (homepage only): each section pins as its bottom edge reaches the bottom of
+   * the screen and the next one slides up over it, like turning pages, instead of one long
+   * continuous scroll. Plain CSS `position: sticky` (see .stack-sec in styles/redesign.css), so
+   * normal scrolling, anchors and links are untouched. A section taller than the screen needs a
+   * negative `top` (screen height minus its own height) to pin by its bottom edge; that is the
+   * only thing measured here. The last section is left alone so the footer follows it normally.
+   * Reduced motion: nothing is applied and the page is the ordinary long scroll.
+   */
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const all = Array.from(document.querySelectorAll<HTMLElement>("#main > section"));
+    const secs = all.slice(0, -1);
+    if (!secs.length) return;
+    const place = () => {
+      const vh = window.innerHeight;
+      for (const el of secs) el.style.setProperty("--stack-top", `${Math.min(0, Math.round(vh - el.offsetHeight))}px`);
+    };
+    secs.forEach((el) => el.classList.add("stack-sec"));
+    const last = all[all.length - 1];
+    last.classList.add("stack-last");
+    place();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(place) : null;
+    secs.forEach((el) => ro?.observe(el));
+    window.addEventListener("resize", place);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", place);
+      last.classList.remove("stack-last");
+      secs.forEach((el) => {
+        el.classList.remove("stack-sec");
+        el.style.removeProperty("--stack-top");
+      });
+    };
+  }, []);
+
   const list = Array.isArray(services) ? services : [];
   const bySlug = new Map(list.map((s) => [s.slug, s]));
 

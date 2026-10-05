@@ -1,0 +1,177 @@
+/* Blog article page (pages/blog-post.tsx). Imported by the page itself. Everything is scoped under
+   .p91x and reuses the site's tokens, fonts, buttons and the cinematic rise (data-cine) motion.
+   Motion is progressive: reveal states come from the --cp variable the page's useCinematic()
+   sets, so with no JavaScript, or under reduced motion, every section simply sits visible. */
+
+/* ---------- reading progress ---------- */
+.p91x .post-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 80; pointer-events: none; }
+.p91x .post-progress-bar { height: 100%; background: var(--brand-accent); transform: scaleX(0); transform-origin: 0 50%; will-change: transform; }
+
+.p91x .post-wrap { max-width: 1120px; }
+
+/* ---------- hero ---------- */
+.p91x .post-hero {
+  background: var(--surface-dark); color: #fff;
+  /* Top padding matches /gallery: the fixed header is about 58px tall, so this leaves roughly 130px of clear space
+     between it and the breadcrumb, the same gap /gallery gives its eyebrow. */
+  padding: clamp(192px, 22vh, 210px) 0 clamp(44px, 8vh, 88px);
+  overflow: hidden;
+}
+.p91x .post-hero .crumb { color: rgba(255, 255, 255, .6); margin-bottom: clamp(20px, 4vh, 36px); }
+.p91x .post-hero .crumb a { color: #fff; }
+.p91x .post-hero .crumb a:hover { color: var(--brand-accent); }
+.p91x .post-hero .post-meta { color: rgba(255, 255, 255, .62); font-size: 12px; margin-bottom: 18px; }
+.p91x .post-hero .post-meta i.dot { background: rgba(255, 255, 255, .45); }
+.p91x .post-hero-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(28px, 5vw, 48px); align-items: center; }
+.p91x .post-h1 {
+  font-size: clamp(30px, 4.6vw, 54px); font-weight: 800; line-height: 1.07; letter-spacing: -.03em;
+  margin: 0 0 20px; color: #fff; max-width: 22ch;
+}
+.p91x .post-intro { margin: 0; color: rgba(255, 255, 255, .78); font-size: clamp(16px, 1.6vw, 18.5px); line-height: 1.65; max-width: 60ch; }
+.p91x .post-hero-media {
+  margin: 0; position: relative; overflow: hidden; border-radius: 20px; background: #141a17;
+  aspect-ratio: 16 / 9; box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
+}
+.p91x .post-hero-media img { position: absolute; left: 0; width: 100%; object-fit: cover; }
+.p91x .post-hero--square .post-hero-media { aspect-ratio: 1 / 1; max-width: 560px; width: 100%; justify-self: center; }
+/* The poster has lettering to the edges, so it is never cropped: the picture fills the frame exactly
+   and the whole frame drifts (the --px the parallax sets) instead of the picture inside it. */
+.p91x .post-hero--square .post-hero-media { transform: translate3d(0, var(--px, 0px), 0); will-change: transform; }
+.p91x .post-hero--square .post-hero-media img { height: 100%; top: 0; transform: none; will-change: auto; }
+@media (max-width: 640px) { .p91x .post-hero { padding-top: 160px; } }
+@media (min-width: 980px) {
+  .p91x .post-hero--square .post-hero-grid { grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr); gap: clamp(40px, 6vw, 88px); }
+  .p91x .post-hero--square .post-hero-media { justify-self: end; }
+}
+
+/* ---------- sections ---------- */
+.p91x .post-sec { padding: clamp(44px, 7vw, 92px) 0; border-top: 1px solid var(--medium-gray); }
+.p91x .post-sec:nth-of-type(even) { background: var(--dark-gray); }
+.p91x .post-sec-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; }
+.p91x .post-sec-head { align-self: start; }
+.p91x .post-sec-n {
+  display: block; margin-bottom: 10px; font-family: var(--font-mono); font-size: 12px; font-weight: 500;
+  letter-spacing: .14em; color: var(--accent-ink);
+}
+.p91x .post-sec-head h2 { margin: 0; font-size: clamp(24px, 2.8vw, 33px); line-height: 1.14; letter-spacing: -.025em; font-weight: 800; }
+.p91x .post-sec-body { min-width: 0; max-width: 780px; font-size: 16.5px; line-height: 1.72; }
+.p91x .post-sec-body > :last-child { margin-bottom: 0; }
+@media (min-width: 1000px) {
+  .p91x .post-sec-grid { grid-template-columns: 250px minmax(0, 1fr); gap: 72px; }
+  /* The section title stays beside its content while it is read. It sits in its own column,
+     so it never covers the text. */
+  .p91x .post-sec-head { position: sticky; top: 108px; }
+}
+
+.p91x .post-lead { font-size: clamp(19px, 2vw, 23px); line-height: 1.5; color: var(--txt); font-weight: 500; letter-spacing: -.012em; }
+
+/* ---------- PPF vs ceramic: comparison ---------- */
+.p91x .post-compare { background: #fff; border: 1px solid var(--medium-gray); border-radius: 16px; overflow: hidden; margin: 0 0 24px; }
+.p91x .post-compare table { width: 100%; margin: 0; border-collapse: collapse; table-layout: fixed; }
+.p91x .post-compare thead th {
+  background: var(--surface-dark); color: #fff; text-align: left; padding: 16px 20px;
+  font-family: var(--font-mono); font-size: 12px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase;
+}
+.p91x .post-compare thead th:first-child { color: rgba(255, 255, 255, .55); }
+.p91x .post-compare tbody th { text-align: left; padding: 18px 20px; width: 26%; font-size: 13px; font-weight: 600; color: var(--txt-3); background: transparent; letter-spacing: 0; text-transform: none; }
+.p91x .post-compare tbody td { padding: 18px 20px; font-size: 16px; font-weight: 600; color: var(--txt); line-height: 1.4; overflow-wrap: anywhere; }
+.p91x .post-compare tbody tr + tr > * { border-top: 1px solid var(--medium-gray); }
+@media (max-width: 640px) {
+  /* Phones: each row becomes a small card, with the column name above each value. */
+  .p91x .post-compare { background: none; border: 0; border-radius: 0; overflow: visible; }
+  .p91x .post-compare table, .p91x .post-compare tbody, .p91x .post-compare tr, .p91x .post-compare th, .p91x .post-compare td { display: block; width: auto; }
+  .p91x .post-compare thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .p91x .post-compare tbody tr { background: #fff; border: 1px solid var(--medium-gray); border-radius: 14px; overflow: hidden; margin-bottom: 12px; }
+  .p91x .post-compare tbody th { width: auto; background: var(--surface-dark); color: #fff; padding: 11px 16px; font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; border-top: 0; }
+  .p91x .post-compare tbody td { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 12px; padding: 13px 16px; font-size: 15.5px; }
+  .p91x .post-compare tbody td::before { content: attr(data-label); padding-top: 3px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--txt-3); }
+  .p91x .post-compare tbody tr + tr > * { border-top: 0; }
+  .p91x .post-compare tbody td + td { border-top: 1px solid var(--medium-gray); }
+}
+
+/* ---------- numbered questions ---------- */
+.p91x .post-sec-body .post-questions { list-style: none; counter-reset: q; margin: 0 0 22px; padding: 0; display: grid; gap: 12px; }
+.p91x .post-sec-body .post-questions li {
+  counter-increment: q; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; align-items: start;
+  margin: 0; padding: 18px 20px 18px 16px; background: #fff; border: 1px solid var(--medium-gray); border-radius: 14px;
+}
+.p91x .post-sec-body .post-questions li::before {
+  content: counter(q, decimal-leading-zero); display: grid; place-items: center; width: 40px; height: 40px;
+  border-radius: 10px; background: var(--surface-dark); color: var(--brand-accent);
+  font-family: var(--font-mono); font-size: 13px; font-weight: 600;
+}
+.p91x .post-q-text { display: block; min-width: 0; color: var(--txt-2); line-height: 1.6; padding-top: 1px; }
+.p91x .post-q-text strong { color: var(--txt); font-weight: 700; }
+
+/* ---------- service areas ---------- */
+.p91x .post-sec-body .post-areas { list-style: none; margin: 0 0 22px; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.p91x .post-sec-body .post-areas li { margin: 0; padding: 20px; background: #fff; border: 1px solid var(--medium-gray); border-radius: 14px; color: var(--txt-2); font-size: 15px; line-height: 1.5; }
+.p91x .post-sec-body .post-areas li strong { display: block; margin-bottom: 4px; font-size: 19px; letter-spacing: -.015em; color: var(--txt); }
+.p91x .post-sec-body .post-areas li:last-child { background: var(--surface-dark); border-color: var(--surface-dark); color: rgba(255, 255, 255, .78); }
+.p91x .post-sec-body .post-areas li:last-child strong { color: #fff; }
+@media (max-width: 480px) { .p91x .post-sec-body .post-areas { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- how we do it: three feature blocks ---------- */
+.p91x .post-sec-body .post-services { list-style: none; margin: 0 0 22px; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+.p91x .post-sec-body .post-services li { margin: 0; display: flex; flex-direction: column; gap: 12px; padding: 22px 20px; background: #fff; border: 1px solid var(--medium-gray); border-top: 3px solid var(--brand-accent); border-radius: 14px; }
+.p91x .post-tag { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); }
+.p91x .post-service-text { font-size: 15px; line-height: 1.6; color: var(--txt-2); }
+.p91x .post-service-text a { font-weight: 600; }
+
+/* ---------- warranty and price callouts ---------- */
+.p91x .post-warranty { display: flex; gap: 16px; align-items: flex-start; margin: 0 0 22px; padding: 22px 24px; background: var(--surface-dark); color: #fff; border-radius: 16px; border-left: 4px solid var(--brand-accent); }
+.p91x .post-warranty svg { width: 30px; height: 30px; flex: none; color: var(--brand-accent); margin-top: 2px; }
+.p91x .post-warranty p { margin: 0; font-size: clamp(16px, 1.7vw, 18.5px); line-height: 1.5; font-weight: 600; color: #fff; }
+.p91x .post-price { margin: 0; padding: 26px 24px; background: #fff; border: 1px solid var(--medium-gray); border-radius: 16px; }
+.p91x .post-price p { margin: 0 0 20px; font-size: clamp(16.5px, 1.8vw, 19px); line-height: 1.6; color: var(--txt); }
+.p91x .post-price-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; }
+.p91x .post-price .cta-lg { cursor: pointer; border: 0; }
+.p91x .post-textlink { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; text-decoration: underline; text-decoration-color: var(--brand-accent); text-underline-offset: 5px; color: var(--txt); }
+
+/* ---------- FAQ accordion ---------- */
+.p91x .post-faq { display: grid; gap: 10px; }
+.p91x .post-faq-item { margin: 0; background: #fff; border: 1px solid var(--medium-gray); border-radius: 14px; }
+.p91x .post-faq-item summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 56px; padding: 14px 18px;
+  cursor: pointer; list-style: none;
+}
+.p91x .post-faq-item summary::-webkit-details-marker { display: none; }
+.p91x .post-faq-item summary:focus-visible { outline: 2px solid var(--brand-accent); outline-offset: 2px; border-radius: 14px; }
+.p91x .post-faq-item summary h3 { margin: 0; font-size: 16.5px; font-weight: 700; line-height: 1.35; color: var(--txt); }
+.p91x .post-faq-chev { width: 20px; height: 20px; flex: none; color: var(--txt-3); transition: transform .2s ease; }
+.p91x .post-faq-item[open] .post-faq-chev { transform: rotate(180deg); }
+.p91x .post-faq-item p { margin: 0; padding: 0 18px 18px; color: var(--txt-2); line-height: 1.65; }
+
+/* ---------- booking: closing call to action ---------- */
+.p91x .post-sec--cta, .p91x .post-sec--cta:nth-of-type(even) { background: var(--surface-dark); color: #fff; border-top: 0; }
+.p91x .post-sec--cta .post-sec-n { color: var(--brand-accent); }
+.p91x .post-sec--cta .post-sec-head h2 { color: #fff; }
+.p91x .post-contact { font-style: normal; display: grid; gap: 22px; margin: 0 0 24px; padding: 0; border: 0; }
+.p91x .post-contact-row { display: grid; gap: 4px; }
+.p91x .post-contact-row b { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: rgba(255, 255, 255, .55); }
+.p91x .post-contact-row a, .p91x .prose .post-contact-row a { color: #fff; font-size: clamp(19px, 2.4vw, 27px); font-weight: 700; letter-spacing: -.02em; line-height: 1.25; text-decoration: none; overflow-wrap: anywhere; }
+.p91x .post-contact-row a:hover { color: var(--brand-accent); }
+.p91x .prose .post-contact a.post-contact-book, .p91x .post-contact-book { justify-self: start; padding: 16px 30px; font-size: 17px; text-decoration: none; color: var(--surface-dark); }
+@media (max-width: 560px) { .p91x .post-contact-book { justify-self: stretch; } }
+.p91x .post-sec--cta .prose > p, .p91x .post-sec--cta .post-sec-body > p { color: rgba(255, 255, 255, .7); }
+.p91x .post-sec--cta .prose a:not(.cta-lg) { color: #fff; text-decoration-color: var(--brand-accent); }
+
+/* ---------- keep reading ---------- */
+.p91x .post-more { padding: clamp(44px, 7vw, 84px) 0; border-top: 1px solid var(--medium-gray); }
+.p91x .post-more-h { margin: 0 0 26px; font-size: clamp(24px, 2.8vw, 33px); font-weight: 800; letter-spacing: -.025em; }
+.p91x .post-more-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--medium-gray); }
+.p91x .post-more-list li { margin: 0; }
+.p91x .post-more-list a { display: grid; grid-template-columns: 120px minmax(0, 1fr) 28px; gap: 16px; align-items: center; padding: 22px 0; border-bottom: 1px solid var(--medium-gray); color: var(--txt); text-decoration: none; }
+.p91x .post-more-cat { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); }
+.p91x .post-more-title { font-size: clamp(17px, 2vw, 22px); font-weight: 700; line-height: 1.3; letter-spacing: -.015em; transition: color .15s ease; }
+.p91x .post-more-arrow { font-size: 20px; color: var(--txt-3); transition: transform .2s ease, color .15s ease; justify-self: end; }
+.p91x .post-more-list a:hover .post-more-title { color: var(--accent-ink); }
+.p91x .post-more-list a:hover .post-more-arrow { transform: translateX(6px); color: var(--accent-ink); }
+@media (max-width: 640px) {
+  .p91x .post-more-list a { grid-template-columns: minmax(0, 1fr) 24px; gap: 4px 12px; padding: 18px 0; }
+  .p91x .post-more-cat { grid-column: 1 / -1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p91x .post-progress-bar, .p91x .post-faq-chev, .p91x .post-more-arrow { transition: none; }
+}
