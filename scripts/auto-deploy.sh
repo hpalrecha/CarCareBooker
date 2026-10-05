@@ -11,6 +11,10 @@
 # host and only reads GitHub, so it needs no secrets, no inbound port and no
 # admin rights — and nothing has to stay open in a browser terminal.
 #
+# THE IMAGE IS BUILT IN CI, NOT HERE. A push to main starts .github/workflows/build-image.yml, which
+# builds the image and pushes ghcr.io/hpalrecha/carcarebooker:<sha>. deploy-manual.sh pulls it. Until
+# that finishes, deploy-manual.sh exits 75 and this script just waits for the next tick.
+#
 # WHAT IT DOES, once per timer tick:
 #   1. refuses to run twice at once (its own lock);
 #   2. `git fetch` and compare origin/main with the SHA the running container was
@@ -171,6 +175,14 @@ if "$DEPLOY_SH" deploy "$TARGET" --execute --repo "$REPO_DIR" --public-url "$PUB
   note "done"
 else
   status=$?
+  if [[ "$status" == "75" ]]; then
+    # deploy-manual.sh could not find the prebuilt image for this commit in the registry: GitHub
+    # Actions is still building it (or the build failed). Nothing was touched, so this is not a
+    # failed deploy; do not record it, and look again on the next tick.
+    note "the prebuilt image for ${TARGET:0:7} is not in the registry yet (GitHub Actions still building, or its build failed)."
+    note "nothing was changed; checking again next tick. If it never appears, see the Actions tab on GitHub."
+    exit 0
+  fi
   printf '%s' "$TARGET" > "$FAILED"
   note "deploy of ${TARGET:0:7} FAILED (exit $status). deploy-manual.sh restores the previous"
   note "container on failure. This commit will not be retried until $FAILED is removed."

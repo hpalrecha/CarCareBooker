@@ -474,3 +474,149 @@ describe('the build-cache flag matches the installed Docker', () => {
     assert.doesNotMatch(s.readCalls(), /--reserved-space/);
   });
 });
+
+describe('CI-built image: auto-deploy waits for it, deploy-manual pulls and verifies it', () => {
+  test('exit 75 (image not in the registry yet) is not a failed deploy and is not recorded', () => {
+    const s = sandbox({ target: SHA_NEW, running: SHA_OLD, deployExit: 75 });
+    const r = run(AUTO, ['--execute'], s);
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /not in the registry yet/);
+    assert.ok(!fs.existsSync(path.join(s.state, 'auto-deploy.failed')), 'a not-yet-built image must not mark the commit failed');
+    assert.doesNotMatch(s.readCalls(), /GC --execute/, 'no cleanup when nothing was deployed');
+    // The next tick looks again: still a deploy attempt, because the commit was never recorded.
+    const again = sandbox({ target: SHA_NEW, running: SHA_OLD });
+    assert.match(run(AUTO, ['--execute'], again).out, /deployed aaaaaaa/);
+  });
+
+  // pull_prebuilt() from deploy-manual.sh, run for real against a fake `docker`.
+  const MANUAL = path.join(repoRoot, 'scripts/deploy-manual.sh');
+  const SHA = 'a'.repeat(40);
+  function pullHarness({ pull = 'ok', revision = SHA, creds = null, credsMode = 0o600, execute = '1' } = {}) {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'p91-pull-'));
+    const state = path.join(dir, 'state');
+    fs.mkdirSync(state, { recursive: true });
+    if (creds) fs.writeFileSync(path.join(state, 'ghcr.env'), creds, { mode: credsMode });
+    const log = path.join(dir, 'docker.log');
+    fs.writeFileSync(log, '');
+    const text = fs.readFileSync(MANUAL, 'utf8').replace(/\r\n/g, '\n');
+    const from = text.indexOf('REGISTRY_ENV="$STATE_DIR/ghcr.env"');
+    const to = text.indexOf('# 3-4. The image pinned');
+    assert.ok(from > 0 && to > from, 'pull block not found in deploy-manual.sh');
+    const script = `
+set -Eeuo pipefail
+STATE_DIR='${state}'; EXECUTE='${execute}'; SHA='${SHA}'; IMAGE="carcarebooker:git-$SHA"
+die() { echo "ABORT: $*" >&2; exit 1; }
+note() { echo "[deploy] $*"; }
+image_revision() { echo '${revision}'; }
+stat() { if [[ "$2" == "%a" ]]; then printf '%s' "$FAKE_PERM"; else printf '0'; fi; }
+install() { local d; for d; do :; done; mkdir -p "$d"; }
+docker() {
+  echo "docker $*" >> '${log}'
+  if [[ "$1" == "login" ]]; then cat > /dev/null; fi
+  if [[ "$1" == "pull" ]]; then
+    case '${pull}' in
+      ok) return 0 ;;
+      missing) echo "Error response from daemon: manifest unknown" >&2; return 1 ;;
+      denied) echo "Error response from daemon: denied: permission_denied" >&2; return 1 ;;
+    esac
+  fi
+  return 0
+}
+${text.slice(from, to)}
+pull_prebuilt
+`;
+    const sh = path.join(dir, 'h.sh');
+    fs.writeFileSync(sh, script);
+    let code = 0, out = '';
+    try {
+      out = execFileSync('bash', [sh], { env: { ...process.env, FAKE_PERM: credsMode.toString(8) }, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    } catch (e) {
+      code = e.status ?? 1;
+      out = `${e.stdout ?? ''}${e.stderr ?? ''}`;
+    }
+    return { code, out, calls: fs.readFileSync(log, 'utf8') };
+  }
+
+  test('a good image is pulled by SHA, re-tagged carcarebooker:git-<sha>, and its registry tag dropped', () => {
+    const r = pullHarness({ creds: 'GHCR_USER=bot\nGHCR_TOKEN=tok123\n' });
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.calls, new RegExp(`docker pull ghcr\\.io/hpalrecha/carcarebooker:${SHA}`));
+    assert.match(r.calls, new RegExp(`docker tag ghcr\\.io/hpalrecha/carcarebooker:${SHA} carcarebooker:git-${SHA}`));
+    assert.match(r.calls, new RegExp(`docker rmi ghcr\\.io/hpalrecha/carcarebooker:${SHA}`));
+    assert.match(r.calls, /docker login ghcr\.io -u bot --password-stdin/);
+    assert.doesNotMatch(r.out + r.calls, /tok123/, 'the token is never printed or put on a command line');
+    assert.doesNotMatch(r.calls, /docker build/, 'nothing is built on the host');
+  });
+
+test('a public image needs no credentials: with no ghcr.env it pulls anonymously and never logs in', () => {
+    const r = pullHarness({});
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.calls, new RegExp(`docker pull ghcr\.io/hpalrecha/carcarebooker:${SHA}`));
+    assert.doesNotMatch(r.calls, /docker login/, 'no credentials means no login attempt');
+    assert.match(r.calls, new RegExp(`docker tag ghcr\.io/hpalrecha/carcarebooker:${SHA} carcarebooker:git-${SHA}`));
+  });
+
+  test('an image that is not published yet exits 75 and changes nothing', () => {
+    const r = pullHarness({ pull: 'missing', creds: 'GHCR_USER=bot\nGHCR_TOKEN=t\n' });
+    assert.equal(r.code, 75, r.out);
+    assert.doesNotMatch(r.calls, /docker tag/);
+  });
+
+  test('a denied pull is a real failure, not "try again"', () => {
+    const r = pullHarness({ pull: 'denied' });
+    assert.equal(r.code, 1);
+    assert.match(r.out, /denied or unauthorized/);
+  });
+
+  test('an image whose revision label is not the SHA is refused', () => {
+    const r = pullHarness({ revision: 'b'.repeat(40), creds: 'GHCR_USER=bot\nGHCR_TOKEN=t\n' });
+    assert.equal(r.code, 1);
+    assert.match(r.out, /refusing it/);
+    assert.doesNotMatch(r.calls, /docker tag/);
+  });
+
+  test('a credentials file anyone else can read is refused', () => {
+    const r = pullHarness({ creds: 'GHCR_USER=bot\nGHCR_TOKEN=t\n', credsMode: 0o644 });
+    assert.equal(r.code, 1);
+    assert.match(r.out, /must be owned by root with mode 600/);
+  });
+
+  test('dry-run pulls nothing', () => {
+    const r = pullHarness({ execute: '0', creds: 'GHCR_USER=bot\nGHCR_TOKEN=t\n' });
+    assert.equal(r.code, 0, r.out);
+    assert.equal(r.calls, '');
+    assert.match(r.out, /would pull the prebuilt image/);
+  });
+
+  test('building on the host only happens with an explicit --build-local', () => {
+    const text = fs.readFileSync(MANUAL, 'utf8').replace(/\r\n/g, '\n');
+    assert.match(text, /elif \[\[ "\$BUILD_LOCAL" != "1" \]\]; then\n  pull_prebuilt/);
+    assert.match(text, /--build-local\) BUILD_LOCAL=1/);
+    assert.match(text, /^BUILD_LOCAL=0$/m);
+  });
+});
+
+describe('the GitHub Actions build', () => {
+  const wf = fs.readFileSync(path.join(repoRoot, '.github/workflows/build-image.yml'), 'utf8').replace(/\r\n/g, '\n');
+
+  test('publishes an immutable SHA tag with a matching revision label, using only GITHUB_TOKEN', () => {
+    assert.match(wf, /\$\{\{ steps\.image\.outputs\.name \}\}:\$\{\{ github\.sha \}\}/);
+    assert.match(wf, /org\.opencontainers\.image\.revision=\$\{\{ github\.sha \}\}/);
+    assert.match(wf, /packages: write/);
+    assert.match(wf, /secrets\.GITHUB_TOKEN/);
+    assert.doesNotMatch(wf.replace(/secrets\.GITHUB_TOKEN/g, ''), /secrets\./, 'no other secret is needed or used');
+  });
+
+  test('builds the production Dockerfile for the host architecture, with layer caching', () => {
+    assert.match(wf, /file: \.\/Dockerfile/);
+    assert.match(wf, /platforms: linux\/amd64/);
+    assert.match(wf, /cache-from: type=gha/);
+    assert.match(wf, /cache-to: type=gha,mode=max/);
+    assert.match(wf, /push: true/);
+  });
+
+  test('does not deploy anything', () => {
+    const code = wf.split('\n').filter((l) => !l.trim().startsWith('#')).join('\n');
+    assert.doesNotMatch(code, /\bssh\b|scp|rsync|appleboy|lightsail/i);
+  });
+});

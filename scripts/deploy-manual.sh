@@ -16,6 +16,8 @@
 #   --repo DIR               Git checkout on the host   (default /home/ubuntu/CarCareBooker)
 #   --public-url URL         Public origin to verify    (default https://p91carcare.com)
 #   --allow-non-main         Permit a SHA that is not contained in origin/main
+#   --build-local            Build the image on this host (git archive + docker build) instead of pulling
+#                            the prebuilt one. Never automatic: an explicit, manual escape hatch.
 #   --accept-container-diff  Proceed although the running container has written files
 #                            outside /app/uploads (they are listed first; they are NOT kept)
 #
@@ -27,10 +29,12 @@
 #      config is one this script can reproduce exactly (port 5000 -> 8084, restart policy,
 #      mounts, network, env); candidate port 18084 is free; disk space; not near 20:00 IST.
 #   2. Fetch origin, require the commit to exist (and be in origin/main).
-#   3. Export the commit with `git archive` into an empty build directory. That directory
-#      is the deploy working tree: clean by construction (no .env, no untracked or modified
-#      files), and verified against `git ls-tree` before building.
-#   4. docker build -t carcarebooker:git-<sha>, labelled with the revision.
+#   3-4. Get the image for that commit. Normally this is a PULL of the image GitHub Actions already
+#      built and pushed to GHCR (ghcr.io/hpalrecha/carcarebooker:<sha>): its revision label must equal
+#      the SHA, and it is re-tagged carcarebooker:git-<sha>. No npm, vite or image encoding runs here.
+#      If the image is not published yet the script exits 75 and changes nothing (auto-deploy retries
+#      next tick). Only with --build-local does it build on this host instead: `git archive` into an
+#      empty build directory, verified against `git ls-tree`, then docker build, labelled with the revision.
 #   5. Tag the currently running image carcarebooker:rollback-<timestamp>.
 #   6. Start a candidate on 127.0.0.1:18084 with the same env/mounts/network.
 #   7. Health-check the candidate (Docker HEALTHCHECK, /api/business-hours, /, its JS entry,
@@ -76,6 +80,7 @@ PUBLIC_URL="https://p91carcare.com"
 EXECUTE=0
 ALLOW_NON_MAIN=0
 ACCEPT_DIFF=0
+BUILD_LOCAL=0
 MODE="${1:-}"
 TARGET="${2:-}"
 
@@ -105,6 +110,7 @@ while [[ $# -gt 0 ]]; do
     --public-url) PUBLIC_URL="${2:?--public-url needs a URL}"; shift ;;
     --allow-non-main) ALLOW_NON_MAIN=1 ;;
     --accept-container-diff) ACCEPT_DIFF=1 ;;
+    --build-local) BUILD_LOCAL=1 ;;
     *) die "unknown option: $1" ;;
   esac
   shift
@@ -161,7 +167,9 @@ check_app() { # base-url  -> 0 when every check passes
   if [[ "$body" == *dayOfWeek* ]]; then note "  ok   $base/api/business-hours"; else note "  FAIL $base/api/business-hours"; ok=1; fi
   body="$(curl -s -m 10 "$base/api/services" || true)"
   if [[ "$body" == \[*slug* ]]; then note "  ok   $base/api/services"; else note "  FAIL $base/api/services"; ok=1; fi
-  for p in / /ppf-ceramic-coating /services; do
+  # /ppf, not /ppf-ceramic-coating: that old URL now deliberately 301-redirects to /services (SEO), so a
+  # healthy container never answers it with 200 and every deploy failed its own health check.
+  for p in / /ppf /services; do
     if [[ "$(http_code "$base$p")" == "200" ]]; then note "  ok   $base$p"; else note "  FAIL $base$p"; ok=1; fi
   done
   entry="$(entry_asset "$base")"
@@ -637,12 +645,87 @@ else
   warn "commit $SHORT is not in the local checkout yet; --execute fetches origin first and re-checks"
 fi
 
-# 3-4. Clean build tree (exact export of the commit), then the image pinned to the SHA ---
+# Prebuilt image from GitHub Actions (.github/workflows/build-image.yml) -------------------
+# The expensive work (npm ci, image encoding, vite, esbuild) happens in CI. This host only pulls the
+# finished image, tagged with the commit SHA, and re-tags it as $IMAGE so every later step (candidate,
+# switch, rollback tag, cleanup, "which commit is running") works exactly as it did with a local build.
+#
+# Registry credentials (the package is private): $STATE_DIR/ghcr.env, owned by root, mode 600, with
+#   GHCR_USER=<github user>
+#   GHCR_TOKEN=<token with read:packages>
+# Never in Git, never printed. They are used with a private Docker config under $STATE_DIR, so root's
+# own ~/.docker is not touched.
+REGISTRY_ENV="$STATE_DIR/ghcr.env"
+GHCR_IMAGE="${P91_GHCR_IMAGE:-ghcr.io/hpalrecha/carcarebooker}"
+DOCKER_CFG="$STATE_DIR/docker-config"
+# Exit status when the image for this commit is not in the registry yet (CI still running or failed).
+# auto-deploy.sh treats it as "try again next tick" instead of "this commit failed".
+readonly EXIT_IMAGE_NOT_READY=75
+
+GHCR_USER=""; GHCR_TOKEN=""
+read_ghcr_creds() {
+  [[ -f "$REGISTRY_ENV" ]] || return 0
+  local perm owner line
+  perm="$(stat -c '%a' "$REGISTRY_ENV")"; owner="$(stat -c '%u' "$REGISTRY_ENV")"
+  [[ "$owner" == "0" && "$perm" =~ ^[0-6]00$ ]] \
+    || die "$REGISTRY_ENV must be owned by root with mode 600 (found owner $owner, mode $perm)"
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line%$'\r'}"
+    case "$line" in
+      GHCR_USER=*) GHCR_USER="${line#GHCR_USER=}" ;;
+      GHCR_TOKEN=*) GHCR_TOKEN="${line#GHCR_TOKEN=}" ;;
+    esac
+  done <"$REGISTRY_ENV"
+}
+
+pull_prebuilt() {
+  local ref="$GHCR_IMAGE:$SHA" out rev
+  read_ghcr_creds
+  if [[ "$EXECUTE" != "1" ]]; then
+    note "[dry-run] would pull the prebuilt image $ref (no local build)"
+    if [[ -n "$GHCR_TOKEN" ]]; then
+      note "[dry-run] registry login from $REGISTRY_ENV (user $GHCR_USER, token not shown)"
+    else
+      note "[dry-run] no credentials in $REGISTRY_ENV: the pull only works if the package is public"
+    fi
+    note "[dry-run] would require its revision label to equal $SHA, tag it $IMAGE and drop the registry tag"
+    return 0
+  fi
+  install -d -m 700 "$DOCKER_CFG"
+  if [[ -n "$GHCR_TOKEN" ]]; then
+    printf '%s' "$GHCR_TOKEN" | DOCKER_CONFIG="$DOCKER_CFG" docker login ghcr.io -u "$GHCR_USER" --password-stdin >/dev/null \
+      || die "registry login failed (check $REGISTRY_ENV)"
+  fi
+  note "pulling $ref"
+  if ! out="$(DOCKER_CONFIG="$DOCKER_CFG" docker pull "$ref" 2>&1)"; then
+    if grep -qiE 'manifest unknown|not found|no such manifest' <<<"$out"; then
+      note "image $ref is not in the registry yet (the GitHub Actions build may still be running, or it failed)"
+      exit "$EXIT_IMAGE_NOT_READY"
+    fi
+    printf '%s\n' "$out" >&2
+    die "could not pull $ref (denied or unauthorized means $REGISTRY_ENV is missing, or its token lacks read:packages)"
+  fi
+  rev="$(image_revision "$ref")"
+  if [[ "$rev" != "$SHA" ]]; then
+    docker rmi "$ref" >/dev/null 2>&1 || true
+    die "pulled image $ref carries revision '$rev', not $SHA; refusing it"
+  fi
+  docker tag "$ref" "$IMAGE"
+  # Untag the registry name so the cleanup script, which manages carcarebooker:git-* tags, is the only
+  # thing that holds the image (otherwise a second tag would keep its layers on disk forever).
+  docker rmi "$ref" >/dev/null
+  note "image $IMAGE ready (pulled, revision verified)"
+}
+
+# 3-4. The image pinned to the SHA: pulled from the registry, or (only with --build-local) built here ---
 if docker image inspect "$IMAGE" >/dev/null 2>&1; then
   [[ "$(image_revision "$IMAGE")" == "$SHA" ]] \
     || die "$IMAGE exists but its revision label is not $SHA"
-  note "image $IMAGE already built; reusing it"
+  note "image $IMAGE already present; reusing it"
+elif [[ "$BUILD_LOCAL" != "1" ]]; then
+  pull_prebuilt
 else
+  note "--build-local: building on this host (slow; the normal path pulls the prebuilt image)"
   if [[ "$EXECUTE" == "1" ]]; then
     rm -rf "$BUILD_DIR"; install -d -m 700 "$BUILD_DIR"
     g archive --format=tar "$SHA" | tar -x -C "$BUILD_DIR"
@@ -680,7 +763,7 @@ if [[ "$EXECUTE" == "1" ]]; then
   NEW_ENTRY="$(entry_asset "http://127.0.0.1:$CANDIDATE_PORT")"
   note "candidate healthy, serving $NEW_ENTRY"
 else
-  note "[dry-run] would wait for Docker health, then check /api/business-hours, /api/services, /, /ppf-ceramic-coating, /services and the JS entry on 127.0.0.1:$CANDIDATE_PORT"
+  note "[dry-run] would wait for Docker health, then check /api/business-hours, /api/services, /, /ppf, /services and the JS entry on 127.0.0.1:$CANDIDATE_PORT"
 fi
 run docker rm -f "$CANDIDATE"
 CREATED_CANDIDATE=0
