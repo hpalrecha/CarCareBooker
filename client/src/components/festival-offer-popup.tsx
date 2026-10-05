@@ -4,7 +4,7 @@ import { ImageWithFallback } from "@/components/image-with-fallback";
 import { FESTIVAL_OFFER, FestivalCountdown, festivalOfferActive, reportOffer, useOfferCountdown } from "@/components/festival-offer";
 
 /**
- * Opens on every full page load (including a refresh), a couple of seconds after arrival, and not
+ * Opens on desktop on every full page load (including a refresh), a couple of seconds after arrival, and not
  * again while the visitor moves between pages in the app. The offer also stays in the hero strip.
  */
 export function FestivalOfferPopup() {
@@ -12,6 +12,8 @@ export function FestivalOfferPopup() {
   const { done } = useOfferCountdown();
   useEffect(() => {
     if (done || !festivalOfferActive()) return;
+    // Phones: the popup covered the whole hero. The same offer stays in the hero strip.
+    if (window.matchMedia("(max-width: 767px)").matches) return;
     const t = window.setTimeout(() => {
       setOpen(true);
       reportOffer("view", "popup");

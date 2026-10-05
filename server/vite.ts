@@ -113,6 +113,24 @@ export function serveStatic(app: Express, distPathOverride?: string) {
     );
   }
 
+  // Vite emits content-hashed filenames under /assets, so those can be cached for a year
+  // without serving a stale file. Fonts and other unhashed static files get a shorter
+  // lifetime (fonts are 1 year too, per the performance brief; rename a font file to bust it); HTML is left to revalidate so a deploy shows up immediately. The header is
+  // set before express.static, which leaves an existing Cache-Control alone, and only for
+  // files that exist, so a 404 never carries an immutable header.
+  app.use((req, res, next) => {
+    if (req.method !== "GET" && req.method !== "HEAD") return next();
+    const file = path.resolve(distPath, "." + req.path);
+    if (!file.startsWith(distPath + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return next();
+    const rel = path.relative(distPath, file).split(path.sep).join("/");
+    if (rel.startsWith("assets/") || rel.startsWith("fonts/")) {
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    } else if (/\.(woff2?|avif|webp|png|jpe?g|svg|ico|mp4)$/i.test(rel)) {
+      res.setHeader("Cache-Control", "public, max-age=604800");
+    }
+    next();
+  });
+
   // redirect:false is load-bearing. With the default, a request for /blog is answered with
   // a 301 to /blog/ so express.static can serve the directory index — but the canonical
   // baked into that page says /blog, and a canonical that 301s to a different URL is a

@@ -104,7 +104,7 @@ if (!fs.existsSync(attachedAssetsPath)) {
   console.warn(`WARNING: ${message}`);
 }
 app.use('/attached_assets', express.static(attachedAssetsPath, {
-  maxAge: '1d', // Cache images for 1 day
+  maxAge: '7d', // Cache images and the hero clip for 7 days
   setHeaders: (res) => {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     res.setHeader('Access-Control-Allow-Origin', '*');

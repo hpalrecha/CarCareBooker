@@ -480,7 +480,10 @@
 @media (max-width: 640px) {
   .p91x .hero-bg { min-height: 74svh; }
   .p91x .hero-bg .copy { padding-top: 88px; padding-bottom: 32px; }
-  .p91x .hero-bg .hero-cta .cta-lg, .p91x .hero-bg .hero-cta .cta-ghost { flex: 1 1 100%; text-align: center; }
+}
+/* Under 768px the sticky bottom bar (mobile-estimate-bar.tsx, md:hidden) is the one primary CTA. */
+@media (max-width: 767px) {
+  .p91x .hero-bg .hero-estimate { display: none; }
 }
 /* XPEL's hero is one plain-white headline, one weight, no split colour — not a headline
    half-painted in the accent colour. .hero-solid overrides the shared .gradient-text
@@ -493,7 +496,10 @@
 .p91x .hero-bg .lede {
   color: rgba(255,255,255,.9); font-size: clamp(16px, 2vw, 19px); margin: 0; max-width: 46ch;
 }
-.p91x .hero-bg .hero-cta { margin-top: 28px; gap: 12px; }
+.p91x .hero-bg .hero-cta { margin-top: 28px; gap: 12px 20px; }
+.p91x .hero-bg .hero-secondary { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0; font-size: 14.5px; }
+.p91x .hero-bg .hero-secondary a { color: rgba(255,255,255,.85); text-decoration: underline; text-underline-offset: 4px; text-decoration-color: rgba(255,255,255,.4); display: inline-flex; align-items: center; min-height: 44px; }
+.p91x .hero-bg .hero-secondary a:hover { color: #fff; text-decoration-color: #fff; }
 /* Secondary CTA on the photo: outline only, so the filled green button stays the one
    dominant action. */
 .p91x .hero-bg .cta-ghost { color: #fff; border-color: rgba(255,255,255,.6); background: rgba(255,255,255,.06); }
@@ -505,6 +511,12 @@
   color: rgba(255,255,255,.85); font-size: 13.5px;
 }
 .p91x .hero-bg .hero-trust li + li::before { content: "·"; margin: 0 10px; opacity: .6; }
+/* Phones: three items do not fit one line at 390px, so the wrap used to strand a dot at the
+   start of line 2. Stack them instead, with no separators. */
+@media (max-width: 640px) {
+  .p91x .hero-bg .hero-trust { flex-direction: column; gap: 6px; }
+  .p91x .hero-bg .hero-trust li + li::before { content: none; }
+}
 
 /* Entrance: copy rises 12px and fades in, ~60ms apart, and the photo settles from 1.04.
    The scale is on the <img> only, not the video (which mounts later, after idle, and would

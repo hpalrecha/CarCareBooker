@@ -19,7 +19,7 @@ export default function MobileEstimateBar() {
           className="w-full rounded-full bg-[#4ade80] py-3 text-base font-semibold text-black"
           data-testid="mobile-estimate-open"
         >
-          Get free estimate
+          Get Free Estimate
         </button>
       </div>
       {open && (

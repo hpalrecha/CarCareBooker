@@ -91,9 +91,9 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
    * paint work, so both get the exterior clip; the bike page gets none, because no bike
    * footage exists and showing the car clip there would misrepresent the work.
    */
-  const heroVideoSrc = path === "/ceramic-coating/bike" ? null : "/attached_assets/Exterior Detailing_1754031679196.mp4";
-  const HERO_VIDEO_LOOP_START = 3.7;
-  const HERO_VIDEO_LOOP_END = 7.7;
+  const heroVideoSrc = path === "/ceramic-coating/bike" ? null : "/attached_assets/exterior-hero-loop.mp4";
+  const HERO_VIDEO_LOOP_START = 0;
+  const HERO_VIDEO_LOOP_END = 3.95;
 
   const selectedCategory: CategoryOption | undefined = page.categories?.find(
     (c) => c.key === categoryKey,
@@ -369,7 +369,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
                       className="lp-hero-video"
                       autoPlay
                       muted
-                      loop={false}
+                      loop
                       playsInline
                       preload="auto"
                       poster={heroImage}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { ArrowUpRight } from "lucide-react";
@@ -15,6 +15,9 @@ import { postsNewestFirst } from "@/lib/blog-posts";
 import BlogCarousel from "@/components/blog-carousel";
 import { FestivalOfferStrip } from "@/components/festival-offer";
 import type { BusinessHour } from "@shared/schema";
+
+// Same dialog the mobile estimate bar opens; loaded on first tap.
+const EstimateDialog = lazy(() => import("@/components/mobile-estimate-dialog"));
 
 
 /**
@@ -130,6 +133,7 @@ export default function Home() {
    */
   const [showHeroVideo, setShowHeroVideo] = useState(false);
   const [heroVideoReady, setHeroVideoReady] = useState(false);
+  const [estimateOpen, setEstimateOpen] = useState(false);
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const enable = () => setShowHeroVideo(true);
@@ -310,20 +314,31 @@ export default function Home() {
             Ceramic coating, paint protection film and full interior work — done properly,
             warranty-backed, and bookable online in under a minute.
           </p>
+          {/* One primary action. On phones it is the sticky "Get Free Estimate" bar
+              (mobile-estimate-bar.tsx), so this button shows from 768px up only. Everything
+              else is a quiet text link. */}
           <div className="hero-cta">
-            {/* The primary action, in the hero itself: until now the only "Book" was up in the header. */}
-            <Link href="/services" className="cta-lg" data-testid="link-hero-book">Book now</Link>
-            <a
-              href="https://wa.me/917406619191?text=Hi%20P91%20Car%20Care%2C%20I%27d%20like%20to%20know%20more%20about%20your%20detailing%20services."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="cta-ghost"
-              data-testid="link-hero-whatsapp"
-            >
-              WhatsApp us
-            </a>
-            <a href="#results" className="cta-ghost" data-testid="link-hero-see-work">See our work</a>
+            <button type="button" className="cta-lg hero-estimate" onClick={() => setEstimateOpen(true)} data-testid="button-hero-estimate">
+              Get Free Estimate
+            </button>
+            <p className="hero-secondary">
+              <Link href="/services" data-testid="link-hero-book">Book a slot</Link>
+              <a
+                href="https://wa.me/917406619191?text=Hi%20P91%20Car%20Care%2C%20I%27d%20like%20to%20know%20more%20about%20your%20detailing%20services."
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="link-hero-whatsapp"
+              >
+                WhatsApp
+              </a>
+              <a href="#results" data-testid="link-hero-see-work">See our work</a>
+            </p>
           </div>
+          {estimateOpen && (
+            <Suspense fallback={null}>
+              <EstimateDialog open={estimateOpen} onOpenChange={setEstimateOpen} />
+            </Suspense>
+          )}
           <ul className="hero-trust" aria-label="Why book with P91">
             <li>Same-day slots</li>
             <li>Warranty on coatings</li>
