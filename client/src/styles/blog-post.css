@@ -39,6 +39,8 @@
 .p91x .post-hero--square .post-hero-media { transform: translate3d(0, var(--px, 0px), 0); will-change: transform; }
 .p91x .post-hero--square .post-hero-media img { height: 100%; top: 0; transform: none; will-change: auto; }
 @media (max-width: 640px) { .p91x .post-hero { padding-top: 160px; } }
+/* Breadcrumb links: a 44px-tall tap target on phones without changing how the row looks. */
+@media (max-width: 640px) { .p91x .post-hero .crumb a { display: inline-flex; align-items: center; min-height: 44px; } .p91x .post-hero .crumb { margin-bottom: 4px; } }
 @media (min-width: 980px) {
   .p91x .post-hero--square .post-hero-grid { grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr); gap: clamp(40px, 6vw, 88px); }
   .p91x .post-hero--square .post-hero-media { justify-self: end; }
@@ -151,6 +153,7 @@
 .p91x .post-contact-row b { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: rgba(255, 255, 255, .55); }
 .p91x .post-contact-row a, .p91x .prose .post-contact-row a { color: #fff; font-size: clamp(19px, 2.4vw, 27px); font-weight: 700; letter-spacing: -.02em; line-height: 1.25; text-decoration: none; overflow-wrap: anywhere; }
 .p91x .post-contact-row a:hover { color: var(--brand-accent); }
+.p91x .post-contact-row a { display: inline-flex; align-items: center; min-height: 44px; }
 .p91x .prose .post-contact a.post-contact-book, .p91x .post-contact-book { justify-self: start; padding: 16px 30px; font-size: 17px; text-decoration: none; color: var(--surface-dark); }
 @media (max-width: 560px) { .p91x .post-contact-book { justify-self: stretch; } }
 .p91x .post-sec--cta .prose > p, .p91x .post-sec--cta .post-sec-body > p { color: rgba(255, 255, 255, .7); }

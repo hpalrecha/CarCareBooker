@@ -59,8 +59,8 @@ export const BRAND_PAGES: BrandPage[] = [
     ],
     fits: [
       { name: "Paint protection film", note: "Full and partial coverage for hatchbacks, sedans and SUVs.", href: "/services/paint-protection-film-bangalore" },
-      { name: "Sun-control film, full car", note: "Front, side and rear glass.", href: "/service/stek-suncontrol-films" },
-      { name: "Sun-control film, windshield", note: "The windshield only.", href: "/service/stek-windsheild-suncontrol-films" },
+      { name: "Sun-control film, full car", note: "Front, side and rear glass.", href: "/services/glass-sun-control-film-bangalore" },
+      { name: "Sun-control film, windshield", note: "The windshield only.", href: "/services/glass-sun-control-film-bangalore" },
     ],
     benefits: [
       { title: "Gloss and matte finishes", body: "Film that keeps the paint as it is, or changes the finish, without touching the original paint." },
