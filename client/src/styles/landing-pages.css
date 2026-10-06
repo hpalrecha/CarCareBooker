@@ -30,6 +30,18 @@
   gap: 40px;
   align-items: center;
 }
+/* Phones and small tablets: one column. This sits HERE, right after the two-column rule above, on
+   purpose. It used to live in blog-carousel.css, which is bundled into the main stylesheet and so
+   loads BEFORE this file; at equal specificity the later two-column rule then won and the hero
+   collapsed on phones. Keep the override in the same file, after the rule it overrides. */
+/* ---------- mobile ---------- */
+@media (max-width: 900px) {
+  .p91x .lp-hero-grid { grid-template-columns: 1fr; gap: 26px; }
+  /* Image AFTER the copy on mobile. The headline, price and CTA must own the first
+     screen; a hero image above them pushes the price below the fold on a 360px phone. */
+  .p91x .lp-hero-media { order: 2; }
+  .p91x .lp .section { padding: 40px 0; }
+}
 .p91x .lp-hero-copy h1 {
   font-size: clamp(30px, 5.2vw, 50px);
   font-weight: 800;

@@ -108,15 +108,6 @@
 .p91x .lp-related a:hover { color: var(--neon-green); }
 .p91x .lp-related a:hover span { border-bottom-color: var(--neon-line); }
 
-/* ---------- mobile ---------- */
-@media (max-width: 900px) {
-  .p91x .lp-hero-grid { grid-template-columns: 1fr; gap: 26px; }
-  /* Image AFTER the copy on mobile. The headline, price and CTA must own the first
-     screen; a hero image above them pushes the price below the fold on a 360px phone. */
-  .p91x .lp-hero-media { order: 2; }
-  .p91x .lp .section { padding: 40px 0; }
-}
-
 @media (max-width: 720px) {
   /* Phones: the same stacked panels, image above text. No horizontal scrolling anywhere. */
   .p91x .blogc-item { top: 76px; height: min(calc(100svh - 170px), 520px); margin-bottom: 14svh; }
