@@ -347,7 +347,7 @@ export default function BlogPost() {
             return (
               <section
                 key={si}
-                className={"post-sec" + (isCta ? " post-sec--cta" : "")}
+                className={"post-sec" + (isCta ? " post-sec--cta" : "") + (sec.title ? "" : " post-sec--intro")}
                 aria-labelledby={sec.title ? `post-h-${si}` : undefined}
               >
                 <div className="wrap post-wrap post-sec-grid">

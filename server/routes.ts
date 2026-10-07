@@ -433,6 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { loc: "/blog/is-your-ppf-really-made-in-usa", priority: "0.6", changefreq: "yearly" },
         { loc: "/blog/how-much-ppf-does-your-car-need", priority: "0.6", changefreq: "yearly" },
         { loc: "/blog/monsoon-damage-car-bangalore", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/best-car-detailing-in-bangalore", priority: "0.6", changefreq: "yearly" },
         // Category listings. Each is a real, prerendered, indexable URL rather than a
         // client-side filter over /blog — otherwise the hub has exactly one crawlable
         // listing page however much gets written. Slugs come from categorySlug() in

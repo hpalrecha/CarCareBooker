@@ -63,6 +63,8 @@
   /* The section title stays beside its content while it is read. It sits in its own column,
      so it never covers the text. */
   .p91x .post-sec-head { position: sticky; top: 108px; }
+  /* An opening section with no title: its text takes the full width instead of the 250px title column. */
+  .p91x .post-sec--intro .post-sec-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 .p91x .post-lead { font-size: clamp(19px, 2vw, 23px); line-height: 1.5; color: var(--txt); font-weight: 500; letter-spacing: -.012em; }
