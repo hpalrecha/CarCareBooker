@@ -37,5 +37,6 @@ export {
   landingPageContent,
   injectRootContent,
 } from "@/lib/crawlable-content";
+export { homeFaqSchema } from "@/lib/home-faq";
 export { localBusinessSchema } from "@/lib/local-business";
 export { festivalOfferSchema } from "@/lib/offer-schema";

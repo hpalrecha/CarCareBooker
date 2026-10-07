@@ -55,7 +55,7 @@ describe('reel data', () => {
     // ...and no two of them show the same pair, so the PPF pages do not all look alike.
     const pairs = Object.entries(byService).filter(([s]) => /ppf-/.test(s)).map(([, rs]) => rs.map((r) => r.id).join('+'));
     assert.equal(new Set(pairs).size, 3, 'three distinct pairs, each used by three pages');
-    assert.deepEqual(byService['1-year-ceramic-coating'].map((r) => r.id), ['DciryBCjLvC', 'Dc8N-qdDiLm', 'DZexmOKmSCs']);
+    assert.deepEqual(byService['1-year-ceramic-coating'].map((r) => r.id), ['DciryBCjLvC', 'DZexmOKmSCs']);
     assert.deepEqual(byService['1-year-bike-ceramic-coating'].map((r) => r.id), ['DbS-jwvgYy1', 'DdBlZC_mxWJ']);
     assert.deepEqual(byService['headlight-restoration-both'].map((r) => r.id), ['DaxYiFAgCEA']);
     assert.deepEqual(byService['stek-suncontrol-films'].map((r) => r.id), ['DclQq-Pijvy']);

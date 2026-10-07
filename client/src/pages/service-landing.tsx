@@ -160,6 +160,9 @@ function firstSentence(text: string) {
  * copy-pasted JSX blocks (~90 lines each) — same images, same captions, same testids,
  * same video URLs, just described once instead of four times.
  */
+/** Services whose hero reel is letterboxed rather than cropped, so the logo in its corner stays visible. */
+const LETTERBOXED_HERO_SLUGS = new Set(["interior-detailing-service", "exterior-detailing-hard-water-new"]);
+
 type Comparison =
   | { layout: "pair"; before: string; beforeAlt: string; beforeLabel: string; beforeCaption: string;
       after: string; afterAlt: string; afterLabel: string; afterCaption: string;
@@ -700,7 +703,13 @@ export default function ServiceLanding() {
                   aria-hidden="true"
                   data-testid="video-hero"
                   onPlaying={() => setHeroVideoReady(true)}
-                  style={{ opacity: heroVideoReady ? 1 : 0, transition: "opacity .6s ease" }}
+                  // These reels are 9:16 clips with the P91 logo in their top corner — `cover`
+                  // in this wide panel crops the logo off, so it is letterboxed instead.
+                  style={{
+                    opacity: heroVideoReady ? 1 : 0,
+                    transition: "opacity .6s ease",
+                    ...(LETTERBOXED_HERO_SLUGS.has(service.slug) ? { objectFit: "contain", background: "#0b0f0c", scale: "none" } : {}),
+                  }}
                 >
                   <source src={service.heroVideo} type="video/mp4" />
                 </video>

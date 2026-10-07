@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useLocation, Link } from "wouter";
 import { MessageCircle, X, Send } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
@@ -68,6 +68,23 @@ function formatSlot(slot: ProposedSlot): string {
   return `${slot.serviceTitle} — ${dateLabel} at ${slot.time}`;
 }
 
+/**
+ * Turns http(s) links in a bot reply into real links. A long map URL used to run past the edge of
+ * the bubble as plain text; now it wraps (the bubble breaks long words) and is tappable. Only
+ * http/https is matched, and React renders the text, so nothing here can inject markup.
+ */
+function linkify(text: string): ReactNode[] {
+  return text.split(/(https?:\/\/[^\s<>"')]+[^\s<>"').,;:!?])/g).map((part, i) =>
+    /^https?:\/\//.test(part) ? (
+      <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+        {part}
+      </a>
+    ) : (
+      part
+    ),
+  );
+}
+
 export function ChatWidget() {
   const [location] = useLocation();
   const [open, setOpen] = useState(false);
@@ -87,8 +104,15 @@ export function ChatWidget() {
   // Put the cursor back in the box once the reply (or an error) has arrived, so the next message
   // can be typed straight away. The box used to be `disabled` while waiting, and a disabled field
   // loses focus and never gets it back.
+  //
+  // Mouse/trackpad only. On a touch screen, focusing a text box raises the on-screen keyboard, which
+  // covers half the chat; there the keyboard must appear only when the visitor taps the box. While a
+  // reply is pending the box is readOnly (below), so a visitor who was typing keeps their keyboard
+  // without any programmatic focus.
   useEffect(() => {
-    if (open && !isLoading) inputRef.current?.focus();
+    if (!open || isLoading) return;
+    if (typeof window.matchMedia === "function" && !window.matchMedia("(pointer: fine)").matches) return;
+    inputRef.current?.focus();
   }, [open, isLoading]);
 
   if (location.startsWith("/admin")) return null;
@@ -158,18 +182,18 @@ export function ChatWidget() {
             </button>
           </div>
 
-          <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto p-4">
+          <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto overflow-x-hidden p-4">
             {messages.map((m, i) => (
               <div key={i} className={"flex " + (m.role === "user" ? "justify-end" : "justify-start")}>
                 <div
                   className={
-                    "max-w-[85%] whitespace-pre-wrap rounded-xl px-3 py-2 text-sm " +
+                    "min-w-0 max-w-[85%] whitespace-pre-wrap [overflow-wrap:anywhere] rounded-xl px-3 py-2 text-sm " +
                     (m.role === "user"
                       ? "bg-neon-green text-deep-black"
                       : "bg-medium-gray text-[var(--txt)]")
                   }
                 >
-                  {m.content}
+                  {m.role === "assistant" ? linkify(m.content) : m.content}
                   {m.proposedSlot && (
                     <div className="mt-2 border-t border-black/10 pt-2">
                       <div className="mb-1.5 text-xs text-[var(--txt-2)]">{formatSlot(m.proposedSlot)}</div>

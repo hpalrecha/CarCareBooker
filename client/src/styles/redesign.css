@@ -929,6 +929,12 @@
   .p91x .ed-brand + .ed-brand { padding-top: 32px; border-top: 1px solid var(--medium-gray); }
 }
 .p91x .ed-fine { margin: 20px 0 0; font-size: 13.5px; line-height: 1.6; color: var(--txt-3); max-width: 64ch; }
+.p91x.home-page .ed-faq { padding-block: clamp(56px, 8vh, 96px); border-top: 1px solid var(--medium-gray); }
+.p91x .ed-faq .ed-title { font-size: clamp(30px, 4.2vw, 56px); max-width: 22ch; }
+.p91x .ed-faq-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px clamp(24px, 4vw, 56px); margin: clamp(24px, 4vh, 40px) 0 0; }
+.p91x .ed-faq-list dt { font-family: var(--font-display); font-weight: var(--fw-heading-strong); font-size: 20px; letter-spacing: -.02em; line-height: 1.25; margin: 0 0 10px; }
+.p91x .ed-faq-list dd { margin: 0; font-size: 15px; line-height: 1.65; color: var(--txt-2); max-width: 56ch; }
+@media (max-width: 860px) { .p91x .ed-faq-list { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
 @media (max-width: 860px) { .p91x .ed-why-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 520px) { .p91x .ed-why-grid { grid-template-columns: minmax(0, 1fr); } }
 
@@ -1912,33 +1918,26 @@
   .p91x footer.site .foot-bottom { gap: 8px; }
 }
 
-/* ---------- footer on phones: accordion groups ----------
-   Services / Company / Studio collapse to one row each (site-footer.tsx, FootCol). The brand block
-   with the call and WhatsApp buttons stays open above them. At 561px and up none of this applies. */
+/* ---------- footer on phones: compact grid ----------
+   No dropdowns. Brand block with Call / WhatsApp / Instagram on top, Services and Company side by
+   side as short always-visible lists, Studio (address, hours, directions) full width beneath.
+   At 561px and up none of this applies. */
+.p91x footer.site .foot-btn-ig { display: none; }
 @media (max-width: 560px) {
   .p91x footer.site.site { padding-top: 36px; }
-  .p91x footer.site .foot-grid { display: block; }
-  .p91x footer.site .foot-brand { padding-bottom: 22px; }
+  .p91x footer.site .foot-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px 16px; }
+  .p91x footer.site .foot-brand { grid-column: 1 / -1; padding-bottom: 4px; }
   .p91x footer.site .foot-brand p { margin-bottom: 14px; max-width: none; }
-  .p91x footer.site .foot-actions { gap: 8px; }
-  .p91x footer.site .foot-col.is-acc { border-top: 1px solid rgba(255,255,255,.14); }
-  .p91x footer.site .foot-col.is-acc:last-child { border-bottom: 1px solid rgba(255,255,255,.14); }
-  .p91x footer.site .foot-col.is-acc h4 { margin: 0; }
-  .p91x footer.site .foot-acc {
-    display: flex; align-items: center; justify-content: space-between; width: 100%;
-    min-height: 52px; padding: 0; background: none; border: 0; cursor: pointer;
-    color: #fff; font: inherit; letter-spacing: inherit; text-transform: inherit; text-align: left;
-  }
-  .p91x footer.site .foot-acc:focus-visible { outline: 2px solid var(--brand-accent); outline-offset: 2px; border-radius: 4px; }
-  .p91x footer.site .foot-chev { width: 18px; height: 18px; flex: none; opacity: .7; transition: transform .2s ease; }
-  .p91x footer.site .foot-col.is-open .foot-chev { transform: rotate(180deg); }
-  .p91x footer.site .foot-col.is-acc .foot-panel {
-    display: grid; grid-template-rows: 0fr; transition: grid-template-rows .22s ease;
-  }
-  .p91x footer.site .foot-col.is-acc.is-open .foot-panel { grid-template-rows: 1fr; }
-  .p91x footer.site .foot-col.is-acc .foot-panel-in { min-height: 0; overflow: hidden; visibility: hidden; transition: visibility 0s .22s; }
-  .p91x footer.site .foot-col.is-acc.is-open .foot-panel-in { visibility: visible; transition-delay: 0s; padding-bottom: 14px; }
-  .p91x footer.site .foot-col a { padding: 10px 0; font-size: 14px; }
+  .p91x footer.site .foot-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .p91x footer.site .foot-btn { padding: 8px 10px; }
+  .p91x footer.site .foot-btn-ig { display: inline-flex; grid-column: 1 / -1; }
+  .p91x footer.site .foot-li-ig { display: none; }
+  .p91x footer.site .foot-col { min-width: 0; }
+  .p91x footer.site .foot-col h4 { margin: 0 0 6px; }
+  .p91x footer.site .foot-col a { padding: 9px 0; font-size: 14px; }
+  .p91x footer.site .foot-col-studio { grid-column: 1 / -1; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.14); }
+  .p91x footer.site .foot-col-studio address { font-size: 14px; }
+  .p91x footer.site .foot-col-studio .foot-more { margin-top: 2px; }
   .p91x footer.site .foot-bottom { margin-top: 0; padding-top: 12px; border-top: 0; gap: 2px; }
   .p91x footer.site .foot-legal { gap: 4px 18px; }
 }
@@ -1950,9 +1949,6 @@
      the page at the very end of the scroll. Reserve its width so the legal links and GST line
      wrap beside it instead of running underneath it. */
   .p91x footer.site .foot-bottom { padding-right: 82px; align-items: flex-start; text-align: left; }
-}
-@media (max-width: 560px) and (prefers-reduced-motion: reduce) {
-  .p91x footer.site .foot-col.is-acc .foot-panel, .p91x footer.site .foot-chev, .p91x footer.site .foot-col.is-acc .foot-panel-in { transition: none; }
 }
 
 /* ---------- /gallery (pages/gallery.tsx) ---------- */

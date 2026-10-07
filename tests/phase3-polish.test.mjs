@@ -89,3 +89,30 @@ describe('item 14 — refund policy no longer promises a nonexistent ₹599 serv
     assert.doesNotMatch(src, /Headlight Restoration \(₹1,199\)/);
   });
 });
+
+describe('chat widget: long links and the phone keyboard', () => {
+  const src = read('client/src/components/chat-widget.tsx');
+
+  test('a long URL in a bot reply wraps inside the bubble and is a real link', () => {
+    assert.match(src, /\[overflow-wrap:anywhere\]/);
+    assert.match(src, /overflow-x-hidden/);
+    assert.match(src, /linkify\(m\.content\)/);
+    assert.match(src, /rel="noopener noreferrer"/);
+  });
+
+  test('the box is focused programmatically only with a mouse, so a phone keyboard opens only on a tap', () => {
+    assert.match(src, /matchMedia\("\(pointer: fine\)"\)/);
+  });
+});
+
+describe('blog cover images', () => {
+  const src = read('client/src/lib/blog-posts.ts');
+  const covers = [...src.matchAll(/src: "(\/attached_assets\/blog\/[^"]+)"/g)].map((m) => m[1]);
+
+  test('every post has its own cover image and the file exists', () => {
+    const slugs = [...src.matchAll(/^    slug: "([^"]+)"/gm)].map((m) => m[1]);
+    assert.ok(slugs.length >= 7, 'found the posts');
+    assert.equal(covers.length, slugs.length, 'one cover per post');
+    for (const c of covers) assert.ok(fs.existsSync(path.join(repoRoot, c.slice(1))), c + ' exists');
+  });
+});

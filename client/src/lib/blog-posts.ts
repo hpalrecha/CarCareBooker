@@ -272,6 +272,11 @@ export const BLOG_POSTS: BlogPost[] = [
     lede:
       "They get compared as if they were rival products. They are not — one is a physical barrier, the other is a chemical one, and they fail in completely different ways.",
     imageServiceSlug: "ppf-sedan",
+    image: {
+      src: "/attached_assets/blog/ppf-vs-ceramic-coating-bangalore.jpg",
+      alt: "A white Mercedes GLE in the P91 Car Care studio, with the P91 logo",
+      square: true,
+    },
     body: [
       { type: "h2", text: "The short answer" },
       {
@@ -387,6 +392,11 @@ export const BLOG_POSTS: BlogPost[] = [
     lede:
       "A water spot is not dirt. It is a mineral deposit that concentrates as the water evaporates, and in direct sun it starts cutting into your clearcoat within days.",
     imageServiceSlug: "exterior-detailing-hard-water-new",
+    image: {
+      src: "/attached_assets/blog/hard-water-spot-removal-bangalore.jpg",
+      alt: "A gloved hand wiping a glossy white car panel, with the P91 logo",
+      square: true,
+    },
     body: [
       { type: "h2", text: "Why borewell water is the problem" },
       {
@@ -462,6 +472,11 @@ export const BLOG_POSTS: BlogPost[] = [
     lede:
       "Sun film is sold on three numbers and only one of them describes how cool the car will actually be. The other two are what gets quoted at you.",
     imageServiceSlug: "stek-windsheild-suncontrol-films",
+    image: {
+      src: "/attached_assets/blog/windshield-heat-rejection-film-summer.jpg",
+      alt: "Heat-rejection film being fitted to a car window at P91 Car Care, with the P91 logo",
+      square: true,
+    },
     body: [
       { type: "h2", text: "The three numbers" },
       { type: "h3", text: "VLT — visible light transmission" },
@@ -543,6 +558,11 @@ export const BLOG_POSTS: BlogPost[] = [
     lede:
       "More film is not automatically more protection. Cars do not get damaged evenly, and the coverage that suits a daily driver on Outer Ring Road is not the coverage that suits a garaged weekend car.",
     imageServiceSlug: "ppf-sedan",
+    image: {
+      src: "/attached_assets/blog/how-much-ppf-does-your-car-need.jpg",
+      alt: "A white Toyota Innova Hycross with paint protection film at P91 Car Care, with the P91 logo",
+      square: true,
+    },
     body: [
       { type: "h2", text: "Coverage is a decision, not an upsell" },
       {
@@ -633,6 +653,11 @@ export const BLOG_POSTS: BlogPost[] = [
     lede:
       "Almost every paint protection film sold in India is described as American. Very few brands make their own film, and fewer still make the raw material it is made from — so the flag on the box is rarely the thing that decides how the film performs.",
     imageServiceSlug: "ppf-suv",
+    image: {
+      src: "/attached_assets/blog/is-your-ppf-really-made-in-usa.jpg",
+      alt: "A P91 technician fitting clear paint protection film on a black car, with the P91 logo",
+      square: true,
+    },
     body: [
       { type: "h2", text: "Why the label is the weakest signal" },
       {
@@ -723,6 +748,11 @@ export const BLOG_POSTS: BlogPost[] = [
     lede:
       "A car that came through the monsoon looking fine has usually still collected four or five problems. None of them announce themselves — they surface as dull paint, a musty cabin and a rust bubble a year later.",
     imageServiceSlug: "exterior-detailing-hard-water-new",
+    image: {
+      src: "/attached_assets/blog/monsoon-damage-car-bangalore.jpg",
+      alt: "A glossy red Maruti Swift finished at P91 Car Care, with the P91 logo",
+      square: true,
+    },
     body: [
       { type: "h2", text: "Why rain is worse than it looks" },
       {

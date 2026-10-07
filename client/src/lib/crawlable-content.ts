@@ -5,6 +5,7 @@ import type { LandingPage } from "./landing-pages";
 import { formatINR } from "./canonical-services";
 import { ADDRESS_CONFIRMED, STREET_ADDRESS, POSTAL_CODE, PHONE } from "./local-business";
 import { PRODUCT_BRANDS } from "./nav-menu";
+import { HOME_FAQS, HOME_FAQ_HEADING, HOME_ABOUT_H2 } from "./home-faq";
 
 /**
  * The page's real content as plain HTML, baked into the initial response inside
@@ -160,7 +161,7 @@ export function homePageContent(page: StaticSeoPage): string {
   return shell(
     h1(page.h1) +
       (page.lede ? p(page.lede) : "") +
-      h2("Protection, done properly.") +
+      h2(HOME_ABOUT_H2) +
       p(
         "P91 Car Care is a car detailing, ceramic coating and paint protection film studio " +
           "in Adugodi, Bangalore. Every coating and PPF job is backed by a written warranty " +
@@ -184,7 +185,9 @@ export function homePageContent(page: StaticSeoPage): string {
       p(
         "Warranty on any job is the film or coating manufacturer's, issued in writing at " +
           "handover. Ask to see the batch details before work starts.",
-      ),
+      ) +
+      h2(HOME_FAQ_HEADING) +
+      faqList(HOME_FAQS.map((f) => ({ question: f.question, answer: f.answer }))),
   );
 }
 

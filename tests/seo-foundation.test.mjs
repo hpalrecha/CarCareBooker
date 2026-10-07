@@ -219,8 +219,38 @@ describe('schema', () => {
     assert.match(hook, /const navigatedAway = window\.location\.pathname !== INITIAL_PATH/);
   });
 
-  test('the homepage and /contact get the business schema in the raw HTML', () => {
-    assert.match(read('scripts/prerender.mjs'), /page\.path === "\/" \|\| page\.path === "\/contact" \? \[content\.localBusinessSchema\(ORIGIN\)\]/);
+  test('the homepage and /contact get the business schema in the raw HTML; the homepage also gets FAQPage', () => {
+    const script = read('scripts/prerender.mjs');
+    assert.match(script, /page\.path === "\/" \? \[content\.localBusinessSchema\(ORIGIN\), content\.homeFaqSchema\(\)\]/);
+    assert.match(script, /page\.path === "\/contact" \? \[content\.localBusinessSchema\(ORIGIN\)\]/);
+  });
+
+  test('homepage FAQ: one list feeds the page, the raw HTML and the schema, and states no price or duration figure', () => {
+    const faq = read('client/src/lib/home-faq.ts');
+    const home = read('client/src/pages/home.tsx');
+    const crawl = read('client/src/lib/crawlable-content.ts');
+    assert.match(home, /HOME_FAQS\.map/);
+    assert.match(home, /homeFaqSchema\(\)/);
+    assert.match(crawl, /HOME_FAQS/);
+    assert.match(crawl, /h2\(HOME_FAQ_HEADING\)/);
+    // The four questions the brief asks for: ceramic vs PPF, price, duration, warranty.
+    for (const needle of [/ceramic coating and paint protection film\?/i, /cost/i, /How long/, /warranty/i]) {
+      assert.match(faq, needle);
+    }
+    // Prices and durations live in the catalogue; a typed figure would go stale (landing-pages.ts price rule).
+    const answers = [...faq.matchAll(/answer:\s*((?:\s*"[^"]*"\s*\+?)+)/g)].map((m) => m[1]).join(' ');
+    assert.ok(answers.length > 200, 'found the answers');
+    assert.doesNotMatch(answers, /₹|Rs\.?\s?\d|\d+\s*(hours?|hrs?|days?)/i);
+  });
+
+  test('homepage H2s carry both target phrases', () => {
+    const faq = read('client/src/lib/home-faq.ts');
+    for (const name of ['HOME_ABOUT_H2', 'HOME_FAQ_HEADING']) {
+      const m = faq.match(new RegExp('export const ' + name + ' = "([^"]+)"'));
+      assert.ok(m, name + ' exists');
+      assert.match(m[1], /ceramic coating/i);
+      assert.match(m[1], /paint protection film/i);
+    }
   });
 });
 

@@ -126,7 +126,7 @@ export const REELS = {
 
 /** /service/:slug → reels that show that service. */
 export const REELS_BY_SERVICE: Record<string, InstagramReel[]> = {
-  "1-year-ceramic-coating": [REELS.ceramicWater, REELS.ceramicMonsoon, REELS.ceramicService],
+  "1-year-ceramic-coating": [REELS.ceramicWater, REELS.ceramicService],
   "1-year-bike-ceramic-coating": [REELS.bikePpfRide, REELS.bikePpf],
   "headlight-restoration-both": [REELS.headlightRestore],
   // Car PPF: three reels, two per page, rotated so no two PPF pages show the same pair.
@@ -151,13 +151,11 @@ export const REELS_BY_POST: Record<string, InstagramReel[]> = {
   "ppf-vs-ceramic-coating-bangalore": [REELS.ceramicWater, REELS.ppfShield, REELS.bikePpf],
   "hard-water-spot-removal-bangalore": [REELS.ceramicWater, REELS.phShampoo],
   "windshield-heat-rejection-film-summer": [REELS.windowFilm],
-  "monsoon-damage-car-bangalore": [REELS.ceramicMonsoon],
 };
 
 /** The /ppf-ceramic-coating page: its protection and coating work. */
 export const REELS_FOR_PPF_CERAMIC_PAGE: InstagramReel[] = [
   REELS.ceramicWater,
-  REELS.ceramicMonsoon,
   REELS.ceramicService,
   REELS.ppfShield,
   REELS.bikePpfRide,

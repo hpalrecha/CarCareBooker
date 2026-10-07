@@ -8,6 +8,7 @@ import { ImageWithFallback } from "@/components/image-with-fallback";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { localBusinessSchema } from "@/lib/local-business";
 import { HOME_SEO } from "@/lib/static-seo";
+import { HOME_FAQS, HOME_FAQ_HEADING, HOME_ABOUT_H2, homeFaqSchema } from "@/lib/home-faq";
 import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canonical-services";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
 import { PRODUCT_BRANDS } from "@/lib/nav-menu";
@@ -106,10 +107,13 @@ export default function Home() {
     description: HOME_SEO.description,
     image: "/og/og-default.jpg",
     canonicalPath: "/",
-    structuredData: localBusinessSchema({
-      origin: typeof window === "undefined" ? "https://p91carcare.com" : window.location.origin,
-      businessHours,
-    }),
+    structuredData: [
+      localBusinessSchema({
+        origin: typeof window === "undefined" ? "https://p91carcare.com" : window.location.origin,
+        businessHours,
+      }),
+      homeFaqSchema(),
+    ].filter(Boolean) as Record<string, unknown>[],
   });
 
   /**
@@ -397,7 +401,7 @@ export default function Home() {
           <div className="ed-about-grid">
             <div className="ed-about-copy">
               <p className="ed-label" data-reveal>01 / About P91</p>
-              <h2 className="ed-title" data-reveal>Protection, done properly.</h2>
+              <h2 className="ed-title" data-reveal>{HOME_ABOUT_H2}</h2>
               <p className="ed-lede" data-reveal>
                 P91 Car Care is a car detailing, ceramic coating and paint protection film
                 studio in Adugodi, Bangalore. Every coating and PPF job is backed by a written
@@ -597,6 +601,24 @@ export default function Home() {
             Warranty on any job is the film or coating manufacturer's, issued in writing at
             handover. Ask to see the batch details before work starts.
           </p>
+        </div>
+      </section>
+
+      {/* ---------- FAQ ----------
+          Answers are visible text (not an accordion that unmounts them), so the FAQPage schema in
+          <head> matches what a visitor can read. Copy and schema come from lib/home-faq.ts. */}
+      <section className="ed-faq" id="faq" data-testid="section-faq">
+        <div className="wrap">
+          <p className="ed-label" data-reveal>Questions</p>
+          <h2 className="ed-title ed-title-wide" data-reveal>{HOME_FAQ_HEADING}</h2>
+          <dl className="ed-faq-list" data-reveal data-testid="faq-list">
+            {HOME_FAQS.map((f) => (
+              <div key={f.question}>
+                <dt>{f.question}</dt>
+                <dd>{f.answer}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 

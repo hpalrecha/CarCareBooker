@@ -173,7 +173,7 @@ async function main() {
     // none, so a crawler without JavaScript never saw the address, phone or hours. Emitted
     // here without opening hours — those are live data the build cannot know; the page
     // replaces this block with the full one (hours included) once it loads.
-    jsonLd: page.path === "/" || page.path === "/contact" ? [content.localBusinessSchema(ORIGIN)] : extraJsonLd(page.path, content),
+    jsonLd: page.path === "/" ? [content.localBusinessSchema(ORIGIN), content.homeFaqSchema()] : page.path === "/contact" ? [content.localBusinessSchema(ORIGIN)] : extraJsonLd(page.path, content),
   }));
 
   // /blog — title and description come from the shared constants, not a copy here.
