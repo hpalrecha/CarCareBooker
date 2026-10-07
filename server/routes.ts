@@ -412,7 +412,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const origin = process.env.PUBLIC_SITE_ORIGIN || "https://p91carcare.com";
       const services = await storage.getAllServices();
 
-      const staticPaths = [
+      const staticPaths: { loc: string; priority: string; changefreq: string; lastmod?: string }[] = [
         { loc: "/", priority: "1.0", changefreq: "weekly" },
         // The catalogue page. Ranks for the broad "services" queries that the homepage
         // and the 17 per-service pages were previously competing for on their own.
@@ -424,24 +424,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { loc: "/services/paint-protection-film-bangalore", priority: "0.8", changefreq: "monthly" },
         { loc: "/services/interior-detailing-bangalore", priority: "0.8", changefreq: "monthly" },
         { loc: "/services/glass-sun-control-film-bangalore", priority: "0.8", changefreq: "monthly" },
-        // Blog. Kept in step with client/src/lib/blog-posts.ts.
-        { loc: "/blog", priority: "0.7", changefreq: "weekly" },
-        { loc: "/blog/ppf-koramangala-hsr-layout-shanti-nagar-adugodi", priority: "0.6", changefreq: "yearly" },
-        { loc: "/blog/ppf-vs-ceramic-coating-bangalore", priority: "0.6", changefreq: "yearly" },
-        { loc: "/blog/hard-water-spot-removal-bangalore", priority: "0.6", changefreq: "yearly" },
-        { loc: "/blog/windshield-heat-rejection-film-summer", priority: "0.6", changefreq: "yearly" },
-        { loc: "/blog/is-your-ppf-really-made-in-usa", priority: "0.6", changefreq: "yearly" },
-        { loc: "/blog/how-much-ppf-does-your-car-need", priority: "0.6", changefreq: "yearly" },
-        { loc: "/blog/monsoon-damage-car-bangalore", priority: "0.6", changefreq: "yearly" },
-        { loc: "/blog/best-car-detailing-in-bangalore", priority: "0.6", changefreq: "yearly" },
+        // Blog. Kept in step with client/src/lib/blog-posts.ts. lastmod is the post's updated date
+        // (else its date); a listing takes the newest post in it. Pages with no real edit date
+        // carry no lastmod — an invented one teaches crawlers to ignore the field.
+        { loc: "/blog", lastmod: "2026-10-07", priority: "0.7", changefreq: "weekly" },
+        { loc: "/blog/ppf-koramangala-hsr-layout-shanti-nagar-adugodi", lastmod: "2026-10-05", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/ppf-vs-ceramic-coating-bangalore", lastmod: "2026-09-10", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/hard-water-spot-removal-bangalore", lastmod: "2026-08-12", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/windshield-heat-rejection-film-summer", lastmod: "2026-07-30", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/is-your-ppf-really-made-in-usa", lastmod: "2026-09-08", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/how-much-ppf-does-your-car-need", lastmod: "2026-09-05", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/monsoon-damage-car-bangalore", lastmod: "2026-09-02", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/best-car-detailing-in-bangalore", lastmod: "2026-10-07", priority: "0.6", changefreq: "yearly" },
         // Category listings. Each is a real, prerendered, indexable URL rather than a
         // client-side filter over /blog — otherwise the hub has exactly one crawlable
         // listing page however much gets written. Slugs come from categorySlug() in
         // client/src/lib/blog-posts.ts; adding a post in a NEW category means adding a
         // line here, which tests/blog-seo.test.mjs enforces.
-        { loc: "/blog/category/protection", priority: "0.5", changefreq: "monthly" },
-        { loc: "/blog/category/paint-care", priority: "0.5", changefreq: "monthly" },
-        { loc: "/blog/category/glass-film", priority: "0.5", changefreq: "monthly" },
+        { loc: "/blog/category/protection", lastmod: "2026-10-07", priority: "0.5", changefreq: "monthly" },
+        { loc: "/blog/category/paint-care", lastmod: "2026-09-02", priority: "0.5", changefreq: "monthly" },
+        { loc: "/blog/category/glass-film", lastmod: "2026-07-30", priority: "0.5", changefreq: "monthly" },
         // Campaign landing pages — the URLs that go into the advertisements, and the
         // canonical destination for transactional "PPF price" / "ceramic coating for
         // bikes" intent. Priority 0.9: these are the pages the business most wants found.
@@ -469,6 +471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...staticPaths.map(
           (p) =>
             `  <url>\n    <loc>${escape(origin + p.loc)}</loc>\n` +
+            (p.lastmod ? `    <lastmod>${p.lastmod}</lastmod>\n` : "") +
             `    <changefreq>${p.changefreq}</changefreq>\n    <priority>${p.priority}</priority>\n  </url>`,
         ),
         ...services
@@ -476,6 +479,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .map(
             (s: any) =>
               `  <url>\n    <loc>${escape(`${origin}/service/${s.slug}`)}</loc>\n` +
+              (s.updatedAt && !Number.isNaN(new Date(s.updatedAt).getTime())
+                ? `    <lastmod>${new Date(s.updatedAt).toISOString().slice(0, 10)}</lastmod>\n`
+                : "") +
               `    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`,
           ),
       ];
