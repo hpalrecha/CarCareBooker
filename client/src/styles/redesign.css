@@ -2121,16 +2121,6 @@
   .p91x .ed-lede { font-size: 16px; line-height: 1.6; }
 }
 
-.p91-brand {
-  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
-.p91-brand h1, .p91-brand h2, .p91-brand h3, .p91-brand h4 {
-  font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
-  letter-spacing: -.02em;
-}
-
-
 /* ---------- Touch targets on phones ----------
    Links and tabs that measured 20-27px high get a 44px tap area. The extra area is an invisible
    ::before that overflows the element, so nothing moves or changes size on the page. ::after is
@@ -2144,4 +2134,13 @@
   }
   .p91x .pdp-slide-dot::after { inset: -20px 0; }
   .p91x .lp-faq summary { min-height: 44px; }
+}
+
+.p91-brand {
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.p91-brand h1, .p91-brand h2, .p91-brand h3, .p91-brand h4 {
+  font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -.02em;
 }
