@@ -20,6 +20,10 @@
 #                            the prebuilt one. Never automatic: an explicit, manual escape hatch.
 #   --accept-container-diff  Proceed although the running container has written files
 #                            outside /app/uploads (they are listed first; they are NOT kept)
+#   --allow-missing-env      Proceed although a required variable (DATABASE_URL, SESSION_SECRET,
+#                            OPENAI_API_KEY) would be missing from the new container. Without it the
+#                            deploy stops BEFORE anything is changed: a deploy that silently drops the
+#                            OpenAI key leaves the chatbot answering "Chat isn't available".
 #
 # What it never does: push, change Nginx, Cloudflare, DNS or the firewall, touch the
 # database, store secrets in Git, or deploy by the "latest" tag.
@@ -80,6 +84,7 @@ PUBLIC_URL="https://p91carcare.com"
 EXECUTE=0
 ALLOW_NON_MAIN=0
 ACCEPT_DIFF=0
+ALLOW_MISSING_ENV=0
 BUILD_LOCAL=0
 MODE="${1:-}"
 TARGET="${2:-}"
@@ -110,6 +115,7 @@ while [[ $# -gt 0 ]]; do
     --public-url) PUBLIC_URL="${2:?--public-url needs a URL}"; shift ;;
     --allow-non-main) ALLOW_NON_MAIN=1 ;;
     --accept-container-diff) ACCEPT_DIFF=1 ;;
+    --allow-missing-env) ALLOW_MISSING_ENV=1 ;;
     --build-local) BUILD_LOCAL=1 ;;
     *) die "unknown option: $1" ;;
   esac
@@ -456,6 +462,24 @@ extra_env() { # prints the validated KEY=VALUE lines of extra.env (nothing if th
 }
 extra_env_names() { extra_env | cut -d= -f1; }
 
+# Variables the app cannot work without. The new container gets the running container's env plus
+# extra.env, so a name missing from BOTH is simply gone after the swap. Checked by name only (values are
+# never printed), before the candidate is created, so a failure changes nothing.
+REQUIRED_ENV=(DATABASE_URL SESSION_SECRET OPENAI_API_KEY)
+require_env() {
+  local names missing=() n
+  names="$(env_names; extra_env_names)"
+  for n in "${REQUIRED_ENV[@]}"; do
+    grep -qx "$n" <<<"$names" || missing+=("$n")
+  done
+  [[ ${#missing[@]} -eq 0 ]] && { note "required env present: ${REQUIRED_ENV[*]}"; return 0; }
+  if [[ "$ALLOW_MISSING_ENV" == "1" ]]; then
+    warn "required env missing from the new container (allowed by --allow-missing-env): ${missing[*]}"
+  else
+    die "required env missing from both the running container and $EXTRA_ENV_FILE: ${missing[*]}. Add KEY=VALUE to $EXTRA_ENV_FILE (root, mode 600) and rerun; nothing was changed."
+  fi
+}
+
 write_env_file() { # container -> ENV_FILE (0600, outside Git, deleted on exit)
   if [[ "$EXECUTE" != "1" ]]; then
     ENV_FILE="$STATE_DIR/run/env-$TS"; note "[dry-run] would copy the container env into $ENV_FILE (mode 600)"
@@ -748,6 +772,7 @@ fi
 run docker tag "$OLD_IMAGE_ID" "$IMAGE_REPO:rollback-$TS"
 
 # 6-7. Candidate on 127.0.0.1:18084 ------------------------------------------------
+require_env
 write_env_file "$APP"
 reminder_window_guard
 run docker create --name "$CANDIDATE" --restart no \

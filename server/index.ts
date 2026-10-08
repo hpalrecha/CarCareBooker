@@ -180,6 +180,11 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
+  // The chat assistant answers 503 "Chat isn't available" without this key. Say so in the container log at
+  // start-up, so `docker logs` shows it at once instead of a customer finding out first.
+  if (!process.env.OPENAI_API_KEY) {
+    console.warn("[startup] OPENAI_API_KEY is not set: /api/chat will answer 503 until it is.");
+  }
   // reusePort is only supported on Linux; it throws ENOTSUP on Windows/macOS, which
   // breaks local development. Enable it only where the platform supports it.
   const listenOpts: { port: number; host: string; reusePort?: boolean } = {
