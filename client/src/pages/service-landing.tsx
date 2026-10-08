@@ -19,6 +19,7 @@ import { deriveCategory, deriveVehicle } from "@/lib/service-taxonomy";
 import { formatServiceTime } from "@/lib/service-time";
 import { serviceSeoTitle, serviceSeoDescription, serviceStructuredData } from "@/lib/service-seo";
 import { useHeroVideoGate } from "@/hooks/use-hero-video";
+import { slotFeeFor } from "@/lib/booking-fee";
 import { ILLUSTRATIVE_SLUGS } from "@/lib/real-service-images";
 import ParallaxFrame from "@/components/redesign/parallax-frame";
 import { useCinematic } from "@/hooks/use-cinematic";
@@ -498,6 +499,8 @@ export default function ServiceLanding() {
 
   const showTestimonials = !TESTIMONIALS_SUPPRESSED.has(service.slug);
   const isAnnualPackage = service.title === 'Annual Maintenance Package';
+  // ₹499 for a service over ₹10,000 (PPF), else the usual ₹299. Label only: the server decides the charge.
+  const slotFee = slotFeeFor(service.price);
 
   // This template is shared by every service, and its fixed copy said "car"
   // throughout — which read wrong on the bike ceramic-coating page ("transform your
@@ -641,6 +644,8 @@ export default function ServiceLanding() {
                       alt={alt}
                       sizes="(min-width: 900px) 640px, 100vw"
                       priority
+                      // The bike promo graphic is 16:9 with the bike left of centre; in this tall frame the default centre crop cuts the bike in half.
+                      style={service.slug === "1-year-bike-ceramic-coating" ? { objectPosition: "38% center" } : undefined}
                       data-testid="img-hero"
                     />
                   );
@@ -802,7 +807,7 @@ export default function ServiceLanding() {
                   ? 'No booking fee — reserve your slot online free.'
                   : isAnnualPackage
                     ? `Pay ${formatINR(service.price)} online for the full annual package.`
-                    : 'Pay just ₹299 online today to hold your slot.'}
+                    : `Pay just ₹${slotFee} online today to hold your slot.`}
               </p>
 
               <ul className="lp-includes" style={{ marginTop: 18, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,.14)", color: "rgba(241,244,241,.82)" }}>
@@ -828,7 +833,7 @@ export default function ServiceLanding() {
                   ? 'Reserve your slot — no fee'
                   : isAnnualPackage
                     ? `Book the package — ${formatINR(service.price)}`
-                    : 'Reserve your slot for ₹299'}
+                    : `Reserve your slot for ₹${slotFee}`}
                 <ArrowRight className="i" aria-hidden="true" />
               </button>
 
@@ -1280,7 +1285,7 @@ export default function ServiceLanding() {
               <div style={{ fontSize: 12, color: "var(--neon-green)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {offer.free
                   ? 'No booking fee'
-                  : isAnnualPackage ? 'Full package, paid online' : 'Pay ₹299 now to hold your slot'}
+                  : isAnnualPackage ? 'Full package, paid online' : `Pay ₹${slotFee} now to hold your slot`}
               </div>
             </div>
             <button

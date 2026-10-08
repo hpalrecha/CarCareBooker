@@ -5,7 +5,8 @@ import MobileEstimateBar from "@/components/mobile-estimate-bar";
 // The two popups carry the Dialog and form code, but nothing they render is needed for first
 // paint: the offer opens at 2.5s and the callback at 15s. Loading them lazily keeps that code
 // off the critical path.
-const FestivalOfferPopup = lazy(() => import("@/components/festival-offer-popup").then((m) => ({ default: m.FestivalOfferPopup })));
+// The festival offer popup (components/festival-offer-popup.tsx) is NOT mounted: taken down 2026-10-08 until
+// the studio supplies the next offer. To bring an offer back, restore the lazy import and <FestivalOfferPopup />.
 const CallbackPopup = lazy(() => import("@/components/callback-popup"));
 
 /**
@@ -27,7 +28,6 @@ export default function SitePopups() {
   return (
     <>
       <Suspense fallback={null}>
-        <FestivalOfferPopup />
         {!location.startsWith("/service/") && <CallbackPopup isBikeService={false} />}
       </Suspense>
       {!location.startsWith("/service/") && <MobileEstimateBar />}
