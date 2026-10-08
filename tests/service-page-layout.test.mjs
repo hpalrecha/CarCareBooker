@@ -198,8 +198,8 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
     assert.ok(read('client/src/components/callback-popup.tsx').includes('No payment now'));
   });
 
-  test('the slot fee is 499 over ₹10,000 (PPF) and 299 otherwise, from one helper', () => {
-    assert.ok(src.includes('const slotFee = slotFeeFor(service.price);'));
+  test('the slot fee is 499 for PPF over ₹10,000 and 299 otherwise, from one helper', () => {
+    assert.ok(src.includes('const slotFee = slotFeeFor(service.slug, service.price);'));
     const lib = read('client/src/lib/booking-fee.ts');
     assert.match(lib, /HIGH_VALUE_PRICE_THRESHOLD = 10000/);
     assert.match(lib, /HIGH_VALUE_BOOKING_FEE = 499/);

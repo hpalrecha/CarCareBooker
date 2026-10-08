@@ -27,6 +27,8 @@ import { Check } from "lucide-react";
 interface BookingModalProps {
   service: {
     id: string;
+    // The catalogue slug; the fee label needs it to tell PPF from other services (it is on every service record).
+    slug?: string;
     title: string;
     description: string;
     price: string;
@@ -183,8 +185,8 @@ export default function BookingModal({ service, isOpen, onClose, vehicleContext,
       const fullPrice = parseFloat(service.price);
       console.log("Annual Maintenance Package - setting full price:", fullPrice);
       setBookingAmount(fullPrice);
-    } else if (isHighValueService(service.price)) {
-      // Over ₹10,000 (PPF): ₹499 slot deposit. The server charges the same figure whatever this says.
+    } else if (isHighValueService(service.slug, service.price)) {
+      // PPF over ₹10,000: ₹499 slot deposit. The server charges the same figure whatever this says.
       setBookingAmount(HIGH_VALUE_BOOKING_FEE);
     } else if (bookingAmountSetting && typeof bookingAmountSetting === 'object' && 'value' in bookingAmountSetting) {
       const amount = parseFloat(String(bookingAmountSetting.value));

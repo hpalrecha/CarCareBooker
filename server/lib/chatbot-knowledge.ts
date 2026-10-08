@@ -48,7 +48,7 @@ export const WHATSAPP_URL = `https://wa.me/${PHONE.replace(/^\+/, "")}`;
  * separate content fix the business should make on one of the two pages.
  */
 const POLICY_FACTS: string[] = [
-  "Booking fee: ₹299 to reserve a slot, or ₹499 for services priced above ₹10,000 (all paint protection film packages); waived automatically during an active free-booking offer.",
+  "Booking fee: ₹299 to reserve a slot, or ₹499 for paint protection film (PPF) services priced above ₹10,000; waived automatically during an active free-booking offer.",
   "Cancelling a paid booking: 24+ hours before the appointment = full refund of the booking fee; " +
     "12-24 hours before = 50% refund; under 12 hours or same-day = no refund.",
   "If P91 Car Care has to cancel a confirmed booking, the customer gets a full refund within 3-5 business days.",

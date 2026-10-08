@@ -56,7 +56,7 @@ export default function TermsConditions() {
 
             <section>
               <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">3. Booking and Payment Terms</h2>
-              <p>A booking fee of ₹299 (₹499 for services priced above ₹10,000, such as paint protection film) is required to secure your appointment. This amount will be adjusted against the total service cost. All prices are listed in Indian Rupees (INR) and include applicable taxes.</p>
+              <p>A booking fee of ₹299 (₹499 for paint protection film services priced above ₹10,000) is required to secure your appointment. This amount will be adjusted against the total service cost. All prices are listed in Indian Rupees (INR) and include applicable taxes.</p>
               {/* Kept as a standing clause rather than rewritten: the fee is the normal terms,
                   and the offer is a temporary waiver of it. Without this sentence the page
                   would contradict a site that is visibly taking bookings for nothing. */}

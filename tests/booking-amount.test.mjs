@@ -39,13 +39,14 @@ const src = fs
     /export function isFreeBookingWindow\([\s\S]*?\): boolean \{/,
     'function isFreeBookingWindow(freeBookingUntil, now) { if (now === undefined) now = new Date();',
   )
+  .replace(/export function isPpfService([^)]*)[^{]*{/, 'function isPpfService(serviceSlug) {')
   .replace(/export function resolveBookingAmount\([^)]*\)[^{]*\{/, 'function resolveBookingAmount(input) {')
   .replace(/^export /gm, '');
 
-const { resolveBookingAmount, isFreeBookingWindow, DEFAULT_BOOKING_FEE, FULL_PRICE_SLUG, HIGH_VALUE_BOOKING_FEE, HIGH_VALUE_PRICE_THRESHOLD } =
+const { resolveBookingAmount, isFreeBookingWindow, DEFAULT_BOOKING_FEE, FULL_PRICE_SLUG, HIGH_VALUE_BOOKING_FEE, HIGH_VALUE_PRICE_THRESHOLD, isPpfService } =
   new Function(
     src +
-      '; return { resolveBookingAmount, isFreeBookingWindow, DEFAULT_BOOKING_FEE, FULL_PRICE_SLUG, HIGH_VALUE_BOOKING_FEE, HIGH_VALUE_PRICE_THRESHOLD };',
+      '; return { resolveBookingAmount, isFreeBookingWindow, DEFAULT_BOOKING_FEE, FULL_PRICE_SLUG, HIGH_VALUE_BOOKING_FEE, HIGH_VALUE_PRICE_THRESHOLD, isPpfService };',
   )();
 
 /** Route source with comments removed, so assertions match code and not the explanations. */
@@ -306,7 +307,7 @@ describe('FREE BOOKING OFFER — the route takes no payment', () => {
   });
 });
 
-describe('HIGH-VALUE SERVICES (over ₹10,000, i.e. PPF) take a ₹499 slot deposit', () => {
+describe('PPF services over ₹10,000 take a ₹499 slot deposit; nothing else does', () => {
   const base = { bookingAmountSetting: '299', freeBookingUntil: null };
 
   test('the constants are the agreed numbers', () => {
@@ -325,11 +326,28 @@ describe('HIGH-VALUE SERVICES (over ₹10,000, i.e. PPF) take a ₹499 slot depo
 
   test('exactly ₹10,000 and anything below keep the normal fee ("more than" 10k)', () => {
     for (const price of ['10000.00', 10000, '9999.00', '7500.00', '999.00']) {
-      const r = resolveBookingAmount({ ...base, serviceSlug: 'car-polishing', servicePrice: price });
+      const r = resolveBookingAmount({ ...base, serviceSlug: 'ppf-suv', servicePrice: price });
       assert.equal(r.amount, 299, String(price));
       assert.equal(r.source, 'settings');
     }
-    assert.equal(resolveBookingAmount({ ...base, serviceSlug: 'x', servicePrice: '10000.01' }).amount, 499);
+    assert.equal(resolveBookingAmount({ ...base, serviceSlug: 'ppf-suv', servicePrice: '10000.01' }).amount, 499);
+  });
+
+  test('a service that is NOT PPF never gets 499, whatever it costs', () => {
+    for (const slug of ['1-year-ceramic-coating', 'car-polishing', 'interior-detailing-service', 'stek-suncontrol-films', 'some-new-service']) {
+      const r = resolveBookingAmount({ ...base, serviceSlug: slug, servicePrice: '90000.00' });
+      assert.equal(r.amount, 299, slug);
+      assert.equal(r.source, 'settings');
+    }
+  });
+
+  test('PPF is recognised by slug: all six, the partial ones, and not lookalikes', () => {
+    for (const slug of ['ppf-hatchback', 'ppf-sedan', 'ppf-suv', 'ppf-premium-hatchback', 'ppf-premium-sedan', 'ppf-premium-suv', 'partial-ppf-suv', 'paint-protection-film-x']) {
+      assert.equal(isPpfService(slug), true, slug);
+    }
+    for (const slug of ['1-year-ceramic-coating', 'headlight-restoration-both', 'stuppfy', 'ppfx', '', null, undefined]) {
+      assert.equal(isPpfService(slug), false, String(slug));
+    }
   });
 
   test('a missing or corrupt price is never treated as high-value', () => {

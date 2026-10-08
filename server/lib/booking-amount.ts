@@ -13,7 +13,7 @@
  * Precedence, all server-side:
  *   0. inside the free-booking window -> 0 (no payment taken, for every service)
  *   1. Annual Maintenance Package     -> services.price (the full package price)
- *   2. service priced over ₹10,000    -> HIGH_VALUE_BOOKING_FEE (₹499; PPF today)
+ *   2. PPF service over ₹10,000       -> HIGH_VALUE_BOOKING_FEE (₹499)
  *   3. any other service              -> site_settings.booking_amount
  *   4. neither usable                 -> DEFAULT_BOOKING_FEE
  *
@@ -27,13 +27,18 @@
 export const DEFAULT_BOOKING_FEE = 299;
 
 /**
- * Booking fee for a service whose catalogue price is MORE than HIGH_VALUE_PRICE_THRESHOLD (all six PPF
- * services, ₹50,000-₹90,000). A bigger job takes a bigger slot deposit. Server constants, like the
- * default fee: not read from the request and not from site_settings.booking_amount. The client mirrors
- * both numbers in client/src/lib/booking-fee.ts for display only.
+ * Booking fee for a PPF service whose catalogue price is MORE than HIGH_VALUE_PRICE_THRESHOLD (all six PPF
+ * services today, ₹50,000-₹90,000). BOTH conditions are required: a non-PPF service over ₹10,000 keeps the
+ * normal fee. Server constants, like the default fee: not read from the request and not from
+ * site_settings.booking_amount. The client mirrors both numbers in client/src/lib/booking-fee.ts for display only.
  */
 export const HIGH_VALUE_PRICE_THRESHOLD = 10000;
 export const HIGH_VALUE_BOOKING_FEE = 499;
+
+/** PPF by slug (ppf-sedan, partial-ppf-suv, ...). The slug comes from the database row, never the request. */
+export function isPpfService(serviceSlug: string | null | undefined): boolean {
+  return /(^|-)(ppf|paint-protection)(-|$)/i.test(String(serviceSlug ?? ""));
+}
 
 /** The one service that is charged its full price up front rather than a booking fee. */
 export const FULL_PRICE_SLUG = "annual-maintenance-package";
@@ -151,11 +156,11 @@ export function resolveBookingAmount(input: ResolveBookingAmountInput): Resolved
     return { amount: DEFAULT_BOOKING_FEE, source: "default" };
   }
 
-  // 2. A service priced over ₹10,000 (PPF) takes the higher slot deposit. After the full-price package
+  // 2. A PPF service priced over ₹10,000 takes the higher slot deposit. After the full-price package
   //    (its own rule) and after both free offers, so a free-booking window still means free. An
   //    unreadable price is not high-value: it falls through to the normal fee, never to ₹499.
   const price = usableAmount(input.servicePrice);
-  if (price !== null && price > HIGH_VALUE_PRICE_THRESHOLD) {
+  if (isPpfService(input.serviceSlug) && price !== null && price > HIGH_VALUE_PRICE_THRESHOLD) {
     return { amount: HIGH_VALUE_BOOKING_FEE, source: "high-value-service" };
   }
 
