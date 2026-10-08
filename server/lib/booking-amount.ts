@@ -13,8 +13,9 @@
  * Precedence, all server-side:
  *   0. inside the free-booking window -> 0 (no payment taken, for every service)
  *   1. Annual Maintenance Package     -> services.price (the full package price)
- *   2. any other service              -> site_settings.booking_amount
- *   3. neither usable                 -> DEFAULT_BOOKING_FEE
+ *   2. service priced over ₹10,000    -> HIGH_VALUE_BOOKING_FEE (₹499; PPF today)
+ *   3. any other service              -> site_settings.booking_amount
+ *   4. neither usable                 -> DEFAULT_BOOKING_FEE
  *
  * History: POST /api/bookings used to seed the variable with `bookingData.amount || 299`
  * and then overwrite it from the database. The overwrite was conditional, so a missing or
@@ -24,6 +25,15 @@
 
 /** Server-side floor. Used when no database source yields a usable number. */
 export const DEFAULT_BOOKING_FEE = 299;
+
+/**
+ * Booking fee for a service whose catalogue price is MORE than HIGH_VALUE_PRICE_THRESHOLD (all six PPF
+ * services, ₹50,000-₹90,000). A bigger job takes a bigger slot deposit. Server constants, like the
+ * default fee: not read from the request and not from site_settings.booking_amount. The client mirrors
+ * both numbers in client/src/lib/booking-fee.ts for display only.
+ */
+export const HIGH_VALUE_PRICE_THRESHOLD = 10000;
+export const HIGH_VALUE_BOOKING_FEE = 499;
 
 /** The one service that is charged its full price up front rather than a booking fee. */
 export const FULL_PRICE_SLUG = "annual-maintenance-package";
@@ -97,7 +107,7 @@ export interface ResolvedBookingAmount {
    *  payment is taken and Razorpay is not involved at all. */
   amount: number;
   /** Which rule produced it — surfaced for logging and asserted in tests. */
-  source: "service-price" | "settings" | "default" | "free-offer" | "campaign-free-offer";
+  source: "service-price" | "high-value-service" | "settings" | "default" | "free-offer" | "campaign-free-offer";
 }
 
 /** Accepts a value only if it parses to a finite, strictly positive number. */
@@ -141,10 +151,18 @@ export function resolveBookingAmount(input: ResolveBookingAmountInput): Resolved
     return { amount: DEFAULT_BOOKING_FEE, source: "default" };
   }
 
-  // 2. Everything else uses the configured booking fee.
+  // 2. A service priced over ₹10,000 (PPF) takes the higher slot deposit. After the full-price package
+  //    (its own rule) and after both free offers, so a free-booking window still means free. An
+  //    unreadable price is not high-value: it falls through to the normal fee, never to ₹499.
+  const price = usableAmount(input.servicePrice);
+  if (price !== null && price > HIGH_VALUE_PRICE_THRESHOLD) {
+    return { amount: HIGH_VALUE_BOOKING_FEE, source: "high-value-service" };
+  }
+
+  // 3. Everything else uses the configured booking fee.
   const fromSettings = usableAmount(input.bookingAmountSetting);
   if (fromSettings !== null) return { amount: fromSettings, source: "settings" };
 
-  // 3. Row missing, value blank, value non-numeric, or the read failed.
+  // 4. Row missing, value blank, value non-numeric, or the read failed.
   return { amount: DEFAULT_BOOKING_FEE, source: "default" };
 }

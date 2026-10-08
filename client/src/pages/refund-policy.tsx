@@ -17,14 +17,14 @@ export default function RefundPolicy() {
           <div className="space-y-8 text-gray-300 leading-relaxed">
             <section>
               <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">1. Booking Fee Refund Policy</h2>
-              <p>Plus Nine One Inc charges a booking fee of ₹299 to secure your appointment. This policy outlines our refund terms:</p>
+              <p>Plus Nine One Inc charges a booking fee of ₹299 (₹499 for services priced above ₹10,000, such as paint protection film) to secure your appointment. This policy outlines our refund terms:</p>
               {/* A refund policy has to say what happens when there is nothing to refund. */}
               <p className="mt-3"><strong className="text-white">During a free-booking offer</strong> no fee is charged, so there is nothing to refund — cancel any time at no cost by calling or messaging us. The cancellation terms below apply only to bookings where a fee was actually paid.</p>
               
               <div className="bg-medium-gray p-6 rounded-lg mt-4">
                 <h3 className="text-lg font-semibold text-white mb-3">Cancellation Timeline:</h3>
                 <ul className="list-disc ml-6 space-y-2">
-                  <li><strong>24+ hours before service:</strong> Full refund of ₹299 booking fee</li>
+                  <li><strong>24+ hours before service:</strong> Full refund of the booking fee (₹299, or ₹499 for services priced above ₹10,000)</li>
                   <li><strong>12-24 hours before service:</strong> 50% refund (₹149.50)</li>
                   <li><strong>Less than 12 hours:</strong> No refund (₹0)</li>
                   <li><strong>Same-day cancellation:</strong> No refund</li>

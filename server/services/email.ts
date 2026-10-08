@@ -93,7 +93,7 @@ export async function sendBookingConfirmationEmail(data: BookingEmailData): Prom
             </div>
             
             <p><strong>Important Notes:</strong></p>
-            <p>• Your ₹299 booking fee secures your preferred time slot</p>
+            <p>• Your ${Number(data.amount) > 0 ? `₹${data.amount} ` : ""}booking fee secures your preferred time slot</p>
             <p>• The FREE voucher is a bonus for early booking</p>
             <p>• No hidden charges - transparent pricing</p>
             

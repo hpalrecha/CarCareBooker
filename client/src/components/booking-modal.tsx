@@ -16,6 +16,7 @@ import { trackBeginCheckout, trackPurchase, trackFreeBooking } from "@/lib/analy
 import { attributionPayload } from "@/lib/attribution";
 import { trackBooking as trackMetaBooking } from "@/lib/meta-pixel";
 import { useBookingOffer, formatOfferEnd } from "@/hooks/use-booking-offer";
+import { isHighValueService, HIGH_VALUE_BOOKING_FEE } from "@/lib/booking-fee";
 import { bookingFormSchema, type BlackoutDate, type BusinessHour } from "@shared/schema";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import { resolveServiceImage, formatINR } from "@/lib/canonical-services";
@@ -182,6 +183,9 @@ export default function BookingModal({ service, isOpen, onClose, vehicleContext,
       const fullPrice = parseFloat(service.price);
       console.log("Annual Maintenance Package - setting full price:", fullPrice);
       setBookingAmount(fullPrice);
+    } else if (isHighValueService(service.price)) {
+      // Over ₹10,000 (PPF): ₹499 slot deposit. The server charges the same figure whatever this says.
+      setBookingAmount(HIGH_VALUE_BOOKING_FEE);
     } else if (bookingAmountSetting && typeof bookingAmountSetting === 'object' && 'value' in bookingAmountSetting) {
       const amount = parseFloat(String(bookingAmountSetting.value));
       console.log("Setting booking amount to:", amount);

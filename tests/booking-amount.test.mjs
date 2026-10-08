@@ -42,10 +42,10 @@ const src = fs
   .replace(/export function resolveBookingAmount\([^)]*\)[^{]*\{/, 'function resolveBookingAmount(input) {')
   .replace(/^export /gm, '');
 
-const { resolveBookingAmount, isFreeBookingWindow, DEFAULT_BOOKING_FEE, FULL_PRICE_SLUG } =
+const { resolveBookingAmount, isFreeBookingWindow, DEFAULT_BOOKING_FEE, FULL_PRICE_SLUG, HIGH_VALUE_BOOKING_FEE, HIGH_VALUE_PRICE_THRESHOLD } =
   new Function(
     src +
-      '; return { resolveBookingAmount, isFreeBookingWindow, DEFAULT_BOOKING_FEE, FULL_PRICE_SLUG };',
+      '; return { resolveBookingAmount, isFreeBookingWindow, DEFAULT_BOOKING_FEE, FULL_PRICE_SLUG, HIGH_VALUE_BOOKING_FEE, HIGH_VALUE_PRICE_THRESHOLD };',
   )();
 
 /** Route source with comments removed, so assertions match code and not the explanations. */
@@ -303,5 +303,58 @@ describe('FREE BOOKING OFFER — the route takes no payment', () => {
   test('the offer state is decided server-side, not in the browser', () => {
     assert.match(routeCode, /app\.get\("\/api\/booking-offer"/);
     assert.match(routeCode, /isFreeBookingWindow\(until\)/);
+  });
+});
+
+describe('HIGH-VALUE SERVICES (over ₹10,000, i.e. PPF) take a ₹499 slot deposit', () => {
+  const base = { bookingAmountSetting: '299', freeBookingUntil: null };
+
+  test('the constants are the agreed numbers', () => {
+    assert.equal(HIGH_VALUE_PRICE_THRESHOLD, 10000);
+    assert.equal(HIGH_VALUE_BOOKING_FEE, 499);
+  });
+
+  test('every PPF price in the catalogue resolves to 499', () => {
+    for (const [slug, price] of [['ppf-hatchback', '50000.00'], ['ppf-sedan', '60000.00'], ['ppf-suv', '70000.00'],
+      ['ppf-premium-hatchback', '70000.00'], ['ppf-premium-sedan', '80000.00'], ['ppf-premium-suv', '90000.00']]) {
+      const r = resolveBookingAmount({ ...base, serviceSlug: slug, servicePrice: price });
+      assert.equal(r.amount, 499, slug);
+      assert.equal(r.source, 'high-value-service');
+    }
+  });
+
+  test('exactly ₹10,000 and anything below keep the normal fee ("more than" 10k)', () => {
+    for (const price of ['10000.00', 10000, '9999.00', '7500.00', '999.00']) {
+      const r = resolveBookingAmount({ ...base, serviceSlug: 'car-polishing', servicePrice: price });
+      assert.equal(r.amount, 299, String(price));
+      assert.equal(r.source, 'settings');
+    }
+    assert.equal(resolveBookingAmount({ ...base, serviceSlug: 'x', servicePrice: '10000.01' }).amount, 499);
+  });
+
+  test('a missing or corrupt price is never treated as high-value', () => {
+    for (const price of [null, undefined, '', 'abc', '-50000', 0]) {
+      const r = resolveBookingAmount({ ...base, serviceSlug: 'ppf-suv', servicePrice: price });
+      assert.equal(r.amount, 299, String(price));
+    }
+  });
+
+  test('the high-value fee ignores the settings row but the free offer still wins', () => {
+    const odd = resolveBookingAmount({ serviceSlug: 'ppf-suv', servicePrice: '70000.00', bookingAmountSetting: '1' });
+    assert.equal(odd.amount, 499);
+    const free = resolveBookingAmount({
+      serviceSlug: 'ppf-suv', servicePrice: '70000.00', bookingAmountSetting: '299',
+      freeBookingUntil: '2026-09-16', now: new Date('2026-09-12T10:00:00+05:30'),
+    });
+    assert.equal(free.amount, 0);
+    assert.equal(free.source, 'free-offer');
+    const campaign = resolveBookingAmount({ ...base, serviceSlug: 'ppf-suv', servicePrice: '70000.00', campaignFreeBooking: true });
+    assert.equal(campaign.amount, 0);
+  });
+
+  test('the full-price package keeps its own rule', () => {
+    const r = resolveBookingAmount({ ...base, serviceSlug: FULL_PRICE_SLUG, servicePrice: '9999.00' });
+    assert.equal(r.amount, 9999);
+    assert.equal(r.source, 'service-price');
   });
 });

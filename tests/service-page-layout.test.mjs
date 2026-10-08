@@ -194,13 +194,21 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
   });
 
   test('the two booking routes are named so they cannot be confused', () => {
-    assert.ok(hero.includes("'Reserve your slot for ₹299'"));
+    assert.ok(hero.includes('`Reserve your slot for ₹${slotFee}`'));
     assert.ok(read('client/src/components/callback-popup.tsx').includes('No payment now'));
+  });
+
+  test('the slot fee is 499 over ₹10,000 (PPF) and 299 otherwise, from one helper', () => {
+    assert.ok(src.includes('const slotFee = slotFeeFor(service.price);'));
+    const lib = read('client/src/lib/booking-fee.ts');
+    assert.match(lib, /HIGH_VALUE_PRICE_THRESHOLD = 10000/);
+    assert.match(lib, /HIGH_VALUE_BOOKING_FEE = 499/);
+    assert.match(lib, /fallback = 299/);
   });
 
   test('the sticky bar reserves a slot and states the price', () => {
     assert.ok(src.includes('data-testid="button-floating-book-now"'));
-    assert.ok(src.includes("'Pay ₹299 now to hold your slot'"));
+    assert.ok(src.includes('`Pay ₹${slotFee} now to hold your slot`'));
     assert.match(src, /fixed inset-x-0 bottom-0/, 'full width on phones');
   });
 });
