@@ -2130,3 +2130,18 @@
   letter-spacing: -.02em;
 }
 
+
+/* ---------- Touch targets on phones ----------
+   Links and tabs that measured 20-27px high get a 44px tap area. The extra area is an invisible
+   ::before that overflows the element, so nothing moves or changes size on the page. ::after is
+   left alone because the tabs already use it for their underline. */
+@media (max-width: 768px) {
+  .p91x .ed-link, .p91x .pdp-crumb, .p91x .tier-tab, .p91x .subnav-tab, .p91x .explore-tab,
+  .p91x .crumb a, .p91x .ed-meta a { position: relative; }
+  .p91x .ed-link::before, .p91x .pdp-crumb::before, .p91x .tier-tab::before, .p91x .subnav-tab::before,
+  .p91x .explore-tab::before, .p91x .crumb a::before, .p91x .ed-meta a::before {
+    content: ""; position: absolute; inset: -10px -6px;
+  }
+  .p91x .pdp-slide-dot::after { inset: -20px 0; }
+  .p91x .lp-faq summary { min-height: 44px; }
+}
