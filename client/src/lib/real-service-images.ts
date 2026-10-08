@@ -85,6 +85,29 @@ export const REAL_SERVICE_IMAGES: Record<string, string[]> = {
     "/attached_assets/gallery/p91-stek-heat-glove.webp",
     "/attached_assets/gallery/p91-stek-blade-trim.webp",
   ],
+  // ---- Stills from the studio's own reels (2026-10-08), taken from frames with no burned-in caption; the three
+  // wash stills are cropped above the caption. interior: its own reel; headlight: the restoration reel;
+  // car wash: the pH-shampoo reel; annual package: the detailing-reset reel. ----
+  "interior-detailing-service": [
+    "/attached_assets/gallery/p91-interior-vacuum-floor.webp",
+    "/attached_assets/gallery/p91-interior-steam-seat.webp",
+    "/attached_assets/gallery/p91-interior-mat-vacuum.webp",
+  ],
+  "headlight-restoration-both": [
+    "/attached_assets/gallery/p91-headlight-restored.webp",
+    "/attached_assets/gallery/p91-headlight-polish-detail.webp",
+    "/attached_assets/gallery/p91-headlight-polish-wipe.webp",
+  ],
+  "premium-car-wash-special": [
+    "/attached_assets/gallery/p91-wash-foam-hand.webp",
+    "/attached_assets/gallery/p91-wash-foam-wheel.webp",
+    "/attached_assets/gallery/p91-wash-foam-vellfire.webp",
+  ],
+  "annual-maintenance-package": [
+    "/attached_assets/gallery/p91-studio-macan.webp",
+    "/attached_assets/gallery/p91-polish-badge-pass.webp",
+    "/attached_assets/gallery/p91-studio-teal-ev.webp",
+  ],
   "stek-windsheild-suncontrol-films": [
     "/attached_assets/gallery/p91-stek-film-edge.webp",
     "/attached_assets/gallery/p91-stek-rear-glass.webp",
@@ -99,21 +122,19 @@ export const REAL_SERVICE_IMAGES: Record<string, string[]> = {
  * database row stores; an empty list means "nothing to show". Add real photographs here as they exist.
  */
 export const ILLUSTRATIVE_IMAGES: Record<string, string[]> = {
-  "premium-car-wash-special": [],
   "annual-car-wash-package": [],
-  "annual-maintenance-package": [],
-  "headlight-restoration-both": [],
-  "interior-detailing-service": [],
   "windshield-glass-coating-new": [],
   "windshield-glass-polishing": [],
-  "1-year-bike-ceramic-coating": [],
+  // The studio's own "1 Year Ceramic Coating - Bike" promo graphic (supplied 2026-10-08). It is an AI-generated
+  // render, not a photograph of P91 work, so it is listed in ILLUSTRATIVE_SLUGS and its alt text says so.
+  "1-year-bike-ceramic-coating": ["/attached_assets/gallery/p91-bike-ceramic-coating-promo.webp"],
   "premium-wash-detail": [],
 };
 
 /**
  * Services whose picture is an AI render, not a photograph of P91 work. Their alt text says so.
  */
-export const ILLUSTRATIVE_SLUGS = new Set<string>([]); // no AI renders are shown any more
+export const ILLUSTRATIVE_SLUGS = new Set<string>(["1-year-bike-ceramic-coating"]); // the bike promo graphic only
 
 /** Alt text for a service picture: honest about what it is. */
 export function serviceImageAlt(service: { title: string; slug?: string }): string {
