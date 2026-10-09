@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import compression from "compression";
 import { registerRoutes } from "./routes";
 import { securityHeaders } from "./middleware/security-headers";
+import { stripTrailingSlash } from "./middleware/trailing-slash";
 import { setupVite, serveStatic, log } from "./vite";
 import { schedulerService } from "./services/scheduler";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
@@ -30,6 +31,9 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// /page/ -> /page (301). Canonicals and the sitemap use the no-slash form.
+app.use(stripTrailingSlash);
 
 // gzip/brotli every text response (HTML, JS, CSS, JSON). Typically a 3-4x reduction on
 // the JS bundle and the /api/services payload, on every single request.
