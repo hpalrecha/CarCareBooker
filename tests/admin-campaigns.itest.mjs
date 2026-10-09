@@ -158,6 +158,9 @@ const storage = {
 
 class SlotFullError extends Error {}
 mock.module("../server/storage.ts", { exports: { storage, SlotFullError } });
+// These tests assert the ordinary booking fee. The Diwali ₹99 slot offer is open until 8 Nov 2026 and would change
+// every ordinary amount, so it is pinned closed here; the offer itself is covered in diwali-slot-offer.itest.mjs.
+mock.module('../server/lib/diwali-offer.ts', { exports: { ...(await import('../server/lib/diwali-offer.ts')), isDiwaliOfferOpen: () => false } });
 mock.module("../server/services/payment.ts", {
   exports: { createPaymentOrder: async (a) => ({ id: "order_" + ++seq, amount: a * 100, currency: "INR" }), verifyPaymentSignature: async () => true },
 });

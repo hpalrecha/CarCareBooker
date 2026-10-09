@@ -22,10 +22,14 @@ export interface BookingOffer {
   free: boolean;
   /** YYYY-MM-DD final day of the offer, or null when it is not running. */
   until: string | null;
+  /** True while the Diwali slot offer runs: every service except full-price and high-value PPF takes `slotFee`. */
+  slotOffer: boolean;
+  /** The Diwali slot fee in rupees. Meaningful only while `slotOffer` is true. */
+  slotFee: number;
 }
 
 export function useBookingOffer(): BookingOffer {
-  const { data } = useQuery<BookingOffer>({
+  const { data } = useQuery<Partial<BookingOffer>>({
     queryKey: ["/api/booking-offer"],
     retry: false,
     // The window turns off at a fixed moment. A long cache would keep showing "free"
@@ -33,7 +37,13 @@ export function useBookingOffer(): BookingOffer {
     staleTime: 60_000,
   });
 
-  return { free: data?.free === true, until: data?.until ?? null };
+  return {
+    free: data?.free === true,
+    until: data?.until ?? null,
+    // Fails closed like `free`: loading or an error shows the normal fee, never a discount the server may not honour.
+    slotOffer: data?.slotOffer === true && typeof data?.slotFee === "number",
+    slotFee: typeof data?.slotFee === "number" ? data.slotFee : 99,
+  };
 }
 
 /** "16 September 2026" for offer copy. Returns null when the offer is not running. */

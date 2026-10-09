@@ -188,12 +188,15 @@ export default function BookingModal({ service, isOpen, onClose, vehicleContext,
     } else if (isHighValueService(service.slug, service.price)) {
       // PPF over ₹10,000: ₹499 slot deposit. The server charges the same figure whatever this says.
       setBookingAmount(HIGH_VALUE_BOOKING_FEE);
+    } else if (offer.slotOffer) {
+      // Diwali offer: every other service takes the ₹99 slot fee. The server decides the real charge from the same rule.
+      setBookingAmount(offer.slotFee);
     } else if (bookingAmountSetting && typeof bookingAmountSetting === 'object' && 'value' in bookingAmountSetting) {
       const amount = parseFloat(String(bookingAmountSetting.value));
       console.log("Setting booking amount to:", amount);
       setBookingAmount(amount);
     }
-  }, [bookingAmountSetting, service.title, service.price]);
+  }, [bookingAmountSetting, service.title, service.slug, service.price, offer.slotOffer, offer.slotFee]);
 
   const form = useForm({
     resolver: zodResolver(bookingFormSchema),

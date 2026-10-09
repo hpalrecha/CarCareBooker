@@ -91,15 +91,16 @@ export default function Home() {
     queryKey: ["/api/settings/booking_amount"],
     retry: false,
   });
+  // Free-booking offer, decided server-side by the same authority that sets the amount,
+  // so this page can never advertise a price the booking flow will not charge.
+  const offer = useBookingOffer();
   const bookingFee = (() => {
+    // During the Diwali offer every ordinary service takes the ₹99 slot fee.
+    if (offer.slotOffer) return offer.slotFee;
     const raw = bookingAmountSetting?.value;
     const n = raw ? parseFloat(raw) : NaN;
     return Number.isFinite(n) && n > 0 ? n : 299;
   })();
-
-  // Free-booking offer, decided server-side by the same authority that sets the amount,
-  // so this page can never advertise a price the booking flow will not charge.
-  const offer = useBookingOffer();
 
   useSeoMeta({
     // Shared with scripts/prerender.mjs so the crawler HTML and the page cannot disagree.

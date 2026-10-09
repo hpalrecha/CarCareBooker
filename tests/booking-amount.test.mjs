@@ -43,10 +43,10 @@ const src = fs
   .replace(/export function resolveBookingAmount\([^)]*\)[^{]*\{/, 'function resolveBookingAmount(input) {')
   .replace(/^export /gm, '');
 
-const { resolveBookingAmount, isFreeBookingWindow, DEFAULT_BOOKING_FEE, FULL_PRICE_SLUG, HIGH_VALUE_BOOKING_FEE, HIGH_VALUE_PRICE_THRESHOLD, isPpfService } =
+const { resolveBookingAmount, isFreeBookingWindow, DEFAULT_BOOKING_FEE, FULL_PRICE_SLUG, HIGH_VALUE_BOOKING_FEE, HIGH_VALUE_PRICE_THRESHOLD, isPpfService, DIWALI_SLOT_FEE } =
   new Function(
     src +
-      '; return { resolveBookingAmount, isFreeBookingWindow, DEFAULT_BOOKING_FEE, FULL_PRICE_SLUG, HIGH_VALUE_BOOKING_FEE, HIGH_VALUE_PRICE_THRESHOLD, isPpfService };',
+      '; return { resolveBookingAmount, isFreeBookingWindow, DEFAULT_BOOKING_FEE, FULL_PRICE_SLUG, HIGH_VALUE_BOOKING_FEE, HIGH_VALUE_PRICE_THRESHOLD, isPpfService, DIWALI_SLOT_FEE };',
   )();
 
 /** Route source with comments removed, so assertions match code and not the explanations. */
@@ -374,5 +374,39 @@ describe('PPF services over ₹10,000 take a ₹499 slot deposit; nothing else d
     const r = resolveBookingAmount({ ...base, serviceSlug: FULL_PRICE_SLUG, servicePrice: '9999.00' });
     assert.equal(r.amount, 9999);
     assert.equal(r.source, 'service-price');
+  });
+});
+
+describe('Diwali slot offer: ₹99 for ordinary services, ₹499 for high-value PPF', () => {
+  test('an ordinary service takes ₹99 while the offer runs, and the normal fee when it does not', () => {
+    const base = { serviceSlug: 'car-polishing', servicePrice: '2999.00', bookingAmountSetting: '299' };
+    const on = resolveBookingAmount({ ...base, diwaliSlotOffer: true });
+    assert.equal(on.amount, 99);
+    assert.equal(on.source, 'diwali-slot-offer');
+    assert.equal(DIWALI_SLOT_FEE, 99);
+    const off = resolveBookingAmount({ ...base, diwaliSlotOffer: false });
+    assert.equal(off.amount, 299);
+    assert.equal(resolveBookingAmount(base).amount, 299);
+  });
+
+  test('PPF over ₹10,000 stays ₹499 and the full-price package is never discounted', () => {
+    const ppf = resolveBookingAmount({ serviceSlug: 'ppf-suv', servicePrice: '70000.00', bookingAmountSetting: '299', diwaliSlotOffer: true });
+    assert.equal(ppf.amount, 499);
+    assert.equal(ppf.source, 'high-value-service');
+    const pkg = resolveBookingAmount({ serviceSlug: FULL_PRICE_SLUG, servicePrice: '18000.00', bookingAmountSetting: '299', diwaliSlotOffer: true });
+    assert.equal(pkg.amount, 18000);
+  });
+
+  test('a free-booking window still wins over the ₹99 fee', () => {
+    const r = resolveBookingAmount({
+      serviceSlug: 'car-polishing', servicePrice: '2999.00', bookingAmountSetting: '299',
+      freeBookingUntil: '2026-09-16', now: new Date('2026-09-12T10:00:00+05:30'), diwaliSlotOffer: true,
+    });
+    assert.equal(r.amount, 0);
+  });
+
+  test('the route resolves the offer on the server and the client label reads the same answer', () => {
+    assert.match(routeCode, /diwaliSlotOffer:\s*isDiwaliOfferOpen\(\)/, 'POST /api/bookings passes the server-side offer state');
+    assert.match(routeCode, /slotOffer:\s*isDiwaliOfferOpen\(\),\s*slotFee:\s*DIWALI_SLOT_FEE/, '/api/booking-offer tells the browser the same thing');
   });
 });

@@ -499,8 +499,9 @@ export default function ServiceLanding() {
 
   const showTestimonials = !TESTIMONIALS_SUPPRESSED.has(service.slug);
   const isAnnualPackage = service.title === 'Annual Maintenance Package';
-  // ₹499 for a PPF service over ₹10,000, else the usual ₹299. Label only: the server decides the charge.
-  const slotFee = slotFeeFor(service.slug, service.price);
+  // ₹499 for a PPF service over ₹10,000, else ₹99 during the Diwali offer, else the usual ₹299.
+  // Label only: the server decides the charge.
+  const slotFee = slotFeeFor(service.slug, service.price, offer.slotOffer ? offer.slotFee : 299);
 
   // This template is shared by every service, and its fixed copy said "car"
   // throughout — which read wrong on the bike ceramic-coating page ("transform your

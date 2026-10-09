@@ -24,6 +24,7 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import express from 'express';
 import { __resetRateLimitsForTests } from '../server/lib/rate-limit.ts';
+import { isDiwaliOfferOpen } from '../server/lib/diwali-offer.ts';
 
 const WEBHOOK_SECRET = 'offer-test-webhook-secret';
 const KEY_SECRET = 'offer-test-key-secret';
@@ -492,7 +493,8 @@ describe('ordinary Rs 299 bookings are untouched', () => {
   test('a booking still charges the booking fee, confirms as a booking, and notifies once', async () => {
     const r = await post('/api/bookings', bookingBody());
     assert.equal(r.status, 200, JSON.stringify(r.body));
-    assert.deepEqual(charged, [299]);
+    // Ordinary services take the ₹99 Diwali slot fee while the offer is open, the normal ₹299 fee after it ends.
+    assert.deepEqual(charged, [isDiwaliOfferOpen() ? 99 : 299]);
     const orderId = r.body.paymentOrder.id;
     const booking = db.bookings.get(r.body.booking.id);
     assert.equal(booking.paymentStatus, 'pending');

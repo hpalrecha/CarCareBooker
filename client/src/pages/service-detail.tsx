@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, Check, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
+import { slotFeeFor } from "@/lib/booking-fee";
 import { formatServiceTime } from "@/lib/service-time";
 
 // Import images
@@ -291,7 +292,9 @@ export default function ServiceDetail() {
             >
               <span className="flex items-center justify-center gap-3 relative z-10">
                 <span className="text-sm sm:text-base font-bold">
-                  {offer.free ? 'Book Free & Get ₹500 Voucher' : 'Pay ₹299 & Get FREE Voucher'}
+                  {offer.free
+                    ? 'Book Free & Get ₹500 Voucher'
+                    : `Pay ₹${slotFeeFor(serviceData.slug, serviceData.price, offer.slotOffer ? offer.slotFee : 299)} & Get FREE Voucher`}
                 </span>
                 <span className="text-lg">🎁</span>
               </span>

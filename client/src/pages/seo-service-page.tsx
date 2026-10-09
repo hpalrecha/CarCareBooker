@@ -1,9 +1,10 @@
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useState, type CSSProperties } from "react";
 import { Shield, Droplet, Eye, Leaf, CheckCircle, ChevronRight } from "lucide-react";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
+import BookingModal from "@/components/booking-modal";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
@@ -60,7 +61,8 @@ function iconForIncluded(item: string) {
  *
  * ADDITIVE AND SAFE:
  *   - /service/:slug (the 17 indexed catalogue pages) is untouched and not redirected
- *   - no payment, booking, admin or API code is involved — the CTA links to /services
+ *   - Book Now opens the existing BookingModal for the shown catalogue row; payment, booking and
+ *     admin code are untouched (the modal and /api/bookings do all of it)
  *   - an unknown :seoSlug renders the existing 404 page rather than an empty shell
  *
  * Heading hierarchy is strict: one <h1>, <h2> per section, <h3> per FAQ question. The
@@ -77,6 +79,8 @@ export default function SeoServicePage() {
   // Which real catalogue variant the "Explore" tab row below is showing. Declared before
   // the early 404 return, like every other hook in this component.
   const [activeVariant, setActiveVariant] = useState(0);
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [, navigate] = useLocation();
 
   // Cinematic scroll motion (hooks/use-cinematic.ts); re-scans when the catalogue arrives.
   useCinematic([seoSlug, services?.length ?? 0]);
@@ -102,6 +106,14 @@ export default function SeoServicePage() {
   const priceRows = page.priceServiceSlugs
     .map((slug) => bySlug.get(slug))
     .filter((s): s is ServiceRecord => Boolean(s));
+
+  // What "Book Now" books: the variant shown in the Explore tabs when there are several, otherwise the
+  // page's primary service. Always a real catalogue row, so the modal prices and charges it like any other.
+  const bookable = (priceRows.length > 1 ? priceRows[activeVariant] ?? priceRows[0] : primary ?? priceRows[0]) ?? null;
+  const openBooking = () => {
+    if (bookable) setBookingOpen(true);
+    else navigate("/services");
+  };
 
   // Up to three real, distinct photos for the collage below (primary service first, then
   // its price-table siblings) — never a stock or invented image. A guide whose catalogue
@@ -180,7 +192,7 @@ export default function SeoServicePage() {
 
   return (
     <div className="p91x min-h-screen">
-      <SiteHeader overHero={!layout} />
+      <SiteHeader overHero={!layout} onBookNow={openBooking} />
       <main id="main">
 
       {/* Hero: XPEL guide-page layout by request — full-bleed photo, header floating
@@ -297,6 +309,9 @@ export default function SeoServicePage() {
                     <p className="overview-copy-lede">{firstSentence(variantDescription)}</p>
                   )}
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 26 }}>
+                    <button type="button" className="cta-lg" onClick={openBooking} data-testid="button-explore-book-now">
+                      Book Now
+                    </button>
                     <Link href={`/service/${variant.slug}`} className="cta-ghost" data-testid="link-explore-learn-more">
                       {formatINR(variant.price)} · Learn More
                     </Link>
@@ -414,6 +429,11 @@ export default function SeoServicePage() {
       </main>
 
       <SiteFooter />
+
+      {/* The same booking modal every other service page uses: date, time, details, Razorpay. */}
+      {bookable && (
+        <BookingModal service={bookable as any} isOpen={bookingOpen} onClose={() => setBookingOpen(false)} />
+      )}
     </div>
   );
 }

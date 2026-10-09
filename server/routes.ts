@@ -12,7 +12,7 @@ import { buildLlmsTxt } from "../client/src/lib/llms-txt";
 import { SlotFullError } from "./storage";
 import { authenticateAdmin, hashPassword, comparePassword } from "./middleware/auth";
 import { createPaymentOrder, verifyPaymentSignature } from "./services/payment";
-import { resolveBookingAmount, isFreeBookingWindow, FULL_PRICE_SLUG } from "./lib/booking-amount";
+import { resolveBookingAmount, isFreeBookingWindow, FULL_PRICE_SLUG, DIWALI_SLOT_FEE } from "./lib/booking-amount";
 import { whatsappService } from "./services/whatsapp";
 import { schedulerService } from "./services/scheduler";
 import { sendBookingConfirmationEmail } from "./services/email";
@@ -964,10 +964,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const setting = await storage.getSetting("free_booking_until");
       const until = setting?.value ?? null;
       const free = isFreeBookingWindow(until);
-      res.json({ free, until: free ? until : null });
+      res.json({ free, until: free ? until : null, slotOffer: isDiwaliOfferOpen(), slotFee: DIWALI_SLOT_FEE });
     } catch (error) {
       console.error("booking-offer read failed; reporting offer as off:", error);
-      res.json({ free: false, until: null });
+      res.json({ free: false, until: null, slotOffer: isDiwaliOfferOpen(), slotFee: DIWALI_SLOT_FEE });
     }
   });
 
@@ -1761,6 +1761,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bookingAmountSetting: bookingAmountSettingValue,
         freeBookingUntil: freeBookingUntilValue,
         campaignFreeBooking: campaignFree,
+        diwaliSlotOffer: isDiwaliOfferOpen(),
       });
 
       /**

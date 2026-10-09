@@ -14,6 +14,7 @@
  *   0. inside the free-booking window -> 0 (no payment taken, for every service)
  *   1. Annual Maintenance Package     -> services.price (the full package price)
  *   2. PPF service over ₹10,000       -> HIGH_VALUE_BOOKING_FEE (₹499)
+ *   2b. any other service, while the Diwali offer runs -> DIWALI_SLOT_FEE (₹99)
  *   3. any other service              -> site_settings.booking_amount
  *   4. neither usable                 -> DEFAULT_BOOKING_FEE
  *
@@ -34,6 +35,14 @@ export const DEFAULT_BOOKING_FEE = 299;
  */
 export const HIGH_VALUE_PRICE_THRESHOLD = 10000;
 export const HIGH_VALUE_BOOKING_FEE = 499;
+
+/**
+ * Slot fee for every service that is neither the full-price package nor a high-value PPF service, WHILE the
+ * Dussehra & Diwali offer is running (the caller passes `diwaliSlotOffer`; the end date lives in
+ * server/lib/diwali-offer.ts). Server constant, like the other fees: never read from the request.
+ * The client mirrors it in client/src/hooks/use-booking-offer.ts, which reads it from /api/booking-offer.
+ */
+export const DIWALI_SLOT_FEE = 99;
 
 /** PPF by slug (ppf-sedan, partial-ppf-suv, ...). The slug comes from the database row, never the request. */
 export function isPpfService(serviceSlug: string | null | undefined): boolean {
@@ -103,6 +112,12 @@ export interface ResolveBookingAmountInput {
    * Defaults to false, so every existing caller keeps its exact behaviour.
    */
   campaignFreeBooking?: boolean;
+  /**
+   * True while the Diwali slot offer is running. Resolved by the caller (isDiwaliOfferOpen) and passed
+   * in as a plain boolean for the same reason as `campaignFreeBooking`: this module has no imports.
+   * Defaults to false, so every existing caller keeps its exact behaviour.
+   */
+  diwaliSlotOffer?: boolean;
   /** Injected so the window is testable without waiting for a calendar. */
   now?: Date;
 }
@@ -112,7 +127,14 @@ export interface ResolvedBookingAmount {
    *  payment is taken and Razorpay is not involved at all. */
   amount: number;
   /** Which rule produced it — surfaced for logging and asserted in tests. */
-  source: "service-price" | "high-value-service" | "settings" | "default" | "free-offer" | "campaign-free-offer";
+  source:
+    | "service-price"
+    | "high-value-service"
+    | "diwali-slot-offer"
+    | "settings"
+    | "default"
+    | "free-offer"
+    | "campaign-free-offer";
 }
 
 /** Accepts a value only if it parses to a finite, strictly positive number. */
@@ -162,6 +184,12 @@ export function resolveBookingAmount(input: ResolveBookingAmountInput): Resolved
   const price = usableAmount(input.servicePrice);
   if (isPpfService(input.serviceSlug) && price !== null && price > HIGH_VALUE_PRICE_THRESHOLD) {
     return { amount: HIGH_VALUE_BOOKING_FEE, source: "high-value-service" };
+  }
+
+  // 2b. During the Diwali offer every other service takes the ₹99 slot fee. After the package and
+  //     high-value PPF rules, so neither of those is ever discounted by it; and after both free offers.
+  if (input.diwaliSlotOffer === true) {
+    return { amount: DIWALI_SLOT_FEE, source: "diwali-slot-offer" };
   }
 
   // 3. Everything else uses the configured booking fee.
