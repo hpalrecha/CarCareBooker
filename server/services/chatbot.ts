@@ -67,6 +67,44 @@ export interface ChatbotStorageDeps extends SlotValidationDeps {
   getService(id: string): ReturnType<typeof storage.getService>;
 }
 
+/**
+ * The four reads that build the system prompt (services, hours, blackout dates, Knowledge Hub) change a few
+ * times a month, but they ran on EVERY chat message: about 1.3 s of database round trips before OpenAI was
+ * even called. They are memoised per deps object for a minute. Only the prompt build uses this; the tools
+ * (slot availability, propose_slot) still read the live deps, so a slot is never judged on stale data.
+ * "Today" is computed inside buildChatbotInstructions on every call, so it is never cached.
+ * A rejected read is not kept: the next message tries again.
+ */
+const INSTRUCTION_DATA_TTL_MS = 60_000;
+const instructionDepsCache = new WeakMap<object, ChatbotStorageDeps>();
+
+function withMemoisedReads<T>(read: () => Promise<T>): () => Promise<T> {
+  let hit: { at: number; value: Promise<T> } | null = null;
+  return () => {
+    if (hit && Date.now() - hit.at < INSTRUCTION_DATA_TTL_MS) return hit.value;
+    const value = read();
+    const entry = { at: Date.now(), value };
+    hit = entry;
+    value.catch(() => {
+      if (hit === entry) hit = null;
+    });
+    return value;
+  };
+}
+
+function instructionDeps(deps: ChatbotStorageDeps): ChatbotStorageDeps {
+  let wrapped = instructionDepsCache.get(deps);
+  if (!wrapped) {
+    wrapped = Object.create(deps) as ChatbotStorageDeps;
+    wrapped.getAllServices = withMemoisedReads(() => deps.getAllServices());
+    wrapped.getAllBusinessHours = withMemoisedReads(() => deps.getAllBusinessHours());
+    wrapped.getAllBlackoutDates = withMemoisedReads(() => deps.getAllBlackoutDates());
+    wrapped.getActiveChatbotKnowledge = withMemoisedReads(() => deps.getActiveChatbotKnowledge());
+    instructionDepsCache.set(deps, wrapped);
+  }
+  return wrapped;
+}
+
 const TOOLS: OpenAI.Responses.FunctionTool[] = [
   {
     type: "function",
@@ -283,7 +321,7 @@ export async function runChat(
   const deps = options?.deps ?? storage;
   const openai = options?.client ?? getClient();
   const model = process.env.OPENAI_MODEL || DEFAULT_MODEL;
-  const instructions = await buildChatbotInstructions(deps);
+  const instructions = await buildChatbotInstructions(instructionDeps(deps));
 
   let input: ResponseInputItem[] = messages.map((m) => ({ role: m.role, content: m.content }));
   let response = await openai.responses.create({ model, instructions, input, tools: TOOLS, store: false });
