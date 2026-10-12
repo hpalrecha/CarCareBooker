@@ -324,13 +324,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.type("text/plain").send(
       `# P91 Car Care — ${origin}\n` +
         `#\n` +
-        `# Marketing pages are open. The admin panel, the JSON API and per-booking\n` +
-        `# confirmation URLs are not useful in search and are kept out of the index.\n` +
+        `# Marketing pages are open. The admin panel and per-booking confirmation\n` +
+        `# URLs are not useful in search and are kept out of the index.\n` +
+        `#\n` +
+        `# The public JSON API stays crawlable: pages render their content from it\n` +
+        `# (/api/services, /api/business-hours, ...), and a blocked API meant Googlebot\n` +
+        `# rendered empty pages and "service not found". API responses carry\n` +
+        `# X-Robots-Tag: noindex instead.\n` +
         `\n` +
         `User-agent: *\n` +
         `Allow: /\n` +
         `Disallow: /admin/\n` +
-        `Disallow: /api/\n` +
+        `Disallow: /api/admin/\n` +
         `Disallow: /booking-confirmation/\n` +
         `\n` +
         `Sitemap: ${origin}/sitemap.xml\n`,

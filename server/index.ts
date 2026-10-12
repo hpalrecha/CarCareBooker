@@ -30,6 +30,14 @@ app.use(canonicalHost);
 // /page/ -> /page (301). Canonicals and the sitemap use the no-slash form.
 app.use(stripTrailingSlash);
 
+// The JSON API is crawlable (robots.txt no longer disallows /api/ — Googlebot renders the
+// pages with JavaScript and needs /api/services etc. to see any content), but no API
+// response should ever appear in search results itself.
+app.use("/api", (_req, res, next) => {
+  res.setHeader("X-Robots-Tag", "noindex");
+  next();
+});
+
 // gzip/brotli every text response (HTML, JS, CSS, JSON). Typically a 3-4x reduction on
 // the JS bundle and the /api/services payload, on every single request.
 //
