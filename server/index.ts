@@ -3,6 +3,7 @@ import compression from "compression";
 import { registerRoutes } from "./routes";
 import { securityHeaders } from "./middleware/security-headers";
 import { stripTrailingSlash } from "./middleware/trailing-slash";
+import { canonicalHost } from "./middleware/canonical-host";
 import { setupVite, serveStatic, log } from "./vite";
 import { schedulerService } from "./services/scheduler";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
@@ -15,22 +16,16 @@ const app = express();
 // an attacker (confirms the framework) and pure noise for an SEO crawler. No functional effect.
 app.disable("x-powered-by");
 
-// www -> non-www canonical redirect (SEO audit: "one canonical host" — the app previously
-// answered identically on both hosts, splitting ranking signals across two URLs for every page).
+// www. and booking. -> https://p91carcare.com canonical redirect (SEO audit: "one canonical
+// host" — the app previously answered identically on all three hosts, splitting ranking signals
+// and getting booking.p91carcare.com pages indexed instead of the main domain).
 //
-// Cloudflare-safe and loop-safe: matches the exact production hostname only (never matches
-// local dev's "localhost:5000" or any other deploy target's host), and always redirects to the
-// fixed "https://p91carcare.com" origin rather than trusting req.protocol — which can read
-// "http" behind a proxy that already terminated TLS — so this can never downgrade to HTTP or
-// redirect anywhere but the one canonical host. Since it only ever matches the www host and
-// only ever redirects AWAY from it, the redirect target can never match this condition again:
-// no loop is reachable.
-app.use((req, res, next) => {
-  if (req.headers.host === "www.p91carcare.com") {
-    return res.redirect(301, `https://p91carcare.com${req.originalUrl}`);
-  }
-  next();
-});
+// www. redirects every request. booking. redirects GET/HEAD only and never /api/*: a 301 turns
+// a POST into a GET, so a payment webhook or API caller still pointed at booking. must keep
+// reaching the app directly. Exact hostnames only (case-insensitive, port stripped), fixed
+// https target, never matches localhost — no downgrade and no loop. See
+// server/middleware/canonical-host.ts.
+app.use(canonicalHost);
 
 // /page/ -> /page (301). Canonicals and the sitemap use the no-slash form.
 app.use(stripTrailingSlash);
