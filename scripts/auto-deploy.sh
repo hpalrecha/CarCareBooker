@@ -169,6 +169,24 @@ if "$DEPLOY_SH" deploy "$TARGET" --execute --repo "$REPO_DIR" --public-url "$PUB
   fi
   note "deployed ${TARGET:0:7} (verified from the running container)"
   rm -f "$FAILED"
+
+  # Tell Bing/Yandex (IndexNow) the site changed. Best effort: a failure here never fails the
+  # deploy. Only when page content, public files or the sitemap changed since the previous
+  # commit; an unchanged URL list is not re-announced on every backend-only deploy.
+  indexnow_ping() {
+    local key changed urls body code
+    [[ -n "$RUNNING" ]] || return 0
+    changed="$(g diff --name-only "$RUNNING" "$TARGET" 2>/dev/null || true)"
+    grep -Eq '^(client/src/|client/public/|scripts/prerender|server/routes\.ts)' <<<"$changed" || { note "indexnow: no page changes, skipping"; return 0; }
+    key="$(g ls-tree --name-only "$TARGET" client/public/ 2>/dev/null | sed -n 's#^client/public/\([0-9a-f]\{32\}\)\.txt$#\1#p' | head -1)"
+    [[ -n "$key" ]] || { note "indexnow: no key file in the commit, skipping"; return 0; }
+    urls="$(curl -fsS --max-time 20 "$PUBLIC_URL/sitemap.xml" | sed -n 's#.*<loc>\([^<]*\)</loc>.*#"\1"#p' | paste -sd, -)" || true
+    [[ -n "$urls" ]] || { note "indexnow: could not read the sitemap, skipping"; return 0; }
+    body="{\"host\":\"${PUBLIC_URL#https://}\",\"key\":\"$key\",\"keyLocation\":\"$PUBLIC_URL/$key.txt\",\"urlList\":[$urls]}"
+    code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 -X POST -H 'Content-Type: application/json; charset=utf-8' -d "$body" https://api.indexnow.org/indexnow || true)"
+    note "indexnow: pinged sitemap URLs, HTTP ${code:-none}"
+  }
+  indexnow_ping || note "indexnow: ping failed (ignored)"
   if [[ -n "$GC_SH" ]]; then
     note "reclaiming disk"
     "$GC_SH" --execute || note "cleanup reported a problem (the deploy itself succeeded)"

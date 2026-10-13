@@ -111,9 +111,7 @@ export const BLOG_POSTS: BlogPost[] = [
     slug: "ppf-koramangala-hsr-layout-shanti-nagar-adugodi",
     title:
       "Paint Protection Film in Bangalore: A Guide for Koramangala, HSR Layout and Shanti Nagar Car Owners",
-    // Supplied wording, longer than the usual 60 characters; search results may truncate it.
-    seoTitle:
-      "PPF & Ceramic Coating near Koramangala, HSR Layout & Shanti Nagar | P91 Car Care, Adugodi",
+    seoTitle: "PPF & Ceramic Coating near Koramangala & HSR | P91",
     date: "2026-10-05",
     readMinutes: 4,
     category: "Protection",
@@ -851,7 +849,7 @@ export const BLOG_POSTS: BlogPost[] = [
     slug: "best-car-detailing-in-bangalore",
     title: "Best Car Detailing in Bangalore: How to Choose the Right Studio for Your Car",
     // Supplied wording, over the usual 60 characters; search results may truncate it.
-    seoTitle: "Best Car Detailing in Bangalore: A Buyer's Guide | P91 Car Care",
+    seoTitle: "Best Car Detailing in Bangalore: Buyer's Guide | P91",
     date: "2026-10-07",
     readMinutes: 6,
     category: "Protection",

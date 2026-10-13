@@ -147,6 +147,20 @@ describe('crawlable content baked into the initial HTML', () => {
     assert.ok(!t.includes('orphan answer'), 'a FAQ without a question is not published');
   });
 
+  test('service content includes why-choose text and process steps when the record has them', () => {
+    const t = text(
+      m.servicePageContent({
+        ...SERVICE,
+        whyChoose: 'Film takes the stone chips.',
+        process: [{ title: 'Paint inspection', description: 'We check the paint first.' }, { title: '  ' }],
+      }),
+    );
+    assert.ok(t.includes('Film takes the stone chips.'));
+    assert.ok(t.includes('Paint inspection: We check the paint first.'));
+    const bare = text(m.servicePageContent(SERVICE));
+    assert.ok(!bare.includes('How we do it'), 'no empty headings for records without steps');
+  });
+
   test('never states a booking fee, rating or offer the page does not', () => {
     const all = [m.servicePageContent(SERVICE), ...m.LANDING_PAGES.map((p) => m.landingPageContent(p))].map(text).join(' ');
     assert.doesNotMatch(all, /₹\s?299|booking fee|\brating\b|\breviews?\b|limited time/i);

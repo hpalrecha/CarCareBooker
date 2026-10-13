@@ -343,6 +343,8 @@ export interface CrawlableService {
   price?: string | number | null;
   originalPrice?: string | number | null;
   whatIncluded?: string[] | null;
+  whyChoose?: string | null;
+  process?: { title?: string | null; description?: string | null }[] | null;
   faq?: { question?: string | null; answer?: string | null }[] | null;
 }
 
@@ -364,11 +366,18 @@ export function servicePageContent(service: CrawlableService): string {
     : "";
   const included = Array.from(new Set((service.whatIncluded || []).map(cleanItem).filter(Boolean)));
   const faqs = faqList(service.faq || []);
+  const why = String(service.whyChoose || "").trim();
+  const steps = (service.process || []).filter((s) => s?.title?.trim());
   return shell(
     h1(title) +
       (service.description ? p(String(service.description).trim()) : "") +
       priceLine +
       (included.length ? h2("What's Included") + ul(included) : "") +
+      (why ? h2(`Why ${title}`) + p(why) : "") +
+      (steps.length
+        ? h2("How we do it") +
+          ul(steps.map((s) => (s.description?.trim() ? `${s.title!.trim()}: ${s.description.trim()}` : s.title!.trim())))
+        : "") +
       (faqs ? h2(`${title} in Adugodi, Bangalore: FAQs`) + faqs : ""),
   );
 }
