@@ -113,7 +113,8 @@ running_revision() {
 }
 
 RUNNING="$(running_revision)"
-note "origin/$BRANCH = ${TARGET:0:7}   running = ${RUNNING:0:7}${RUNNING:-unknown}"
+RUNNING_SHORT="${RUNNING:0:7}"
+note "origin/$BRANCH = ${TARGET:0:7}   running = ${RUNNING_SHORT:-unknown}"
 
 if [[ "$TARGET" == "$RUNNING" ]]; then
   note "already deployed; nothing to do"
