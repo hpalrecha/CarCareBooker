@@ -423,6 +423,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // and the 17 per-service pages were previously competing for on their own.
         { loc: "/services", priority: "0.9", changefreq: "weekly" },
         { loc: "/products", priority: "0.6", changefreq: "monthly" },
+        // Brand pages (prerendered from client/src/lib/brand-pages.ts).
+        { loc: "/products/stek", priority: "0.6", changefreq: "monthly" },
+        { loc: "/products/nasiol", priority: "0.6", changefreq: "monthly" },
+        { loc: "/products/p91-premium-ppf", priority: "0.6", changefreq: "monthly" },
         // Local-intent landing pages. Additive — /service/:slug below is unchanged.
         // Kept in step with client/src/lib/seo-pages.ts.
         { loc: "/services/ceramic-coating-bangalore", priority: "0.8", changefreq: "monthly" },

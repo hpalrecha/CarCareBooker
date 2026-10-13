@@ -60,7 +60,6 @@ export const SERVICES_COLUMNS: NavColumn[] = [
     heading: "Packages",
     links: [
       { label: "Premium Car Wash Special", href: "/service/premium-car-wash-special" },
-      { label: "Annual Car Wash", href: "/service/annual-car-wash-package" },
       { label: "Annual Maintenance Package", href: "/service/annual-maintenance-package" },
     ],
   },

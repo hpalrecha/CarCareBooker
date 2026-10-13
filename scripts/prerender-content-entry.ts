@@ -24,6 +24,7 @@ export {
 } from "@/lib/blog-posts";
 export { SEO_PAGES } from "@/lib/seo-pages";
 export { LANDING_PAGES } from "@/lib/landing-pages";
+export { BRAND_PAGES } from "@/lib/brand-pages";
 
 // Phase 1 SEO/GEO: static page copy (shared with the components) and the builders that
 // bake each page's real content into the initial HTML.
@@ -35,6 +36,7 @@ export {
   blogPostContent,
   blogListContent,
   landingPageContent,
+  brandPageContent,
   injectRootContent,
 } from "@/lib/crawlable-content";
 export { homeFaqSchema } from "@/lib/home-faq";

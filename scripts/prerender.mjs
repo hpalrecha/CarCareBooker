@@ -236,6 +236,28 @@ async function main() {
     });
   }
 
+  // /products/stek, /products/nasiol, /products/p91-premium-ppf. Before this they had no prerendered
+  // file, so the server answered them with the 404 shell (noindex, "Page not found") and Google could
+  // not index three pages that every guide links to.
+  const { BRAND_PAGES } = content;
+  if (!Array.isArray(BRAND_PAGES) || !BRAND_PAGES.length) die("BRAND_PAGES is empty");
+  for (const b of BRAND_PAGES) {
+    if (!b.slug || !b.title || !b.description) die(`brand page "${b.slug}" is missing metadata`);
+    routes.push({
+      path: `/products/${b.slug}`,
+      title: b.title,
+      description: b.description,
+      content: content.brandPageContent(b),
+      jsonLd: [
+        breadcrumbs([
+          ["Home", "/"],
+          ["Products", "/products"],
+          [b.name, `/products/${b.slug}`],
+        ]),
+      ],
+    });
+  }
+
   for (const p of SEO_PAGES) {
     if (!p.slug || !p.title || !p.description) die(`SEO page "${p.slug}" is missing metadata`);
     routes.push({

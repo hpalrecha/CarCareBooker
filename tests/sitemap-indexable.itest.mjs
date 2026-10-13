@@ -104,9 +104,14 @@ describe("route pipeline: nothing in the sitemap may be left without a handler",
     const landingPaths = prerenderSrc.includes("of LANDING_PAGES")
       ? ["/ceramic-coating/car", "/ceramic-coating/bike", "/ppf"]
       : [];
+    // /products/:brand pages are generated from BRAND_PAGES (client/src/lib/brand-pages.ts).
+    const brandPaths = prerenderSrc.includes("of BRAND_PAGES")
+      ? ["/products/stek", "/products/nasiol", "/products/p91-premium-ppf"]
+      : [];
     const missing = sitemapStaticPaths.filter(
       (p) =>
         !prerenderedStatic.includes(p) &&
+        !brandPaths.includes(p) &&
         !landingPaths.includes(p) &&
         !generatedPrefixes.some((g) => p.startsWith(g)),
     );

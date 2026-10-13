@@ -2,6 +2,7 @@ import type { StaticSeoPage } from "./static-seo";
 import type { SeoPage } from "./seo-pages";
 import type { BlogPost } from "./blog-posts";
 import type { LandingPage } from "./landing-pages";
+import type { BrandPage } from "./brand-pages";
 import { formatINR } from "./canonical-services";
 import { ADDRESS_CONFIRMED, STREET_ADDRESS, POSTAL_CODE, PHONE } from "./local-business";
 import { PRODUCT_BRANDS, SERVICES_COLUMNS, resourcesGuideLinks } from "./nav-menu";
@@ -308,6 +309,30 @@ export function landingPageContent(page: LandingPage): string {
     ? `<ul>${page.related.map((r) => `<li><a href="${e(r.href)}" style="color:#4ade80">${e(r.label)}</a></li>`).join("")}</ul>`
     : "";
   return shell(h1(page.h1) + p(page.lede) + (benefits ? h2(page.benefitsHeading) + benefits : "") + steps + related);
+}
+
+/**
+ * /products/:brand — the three brand pages. Same fields brand-page.tsx renders, from the same module.
+ * These routes have no database record, so the content is baked at build time like the guides.
+ */
+export function brandPageContent(page: BrandPage): string {
+  const fits = page.fits.length
+    ? h2("What we fit") +
+      `<ul>${page.fits.map((f) => `<li><a href="${e(f.href)}" style="color:#4ade80">${e(f.name)}</a> — ${e(f.note)}</li>`).join("")}</ul>`
+    : "";
+  const benefits = (page.benefits || []).map((b) => `<h3>${e(b.title)}</h3>${p(b.body)}`).join("");
+  const official = page.official
+    ? `<p><a href="${e(page.official.href)}" style="color:#4ade80" rel="noopener noreferrer">${e(page.official.label)}</a></p>`
+    : "";
+  return shell(
+    h1(page.name) +
+      p(page.line) +
+      (page.about || []).map(p).join("") +
+      fits +
+      (benefits ? h2("Why it matters") + benefits : "") +
+      `<p><a href="${e(page.book.href)}" style="color:#4ade80">${e(page.book.label)}</a></p>` +
+      official,
+  );
 }
 
 /** The subset of a service record the crawlable content needs. */
