@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { BusinessHour } from "@shared/schema";
 import logoPath from "@assets/Car Care (4)_1753951564515.png";
 import { ImageWithFallback } from "@/components/image-with-fallback";
-import { INSTAGRAM_PROFILE_URL } from "@/lib/instagram-reels";
+import { INSTAGRAM_PROFILE_URL, FACEBOOK_PROFILE_URL } from "@/lib/instagram-reels";
 
 /**
  * Site footer in the approved redesign.
@@ -134,6 +134,11 @@ export default function SiteFooter() {
               <li className="foot-li-ig">
                 <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer" data-testid="link-footer-instagram">
                   Instagram
+                </a>
+              </li>
+              <li>
+                <a href={FACEBOOK_PROFILE_URL} target="_blank" rel="noopener noreferrer" data-testid="link-footer-facebook">
+                  Facebook
                 </a>
               </li>
             </ul>

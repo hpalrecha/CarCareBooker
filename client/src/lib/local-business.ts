@@ -1,4 +1,5 @@
 import type { BusinessHour } from "@shared/schema";
+import { INSTAGRAM_PROFILE_URL, FACEBOOK_PROFILE_URL } from "./instagram-reels";
 
 /**
  * AutoRepair / LocalBusiness structured data.
@@ -121,6 +122,8 @@ export function localBusinessSchema(
       "Professional car detailing in Bangalore: ceramic coating, paint protection film, " +
       "interior and exterior detailing, glass coating and headlight restoration.",
     areaServed: { "@type": "City", name: "Bengaluru" },
+    // The business's own profiles: ties the site to the pages Google already knows.
+    sameAs: [INSTAGRAM_PROFILE_URL, FACEBOOK_PROFILE_URL],
     potentialAction: {
       "@type": "ReserveAction",
       target: { "@type": "EntryPoint", urlTemplate: `${origin}/services` },
