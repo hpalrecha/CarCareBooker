@@ -100,3 +100,11 @@ test("pure function", () => {
   assert.equal(canonicalHostRedirect("POST", "www.p91carcare.com", "/api/x"), "https://p91carcare.com/api/x");
   assert.equal(canonicalHostRedirect("GET", "evil.p91carcare.com.attacker.net", "/"), null);
 });
+
+test("trailing slash is stripped in the same hop (GET/HEAD only)", () => {
+  assert.equal(canonicalHostRedirect("GET", "booking.p91carcare.com", "/services/?x=1"), "https://p91carcare.com/services?x=1");
+  assert.equal(canonicalHostRedirect("HEAD", "www.p91carcare.com", "/services//"), "https://p91carcare.com/services");
+  assert.equal(canonicalHostRedirect("GET", "booking.p91carcare.com", "/"), "https://p91carcare.com/");
+  assert.equal(canonicalHostRedirect("GET", "booking.p91carcare.com", "//evil.com/"), "https://p91carcare.com/evil.com");
+  assert.equal(canonicalHostRedirect("POST", "www.p91carcare.com", "/api/x/"), "https://p91carcare.com/api/x/");
+});

@@ -17,6 +17,17 @@ export const CANONICAL_ORIGIN = "https://p91carcare.com";
 // trusting req.protocol (which can read "http" behind a proxy that already terminated TLS). The
 // target host never matches a redirecting host, so no loop is reachable.
 //
+// A GET/HEAD to /page/ on these hosts goes straight to /page, so the trailing-slash rule
+// (server/middleware/trailing-slash.ts) does not cost a second hop. Root and other methods are untouched.
+function withoutTrailingSlash(method: string, originalUrl: string): string {
+  if (method !== "GET" && method !== "HEAD") return originalUrl;
+  const q = originalUrl.indexOf("?");
+  const rawPath = q === -1 ? originalUrl : originalUrl.slice(0, q);
+  const query = q === -1 ? "" : originalUrl.slice(q);
+  const clean = rawPath.replace(/\/+$/, "").replace(/^\/+/, "/");
+  return (clean === "" ? "/" : clean) + query;
+}
+
 // Pure: returns the Location to 301 to, or null to fall through.
 export function canonicalHostRedirect(
   method: string,
@@ -27,14 +38,14 @@ export function canonicalHostRedirect(
   const hostname = host.trim().toLowerCase().replace(/:\d+$/, "");
 
   if (hostname === "www.p91carcare.com") {
-    return `${CANONICAL_ORIGIN}${originalUrl}`;
+    return `${CANONICAL_ORIGIN}${withoutTrailingSlash(method, originalUrl)}`;
   }
 
   if (hostname === "booking.p91carcare.com") {
     if (method !== "GET" && method !== "HEAD") return null;
     const path = originalUrl.split("?")[0];
     if (path === "/api" || path.startsWith("/api/")) return null;
-    return `${CANONICAL_ORIGIN}${originalUrl}`;
+    return `${CANONICAL_ORIGIN}${withoutTrailingSlash(method, originalUrl)}`;
   }
 
   return null;
