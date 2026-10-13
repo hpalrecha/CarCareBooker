@@ -179,6 +179,19 @@ describe('crawlable content baked into the initial HTML', () => {
     }
   });
 
+  test('every snapshot carries the site-wide link block: services, products, every guide, legal', () => {
+    // Search Console (2026-10-12): 31 of 42 sitemap URLs "unknown to Google" while the raw HTML of each
+    // page linked to only 4 pages, because the menus and footer are client-rendered.
+    const html = m.blogPostContent(m.BLOG_POSTS[0]);
+    const hrefs = new Set([...html.matchAll(/<a href="([^"]+)"/g)].map((x) => x[1]));
+    for (const must of ['/services', '/products', '/blog', '/gallery', '/contact', '/terms-conditions', '/privacy-policy', '/refund-policy', '/services/paint-protection-film-bangalore', '/products/stek']) {
+      assert.ok(hrefs.has(must), 'missing link ' + must);
+    }
+    for (const post of m.BLOG_POSTS) assert.ok(hrefs.has('/blog/' + post.slug), 'missing guide ' + post.slug);
+    // No ad landing pages in the permanent nav (same rule as the header menus).
+    for (const ad of ['/ppf', '/ceramic-coating/car', '/ceramic-coating/bike']) assert.ok(!hrefs.has(ad), ad);
+  });
+
   test('record values are escaped (they are edited in the admin panel)', () => {
     const html = m.servicePageContent({ ...SERVICE, title: '<script>alert(1)</script>', description: '"quoted" & <b>' });
     assert.ok(!html.includes('<script>'));

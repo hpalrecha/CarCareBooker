@@ -4,7 +4,8 @@ import type { BlogPost } from "./blog-posts";
 import type { LandingPage } from "./landing-pages";
 import { formatINR } from "./canonical-services";
 import { ADDRESS_CONFIRMED, STREET_ADDRESS, POSTAL_CODE, PHONE } from "./local-business";
-import { PRODUCT_BRANDS } from "./nav-menu";
+import { PRODUCT_BRANDS, SERVICES_COLUMNS, resourcesGuideLinks } from "./nav-menu";
+import { BLOG_POSTS } from "./blog-posts";
 import { HOME_FAQS, HOME_FAQ_HEADING, HOME_ABOUT_H2 } from "./home-faq";
 
 /**
@@ -66,6 +67,50 @@ const WRAP_STYLE =
 
 const PHONE_DISPLAY = "+91 74066 19191";
 
+/**
+ * Site-wide link block for the snapshot's footer. The live header's mega-menus and footer are
+ * client-rendered, so a crawler that reads only the raw HTML saw 4 links per page and found most
+ * service, guide and legal pages only through the sitemap (Search Console: 31 of 42 URLs "unknown to
+ * Google"). Built from the SAME data the menus and footer render from (nav-menu.ts, blog-posts.ts),
+ * so it cannot list a page the site does not have. Ad landing pages stay out, as in the menus.
+ */
+function siteLinkBlock(): string {
+  const group = (title: string, links: { label: string; href: string }[]) => {
+    const seen = new Set<string>();
+    const items = links
+      .filter((l) => (seen.has(l.href) ? false : (seen.add(l.href), true)))
+      .map((l) => `<li><a href="${e(l.href)}" style="color:#e5e7eb">${e(l.label)}</a></li>`)
+      .join("");
+    return `<h2>${e(title)}</h2><ul>${items}</ul>`;
+  };
+  return (
+    `<nav aria-label="Site links">` +
+    group("Services", [
+      ...SERVICES_COLUMNS.flatMap((c) => c.links),
+      { label: "All services", href: "/services" },
+    ]) +
+    group("Products", [
+      ...PRODUCT_BRANDS.map((b) => ({ label: b.name, href: b.href })),
+      { label: "All products", href: "/products" },
+    ]) +
+    group("Guides", [
+      { label: "All guides", href: "/blog" },
+      ...resourcesGuideLinks(),
+      ...BLOG_POSTS.map((post) => ({ label: post.title, href: `/blog/${post.slug}` })),
+    ]) +
+    group("Company", [
+      { label: "Gallery", href: "/gallery" },
+      { label: "Contact", href: "/contact" },
+      { label: "Terms", href: "/terms-conditions" },
+      { label: "Privacy", href: "/privacy-policy" },
+      { label: "Refunds", href: "/refund-policy" },
+    ]) +
+    `</nav>`
+  );
+}
+
+const SITE_LINK_BLOCK = siteLinkBlock();
+
 function shell(main: string): string {
   const address = ADDRESS_CONFIRMED
     ? `${e(STREET_ADDRESS)}, Bengaluru ${e(POSTAL_CODE)}`
@@ -77,7 +122,7 @@ function shell(main: string): string {
     ` · <a href="/blog" style="color:#e5e7eb">Blog</a>` +
     ` · <a href="/contact" style="color:#e5e7eb">Contact</a></nav></header>` +
     `<main>${main}</main>` +
-    `<footer><p>P91 Car Care — ${address} — <a href="tel:${e(PHONE)}" style="color:#4ade80">${e(PHONE_DISPLAY)}</a></p></footer>` +
+    `<footer>${SITE_LINK_BLOCK}<p>P91 Car Care — ${address} — <a href="tel:${e(PHONE)}" style="color:#4ade80">${e(PHONE_DISPLAY)}</a></p></footer>` +
     `</div>`
   );
 }
