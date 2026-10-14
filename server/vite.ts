@@ -18,6 +18,7 @@ import {
   type CrawlableService,
 } from "../client/src/lib/crawlable-content";
 import { SERVICES_SEO } from "../client/src/lib/static-seo";
+import { isSpamProductPath } from "./lib/spam-paths";
 
 const viteLogger = createLogger();
 
@@ -308,7 +309,8 @@ export function serveStatic(app: Express, distPathOverride?: string) {
     // stop treating every typo URL as a soft-404 page. Keep SPA_ONLY_ROUTE in step with
     // the non-prerendered <Route>s in client/src/App.tsx.
     const pathname = req.originalUrl.split("?")[0];
-    const status = SPA_ONLY_ROUTE.test(pathname) ? 200 : 404;
+    // Known spam slugs from other sites are permanently gone (410), not merely missing.
+    const status = SPA_ONLY_ROUTE.test(pathname) ? 200 : isSpamProductPath(pathname) ? 410 : 404;
     const notFound = path.resolve(distPath, "404.html");
     res
       .status(status)
