@@ -19,6 +19,7 @@ import {
 } from "../client/src/lib/crawlable-content";
 import { SERVICES_SEO } from "../client/src/lib/static-seo";
 import { isSpamProductPath } from "./lib/spam-paths";
+import { BRAND_PAGES } from "../client/src/lib/brand-pages";
 
 const viteLogger = createLogger();
 
@@ -30,7 +31,13 @@ const ASSET_EXT =
 
 // Client-only routes: App.tsx renders a real page for these but the build prerenders no
 // file for them (private screens, or params only the database knows). They keep HTTP 200.
-const SPA_ONLY_ROUTE = /^\/(admin(\/.*)?|booking-confirmation\/[^/]+|products\/[^/]+)\/?$/i;
+// /products/:brand is limited to real brand slugs: any other /products/x is a genuine miss,
+// and answering it 200 with the 404 body is a soft 404.
+const BRAND_SLUGS = BRAND_PAGES.map((b) => b.slug).join("|");
+const SPA_ONLY_ROUTE = new RegExp(
+  `^/(admin(/.*)?|booking-confirmation/[^/]+|products/(?:${BRAND_SLUGS}))/?$`,
+  "i",
+);
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {

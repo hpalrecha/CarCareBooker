@@ -283,6 +283,12 @@ describe("served HTML: every sitemap URL is indexable, and only those", { skip: 
     }
   });
 
+  test("an unknown /products/:brand is a real 404, not a soft 404", async () => {
+    const r = await get("/products/not-a-brand");
+    assert.equal(r.status, 404);
+    assert.ok(isNoindex(r.html));
+  });
+
   test("client-only routes keep HTTP 200", async () => {
     for (const ok of ["/admin/login", "/booking-confirmation/abc123", "/products/stek"]) {
       assert.equal((await get(ok)).status, 200, ok);
