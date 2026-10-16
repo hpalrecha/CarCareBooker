@@ -202,8 +202,9 @@ describe('crawlable content baked into the initial HTML', () => {
       assert.ok(hrefs.has(must), 'missing link ' + must);
     }
     for (const post of m.BLOG_POSTS) assert.ok(hrefs.has('/blog/' + post.slug), 'missing guide ' + post.slug);
-    // No ad landing pages in the permanent nav (same rule as the header menus).
-    for (const ad of ['/ppf', '/ceramic-coating/car', '/ceramic-coating/bike']) assert.ok(!hrefs.has(ad), ad);
+    // The two car price pages are linked from the raw HTML so Google can find them; bike stays out.
+    for (const must of ['/ppf', '/ceramic-coating/car']) assert.ok(hrefs.has(must), must);
+    assert.ok(!hrefs.has('/ceramic-coating/bike'));
   });
 
   test('record values are escaped (they are edited in the admin panel)', () => {

@@ -73,7 +73,9 @@ const PHONE_DISPLAY = "+91 74066 19191";
  * client-rendered, so a crawler that reads only the raw HTML saw 4 links per page and found most
  * service, guide and legal pages only through the sitemap (Search Console: 31 of 42 URLs "unknown to
  * Google"). Built from the SAME data the menus and footer render from (nav-menu.ts, blog-posts.ts),
- * so it cannot list a page the site does not have. Ad landing pages stay out, as in the menus.
+ * so it cannot list a page the site does not have. The two car price pages (/ppf, /ceramic-coating/car)
+ * are added by hand (2026-10-16): Search Console showed them "crawled, not indexed" with no raw-HTML
+ * link from the home page, and they are the main conversion pages. The live menus are unchanged.
  */
 function siteLinkBlock(): string {
   const group = (title: string, links: { label: string; href: string }[]) => {
@@ -89,6 +91,8 @@ function siteLinkBlock(): string {
     group("Services", [
       ...SERVICES_COLUMNS.flatMap((c) => c.links),
       { label: "All services", href: "/services" },
+      { label: "Car PPF price in Bangalore", href: "/ppf" },
+      { label: "Car ceramic coating price in Bangalore", href: "/ceramic-coating/car" },
     ]) +
     group("Products", [
       ...PRODUCT_BRANDS.map((b) => ({ label: b.name, href: b.href })),
