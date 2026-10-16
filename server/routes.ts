@@ -2833,6 +2833,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Manual payment status update for debugging (Admin only)
+  // Push a PAID booking to ERP (n8n) again. Sends no WhatsApp and changes nothing else on the booking.
+  // Without force it is a no-op for a booking already synced, so a double click cannot duplicate.
+  app.post("/api/admin/bookings/:id/erp-sync", authenticateAdmin, async (req, res) => {
+    try {
+      const force = req.body?.force === true;
+      const erpSync = await syncBookingToErp(req.params.id, { force });
+      res.json({ success: erpSync.status === "sent", erpSync, booking: await storage.getBooking(req.params.id) });
+    } catch (error) {
+      console.error("Admin ERP sync error:", error);
+      res.status(500).json({ message: "Failed to sync booking to ERP" });
+    }
+  });
+
   app.post("/api/admin/bookings/:id/mark-paid", authenticateAdmin, async (req, res) => {
     try {
       const bookingId = req.params.id;

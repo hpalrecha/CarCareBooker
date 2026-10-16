@@ -1202,6 +1202,25 @@ export default function AdminDashboard() {
     },
   });
 
+  const erpSyncMutation = useMutation({
+    mutationFn: async (bookingId: string) => {
+      const response = await apiRequest("POST", `/api/admin/bookings/${bookingId}/erp-sync`, { force: true });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      if (data.booking) setViewingBooking((cur: any) => (cur ? { ...cur, ...data.booking } : cur));
+      toast({
+        title: data.success ? "Sent to ERP" : "ERP sync not sent",
+        description: data.success ? "Booking pushed to ERP." : data.erpSync?.reason || data.erpSync?.status,
+        variant: data.success ? undefined : "destructive",
+      });
+    },
+    onError: (error: any) => {
+      toast({ title: "ERP sync failed", description: error.message || "Could not reach the server", variant: "destructive" });
+    },
+  });
+
   const markPaidMutation = useMutation({
     mutationFn: async (bookingId: string) => {
       const response = await apiRequest("POST", `/api/admin/bookings/${bookingId}/mark-paid`, {
@@ -2113,6 +2132,17 @@ export default function AdminDashboard() {
                     <span className="text-right break-all">{String(v)}</span>
                   </div>
                 ))}
+                {b.paymentStatus === "paid" && (
+                  <Button
+                    className="w-full mt-3"
+                    variant="outline"
+                    disabled={erpSyncMutation.isPending}
+                    onClick={() => erpSyncMutation.mutate(b.id)}
+                    data-testid={`button-erp-sync-${b.id}`}
+                  >
+                    {erpSyncMutation.isPending ? "Sending…" : b.erpSyncStatus === "synced" ? "Re-send to ERP" : "Send to ERP"}
+                  </Button>
+                )}
               </div>
             );
           })()}
