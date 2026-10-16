@@ -16,10 +16,13 @@ import {
   servicePageContent,
   servicesListContent,
   type CrawlableService,
+  landingServiceExtras,
+  faqPageSchema,
 } from "../client/src/lib/crawlable-content";
 import { SERVICES_SEO } from "../client/src/lib/static-seo";
 import { isSpamProductPath } from "./lib/spam-paths";
 import { BRAND_PAGES } from "../client/src/lib/brand-pages";
+import { LANDING_PAGES } from "../client/src/lib/landing-pages";
 
 const viteLogger = createLogger();
 
@@ -191,6 +194,36 @@ export function serveStatic(app: Express, distPathOverride?: string) {
           return res.type("html").send(html);
         } catch (error) {
           console.error("services list injection failed:", error);
+          return res.sendFile(candidate);
+        }
+      })();
+    }
+
+    // Campaign pages: the build has no catalogue, so add the default service record's own
+    // sections (why, what's included, process, FAQs) and FAQPage schema per request.
+    const landing = LANDING_PAGES.find((l) => l.path === pathname.replace(/\/$/, ""));
+    if (landing) {
+      return void (async () => {
+        try {
+          const slug =
+            landing.primaryServiceSlug ??
+            landing.categories?.find((c) => c.key === landing.defaultCategoryKey)?.serviceSlug ??
+            landing.categories?.[0]?.serviceSlug;
+          const { storage } = await import("./storage");
+          const service = slug ? await storage.getServiceBySlug(slug) : undefined;
+          const extras = service?.isActive ? landingServiceExtras(service as CrawlableService) : "";
+          if (!extras) return res.sendFile(candidate);
+          const faqSchema = faqPageSchema((service as CrawlableService).faq);
+          let html = fs.readFileSync(candidate, "utf8").replace(/<\/main>/, `${extras}</main>`);
+          if (faqSchema) {
+            html = html.replace(
+              /<\/head>/i,
+              `    <script type="application/ld+json" data-seo="prerender">${JSON.stringify(faqSchema).replace(/</g, "\\u003c")}</script>\n  </head>`,
+            );
+          }
+          return res.type("html").send(html);
+        } catch (error) {
+          console.error("landing page injection failed:", error);
           return res.sendFile(candidate);
         }
       })();

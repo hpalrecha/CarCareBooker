@@ -167,7 +167,12 @@ async function main() {
     // h1+lede-only staticPageContent() every other simple page uses (SEO audit: the
     // homepage's non-JS snapshot was ~47 words and 4 internal links; the real page has
     // dozens of each, just behind client-side rendering).
-    content: page.path === "/" ? content.homePageContent(page) : content.staticPageContent(page),
+    content:
+      page.path === "/"
+        ? content.homePageContent(page)
+        : page.path === "/contact"
+          ? content.contactPageContent(page)
+          : content.staticPageContent(page),
     image: page.image,
     // The homepage and /contact set the business schema at runtime; the raw HTML carried
     // none, so a crawler without JavaScript never saw the address, phone or hours. Emitted

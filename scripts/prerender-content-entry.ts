@@ -31,6 +31,9 @@ export { BRAND_PAGES } from "@/lib/brand-pages";
 export { STATIC_SEO_PAGES, SERVICES_SEO } from "@/lib/static-seo";
 export {
   staticPageContent,
+  contactPageContent,
+  landingServiceExtras,
+  faqPageSchema,
   homePageContent,
   seoGuideContent,
   blogPostContent,

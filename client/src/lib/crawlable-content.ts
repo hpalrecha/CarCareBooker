@@ -176,6 +176,30 @@ export function staticPageContent(page: StaticSeoPage): string {
 }
 
 /**
+ * /contact — what contact.tsx shows without a database read: studio address, phone, WhatsApp, email,
+ * GSTIN and directions. Opening hours are read live on the page, so they are not baked here.
+ */
+export function contactPageContent(page: StaticSeoPage): string {
+  const link = (href: string, label: string, extra = "") =>
+    `<a href="${e(href)}" style="color:#4ade80"${extra}>${e(label)}</a>`;
+  return shell(
+    h1(page.h1) +
+      (page.lede ? p(page.lede) : "") +
+      h2("Studio") +
+      `<address><p>P91 Car Care<br>49, 13th Cross, Ayappa Garden<br>Adugodi<br>Bengaluru, Karnataka 560030<br>India</p>` +
+      `<p>${link("tel:+917406619191", "+91 74066 19191")}</p></address>` +
+      p("Trading as Plus Nine One Inc · GSTIN 29AMIPP3288M1Z6") +
+      h2("Get in touch") +
+      `<ul><li>${link("https://wa.me/917406619191", "WhatsApp us")}</li>` +
+      `<li>${link("tel:+917406619191", "Call 74066 19191")}</li>` +
+      `<li>${link("mailto:info@p91carcare.com", "info@p91carcare.com")}</li></ul>` +
+      h2("Find us") +
+      `<ul><li>${link("https://www.google.com/maps/dir/?api=1&destination=P91+Car+Care+Adugodi+Bengaluru", "Get directions", ' rel="noopener noreferrer"')}</li>` +
+      `<li>${link("https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Adugodi+Bengaluru", "Open in Google Maps", ' rel="noopener noreferrer"')}</li></ul>`,
+  );
+}
+
+/**
  * "/" — the real homepage, not the generic h1+lede treatment every other simple page gets.
  *
  * SEO audit finding: the homepage's non-JS snapshot was the generic staticPageContent()
@@ -409,6 +433,44 @@ export function servicePageContent(service: CrawlableService): string {
         : "") +
       (faqs ? h2(`${title} in Adugodi, Bangalore: FAQs`) + faqs : ""),
   );
+}
+
+/**
+ * Extra sections for the campaign pages (/ppf, /ceramic-coating/*), from the live catalogue row the
+ * page itself shows by default. The build has no database, so landingPageContent() cannot carry these;
+ * the server adds them per request. Same record, same text as the rendered page — nothing invented,
+ * and no price (it loads live). Returns "" when the record has nothing to add.
+ */
+export function landingServiceExtras(service: CrawlableService): string {
+  const title = String(service.title || "").trim();
+  const included = Array.from(new Set((service.whatIncluded || []).map(cleanItem).filter(Boolean)));
+  const why = String(service.whyChoose || "").trim();
+  const steps = (service.process || []).filter((s) => s?.title?.trim());
+  const faqs = faqList(service.faq || []);
+  return (
+    (why ? h2(`Why ${title}`) + p(why) : "") +
+    (included.length ? h2("What's included") + ul(included) : "") +
+    (steps.length
+      ? h2("How the job works") +
+        ul(steps.map((s) => (s.description?.trim() ? `${s.title!.trim()}: ${s.description.trim()}` : s.title!.trim())))
+      : "") +
+    (faqs ? h2("Frequently asked questions") + faqs : "")
+  );
+}
+
+/** FAQPage JSON-LD for a catalogue row, or null when it has no complete question and answer. */
+export function faqPageSchema(faq: CrawlableService["faq"]): Record<string, unknown> | null {
+  const real = (faq || []).filter((f) => f?.question?.trim() && f?.answer?.trim());
+  if (!real.length) return null;
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: real.map((f) => ({
+      "@type": "Question",
+      name: String(f.question).trim(),
+      acceptedAnswer: { "@type": "Answer", text: String(f.answer).trim() },
+    })),
+  };
 }
 
 /** /services — the heading and intro the page renders, then every active service. */

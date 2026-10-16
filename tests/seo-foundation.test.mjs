@@ -207,6 +207,27 @@ describe('crawlable content baked into the initial HTML', () => {
     assert.ok(!hrefs.has('/ceramic-coating/bike'));
   });
 
+  test('campaign pages get the catalogue record sections and FAQPage schema; empty records add nothing', () => {
+    const html = m.landingServiceExtras({
+      ...SERVICE,
+      whyChoose: 'Why text.',
+      process: [{ title: 'Step one', description: 'Do it.' }],
+    });
+    for (const must of ['Why text.', '<li>UV protection</li>', 'Step one: Do it.', 'How long does it last?']) assert.ok(html.includes(must), must);
+    assert.ok(!html.includes('orphan answer'));
+    assert.equal(m.landingServiceExtras({ slug: 'x' }), '');
+    const schema = m.faqPageSchema(SERVICE.faq);
+    assert.equal(schema['@type'], 'FAQPage');
+    assert.equal(schema.mainEntity.length, 1);
+    assert.equal(m.faqPageSchema([]), null);
+  });
+
+  test('/contact snapshot carries the studio address, phone and WhatsApp', () => {
+    const page = m.STATIC_SEO_PAGES.find((x) => x.path === '/contact');
+    const html = m.contactPageContent(page);
+    for (const must of ['49, 13th Cross', '560030', 'tel:+917406619191', 'https://wa.me/917406619191', 'info@p91carcare.com']) assert.ok(html.includes(must), must);
+  });
+
   test('record values are escaped (they are edited in the admin panel)', () => {
     const html = m.servicePageContent({ ...SERVICE, title: '<script>alert(1)</script>', description: '"quoted" & <b>' });
     assert.ok(!html.includes('<script>'));
