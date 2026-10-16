@@ -195,11 +195,12 @@ if "$DEPLOY_SH" deploy "$TARGET" --execute --repo "$REPO_DIR" --public-url "$PUB
 else
   status=$?
   if [[ "$status" == "75" ]]; then
-    # deploy-manual.sh could not find the prebuilt image for this commit in the registry: GitHub
-    # Actions is still building it (or the build failed). Nothing was touched, so this is not a
-    # failed deploy; do not record it, and look again on the next tick.
-    note "the prebuilt image for ${TARGET:0:7} is not in the registry yet (GitHub Actions still building, or its build failed)."
-    note "nothing was changed; checking again next tick. If it never appears, see the Actions tab on GitHub."
+    # deploy-manual.sh is not ready to deploy this commit yet: either the prebuilt image is not in
+    # the registry (GitHub Actions still building it, or the build failed), or it is inside the
+    # 19:45-20:05 IST reminder window. Nothing was touched, so this is not a failed deploy; do
+    # not record it, and look again on the next tick.
+    note "${TARGET:0:7} not deployable yet: image not in the registry, or inside the 19:45-20:05 IST window (see the ABORT line above)."
+    note "nothing was changed; checking again next tick. If the image never appears, see the Actions tab on GitHub."
     exit 0
   fi
   printf '%s' "$TARGET" > "$FAILED"

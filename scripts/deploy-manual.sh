@@ -213,8 +213,12 @@ reminder_window_guard() {
   drift=$(( (ist_min - (utc_min + 330) + 2880) % 1440 ))
   (( drift <= 1 || drift >= 1439 )) \
     || die "IST clock ($ist) disagrees with UTC+05:30 (UTC $utc); refusing rather than guessing the 20:00 IST window"
+  # Exit 75 ("try again later"), not die's 1: nothing has been touched yet, and auto-deploy.sh
+  # records any other non-zero exit as a FAILED commit that it never retries — which is how
+  # 52608d1 (pushed 19:40 IST, 2026-10-16) would have been stranded by the clock alone.
   if (( ist_min >= 19 * 60 + 45 && ist_min <= 20 * 60 + 5 )); then
-    die "it is $ist IST: two containers must not be alive at the 20:00 IST reminder run. Retry after 20:05 IST."
+    echo "ABORT: it is $ist IST: two containers must not be alive at the 20:00 IST reminder run. Retry after 20:05 IST." >&2
+    exit 75
   fi
 }
 

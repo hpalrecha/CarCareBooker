@@ -476,11 +476,11 @@ describe('the build-cache flag matches the installed Docker', () => {
 });
 
 describe('CI-built image: auto-deploy waits for it, deploy-manual pulls and verifies it', () => {
-  test('exit 75 (image not in the registry yet) is not a failed deploy and is not recorded', () => {
+  test('exit 75 (image not in the registry yet, or the 20:00 IST window) is not a failed deploy and is not recorded', () => {
     const s = sandbox({ target: SHA_NEW, running: SHA_OLD, deployExit: 75 });
     const r = run(AUTO, ['--execute'], s);
     assert.equal(r.code, 0, r.out);
-    assert.match(r.out, /not in the registry yet/);
+    assert.match(r.out, /not deployable yet: image not in the registry/);
     assert.ok(!fs.existsSync(path.join(s.state, 'auto-deploy.failed')), 'a not-yet-built image must not mark the commit failed');
     assert.doesNotMatch(s.readCalls(), /GC --execute/, 'no cleanup when nothing was deployed');
     // The next tick looks again: still a deploy attempt, because the commit was never recorded.
