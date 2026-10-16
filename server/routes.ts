@@ -18,6 +18,7 @@ import { schedulerService } from "./services/scheduler";
 import { sendBookingConfirmationEmail } from "./services/email";
 import { sendBookingWebhook } from "./services/webhook";
 import { ensureOfferBooking } from "./lib/offer-booking";
+import { checkOfferSlot } from "./lib/offer-slot";
 import { sendLeadToSheet } from "./services/lead-sheet";
 import { computeAvailability, generateHourlySlots, istNow } from "./lib/slots";
 import { validateAppointmentSlot } from "./lib/booking-validation";
@@ -1327,6 +1328,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }),
     vehicleType: z.enum(["car", "bike"], { errorMap: () => ({ message: "Select car or bike" }) }),
     vehicleModel: z.string().trim().max(120).optional().nullable(),
+    /** The service and slot the customer picked. Re-checked against live data below; never trusted. */
+    serviceId: z.string().trim().min(1, "Select a service").max(100),
+    appointmentDate: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "Select a date"),
+    appointmentTime: z.string().trim().regex(/^\d{2}:\d{2}$/, "Select a time"),
     /** Honeypot, same idea as the lead form. */
     website: z.string().max(200).optional(),
   });
@@ -1370,6 +1375,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("❌ Razorpay is not configured — refusing to start an offer payment.");
           return res.status(503).json({
             message: "Online payment is temporarily unavailable. Please call us on +91 74066 19191 to book your slot.",
+          });
+        }
+
+        // The chosen service and slot must be bookable right now. Same rules as the public slot picker.
+        const chosenService = await storage.getService(data.serviceId);
+        if (!chosenService || !chosenService.isActive) {
+          return res.status(400).json({
+            message: "Please check the highlighted fields and try again.",
+            fieldErrors: { serviceId: "This service is not available. Please choose another." },
+          });
+        }
+        const blackout = (await storage.getAllBlackoutDates()).find((bd) => bd.date === data.appointmentDate);
+        const hours = await storage.getBusinessHoursForDay(new Date(data.appointmentDate + "T00:00:00").getDay());
+        const slotCheck = checkOfferSlot({
+          date: data.appointmentDate,
+          time: data.appointmentTime,
+          maxPerSlot: chosenService.maxBookingsPerSlot || 3,
+          blackout,
+          hours,
+          bookedForSlot: await storage.getBookingCountForSlot(chosenService.id, data.appointmentDate, data.appointmentTime),
+        });
+        if (!slotCheck.ok) {
+          return res.status(400).json({
+            message: slotCheck.message,
+            fieldErrors: { appointmentTime: slotCheck.message },
           });
         }
 
@@ -1422,6 +1452,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               amount: DIWALI_OFFER.amountRupees.toFixed(2),
               paymentStatus: "pending",
               razorpayOrderId: order.id,
+              serviceId: chosenService.id,
+              appointmentDate: data.appointmentDate,
+              appointmentTime: data.appointmentTime,
             });
             orderId = order.id;
             console.log(`[diwali-offer] lead ${lead.id} created, order ${orderId}, ₹${DIWALI_OFFER.amountRupees} pending`);
@@ -1448,6 +1481,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             email: data.email,
             vehicleType: data.vehicleType,
             vehicleModel: data.vehicleModel || null,
+            serviceId: chosenService.id,
+            appointmentDate: data.appointmentDate,
+            appointmentTime: data.appointmentTime,
           })) ?? lead;
         }
 

@@ -176,7 +176,8 @@ const post = async (path, body, opts = {}) => {
 };
 
 const customer = (over = {}) => ({
-  name: 'Diwali Customer', email: 'diwali@example.com', phone: '9876543210', vehicleType: 'car', vehicleModel: 'Creta', ...over,
+  name: 'Diwali Customer', email: 'diwali@example.com', phone: '9876543210', vehicleType: 'car', vehicleModel: 'Creta',
+  serviceId: 'svc-normal', appointmentDate: futureDate(), appointmentTime: '11:00', ...over,
 });
 const sign = (orderId, paymentId) => crypto.createHmac('sha256', KEY_SECRET).update(`${orderId}|${paymentId}`).digest('hex');
 const webhook = (event, orderId, paymentId = 'pay_1', { badSig = false } = {}) => {
@@ -190,6 +191,56 @@ const startOrder = async (over = {}) => {
   return r.body;
 };
 const futureDate = () => { const d = new Date(Date.now() + 30 * 864e5); return d.toISOString().slice(0, 10); };
+
+describe('service and slot chosen on the offer form', () => {
+  test('are required: a request without them is refused before any order is made', async () => {
+    for (const drop of ['serviceId', 'appointmentDate', 'appointmentTime']) {
+      const body = customer(); delete body[drop];
+      const r = await post('/api/offers/diwali/order', body);
+      assert.equal(r.status, 400, drop);
+    }
+    assert.deepEqual(charged, []);
+    assert.equal(db.leads.length, 0);
+  });
+
+  test('an unknown or inactive service is refused', async () => {
+    db.services.set('svc-off', { id: 'svc-off', slug: 'off', title: 'Off', price: '1.00', duration: 1, isActive: false, maxBookingsPerSlot: 3 });
+    for (const serviceId of ['svc-missing', 'svc-off']) {
+      const r = await post('/api/offers/diwali/order', customer({ serviceId }));
+      assert.equal(r.status, 400, serviceId);
+      assert.ok(r.body.fieldErrors?.serviceId);
+    }
+    assert.equal(db.leads.length, 0);
+  });
+
+  test('a past date and an impossible time are refused', async () => {
+    const past = await post('/api/offers/diwali/order', customer({ appointmentDate: '2020-01-01' }));
+    assert.equal(past.status, 400);
+    const odd = await post('/api/offers/diwali/order', customer({ appointmentTime: '11:30' }));
+    assert.equal(odd.status, 400);
+    assert.equal(db.leads.length, 0);
+  });
+
+  test('the lead stores the chosen slot, and a retry with another slot updates the same lead', async () => {
+    await startOrder();
+    assert.equal(db.leads[0].serviceId, 'svc-normal');
+    assert.equal(db.leads[0].appointmentTime, '11:00');
+    await startOrder({ appointmentTime: '15:00' });
+    assert.equal(db.leads.length, 1);
+    assert.equal(db.leads[0].appointmentTime, '15:00');
+  });
+
+  test('the paid booking carries the chosen service, date and time', async () => {
+    const { paymentOrder } = await startOrder({ appointmentTime: '16:00' });
+    const r = await post('/api/confirm-payment', { razorpay_order_id: paymentOrder.id, razorpay_payment_id: 'pay_S', razorpay_signature: sign(paymentOrder.id, 'pay_S') });
+    assert.equal(r.status, 200);
+    const b = [...db.bookings.values()].find((x) => x.razorpayOrderId === paymentOrder.id);
+    assert.equal(b.serviceId, 'svc-normal');
+    assert.equal(b.appointmentDate, futureDate());
+    assert.equal(b.appointmentTime, '16:00');
+    assert.equal(b.timeSlotId, '16:00');
+  });
+});
 
 describe('order creation', () => {
   test('charges exactly Rs 99 and stores a pending Diwali lead with its Razorpay order id', async () => {

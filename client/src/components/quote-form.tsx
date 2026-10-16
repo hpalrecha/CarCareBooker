@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { attributionPayload } from "@/lib/attribution";
 import { trackLead } from "@/lib/meta-pixel";
 import { isValidMobile } from "@/lib/phone";
+import OfferSlotPicker from "@/components/offer-slot-picker";
 
 /**
  * "Get your appointment" — the enquiry form for someone not ready to pick a slot online.
@@ -35,6 +36,10 @@ const quoteSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address"),
   vehicleType: z.enum(["car", "bike"]),
   vehicleModel: z.string().trim().max(120).optional(),
+  /** Filled by the slot picker (paid offer form only); required there, absent everywhere else. */
+  serviceId: z.string().optional(),
+  appointmentDate: z.string().optional(),
+  appointmentTime: z.string().optional(),
   /** Honeypot: rendered, hidden from people, filled by form-filling bots. */
   website: z.string().optional(),
 });
@@ -63,9 +68,15 @@ export default function QuoteForm({
   columns = false,
   onSubmitted,
   submitOverride,
+  slotPicker = false,
   footerNote,
   submitLabel,
 }: {
+  /**
+   * Show the service + date + time pickers and require them before submitting. Used by the paid
+   * offer page, so the customer fixes the slot BEFORE the payment window opens.
+   */
+  slotPicker?: boolean;
   /**
    * Replaces the built-in send (POST /api/ppf-leads) with the caller's own. Used by the paid offer
    * page, whose "send" is "create the lead + payment order, then open Razorpay". When set, this form
@@ -79,6 +90,9 @@ export default function QuoteForm({
     vehicleType: "car" | "bike";
     vehicleModel?: string;
     website?: string;
+    serviceId?: string;
+    appointmentDate?: string;
+    appointmentTime?: string;
   }) => Promise<void>;
   /** Button text; defaults to "Book Now". */
   submitLabel?: string;
@@ -111,7 +125,10 @@ export default function QuoteForm({
 
   const form = useForm<QuoteValues>({
     resolver: zodResolver(quoteSchema),
-    defaultValues: { name: "", phone: "", email: "", vehicleType: defaultVehicleType, vehicleModel: "", website: "" },
+    defaultValues: {
+      name: "", phone: "", email: "", vehicleType: defaultVehicleType, vehicleModel: "", website: "",
+      serviceId: "", appointmentDate: "", appointmentTime: "",
+    },
   });
 
   const submit = useMutation({
@@ -187,7 +204,20 @@ export default function QuoteForm({
           cancels the submit event, so zod never runs and our messages never appear. Here
           validation is zod's job, and its messages are the ones people read.
         */}
-        <form onSubmit={form.handleSubmit((v) => submit.mutate(v))} noValidate className={columns ? "mt-4 grid gap-3 sm:grid-cols-2" : "mt-4 space-y-3"}>
+        <form
+          noValidate
+          onSubmit={form.handleSubmit((v) => {
+            if (slotPicker) {
+              const missing = (["serviceId", "appointmentDate", "appointmentTime"] as const).filter((k) => !v[k]);
+              if (missing.length) {
+                const msg = { serviceId: "Select a service", appointmentDate: "Select a date", appointmentTime: "Select a time" };
+                missing.forEach((k) => form.setError(k, { message: msg[k] }));
+                return;
+              }
+            }
+            submit.mutate(v);
+          })}
+          className={columns ? "mt-4 grid gap-3 sm:grid-cols-2" : "mt-4 space-y-3"}>
           <FormField
             control={form.control}
             name="name"
@@ -271,6 +301,29 @@ export default function QuoteForm({
               )}
             />
           </div>
+          {slotPicker && (
+            <div className={columns ? "sm:col-span-2" : undefined}>
+              <OfferSlotPicker
+                testId={`${testId}-slot`}
+                value={{
+                  serviceId: form.watch("serviceId") ?? "",
+                  appointmentDate: form.watch("appointmentDate") ?? "",
+                  appointmentTime: form.watch("appointmentTime") ?? "",
+                }}
+                errors={{
+                  serviceId: form.formState.errors.serviceId?.message,
+                  appointmentDate: form.formState.errors.appointmentDate?.message,
+                  appointmentTime: form.formState.errors.appointmentTime?.message,
+                }}
+                onChange={(next) => {
+                  form.setValue("serviceId", next.serviceId);
+                  form.setValue("appointmentDate", next.appointmentDate);
+                  form.setValue("appointmentTime", next.appointmentTime);
+                  form.clearErrors(["serviceId", "appointmentDate", "appointmentTime"]);
+                }}
+              />
+            </div>
+          )}
           {/* Honeypot. Hidden from people and screen readers, not from form-filling bots,
               which key on name="website". No visible label: page-reading tools reported a
               "Website" field as if customers were being asked for one. */}

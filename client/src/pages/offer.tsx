@@ -35,6 +35,9 @@ type FormValues = {
   vehicleType: "car" | "bike";
   vehicleModel?: string;
   website?: string;
+  serviceId?: string;
+  appointmentDate?: string;
+  appointmentTime?: string;
 };
 
 type PaidState = { paymentId: string; confirmed: boolean };
@@ -94,6 +97,9 @@ export default function OfferPage() {
         phone: values.phone,
         vehicleType: values.vehicleType,
         vehicleModel: values.vehicleModel || null,
+        serviceId: values.serviceId,
+        appointmentDate: values.appointmentDate,
+        appointmentTime: values.appointmentTime,
         website: values.website ?? "",
         ...attributionPayload(),
       }),
@@ -176,7 +182,7 @@ export default function OfferPage() {
                   </strong>
                 </p>
                 <p className="gl-fest-lead">
-                  We'll call you to confirm the date and time for your PPF installation, and your free dash cam, sun film, sound damping and ceramic coating.
+                  Your slot is booked for the service, date and time you chose. We'll call you to confirm, and to arrange your free dash cam, sun film, sound damping and ceramic coating.
                 </p>
                 {!paid.confirmed && (
                   <p className="gl-fest-slot">
@@ -204,7 +210,8 @@ export default function OfferPage() {
                     serviceTitle="the De Dhana Dhan offer"
                     serviceInterest="ppf"
                     heading="Book your slot for ₹99"
-                    subheading="Enter your details, then pay ₹99 by UPI, card or net banking to hold your slot."
+                    subheading="Enter your details and choose your service, date and time. Then pay ₹99 by UPI, card or net banking to hold your slot."
+                    slotPicker
                     testId="offer-quote"
                     submitLabel="Pay ₹99 & book my slot"
                     footerNote="Secure payment by Razorpay. Terms and conditions apply. Valid till 8 November 2026."

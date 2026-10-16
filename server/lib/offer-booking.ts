@@ -8,7 +8,8 @@ import { DIWALI_OFFER } from "./diwali-offer";
  *
  * The lead row is kept: it is still the record of the form the customer filled in.
  *
- * What a booking needs that an offer lead does not have is filled with neutral placeholders:
+ * The service, date and time are the ones the customer picked on the offer form (stored on the lead).
+ * A lead made before the slot picker existed has none of them, and gets neutral placeholders:
  *   serviceId   a hidden (inactive) service, so the Bookings tab can name what was bought
  *   timeSlotId  no foreign key on this column; "offer-pending" marks "no slot chosen yet"
  *   date/time   null. The studio calls the customer and sets them afterwards.
@@ -68,12 +69,14 @@ export function ensureOfferBooking(
   const job = (async () => {
     const existing = await storage.getBookingByPaymentOrderId(orderId);
     if (existing) return existing;
-    const serviceId = await ensureOfferService(storage);
+    const hasSlot = !!(lead.serviceId && lead.appointmentDate && lead.appointmentTime);
+    const serviceId = hasSlot ? lead.serviceId! : await ensureOfferService(storage);
     return storage.createBooking({
       serviceId,
-      timeSlotId: OFFER_TIME_SLOT_ID,
-      appointmentDate: null,
-      appointmentTime: null,
+      // Bookings store the hour string ("16:00") as the slot id, as the normal booking flow does.
+      timeSlotId: hasSlot ? lead.appointmentTime! : OFFER_TIME_SLOT_ID,
+      appointmentDate: hasSlot ? lead.appointmentDate : null,
+      appointmentTime: hasSlot ? lead.appointmentTime : null,
       customerName: lead.name,
       customerEmail: lead.email,
       customerPhone: lead.phone,

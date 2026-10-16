@@ -34,6 +34,12 @@ interface BookingCalendarProps {
   businessHours: BusinessHour[];
 }
 
+/**
+ * Seven equal columns. Inline, not the Tailwind `grid grid-cols-7`: on the public redesign pages
+ * (.p91x) a generic `.p91x .grid` rule outranks the utility and collapses it to one column on phones.
+ */
+const WEEK_GRID = { display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: 4 } as const;
+
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 /** Today in IST as YYYY-MM-DD. getUTC* after shifting avoids a double offset for
@@ -122,7 +128,7 @@ export default function BookingCalendar({
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 mb-1" aria-hidden="true">
+      <div className="mb-1" style={WEEK_GRID} aria-hidden="true">
         {WEEKDAY_LABELS.map((d) => (
           <div key={d} className="text-center text-[11px] font-semibold uppercase tracking-wide text-[var(--txt-3)] py-1">
             {d.slice(0, 1)}
@@ -130,7 +136,7 @@ export default function BookingCalendar({
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-1" role="grid" aria-label="Choose an appointment date">
+      <div style={WEEK_GRID} role="grid" aria-label="Choose an appointment date">
         {Array.from({ length: leadingBlanks }).map((_, i) => (
           <div key={`blank-${i}`} />
         ))}

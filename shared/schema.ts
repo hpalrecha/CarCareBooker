@@ -389,6 +389,13 @@ export const ppfLeads = pgTable("ppf_leads", {
   razorpayOrderId: varchar("razorpay_order_id"),
   paymentId: varchar("payment_id"),
   paymentVerifiedAt: timestamp("payment_verified_at"),
+
+  // --- The service and slot the customer picked on the offer form (added 2026-10-16; nullable) ---
+  // Validated by the server before the order is created. Null on every ordinary lead and on offer
+  // leads made before the slot picker existed, which the studio schedules by phone.
+  serviceId: varchar("service_id"),
+  appointmentDate: varchar("appointment_date"),   // YYYY-MM-DD
+  appointmentTime: varchar("appointment_time"),   // HH:MM, an hourly slot id
 });
 
 // Schema types
@@ -527,6 +534,9 @@ export const insertPpfLeadSchema = insertPpfLeadWithPaymentSchema.omit({
   razorpayOrderId: true,
   paymentId: true,
   paymentVerifiedAt: true,
+  serviceId: true,
+  appointmentDate: true,
+  appointmentTime: true,
 });
 
 export const insertBusinessHourSchema = createInsertSchema(businessHours).omit({
