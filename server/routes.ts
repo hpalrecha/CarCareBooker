@@ -497,6 +497,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ),
       ];
 
+      // Crawlers still read a noindex sitemap; this only stops Search Console listing the
+      // sitemap file itself under "Crawled - currently not indexed" as if it were a page.
+      res.setHeader("X-Robots-Tag", "noindex");
       res.type("application/xml").send(
         `<?xml version="1.0" encoding="UTF-8"?>\n` +
           `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`,
