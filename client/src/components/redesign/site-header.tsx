@@ -218,8 +218,12 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
                   </svg>
                 </button>
 
-                {openMenu === menu.key && (
-                  <div
+                {/* Always in the DOM, hidden until opened. Googlebot renders the page but never
+                    hovers or clicks, so a panel mounted only while open hid every link in it:
+                    Search Console found "Referring page: None detected" for the service pages
+                    and 0 internal links site-wide (2026-10-16). */}
+                <div
+                    hidden={openMenu !== menu.key}
                     className={"mega-panel " + (menu.key === "resources" ? "align-right" : "align-left") + (menu.key === "services" ? " mega-wide" : "")}
                     data-testid={`panel-nav-${menu.key}`}
                   >
@@ -309,7 +313,6 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
                       </div>
                     )}
                   </div>
-                )}
               </div>
             ))}
             <Link href="/gallery" className="nav-plain" onClick={closeEverything} data-testid="link-nav-gallery">
@@ -336,8 +339,9 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
                     <path d="m6 9 6 6 6-6" />
                   </svg>
                 </button>
-                {mobileSection === menu.key && (
-                  <div className="m-panel">
+                {/* Always in the DOM for the same reason as the desktop panel: Googlebot
+                    crawls as a smartphone and never opens this accordion. */}
+                <div className="m-panel" hidden={mobileSection !== menu.key}>
                     {menu.key === "services" &&
                       SERVICES_COLUMNS.map((col) => (
                         <div className="m-group" key={col.heading}>
@@ -370,7 +374,6 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
                       </div>
                     )}
                   </div>
-                )}
               </div>
             ))}
             <Link href="/gallery" onClick={closeEverything} data-testid="link-nav-gallery-mobile">Gallery</Link>

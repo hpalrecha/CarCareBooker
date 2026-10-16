@@ -150,6 +150,11 @@
   .p91x .mega-panel { animation: p91-panel-in .16s ease-out both; }
 }
 .p91x .mega-panel.align-left { left: 0; }
+/* The panels stay mounted (site-header.tsx: crawlers must see the links) and are shown and
+   hidden with the `hidden` attribute. These rules set `display`, which would beat the UA's
+   [hidden] { display: none }, so restate it. Going from display:none to shown restarts the
+   enter animation, the same as the old mount did. */
+.p91x .mega-panel[hidden], .p91x .m-panel[hidden] { display: none; }
 /* Hover bridge that survives the panel now hanging off the nav row rather than the trigger: a
    14px invisible strip above the panel, still a descendant of .nav-item, so moving the pointer
    from the trigger down into the panel never fires mouseleave. */
