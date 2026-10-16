@@ -342,6 +342,27 @@ export default function SeoServicePage() {
         );
       })()}
 
+      {/* Every option as a plain link. The tabs above show one option at a time, so without this a
+          visitor (or a crawler) sees a link to only one of the pages at once. */}
+      {priceRows.length > 1 && (
+        <section className="section" id="all-options" data-testid="section-all-options">
+          <div className="wrap">
+            <div className="section-head">
+              <h2>All {page.crumb} options</h2>
+            </div>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 12 }}>
+              {priceRows.map((s) => (
+                <li key={s.id}>
+                  <Link href={`/service/${s.slug}`} style={{ color: "#4ade80" }} data-testid={`link-option-${s.slug}`}>
+                    {s.title.trim()}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
       {/* Trust strip + photo collage — XPEL layout, by request, replacing the old plain
           "What the service includes" bullet list and the context article below. Real
           content either way: the strip's three items are the page's own page.includes

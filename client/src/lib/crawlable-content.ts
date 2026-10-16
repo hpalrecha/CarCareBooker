@@ -237,9 +237,33 @@ export function homePageContent(page: StaticSeoPage): string {
   );
 }
 
+/**
+ * Titles of the catalogue rows the guide pages list, for the "all options" links below. The
+ * guide pages are baked at build time with no database, so the names are listed here; a slug
+ * missing from this map is simply not linked in the snapshot (the live page links every row
+ * that exists). Keep in step with the service titles in the admin panel.
+ */
+const GUIDE_OPTION_TITLES: Record<string, string> = {
+  "1-year-ceramic-coating": "1 Year Ceramic Coating",
+  "1-year-bike-ceramic-coating": "1 Year Bike Ceramic Coating",
+  "windshield-glass-coating-new": "Windshield Glass Coating",
+  "windshield-glass-polishing": "Windshield Glass Polishing",
+  "ppf-hatchback": "P91 PPF Basic - Hatchback",
+  "ppf-sedan": "P91 PPF Basic - Sedan",
+  "ppf-suv": "P91 PPF Basic - SUV",
+  "ppf-premium-hatchback": "P91 PPF Premium - Hatchback",
+  "ppf-premium-sedan": "P91 PPF Premium - Sedan",
+  "ppf-premium-suv": "P91 PPF Premium - SUV",
+  "interior-detailing-service": "Interior Rejuvenation Service",
+};
+
 /** /services/:slug — the local guide pages (lib/seo-pages.ts). */
 export function seoGuideContent(page: SeoPage): string {
   const ctx = page.context;
+  const options = (page.priceServiceSlugs || [])
+    .filter((slug) => GUIDE_OPTION_TITLES[slug])
+    .map((slug) => `<li><a href="/service/${e(slug)}" style="color:#4ade80">${e(GUIDE_OPTION_TITLES[slug])}</a></li>`)
+    .join("");
   return shell(
     h1(page.h1) +
       p(page.lede) +
@@ -248,6 +272,7 @@ export function seoGuideContent(page: SeoPage): string {
       h2(ctx.heading) +
       (ctx.paragraphs || []).map(p).join("") +
       ul(ctx.bullets || []) +
+      (options ? h2(`All ${page.crumb} options`) + `<ul>${options}</ul>` : "") +
       (page.faqs?.length ? h2("Frequently asked") + faqList(page.faqs) : ""),
   );
 }

@@ -291,6 +291,15 @@ describe('prerender and server wiring', () => {
     assert.match(script, /<h1> tags in the HTML — expected exactly 1/);
   });
 
+  test('each guide page links every catalogue option it lists, so no service page hangs off one link', () => {
+    const ppf = m.SEO_PAGES.find((x) => x.slug === 'paint-protection-film-bangalore');
+    const html = m.seoGuideContent(ppf);
+    for (const slug of ['ppf-hatchback', 'ppf-sedan', 'ppf-suv', 'ppf-premium-hatchback', 'ppf-premium-sedan', 'ppf-premium-suv']) {
+      assert.ok(html.includes('href="/service/' + slug + '"'), 'missing link to ' + slug);
+    }
+    assert.ok(!html.includes('partial-ppf'), 'must not link slugs that are not in the catalogue');
+  });
+
   test('/service/:slug and /services are filled from the database per request, with a safe fallback', () => {
     assert.match(vite, /injectRootContent\(\s*fs\.readFileSync\(appShell, "utf8"\)[\s\S]*?servicePageContent\(service/);
     assert.match(vite, /servicesListContent\(SERVICES_SEO, services/);
