@@ -76,7 +76,9 @@ export interface BookingWebhookPayload {
   emailSent: boolean;
 
   // Event Type
-  eventType: 'booking_payment_confirmed';
+  eventType: 'booking_payment_confirmed' | 'offer_payment_confirmed';
+  /** Set for offer bookings so n8n can upsert the existing ERP lead by phone instead of adding a new one. */
+  source?: string;
 }
 
 /** +919886682013 -> +91******2013 */
@@ -153,7 +155,8 @@ export function buildBookingWebhookPayload(
     whatsappSent: booking.whatsappSent || false,
     emailSent: booking.emailSent || false,
 
-    eventType: 'booking_payment_confirmed',
+    eventType: booking.source === 'diwali_offer' ? 'offer_payment_confirmed' : 'booking_payment_confirmed',
+    source: booking.source || undefined,
   };
 }
 

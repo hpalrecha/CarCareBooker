@@ -17,6 +17,7 @@ import { whatsappService } from "./services/whatsapp";
 import { schedulerService } from "./services/scheduler";
 import { sendBookingConfirmationEmail } from "./services/email";
 import { sendBookingWebhook } from "./services/webhook";
+import { ensureOfferBooking } from "./lib/offer-booking";
 import { sendLeadToSheet } from "./services/lead-sheet";
 import { computeAvailability, generateHourlySlots, istNow } from "./lib/slots";
 import { validateAppointmentSlot } from "./lib/booking-validation";
@@ -1291,15 +1292,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
    * The amount is DIWALI_OFFER.amountRupees, a server constant. Nothing in the request can
    * change it, and it is deliberately not read from site_settings.booking_amount.
    *
-   * No WhatsApp and no ERP sync for these leads (they are not bookings): the studio sees the
-   * paid lead in the admin Leads tab.
+   * No WhatsApp for these leads. Once paid, a lead also becomes a booking (ensureOfferBooking) so the
+   * studio sees it in the admin Bookings tab, and it is pushed to ERP like any paid booking.
    * ─────────────────────────────────────────────────────────────────────────────────
    */
   const markLeadPaid = async (lead: { id: string }, paymentId: string) => {
     // One conditional UPDATE in storage: a replay, a webhook/browser race, or a stale read cannot
     // rewrite an already-paid lead.
-    const { changed } = await storage.markPpfLeadPaid(lead.id, paymentId);
+    const { lead: paidLead, changed } = await storage.markPpfLeadPaid(lead.id, paymentId);
     if (changed) console.log(`✅ Offer lead ${lead.id} marked paid`);
+    // The paid lead also becomes a booking (admin Bookings tab) and is pushed to ERP. Runs on a replay
+    // too, so a failure on the first delivery is repaired by the next one; both steps are idempotent.
+    // Never throws: a captured payment must not turn into an error because of this.
+    if (paidLead?.paymentStatus === "paid") {
+      try {
+        const booking = await ensureOfferBooking(storage, paidLead);
+        await syncBookingToErp(booking.id);
+      } catch (err) {
+        console.error(`❌ Offer lead ${lead.id}: booking/ERP step failed:`, err instanceof Error ? err.message : err);
+      }
+    }
     return { alreadyPaid: !changed };
   };
 

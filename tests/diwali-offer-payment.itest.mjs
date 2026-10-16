@@ -36,6 +36,12 @@ let seq = 0;
 
 const storage = {
   getService: async (id) => db.services.get(id),
+  getServiceBySlug: async (slug) => [...db.services.values()].find((x) => x.slug === slug),
+  createService: async (v) => {
+    const row = { id: 'svc_' + ++seq, ...v };
+    db.services.set(row.id, row);
+    return row;
+  },
   getAllBlackoutDates: async () => [],
   getBusinessHoursForDay: async () => ({ dayOfWeek: 0, dayName: 'Day', isOpen: true, openTime: '00:00', cutoffTime: '23:59' }),
   getBookingCountForSlot: async () => 0,
@@ -361,7 +367,7 @@ describe('order creation', () => {
 });
 
 describe('confirm-payment (existing endpoint) for an offer lead', () => {
-  test('a valid signature marks the lead paid; no WhatsApp, no ERP; idempotent', async () => {
+  test('a valid signature marks the lead paid and creates ONE booking + ERP push; no WhatsApp; idempotent', async () => {
     const { paymentOrder } = await startOrder();
     const body = { razorpay_order_id: paymentOrder.id, razorpay_payment_id: 'pay_A', razorpay_signature: sign(paymentOrder.id, 'pay_A') };
     const r = await post('/api/confirm-payment', body);
@@ -373,14 +379,21 @@ describe('confirm-payment (existing endpoint) for an offer lead', () => {
     assert.equal(lead.paymentId, 'pay_A');
     assert.ok(lead.paymentVerifiedAt instanceof Date);
     assert.equal(notes.whatsapp, 0, 'no WhatsApp for offer leads');
-    assert.equal(notes.erp, 0, 'no ERP sync for offer leads');
+    assert.equal(notes.erp, 1, 'the paid offer lead is pushed to ERP once');
+    const offerBookings = [...db.bookings.values()].filter((b) => b.razorpayOrderId === paymentOrder.id);
+    assert.equal(offerBookings.length, 1, 'exactly one booking for the paid lead');
+    assert.equal(offerBookings[0].paymentStatus, 'paid');
+    assert.equal(offerBookings[0].source, 'diwali_offer');
+    assert.equal(offerBookings[0].customerPhone, lead.phone);
+    assert.equal(offerBookings[0].erpSyncStatus, 'synced');
 
     const again = await post('/api/confirm-payment', body);
     assert.equal(again.status, 200);
     assert.equal(again.body.alreadyConfirmed, true);
     assert.equal(db.leads.length, 1);
     assert.equal(notes.whatsapp, 0);
-    assert.equal(notes.erp, 0);
+    assert.equal(notes.erp, 1, 'a replay does not push to ERP again');
+    assert.equal([...db.bookings.values()].filter((b) => b.razorpayOrderId === paymentOrder.id).length, 1);
   });
 
   test('a stale read cannot re-pay or rewrite an already-paid lead either', async () => {
@@ -410,7 +423,7 @@ describe('confirm-payment (existing endpoint) for an offer lead', () => {
 });
 
 describe('Razorpay webhook for an offer lead', () => {
-  test('payment.captured marks it paid; a replay changes nothing; no WhatsApp/ERP', async () => {
+  test('payment.captured marks it paid and books it once; a replay changes nothing; no WhatsApp', async () => {
     const { paymentOrder } = await startOrder();
     const r = await webhook('payment.captured', paymentOrder.id, 'pay_W');
     assert.equal(r.status, 200);
@@ -422,7 +435,8 @@ describe('Razorpay webhook for an offer lead', () => {
     assert.equal(replay.status, 200);
     assert.equal(db.leads[0].paymentVerifiedAt, verifiedAt, 'replay must not rewrite the verified time');
     assert.equal(notes.whatsapp, 0);
-    assert.equal(notes.erp, 0);
+    assert.equal(notes.erp, 1);
+    assert.equal([...db.bookings.values()].filter((b) => b.razorpayOrderId === paymentOrder.id).length, 1);
   });
 
   test('a badly signed webhook is rejected and changes nothing', async () => {
@@ -680,7 +694,8 @@ describe('Razorpay webhook: signature validation and idempotency', () => {
     for (let i = 0; i < 4; i++) assert.equal((await send(raw, headers)).status, 200);
     assert.equal(JSON.stringify(db.leads[0]), snapshot, 'row byte-for-byte identical after replays');
     assert.equal(db.leads.length, 1);
-    assert.equal(notes.whatsapp + notes.erp, 0);
+    assert.equal(notes.whatsapp, 0);
+    assert.equal(notes.erp, 1, 'replays push to ERP only once');
   });
 
   test('payment.failed is idempotent, and never rewrites a paid lead', async () => {
