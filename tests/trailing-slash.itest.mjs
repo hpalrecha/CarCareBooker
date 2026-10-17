@@ -60,3 +60,20 @@ test("a leading double slash cannot redirect off-site", async () => {
     server.close();
   }
 });
+
+test("foreign spam slugs with a trailing slash answer 410 directly, not a 301", async () => {
+  const { server, port } = await start();
+  try {
+    for (const p of [
+      "/PIZARRA-DE-DIBUJO-12-quot-KOOME-692765/",
+      "/Pared-Paneles-Laterales-Para-Cenador-Outsunny-2-Piezas-3x3m-3x6m-125889/",
+      "/PABLOSKY-Baby-022820-K-Navy-Mau-Feitio-767381/",
+    ]) {
+      assert.equal((await request(port, p)).status, 410, p);
+    }
+    assert.equal((await request(port, "/ppf/")).status, 301);
+    assert.equal((await request(port, "/some-page-12345/")).status, 301);
+  } finally {
+    server.close();
+  }
+});
