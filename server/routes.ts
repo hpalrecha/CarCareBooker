@@ -1135,7 +1135,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/ppf-leads", authenticateAdmin, async (req, res) => {
     try {
       const leads = await storage.getAllPpfLeads();
-      res.json(leads);
+      // Offer leads carry the service the customer picked; name it so the admin list does not fall
+      // back to the generic "PPF" interest the form files every offer lead under.
+      const titles = new Map((await storage.getAllServicesAdmin()).map((s) => [s.id, s.title]));
+      res.json(leads.map((l) => ({ ...l, serviceTitle: l.serviceId ? titles.get(l.serviceId) ?? null : null })));
     } catch (error) {
       console.error("Get PPF leads error:", error);
       res.status(500).json({ message: "Failed to fetch PPF leads" });

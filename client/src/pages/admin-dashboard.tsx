@@ -800,8 +800,22 @@ function PpfLeadsTab() {
                         <div className="text-xs text-gray-400">{lead.email}</div>
                       </TableCell>
                       <TableCell className="text-gray-300 capitalize">{lead.vehicleType}</TableCell>
-                      <TableCell className="text-gray-300 capitalize">
-                        {lead.serviceInterest === "both" ? "PPF + Ceramic" : lead.serviceInterest.toUpperCase()}
+                      <TableCell className="text-gray-300" data-testid={`lead-interest-${lead.id}`}>
+                        {lead.serviceTitle ? (
+                          <div className="max-w-[200px] whitespace-normal">
+                            <div className="font-medium text-white">{lead.serviceTitle}</div>
+                            {lead.appointmentDate && (
+                              <div className="text-xs text-gray-400">
+                                {lead.appointmentDate}
+                                {lead.appointmentTime ? ` · ${lead.appointmentTime}` : ""}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="capitalize">
+                            {lead.serviceInterest === "both" ? "PPF + Ceramic" : lead.serviceInterest.toUpperCase()}
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Badge className={lead.source === "diwali_offer" ? "bg-amber-900 text-amber-200" : lead.source === "exit_intent" ? "bg-purple-900 text-purple-300" : "bg-blue-900 text-blue-300"}>
