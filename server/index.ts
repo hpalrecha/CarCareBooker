@@ -3,6 +3,7 @@ import compression from "compression";
 import { registerRoutes } from "./routes";
 import { securityHeaders } from "./middleware/security-headers";
 import { stripTrailingSlash } from "./middleware/trailing-slash";
+import { goneForSpamPaths } from "./middleware/gone-paths";
 import { canonicalHost } from "./middleware/canonical-host";
 import { setupVite, serveStatic, log } from "./vite";
 import { schedulerService } from "./services/scheduler";
@@ -26,6 +27,10 @@ app.disable("x-powered-by");
 // https target, never matches localhost — no downgrade and no loop. See
 // server/middleware/canonical-host.ts.
 app.use(canonicalHost);
+
+// Spam URLs from the domain's previous owner -> 410 Gone + X-Robots-Tag: noindex, slash or not.
+// See server/middleware/gone-paths.ts.
+app.use(goneForSpamPaths);
 
 // /page/ -> /page (301). Canonicals and the sitemap use the no-slash form.
 app.use(stripTrailingSlash);
