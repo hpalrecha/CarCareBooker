@@ -259,16 +259,32 @@ export function serveStatic(app: Express, distPathOverride?: string) {
    * ─────────────────────────────────────────────────────────────────────────────────────
    */
   app.get("/service/:slug", async (req, res, next) => {
-    try {
-      const appShell = path.resolve(distPath, "app.html");
-      if (!fs.existsSync(appShell)) return next();
+    // A failure on OUR side (database down, schema mismatch, a deploy missing app.html) must
+    // not be answered like a missing page. Falling through to the catch-all served 404.html —
+    // HTTP 404 with `noindex, follow` — so one transient DB error told Googlebot a real,
+    // sitemap-listed service page was gone and must not be indexed. 503 + Retry-After is the
+    // documented "temporary, come back later" signal: Google retries and keeps the URL indexed.
+    // (Not the bare app shell at 200: it has no title, canonical or content, so a crawl of it
+    // would replace the page's indexed metadata with an empty one.)
+    const unavailable = (reason: string, error?: unknown) => {
+      console.error(`service page ${req.params.slug}: ${reason}`, error ?? "");
+      return res
+        .status(503)
+        .set({ "Retry-After": "120", "Cache-Control": "no-store" })
+        .type("text/plain")
+        .send("Service temporarily unavailable. Please retry shortly.");
+    };
 
+    try {
       const { storage } = await import("./storage");
       const service = await storage.getServiceBySlug(req.params.slug);
 
       // Unknown or retired slug: NOT a valid route. Fall through to the noindex 404 —
       // making these indexable would be a far worse problem than the one being fixed.
       if (!service || !service.isActive) return next();
+
+      const appShell = path.resolve(distPath, "app.html");
+      if (!fs.existsSync(appShell)) return unavailable("dist/public/app.html is missing from the build");
 
       const origin = process.env.PUBLIC_SITE_ORIGIN || "https://p91carcare.com";
       const title = serviceSeoTitle(service);
@@ -322,10 +338,9 @@ export function serveStatic(app: Express, distPathOverride?: string) {
       );
       return res.type("html").send(html);
     } catch (error) {
-      // A database hiccup must not turn a real page into a 404. Fall through to the SPA
-      // shell path, which still renders correctly for humans.
-      console.error("service page metadata injection failed:", error);
-      return next();
+      // A database hiccup must not turn a real page into a 404 + noindex. We cannot tell
+      // whether the slug exists, so say "temporarily unavailable" rather than "not found".
+      return unavailable("lookup/render failed", error);
     }
   });
 
