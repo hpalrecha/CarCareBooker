@@ -45,3 +45,4 @@ export {
 export { homeFaqSchema } from "@/lib/home-faq";
 export { localBusinessSchema } from "@/lib/local-business";
 export { festivalOfferSchema } from "@/lib/offer-schema";
+export { canonicalPathFor } from "@/lib/canonical-overrides";

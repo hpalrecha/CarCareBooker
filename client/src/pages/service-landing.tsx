@@ -14,6 +14,7 @@ import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canonical-services";
+import { serviceCanonicalPath } from "@/lib/canonical-overrides";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
 import { deriveCategory, deriveVehicle } from "@/lib/service-taxonomy";
 import { formatServiceTime } from "@/lib/service-time";
@@ -1344,7 +1345,9 @@ function ServiceSeo({ service }: { service: Service }) {
     title: serviceSeoTitle(service),
     description: serviceSeoDescription(service),
     image: resolveServiceImage(service),
-    canonicalPath: `/service/${service.slug}`,
+    // Consolidated variants point at their campaign page (client/src/lib/canonical-overrides.ts),
+    // matching the server-rendered head, so hydration never flips it back to a self-canonical.
+    canonicalPath: serviceCanonicalPath(service.slug),
     structuredData: serviceStructuredData(service, { origin, businessHours }),
   });
   return null;

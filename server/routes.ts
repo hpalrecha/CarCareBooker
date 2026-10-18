@@ -9,6 +9,7 @@ import fs from "fs";
 import crypto from "crypto";
 import { storage } from "./storage";
 import { buildLlmsTxt } from "../client/src/lib/llms-txt";
+import { isConsolidatedServiceSlug } from "../client/src/lib/canonical-overrides";
 import { SlotFullError } from "./storage";
 import { authenticateAdmin, hashPassword, comparePassword } from "./middleware/auth";
 import { createPaymentOrder, verifyPaymentSignature } from "./services/payment";
@@ -487,6 +488,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ),
         ...services
           .filter((s: any) => typeof s.slug === "string" && s.slug.trim() !== "")
+          // A sitemap lists canonical URLs only. The PPF size variants and the two ceramic
+          // records canonicalise to their campaign page (listed above), so they stay
+          // reachable and bookable but are not offered here as pages of their own.
+          // See client/src/lib/canonical-overrides.ts.
+          .filter((s: any) => !isConsolidatedServiceSlug(s.slug))
           .map(
             (s: any) =>
               `  <url>\n    <loc>${escape(`${origin}/service/${s.slug}`)}</loc>\n` +

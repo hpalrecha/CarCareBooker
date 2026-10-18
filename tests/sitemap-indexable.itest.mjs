@@ -42,7 +42,18 @@ const SERVICE_SLUGS = [
   "interior-detailing-service", "partial-ppf-hatchback", "partial-ppf-sedan",
   "partial-ppf-suv", "ppf-hatchback", "ppf-sedan", "ppf-suv", "stek-suncontrol-films",
   "stek-windsheild-suncontrol-films", "windshield-glass-coating-new", "windshield-glass-polishing",
+  // Added with the canonical consolidation (client/src/lib/canonical-overrides.ts) so the
+  // sitemap-exclusion test below sees all eight consolidated slugs, plus one that must stay.
+  "ppf-premium-hatchback", "ppf-premium-sedan", "ppf-premium-suv", "premium-car-wash-special",
 ];
+
+/** Consolidated slug -> the canonical it must declare. Mirrors CANONICAL_OVERRIDES. */
+const CONSOLIDATED = {
+  "ppf-hatchback": "/ppf", "ppf-sedan": "/ppf", "ppf-suv": "/ppf",
+  "ppf-premium-hatchback": "/ppf", "ppf-premium-sedan": "/ppf", "ppf-premium-suv": "/ppf",
+  "1-year-ceramic-coating": "/ceramic-coating/car",
+  "1-year-bike-ceramic-coating": "/ceramic-coating/bike",
+};
 
 const services = SERVICE_SLUGS.map((slug, i) => ({
   id: "svc-" + i, slug,
@@ -245,19 +256,51 @@ describe("served HTML: every sitemap URL is indexable, and only those", { skip: 
     );
   });
 
-  test("each /service/:slug carries its own title, canonical and Service schema", async () => {
-    for (const slug of ["1-year-ceramic-coating", "ppf-suv", "windshield-glass-polishing"]) {
+  // This used to check 1-year-ceramic-coating and ppf-suv for a SELF-canonical. Both are now
+  // consolidated near-duplicates whose canonical is their campaign page (next test), so the
+  // self-canonical check uses slugs that are not in CANONICAL_OVERRIDES.
+  test("each non-consolidated /service/:slug carries its own title, canonical and Service schema", async () => {
+    for (const slug of ["windshield-glass-polishing", "car-polishing", "premium-car-wash-special"]) {
       const r = await get(`/service/${slug}`);
       assert.equal(r.status, 200, slug);
       assert.ok(!isNoindex(r.html), `${slug} must not be noindex`);
       assert.ok(!isNotFound(r.html), `${slug} must not be the 404 shell`);
       assert.match(r.html, new RegExp(`<link rel="canonical" href="https://p91carcare\\.com/service/${slug}"`), slug);
+      assert.match(r.html, new RegExp(`<meta property="og:url" content="https://p91carcare\\.com/service/${slug}"`), slug);
       assert.match(r.html, /"@type":"Service"/, `${slug} needs Service schema`);
       assert.match(r.html, /<meta property="og:title"/, slug);
       // Exactly one of each — the prerender shell must not also be contributing one.
       assert.equal((r.html.match(/<title>/g) || []).length, 1, `${slug}: one title`);
       assert.equal((r.html.match(/<link rel="canonical"/g) || []).length, 1, `${slug}: one canonical`);
       assert.equal((r.html.match(/<meta property="og:title"/g) || []).length, 1, `${slug}: one og:title`);
+    }
+  });
+
+  test("each consolidated /service/:slug is still a working page, canonicalised to its campaign page", async () => {
+    for (const [slug, target] of Object.entries(CONSOLIDATED)) {
+      const r = await get(`/service/${slug}`);
+      // No redirect, no noindex: ads and booking links to these URLs must keep working.
+      assert.equal(r.status, 200, slug);
+      assert.ok(!isNoindex(r.html), `${slug} must not be noindex`);
+      assert.ok(!isNotFound(r.html), `${slug} must not be the 404 shell`);
+      assert.match(r.html, /"@type":"Service"/, `${slug} keeps its Service schema`);
+      const canon = [...r.html.matchAll(/<link rel="canonical" href="([^"]+)"/g)].map((m) => m[1]);
+      assert.deepEqual(canon, [`https://p91carcare.com${target}`], `${slug}: exactly one canonical, -> ${target}`);
+      const ogUrl = [...r.html.matchAll(/<meta property="og:url" content="([^"]+)"/g)].map((m) => m[1]);
+      assert.deepEqual(ogUrl, [`https://p91carcare.com${target}`], `${slug}: og:url matches the canonical`);
+    }
+  });
+
+  test("the sitemap leaves out exactly the eight consolidated /service/ URLs", async () => {
+    const sitemap = await get("/sitemap.xml");
+    const listed = [...sitemap.html.matchAll(/<loc>https:\/\/p91carcare\.com\/service\/([^<]+)<\/loc>/g)].map((m) => m[1]);
+    const expected = SERVICE_SLUGS.filter((s) => !(s in CONSOLIDATED));
+    assert.deepEqual([...listed].sort(), [...expected].sort());
+    assert.equal(SERVICE_SLUGS.length - listed.length, 8, "exactly eight excluded");
+    assert.ok(listed.includes("premium-car-wash-special"), "premium-car-wash-special stays listed");
+    // The canonical targets themselves are listed.
+    for (const p of ["/ppf", "/ceramic-coating/car", "/ceramic-coating/bike"]) {
+      assert.ok(sitemap.html.includes(`<loc>https://p91carcare.com${p}</loc>`), `${p} listed`);
     }
   });
 

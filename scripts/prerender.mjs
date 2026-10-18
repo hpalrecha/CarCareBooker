@@ -106,8 +106,11 @@ async function loadContent() {
   }
 }
 
-function headFor(route) {
-  const canonical = ORIGIN + route.path;
+function headFor(route, canonicalPathFor) {
+  // Through client/src/lib/canonical-overrides.ts, the same map server/vite.ts and the
+  // client use, so a consolidated /service/ variant can never be baked self-canonical.
+  // Today no /service/ route is prerendered (they need the database), so this is a guard.
+  const canonical = ORIGIN + canonicalPathFor(route.path);
   // encodeURI: a path with spaces or brackets is not a valid URL for every crawler.
   const image = ORIGIN + encodeURI(route.image || OG_IMAGE);
   const tags = [
@@ -148,6 +151,7 @@ async function main() {
   if (!/<\/head>/i.test(shell)) die("the built index.html has no </head> to inject into");
 
   const content = await loadContent();
+  if (typeof content.canonicalPathFor !== "function") die("canonicalPathFor missing from the content bundle");
   const { BLOG_POSTS, SEO_PAGES, LANDING_PAGES, BLOG_INDEX_TITLE, BLOG_INDEX_DESCRIPTION } = content;
   if (!Array.isArray(BLOG_POSTS) || !BLOG_POSTS.length) die("BLOG_POSTS is empty");
   if (!Array.isArray(SEO_PAGES) || !SEO_PAGES.length) die("SEO_PAGES is empty");
@@ -351,7 +355,7 @@ async function main() {
   for (const route of routes) {
     if (!route.content) die(`${route.path}: no crawlable content built`);
     const html = content.injectRootContent(
-      stripped.replace(/<\/head>/i, headFor(route) + "\n  </head>"),
+      stripped.replace(/<\/head>/i, headFor(route, content.canonicalPathFor) + "\n  </head>"),
       route.content,
     );
 

@@ -23,6 +23,7 @@ import { SERVICES_SEO } from "../client/src/lib/static-seo";
 import { isSpamProductPath } from "./lib/spam-paths";
 import { BRAND_PAGES } from "../client/src/lib/brand-pages";
 import { LANDING_PAGES } from "../client/src/lib/landing-pages";
+import { serviceCanonicalPath } from "../client/src/lib/canonical-overrides";
 
 const viteLogger = createLogger();
 
@@ -289,7 +290,10 @@ export function serveStatic(app: Express, distPathOverride?: string) {
       const origin = process.env.PUBLIC_SITE_ORIGIN || "https://p91carcare.com";
       const title = serviceSeoTitle(service);
       const description = serviceSeoDescription(service);
-      const canonical = `${origin}/service/${service.slug}`;
+      // Consolidated near-duplicates (PPF size variants, the two ceramic records) name their
+      // campaign page as canonical; every other slug is its own. Shared with the client and
+      // the sitemap — see client/src/lib/canonical-overrides.ts.
+      const canonical = `${origin}${serviceCanonicalPath(service.slug)}`;
       const images = Array.isArray(service.images) ? service.images : [];
       const rawImage = typeof images[0] === "string" && images[0].trim() ? images[0] : null;
       const image = rawImage

@@ -79,16 +79,22 @@ export function useSeoMeta({ title, description, image, structuredData, canonica
       setMeta("property", "og:image", absolute);
       setMeta("name", "twitter:image", absolute);
     }
-    setMeta("property", "og:url", window.location.href);
+    const canonicalHref = canonicalPath
+      ? canonicalPath.startsWith("http")
+        ? canonicalPath
+        : `${window.location.origin}${canonicalPath}`
+      : null;
+    // og:url matches the canonical (as the server-rendered head does), not location.href:
+    // the address bar carries utm/fbclid noise, and on a consolidated page
+    // (lib/canonical-overrides.ts) it is a different URL from the canonical altogether.
+    setMeta("property", "og:url", canonicalHref ?? window.location.href);
 
     // Canonical. Replaced rather than duplicated: two canonical tags on one page make
     // the signal ambiguous and Google may ignore both.
     let canonicalEl: HTMLLinkElement | null = null;
     let canonicalPrevious: string | null = null;
-    if (canonicalPath) {
-      const href = canonicalPath.startsWith("http")
-        ? canonicalPath
-        : `${window.location.origin}${canonicalPath}`;
+    if (canonicalHref) {
+      const href = canonicalHref;
       const existing = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
       if (existing) {
         canonicalPrevious = existing.getAttribute("href");
