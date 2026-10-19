@@ -129,7 +129,7 @@ export interface IStorage {
    * even by a stale read in the caller. `changed` is false when nothing was updated.
    */
   markPpfLeadFailed(id: string, paymentId: string | null): Promise<{ lead: PpfLead | undefined; changed: boolean }>;
-  updatePpfLeadDetails(id: string, patch: Partial<Pick<InsertPpfLead, "name" | "email" | "vehicleType" | "vehicleModel"> & Pick<InsertPpfLeadWithPayment, "serviceId" | "appointmentDate" | "appointmentTime">>): Promise<PpfLead>;
+  updatePpfLeadDetails(id: string, patch: Partial<Pick<InsertPpfLead, "name" | "email" | "vehicleType" | "vehicleModel"> & Pick<InsertPpfLeadWithPayment, "serviceId" | "appointmentDate" | "appointmentTime" | "amount" | "razorpayOrderId">>): Promise<PpfLead>;
   updatePpfLeadStatus(id: string, status: string): Promise<PpfLead>;
   /** Deletes an UNPAID lead. Returns false when nothing was deleted (missing, or paid: paid leads are never deletable). */
   deletePpfLead(id: string): Promise<boolean>;
@@ -581,7 +581,7 @@ export class DatabaseStorage implements IStorage {
 
   async updatePpfLeadDetails(
     id: string,
-    patch: Partial<Pick<InsertPpfLead, "name" | "email" | "vehicleType" | "vehicleModel"> & Pick<InsertPpfLeadWithPayment, "serviceId" | "appointmentDate" | "appointmentTime">>,
+    patch: Partial<Pick<InsertPpfLead, "name" | "email" | "vehicleType" | "vehicleModel"> & Pick<InsertPpfLeadWithPayment, "serviceId" | "appointmentDate" | "appointmentTime" | "amount" | "razorpayOrderId">>,
   ): Promise<PpfLead> {
     const [lead] = await db.update(ppfLeads).set(patch).where(eq(ppfLeads.id, id)).returning();
     return lead;

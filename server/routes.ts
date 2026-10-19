@@ -29,6 +29,7 @@ import { parseAttribution, deriveSource } from "./lib/attribution";
 import { normalizeIndianMobile } from "./lib/phone";
 import { rateLimit } from "./lib/rate-limit";
 import { DIWALI_OFFER, DIWALI_LEAD_MESSAGE, isDiwaliOfferOpen } from "./lib/diwali-offer";
+import { offerPriceFor } from "@shared/offer-pricing";
 import {
   validateCampaignInput,
   findOverlaps,
@@ -1302,8 +1303,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
    * which look a booking up by order id first and fall back to a lead only when no booking
    * has that order. Ordinary Rs 299 bookings therefore take exactly the code they always did.
    *
-   * The amount is DIWALI_OFFER.amountRupees, a server constant. Nothing in the request can
-   * change it, and it is deliberately not read from site_settings.booking_amount.
+   * The amount is Rs 499 for a PPF service and Rs 99 for any other (offerPriceFor), worked out on the
+   * server from the service it loads itself. Nothing in the request can change it, and it is
+   * deliberately not read from site_settings.booking_amount.
    *
    * No WhatsApp for these leads. Once paid, a lead also becomes a booking (ensureOfferBooking) so the
    * studio sees it in the admin Bookings tab, and it is pushed to ERP like any paid booking.
@@ -1416,7 +1418,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const attribution = parseAttribution(req.body);
-        const amountPaise = DIWALI_OFFER.amountRupees * 100;
+        const amountRupees = offerPriceFor(chosenService);
+        const amountPaise = amountRupees * 100;
 
         // One lead per customer per offer. The phone is normalised (+91 / 0 / spaces stripped) so
         // "+91 98765 43210" and "9876543210" are the same person, and the normalised number is what
@@ -1447,7 +1450,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let orderId: string;
 
         if (!lead) {
-          const order = await createPaymentOrder(DIWALI_OFFER.amountRupees, `diwali_${Date.now()}`);
+          const order = await createPaymentOrder(amountRupees, `diwali_${Date.now()}`);
           try {
             lead = await storage.createPpfLead({
               name: data.name,
@@ -1461,7 +1464,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               channel: deriveSource(attribution),
               ...attribution,
               offerName: DIWALI_OFFER.name,
-              amount: DIWALI_OFFER.amountRupees.toFixed(2),
+              amount: amountRupees.toFixed(2),
               paymentStatus: "pending",
               razorpayOrderId: order.id,
               serviceId: chosenService.id,
@@ -1469,7 +1472,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               appointmentTime: data.appointmentTime,
             });
             orderId = order.id;
-            console.log(`[diwali-offer] lead ${lead.id} created, order ${orderId}, ₹${DIWALI_OFFER.amountRupees} pending`);
+            console.log(`[diwali-offer] lead ${lead.id} created, order ${orderId}, ₹${amountRupees} pending`);
           } catch (err) {
             // Two requests for the same customer raced and the unique index let only one in (Postgres
             // 23505). Not an error: fall back to whichever lead won. This attempt's Razorpay order stays
@@ -1486,9 +1489,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         if (open && lead === open) {
-          // Retry after a closed or failed checkout: same lead, same order, latest details. The status is
-          // left as it is: a failed lead stays "failed" until Razorpay reports a payment (or a new failure).
+          // Retry after a closed or failed checkout: same lead, latest details. The order is kept, unless
+          // the customer switched between a PPF and a non-PPF service: the price differs, so the old
+          // order cannot be paid and a new one is made. The status is left as it is: a failed lead stays
+          // "failed" until Razorpay reports a payment (or a new failure).
+          let repriced: { razorpayOrderId: string; amount: string } | undefined;
+          if (Number(lead.amount) !== amountRupees) {
+            const fresh = await createPaymentOrder(amountRupees, `diwali_${Date.now()}`);
+            repriced = { razorpayOrderId: fresh.id, amount: amountRupees.toFixed(2) };
+            orderId = fresh.id;
+            console.log(`[diwali-offer] lead ${lead.id} re-priced to ₹${amountRupees}, order ${orderId}`);
+          }
           lead = (await storage.updatePpfLeadDetails(lead.id, {
+            ...repriced,
             name: data.name,
             email: data.email,
             vehicleType: data.vehicleType,

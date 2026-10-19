@@ -242,6 +242,33 @@ describe('service and slot chosen on the offer form', () => {
   });
 });
 
+describe("price depends on the service", () => {
+  test("a PPF service is charged Rs 499, any other Rs 99", async () => {
+    db.services.set("svc-ppf", { id: "svc-ppf", slug: "ppf-sedan", title: "PPF Sedan", price: "60000.00", duration: 60, isActive: true, maxBookingsPerSlot: 3 });
+    const ppf = await startOrder({ serviceId: "svc-ppf", phone: "9000000001" });
+    assert.equal(ppf.paymentOrder.amount, 49900);
+    assert.equal(db.leads.at(-1).amount, "499.00");
+    const other = await startOrder({ phone: "9000000002" });
+    assert.equal(other.paymentOrder.amount, 9900);
+    assert.deepEqual(charged, [499, 99]);
+  });
+
+  test("switching between PPF and another service on retry makes a new order at the new price", async () => {
+    db.services.set("svc-ppf", { id: "svc-ppf", slug: "ppf-sedan", title: "PPF Sedan", price: "60000.00", duration: 60, isActive: true, maxBookingsPerSlot: 3 });
+    const first = await startOrder();
+    const second = await startOrder({ serviceId: "svc-ppf" });
+    assert.equal(db.leads.length, 1);
+    assert.equal(second.paymentOrder.amount, 49900);
+    assert.notEqual(second.paymentOrder.id, first.paymentOrder.id);
+    assert.equal(db.leads[0].razorpayOrderId, second.paymentOrder.id);
+    assert.equal(db.leads[0].amount, "499.00");
+    // Same service again: the order is kept, nothing new is charged.
+    const third = await startOrder({ serviceId: "svc-ppf" });
+    assert.equal(third.paymentOrder.id, second.paymentOrder.id);
+    assert.deepEqual(charged, [99, 499]);
+  });
+});
+
 describe('order creation', () => {
   test('charges exactly Rs 99 and stores a pending Diwali lead with its Razorpay order id', async () => {
     const out = await startOrder();

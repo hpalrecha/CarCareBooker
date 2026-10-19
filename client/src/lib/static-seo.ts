@@ -97,8 +97,8 @@ export const OFFER_SEO: StaticSeoPage = {
   path: "/offer/de-dhana-dhan",
   title: "De Dhana Dhan Offer: Free Dash Cam & More | P91",
   description:
-    "Dussehra and Diwali offer: free dash cam, sun film, sound damping and ceramic coating " +
-    "with premium brand PPF at P91 Car Care, Bangalore. Book your slot for ₹99.",
+    "Diwali offer: free dash cam, sun film, sound damping and ceramic coating " +
+    "with premium brand PPF at P91 Car Care, Bangalore. Slots ₹499 (PPF), ₹99 (others).",
   h1: "De Dhana Dhan offer",
   // The poster on a 1200x630 canvas (scripts/make-og-images.mjs): what WhatsApp/Facebook show when the link is shared.
   image: "/og/og-offer-de-dhana-dhan.jpg",

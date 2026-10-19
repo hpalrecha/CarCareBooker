@@ -19,7 +19,7 @@ export const FESTIVAL_OFFER = {
   kicker: "Dussehra & Diwali",
   freebies: ["Dash cam", "Sun film", "Sound damping", "Ceramic coating"],
   condition: "Free with any premium brand paint protection film installation.",
-  slot: "Book your slot for just ₹99.",
+  slot: "Book your slot: ₹499 for PPF, ₹99 for every other service.",
   validTill: "8 November 2026",
   /** End of 8 Nov 2026, India time. */
   endsAt: new Date("2026-11-08T23:59:59+05:30"),
@@ -117,7 +117,7 @@ export function FestivalOfferStrip() {
     >
       <span aria-hidden="true">🪔</span>
       <span>
-        <strong>Dussehra &amp; Diwali offer:</strong> free dash cam, sun film, sound damping &amp; ceramic coating with PPF. Book your slot for ₹99
+        <strong>Dussehra &amp; Diwali offer:</strong> free dash cam, sun film, sound damping &amp; ceramic coating with PPF. Book your slot: ₹499 for PPF, ₹99 for others
       </span>
       <span aria-hidden="true" className="hero-offer-arrow">→</span>
     </a>

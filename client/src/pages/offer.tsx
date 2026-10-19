@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import type { Service } from "@shared/schema";
+import { offerPriceFor } from "@shared/offer-pricing";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import QuoteForm from "@/components/quote-form";
@@ -15,7 +18,8 @@ import { trackLead } from "@/lib/meta-pixel";
  * /offer/de-dhana-dhan: where "Book this offer" lands.
  *
  * The customer fills the form, and the page then opens the SAME Razorpay Checkout the booking flow
- * uses (UPI, including the QR on desktop) for the offer's Rs 99 slot payment. The amount is fixed
+ * uses (UPI, including the QR on desktop) for the offer's slot payment (Rs 499 for PPF
+ * services, Rs 99 for any other). The amount is fixed
  * on the server (server/lib/diwali-offer.ts); this page only displays it.
  *
  *   1. POST /api/offers/diwali/order   records the lead as "pending" and returns a Razorpay order
@@ -81,6 +85,8 @@ export default function OfferPage() {
   const live = !done && festivalOfferActive();
   const o = FESTIVAL_OFFER;
   const [paid, setPaid] = useState<PaidState | null>(null);
+  // Same query key as the slot picker, so this is one request. Only used to label the pay button.
+  const { data: services = [] } = useQuery<Service[]>({ queryKey: ["/api/services"] });
 
   useEffect(() => {
     if (live) reportOffer("view", "page");
@@ -120,7 +126,7 @@ export default function OfferPage() {
       currency: paymentOrder.currency,
       order_id: paymentOrder.id,
       name: "P91 Car Care",
-      description: "₹99 slot booking · De Dhana Dhan offer",
+      description: `₹${paymentOrder.amount / 100} slot booking · De Dhana Dhan offer`,
       prefill: { name: values.name, email: values.email, contact: values.phone },
       theme: { color: "#4EB848" },
       // UPI first (the QR code on desktop and the app picker on phones); every other method stays available.
@@ -147,7 +153,7 @@ export default function OfferPage() {
         ondismiss: () =>
           toast({
             title: "Payment not completed",
-            description: "Your details are saved. Tap the button again to pay ₹99 and book your slot before the offer ends.",
+            description: "Your details are saved. Tap the button again to pay and book your slot before the offer ends.",
           }),
       },
       timeout: 900,
@@ -177,7 +183,7 @@ export default function OfferPage() {
                 <p className="gl-fest-lead">
                   <strong>
                     {paid.confirmed
-                      ? "Payment received: your ₹99 slot is booked."
+                      ? "Payment received: your slot is booked."
                       : "Payment received: we're confirming it with the bank."}
                   </strong>
                 </p>
@@ -209,11 +215,15 @@ export default function OfferPage() {
                   <QuoteForm
                     serviceTitle="the De Dhana Dhan offer"
                     serviceInterest="ppf"
-                    heading="Book your slot for ₹99"
-                    subheading="Enter your details and choose your service, date and time. Then pay ₹99 by UPI, card or net banking to hold your slot."
+                    heading="Book your slot"
+                    subheading="Slot booking is ₹499 for PPF services and ₹99 for every other service. Enter your details, choose your service, date and time, then pay by UPI, card or net banking."
                     slotPicker
                     testId="offer-quote"
-                    submitLabel="Pay ₹99 & book my slot"
+                    submitLabel="Choose a service to continue"
+                    submitLabelFor={(id) => {
+                      const s = services.find((x) => x.id === id);
+                      return s ? `Pay ₹${offerPriceFor(s)} & book my slot` : "Choose a service to continue";
+                    }}
                     footerNote="Secure payment by Razorpay. Terms and conditions apply. Valid till 8 November 2026."
                     submitOverride={startPayment}
                   />

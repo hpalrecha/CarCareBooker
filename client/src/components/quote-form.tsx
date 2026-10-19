@@ -71,7 +71,10 @@ export default function QuoteForm({
   slotPicker = false,
   footerNote,
   submitLabel,
+  submitLabelFor,
 }: {
+  /** Button text that depends on the picked service (paid offer: the price differs per service). */
+  submitLabelFor?: (serviceId: string) => string;
   /**
    * Show the service + date + time pickers and require them before submitting. Used by the paid
    * offer page, so the customer fixes the slot BEFORE the payment window opens.
@@ -344,7 +347,7 @@ export default function QuoteForm({
             className={`min-h-[44px] w-full rounded-[10px] bg-[var(--neon-green)] font-bold text-black hover:brightness-95${columns ? " sm:col-span-2" : ""}`}
             data-testid={`button-${testId}-submit`}
           >
-            {submit.isPending ? "Sending…" : submitLabel ?? "Book Now"}
+            {submit.isPending ? "Sending…" : (submitLabelFor?.(form.watch("serviceId") ?? "") ?? submitLabel ?? "Book Now")}
           </Button>
           {/* The subheading already says "no payment now" when one is given; do not repeat it. */}
           <p className={`text-xs text-gray-400${columns ? " sm:col-span-2" : ""}`}>

@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { BlackoutDate, BusinessHour, Service } from "@shared/schema";
+import { isPpfService, offerPriceFor } from "@shared/offer-pricing";
 import BookingCalendar from "@/components/booking-calendar";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -43,6 +44,23 @@ export function formatSlot(hhmm: string): string {
   return `${h % 12 === 0 ? 12 : h % 12}:${String(m).padStart(2, "0")} ${suffix}`;
 }
 
+/** "2026-10-21" -> "Wed, 21 Oct" (parsed as a local date, so no timezone shift). */
+function formatDay(ymd: string): string {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
+}
+
+function StepLabel({ n, children }: { n: number; children: string }) {
+  return (
+    <div className="mb-2 flex items-center gap-2">
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#4EB848] text-xs font-bold text-[#04120A]">
+        {n}
+      </span>
+      <Label className="text-sm font-semibold text-gray-100">{children}</Label>
+    </div>
+  );
+}
+
 export interface OfferSlotValue {
   serviceId: string;
   appointmentDate: string;
@@ -71,11 +89,12 @@ export default function OfferSlotPicker({
 
   const selectable = services.filter((s) => s.isActive);
   const slotIds = slots?.availability ? Object.keys(slots.availability).sort() : [];
+  const chosen = selectable.find((s) => s.id === value.serviceId);
 
   return (
-    <div className="space-y-4" style={DARK_VARS} data-testid={testId}>
+    <div className="space-y-6 border-t border-gray-800 pt-5" style={DARK_VARS} data-testid={testId}>
       <div>
-        <Label className="mb-2 block text-gray-300">Service</Label>
+        <StepLabel n={1}>Choose your service</StepLabel>
         <Select
           value={value.serviceId}
           onValueChange={(serviceId) => onChange({ serviceId, appointmentDate: value.appointmentDate, appointmentTime: "" })}
@@ -86,16 +105,23 @@ export default function OfferSlotPicker({
           <SelectContent>
             {selectable.map((s) => (
               <SelectItem key={s.id} value={s.id}>
-                {s.title}
+                {s.title} · ₹{offerPriceFor(s)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+        {chosen && (
+          <p className="mt-2 text-xs text-gray-400" data-testid={`${testId}-price-note`}>
+            {isPpfService(chosen)
+              ? "PPF services: slot booking is ₹499."
+              : "All other services: slot booking is ₹99."}
+          </p>
+        )}
         {errors?.serviceId && <p className="mt-1 text-sm text-red-400">{errors.serviceId}</p>}
       </div>
 
       <div>
-        <Label className="mb-2 block text-gray-300">Date</Label>
+        <StepLabel n={2}>Pick a date</StepLabel>
         <BookingCalendar
           selectedDate={value.appointmentDate}
           onSelect={(appointmentDate) => onChange({ ...value, appointmentDate, appointmentTime: "" })}
@@ -106,7 +132,7 @@ export default function OfferSlotPicker({
       </div>
 
       <div>
-        <Label className="mb-2 block text-gray-300">Time</Label>
+        <StepLabel n={3}>Pick a time</StepLabel>
         <div
           className="min-h-[96px] rounded-xl border border-gray-700 bg-gray-800/60 p-3"
           role="radiogroup"
@@ -155,6 +181,22 @@ export default function OfferSlotPicker({
         </div>
         {errors?.appointmentTime && <p className="mt-1 text-sm text-red-400">{errors.appointmentTime}</p>}
       </div>
+
+      {chosen && value.appointmentDate && value.appointmentTime && (
+        <div
+          className="rounded-xl border border-[#4EB848]/50 bg-[#4EB848]/10 p-3 text-sm text-gray-100"
+          data-testid={`${testId}-summary`}
+        >
+          <p className="text-xs uppercase tracking-wide text-gray-400">Your slot</p>
+          <p className="mt-1 font-semibold">{chosen.title}</p>
+          <p className="text-gray-300">
+            {formatDay(value.appointmentDate)} · {formatSlot(value.appointmentTime)}
+          </p>
+          <p className="mt-1 text-gray-300">
+            Slot booking: <span className="font-bold text-white">₹{offerPriceFor(chosen)}</span>
+          </p>
+        </div>
+      )}
     </div>
   );
 }
