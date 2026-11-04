@@ -200,3 +200,18 @@ describe('home first-paint poster', () => {
     assert.match(poster, /position:fixed/, 'fixed, so it cannot shift layout');
   });
 });
+
+describe('landing-page LCP: first carousel slide', () => {
+  test('campaign pages preload the first hero-carousel slide from the image manifest', () => {
+    assert.match(script, /preloadImage: p\.heroCarousel \? carouselPreloadTag\(p\.heroCarousel\.dir\)/);
+    assert.match(script, /if \(route\.preloadImage\) tags\.push\(route\.preloadImage\)/);
+    assert.match(script, /fetchpriority="high"/);
+  });
+
+  test('hero carousels mount only nearby slides and load the first one eagerly', () => {
+    const src = read('client/src/components/redesign/slide-carousel.tsx');
+    assert.match(src, /const lazyMount = variant === "hero"/);
+    assert.match(src, /priority=\{lazyMount && i === 0\}/);
+    assert.match(src, /slide-car-ph/);
+  });
+});

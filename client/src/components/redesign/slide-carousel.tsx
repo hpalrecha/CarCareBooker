@@ -50,6 +50,21 @@ export default function SlideCarousel({
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
+  // Hero carousels (the ad landing pages) mount a slide's image only once the visitor is within one slide of it.
+  // Mounting all six at load made the phone download ~250 KB of slides nobody had seen yet, competing with the
+  // first slide (the LCP element) and the scripts. Once a slide has been reached its image stays mounted.
+  // Article carousels keep their native lazy loading, unchanged.
+  const lazyMount = variant === "hero";
+  const [reached, setReached] = useState<Set<number>>(() => new Set([0, 1]));
+  useEffect(() => {
+    if (!lazyMount) return;
+    setReached((prev) => {
+      const next = new Set(prev);
+      for (const i of [index - 1, index, index + 1]) if (i >= 0 && i < slides.length) next.add(i);
+      return next.size === prev.size ? prev : next;
+    });
+  }, [index, lazyMount, slides.length]);
+
   /** Derive the current slide from scroll position, so gestures and buttons agree. */
   const onScroll = useCallback(() => {
     const el = trackRef.current;
@@ -137,16 +152,23 @@ export default function SlideCarousel({
       >
         {slides.map((alt, i) => (
           <div className="slide-car-item" key={i} aria-roledescription="slide" aria-label={`${i + 1} of ${slides.length}`}>
+            {lazyMount && !reached.has(i) ? (
+              <div className="slide-car-ph" style={{ aspectRatio: "4 / 5" }} aria-hidden="true" />
+            ) : (
             <ImageWithFallback
               src={`/attached_assets/carousels/${dir}/${String(i + 1).padStart(2, "0")}.jpg`}
               alt={alt}
               width={1600}
               height={2000}
+              // The first hero slide is the page's LCP element: load it eagerly at high priority (the
+              // prerendered <head> preloads the same file, see scripts/prerender.mjs).
+              priority={lazyMount && i === 0}
               // The article column is 760px at most, so telling the browser 100vw would
               // make it fetch the 1600w variant on a phone and undo the ladder.
               sizes="(min-width: 800px) 700px, 92vw"
               data-testid={`img-slide-${dir}-${i + 1}`}
             />
+            )}
           </div>
         ))}
       </div>

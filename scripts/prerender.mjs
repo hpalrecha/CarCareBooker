@@ -30,7 +30,7 @@
  * below, and tests/prerender.test.mjs asserts those strings still match the components.
  */
 import fs from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import esbuild from "esbuild";
@@ -42,6 +42,7 @@ const ORIGIN = "https://p91carcare.com";
 // 1200x630, built by scripts/make-og-images.mjs. The old default was the logo PNG, whose file name has spaces
 // and parentheses (some crawlers refuse such URLs) and which says nothing about the studio in a link preview.
 const OG_IMAGE = "/og/og-default.jpg";
+const IMAGE_MANIFEST = JSON.parse(readFileSync(path.join(ROOT, "client", "src", "lib", "image-manifest.json"), "utf8"));
 
 /**
  * The homepage hero/LCP photo, preloaded ONLY on "/" — this same set of widths is what
@@ -85,6 +86,20 @@ function bootHeroHtml() {
 
 /** Static pages that stay accessible to users but are excluded from search: noindex,follow, and not in the sitemap. */
 const NOINDEX_STATIC_PATHS = new Set(["/terms-conditions", "/privacy-policy", "/refund-policy"]);
+
+/**
+ * Preload for a landing page's first carousel slide (client/src/components/redesign/slide-carousel.tsx renders
+ * the same <picture>: AVIF source, widths from the image manifest, sizes below). Returns undefined, so no tag is
+ * emitted, when the manifest has no entry for the image.
+ */
+const CAROUSEL_SIZES = "(min-width: 800px) 700px, 92vw";
+function carouselPreloadTag(dir) {
+  const key = `carousels/${dir}/01`;
+  const entry = IMAGE_MANIFEST[key + ".jpg"];
+  if (!entry) return undefined;
+  const srcset = entry.widths.map((w) => `/attached_assets/_opt/${key}-${w}.avif ${w}w`).join(", ");
+  return `<link rel="preload" as="image" imagesrcset="${srcset}" imagesizes="${CAROUSEL_SIZES}" type="image/avif" fetchpriority="high" />`;
+}
 
 function die(message) {
   console.error("\n[prerender] FAILED: " + message);
@@ -166,6 +181,7 @@ function headFor(route, canonicalPathFor) {
   // Only "/" carries the hero preload — every other route would just be spending its own
   // bandwidth budget on a photo it never shows.
   if (route.path === "/") tags.push(heroPreloadTag());
+  if (route.preloadImage) tags.push(route.preloadImage);
   return tags.map((t) => "    " + t).join("\n");
 }
 
@@ -331,6 +347,9 @@ async function main() {
       title: p.title,
       description: p.description,
       content: content.landingPageContent(p),
+      // The first hero-carousel slide is this page's LCP element; without a preload the browser only
+      // finds it after React has rendered (~1.5 s later on a phone).
+      preloadImage: p.heroCarousel ? carouselPreloadTag(p.heroCarousel.dir) : undefined,
       jsonLd: [
         breadcrumbs([
           ["Home", "/"],
