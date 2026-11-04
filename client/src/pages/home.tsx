@@ -73,6 +73,24 @@ export default function Home() {
     queryKey: ["/api/services"],
   });
 
+  // Hand over from the first-paint poster baked into the HTML (scripts/prerender.mjs,
+  // #boot-hero) to this page's own hero once that photo has loaded. Capped at 4 s so a failed
+  // image can never leave the poster covering the page.
+  useEffect(() => {
+    const boot = document.getElementById("boot-hero");
+    if (!boot) return;
+    const remove = () => boot.remove();
+    const handOver = () => requestAnimationFrame(() => requestAnimationFrame(remove));
+    const img = document.querySelector<HTMLImageElement>('[data-testid="img-hero"]');
+    if (!img || (img.complete && img.naturalWidth > 0)) handOver();
+    else {
+      img.addEventListener("load", handOver, { once: true });
+      img.addEventListener("error", remove, { once: true });
+    }
+    const t = window.setTimeout(remove, 4000);
+    return () => window.clearTimeout(t);
+  }, []);
+
   // Latest 3 real posts — same cap BlogCarousel documents itself ("up to three real
   // articles"), newest first, no topic filtering (unlike a campaign page, the homepage
   // isn't about one service).
@@ -250,7 +268,9 @@ export default function Home() {
     if (!secs.length) return;
     const place = () => {
       const vh = window.innerHeight;
-      for (const el of secs) el.style.setProperty("--stack-top", `${Math.min(0, Math.round(vh - el.offsetHeight))}px`);
+      // Read every height first, then write: alternating offsetHeight reads with style writes forced a layout per section.
+      const tops = secs.map((el) => Math.min(0, Math.round(vh - el.offsetHeight)));
+      secs.forEach((el, i) => el.style.setProperty("--stack-top", `${tops[i]}px`));
     };
     secs.forEach((el) => el.classList.add("stack-sec"));
     const last = all[all.length - 1];

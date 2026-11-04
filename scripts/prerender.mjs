@@ -61,6 +61,28 @@ function heroPreloadTag() {
   return `<link rel="preload" as="image" imagesrcset="${srcset}" imagesizes="100vw" type="image/avif" fetchpriority="high" />`;
 }
 
+/**
+ * First-paint poster for "/". The page is a client-rendered app, so without this the hero photo (the
+ * LCP element) cannot appear until React has downloaded, parsed and rendered: on a throttled phone that
+ * is the 2.5 s "element render delay" in Lighthouse. This is the same photo (same preloaded AVIF set)
+ * and the same bottom scrim, in plain HTML with inline styles, fixed over the viewport, so it paints
+ * from the document alone. Home removes it (pages/home.tsx) once its own hero image has painted;
+ * being position:fixed it takes no layout space, so neither showing nor removing it moves anything.
+ */
+function bootHeroHtml() {
+  const srcset = HERO_IMAGE_WIDTHS.map(
+    (w) => `/attached_assets/_opt/${HERO_IMAGE_BASE}-${w}.avif ${w}w`,
+  ).join(", ");
+  return (
+    '<div id="boot-hero" aria-hidden="true" style="position:fixed;inset:0;z-index:1;background:#060708;pointer-events:none">' +
+    '<picture><img src="/attached_assets/_opt/' + HERO_IMAGE_BASE + '-1280.avif" srcset="' + srcset + '" sizes="100vw" ' +
+    'width="1600" height="900" alt="" fetchpriority="high" decoding="async" ' +
+    'style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 42%"></picture>' +
+    '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(6,7,8,.34) 0%,transparent 14%),linear-gradient(to top,rgba(6,7,8,.84) 0%,rgba(6,7,8,.55) 32%,rgba(6,7,8,0) 62%)"></div>' +
+    "</div>"
+  );
+}
+
 function die(message) {
   console.error("\n[prerender] FAILED: " + message);
   console.error("[prerender] The build is stopped deliberately. Shipping an SPA shell with");
@@ -354,10 +376,11 @@ async function main() {
   let written = 0;
   for (const route of routes) {
     if (!route.content) die(`${route.path}: no crawlable content built`);
-    const html = content.injectRootContent(
+    let html = content.injectRootContent(
       stripped.replace(/<\/head>/i, headFor(route, content.canonicalPathFor) + "\n  </head>"),
       route.content,
     );
+    if (route.path === "/") html = html.replace('<div id="root">', bootHeroHtml() + '<div id="root">');
 
     // The body must now carry the page: an empty root is exactly the defect this fixes, and
     // one <h1> is what every page renders.

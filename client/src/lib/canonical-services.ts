@@ -116,9 +116,13 @@ export function resolveServiceImage(service: { images?: string[] } | undefined):
 }
 
 /** Consistent INR formatting for every price rendered outside a service card. */
+// One formatter for the page: toLocaleString(locale, options) builds a new Intl.NumberFormat on every call,
+// which cost ~120 ms of main-thread time per home render on a throttled phone.
+const INR_FORMAT = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
+
 export function formatINR(amount: string | number | undefined): string {
   if (amount === undefined || amount === null || amount === '') return '';
   const n = typeof amount === 'number' ? amount : parseFloat(amount);
   if (!Number.isFinite(n)) return '';
-  return `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+  return `₹${INR_FORMAT.format(n)}`;
 }

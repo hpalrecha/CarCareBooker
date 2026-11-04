@@ -185,3 +185,18 @@ describe('the build runs it, in the right order', () => {
     assert.ok(!/fetch-fonts/.test(pkg.scripts.build), 'the build must not depend on Google');
   });
 });
+
+describe('home first-paint poster', () => {
+  test('the prerender bakes #boot-hero into "/" only, and Home removes it', () => {
+    assert.match(script, /id="boot-hero"/, 'prerender must emit the poster');
+    assert.match(script, /route\.path === "\/"\)\s*html = html\.replace\('<div id="root">'/, 'poster is injected for "/" only');
+    assert.match(read('client/src/pages/home.tsx'), /getElementById\("boot-hero"\)/, 'Home must remove the poster');
+  });
+
+  test('the poster uses the same AVIF set as the preload, so there is one download', () => {
+    const poster = script.slice(script.indexOf('function bootHeroHtml'), script.indexOf('function die'));
+    assert.match(poster, /HERO_IMAGE_WIDTHS/);
+    assert.match(poster, /HERO_IMAGE_BASE/);
+    assert.match(poster, /position:fixed/, 'fixed, so it cannot shift layout');
+  });
+});
