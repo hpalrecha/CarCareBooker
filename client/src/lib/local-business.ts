@@ -124,6 +124,8 @@ export function localBusinessSchema(
     areaServed: { "@type": "City", name: "Bengaluru" },
     // The business's own profiles: ties the site to the pages Google already knows.
     sameAs: [INSTAGRAM_PROFILE_URL, FACEBOOK_PROFILE_URL],
+    // The same Maps link the Contact page offers ("Open in Google Maps"): a real, address-based search, not coordinates.
+    hasMap: "https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Adugodi+Bengaluru",
     potentialAction: {
       "@type": "ReserveAction",
       target: { "@type": "EntryPoint", urlTemplate: `${origin}/services` },
