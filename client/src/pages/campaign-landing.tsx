@@ -9,6 +9,7 @@ import "@/styles/landing-pages.css";
 import { Phone, Clock, ShieldCheck, MapPin, CheckCircle, Wrench, Layers, ArrowRight } from "lucide-react";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
+import DeferUntilIdle from "@/components/defer-until-idle";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import SlideCarousel from "@/components/redesign/slide-carousel";
 import BookingModal from "@/components/booking-modal";
@@ -397,6 +398,10 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
       {/* The body-type selector lives in the HERO (see above), not in its own section —
           the customer must choose before seeing a price, not after scrolling past one. */}
 
+      {/* Everything below the hero mounts once the browser is idle (or on first scroll/touch) so the hero, the
+          LCP element, is not held back by rendering the rest of the page. See components/defer-until-idle.tsx. */}
+      <DeferUntilIdle minHeight={1600}>
+
       {/* ---------- 3b. PPF concept block (XPEL layout, by request, /ppf only) ----------
           Trust strip + photo collage + full-bleed CTA banner. Scoped to path === "/ppf"
           because the copy below ("color PPF match", paint-chip damage) is PPF-specific —
@@ -644,9 +649,13 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
         </section>
       )}
 
+      </DeferUntilIdle>
+
       </main>
 
-      <SiteFooter />
+      <DeferUntilIdle>
+        <SiteFooter />
+      </DeferUntilIdle>
 
       {/*
         The EXISTING booking modal, handed the same live record this page priced from.

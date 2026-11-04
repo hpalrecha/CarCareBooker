@@ -151,7 +151,7 @@ export default function SlideCarousel({
         aria-label={caption}
       >
         {slides.map((alt, i) => (
-          <div className="slide-car-item" key={i} aria-roledescription="slide" aria-label={`${i + 1} of ${slides.length}`}>
+          <div className="slide-car-item" key={i} role="group" aria-roledescription="slide" aria-label={`${i + 1} of ${slides.length}`}>
             {lazyMount && !reached.has(i) ? (
               <div className="slide-car-ph" style={{ aspectRatio: "4 / 5" }} aria-hidden="true" />
             ) : (
