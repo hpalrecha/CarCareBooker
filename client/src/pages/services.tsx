@@ -82,6 +82,10 @@ export default function Services() {
           {/* The "Book by service" row that used to sit here is gone (2026-09-24): it duplicated the PPF
               and ceramic entries in the list below and pointed at the same pages. */}
 
+          {/* The cards below use h3 titles; this gives them an h2 parent so the heading levels never skip
+              (axe heading-order), and keeps the hub's own titles below at h3 so the footer's h4 follows h3. */}
+          <h2 className="sr-only">Our services</h2>
+
           {isLoading ? (
             <div className="sv-grid">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -114,7 +118,7 @@ export default function Services() {
               { title: "Prices and booking", links: SERVICE_PRICE_LINKS },
             ].map((group) => (
               <div key={group.title} className="sv-hub-col">
-                <h2 className="sv-hub-title">{group.title}</h2>
+                <h3 className="sv-hub-title">{group.title}</h3>
                 <ul className="sv-hub-list">
                   {group.links.map((l) => (
                     <li key={l.href}>
