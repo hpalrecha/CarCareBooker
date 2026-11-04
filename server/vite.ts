@@ -18,7 +18,9 @@ import {
   type CrawlableService,
   landingServiceExtras,
   faqPageSchema,
+  escapeHtml,
 } from "../client/src/lib/crawlable-content";
+import { summariseHours } from "../client/src/lib/hours-summary";
 import { SERVICES_SEO } from "../client/src/lib/static-seo";
 import { isSpamProductPath } from "./lib/spam-paths";
 import { BRAND_PAGES } from "../client/src/lib/brand-pages";
@@ -200,6 +202,27 @@ export function serveStatic(app: Express, distPathOverride?: string) {
       })();
     }
 
+    // /contact: opening hours are live data the build cannot know, so they are added per request to
+    // the prerendered snapshot (same rows the page shows). Any failure serves the file unchanged.
+    if (pathname === "/contact" || pathname === "/contact/") {
+      return void (async () => {
+        try {
+          const { storage } = await import("./storage");
+          const rows = summariseHours(await storage.getAllBusinessHours());
+          if (!rows.length) return res.sendFile(candidate);
+          const hoursHtml =
+            `<h2>Opening hours</h2><ul>${rows
+              .map((r) => `<li>${escapeHtml(r.label)}: ${escapeHtml(r.value)}</li>`)
+              .join("")}</ul>`;
+          const html = fs.readFileSync(candidate, "utf8").replace(/<\/main>/, `${hoursHtml}</main>`);
+          return res.type("html").send(html);
+        } catch (error) {
+          console.error("contact hours injection failed:", error);
+          return res.sendFile(candidate);
+        }
+      })();
+    }
+
     // Campaign pages: the build has no catalogue, so add the default service record's own
     // sections (why, what's included, process, FAQs) and FAQPage schema per request.
     const landing = LANDING_PAGES.find((l) => l.path === pathname.replace(/\/$/, ""));
@@ -317,6 +340,7 @@ export function serveStatic(app: Express, distPathOverride?: string) {
         `    <title>${esc(title)}</title>`,
         `    <meta name="description" content="${esc(description)}" />`,
         `    <link rel="canonical" href="${esc(canonical)}" />`,
+        `    <meta name="robots" content="index,follow" />`,
         `    <meta property="og:title" content="${esc(title)}" />`,
         `    <meta property="og:description" content="${esc(description)}" />`,
         `    <meta property="og:url" content="${esc(canonical)}" />`,

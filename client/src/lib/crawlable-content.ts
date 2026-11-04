@@ -8,6 +8,8 @@ import { ADDRESS_CONFIRMED, STREET_ADDRESS, POSTAL_CODE, PHONE } from "./local-b
 import { PRODUCT_BRANDS, SERVICES_COLUMNS, resourcesGuideLinks } from "./nav-menu";
 import { BLOG_POSTS } from "./blog-posts";
 import { HOME_PACKAGE_LINKS } from "./home-package-links";
+import { SERVICE_GUIDE_LINKS, SERVICE_PRICE_LINKS, type HubLink } from "./service-hub-links";
+import { STUDIO_PHOTOS } from "./gallery-photos";
 import { HOME_FAQS, HOME_FAQ_HEADING, HOME_ABOUT_H2 } from "./home-faq";
 
 /**
@@ -485,7 +487,36 @@ export function servicesListContent(page: StaticSeoPage, services: CrawlableServ
       return `<li><a href="/service/${e(s.slug)}" style="color:#4ade80">${e(String(s.title).trim())}</a>${price ? ` — ${e(price)}` : ""}</li>`;
     })
     .join("");
-  return shell(h1(page.h1) + (page.lede ? p(page.lede) : "") + (items ? `<ul>${items}</ul>` : ""));
+  return shell(
+    h1(page.h1) +
+      (page.lede ? p(page.lede) : "") +
+      (items ? `<ul>${items}</ul>` : "") +
+      hubLinkSection("Service guides", SERVICE_GUIDE_LINKS) +
+      hubLinkSection("Prices and booking", SERVICE_PRICE_LINKS),
+  );
+}
+
+/** A titled list of descriptive links (anchor = the page's subject, then a one-line note). */
+export function hubLinkSection(title: string, links: HubLink[]): string {
+  return (
+    h2(title) +
+    `<ul>${links.map((l) => `<li><a href="${e(l.href)}" style="color:#4ade80">${e(l.label)}</a> — ${e(l.note)}</li>`).join("")}</ul>`
+  );
+}
+
+/** /gallery — the page's heading, the real studio photographs with their alt text, and links to the services. */
+export function galleryPageContent(page: StaticSeoPage): string {
+  const figures = STUDIO_PHOTOS.map(
+    (p) => `<figure><img src="${e(p.src)}" alt="${e(p.alt)}" width="720" height="900" loading="lazy"><figcaption>${e(p.tag)}</figcaption></figure>`,
+  ).join("");
+  return shell(
+    h1(page.h1) +
+      (page.lede ? p(page.lede) : "") +
+      h2("Inside the studio") +
+      p("Cars we have finished, and the work behind them.") +
+      figures +
+      hubLinkSection("The services behind this work", [...SERVICE_GUIDE_LINKS, ...SERVICE_PRICE_LINKS]),
+  );
 }
 
 /**

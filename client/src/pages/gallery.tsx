@@ -8,10 +8,13 @@ import LazyVideo from "@/components/redesign/lazy-video";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import { FestivalOfferBanner } from "@/components/festival-offer";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
+import { STUDIO_PHOTOS } from "@/lib/gallery-photos";
 import { GALLERY_SEO } from "@/lib/static-seo";
 import { GALLERY_REELS, INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, reelEmbedUrl, reelUrl } from "@/lib/instagram-reels";
 import { MONSOON_DAMAGE, PPF_COVERAGE, PPF_ORIGIN, PPF_VS_CERAMIC, type Carousel } from "@/lib/carousels";
 import type { ServiceRecord } from "@/lib/canonical-services";
+
+const G = "/attached_assets/gallery/";
 
 /**
  * /gallery: the studio's real footage and photos, current offers, the posts it publishes, and
@@ -26,26 +29,6 @@ const REEL_VIDEOS = [
   { file: "car-polishing", label: "Machine polishing", note: "Swirls and scratches out, gloss back" },
   { file: "stek-suncontrol-films", label: "Sun control film", note: "STEK film, cut and fitted to the glass" },
 ];
-
-const G = "/attached_assets/gallery/";
-const STUDIO_PHOTOS = [
-  { src: "p91-lux-range-rover-evoque.webp", alt: "Range Rover Evoque finished at P91 Car Care", tag: "Range Rover Evoque · P91 Premium PPF" },
-  { src: "p91-ppf-fitting.webp", alt: "Paint protection film being fitted on a car panel", tag: "PPF fitting" },
-  { src: "p91-lux-vellfire.webp", alt: "Toyota Vellfire after detailing", tag: "Toyota Vellfire · STEK PPF" },
-  { src: "p91-ceramic-gloss-wipe.webp", alt: "Ceramic coating gloss being wiped in", tag: "Ceramic coating" },
-  { src: "p91-lux-nissan-gtr.webp", alt: "Nissan GT-R protected at P91 Car Care", tag: "Nissan GT-R · STEK PPF" },
-  { src: "p91-stek-film-squeegee.webp", alt: "STEK film being squeegeed onto a window", tag: "STEK film" },
-  { src: "p91-lux-mercedes-gle.webp", alt: "Mercedes GLE detailed at the studio", tag: "Mercedes GLE" },
-  { src: "p91-polish-bonnet-gloss.webp", alt: "Bonnet gloss after machine polishing", tag: "Polishing" },
-  { src: "p91-lux-mg-comet-ev.webp", alt: "MG Comet EV protected with film", tag: "MG Comet EV" },
-  { src: "p91-ppf-vellfire-handover.webp", alt: "Vellfire handover after PPF", tag: "Handover" },
-  { src: "p91-lux-xuv700.webp", alt: "Mahindra XUV700 after detailing", tag: "Mahindra XUV700" },
-  { src: "p91-stek-heat-glove.webp", alt: "Heat-shaping STEK film at the studio", tag: "STEK film" },
-  { src: "p91-lux-innova-hycross.webp", alt: "Toyota Innova Hycross detailed at P91", tag: "Innova Hycross · STEK PPF" },
-  { src: "p91-interior-steering-detail.webp", alt: "Interior steering wheel detailing", tag: "Interior detail" },
-  { src: "p91-lux-bmw-3-series.webp", alt: "BMW 3 Series finished at P91 Car Care", tag: "BMW 3 Series" },
-  { src: "p91-ceramic-door-finish.webp", alt: "Ceramic coated door finish", tag: "Ceramic finish" },
-].map((p) => ({ ...p, src: G + p.src }));
 
 const POSTS: { title: string; carousel: Carousel }[] = [
   { title: "PPF vs ceramic coating", carousel: PPF_VS_CERAMIC },

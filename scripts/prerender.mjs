@@ -83,6 +83,9 @@ function bootHeroHtml() {
   );
 }
 
+/** Static pages that stay accessible to users but are excluded from search: noindex,follow, and not in the sitemap. */
+const NOINDEX_STATIC_PATHS = new Set(["/terms-conditions", "/privacy-policy", "/refund-policy"]);
+
 function die(message) {
   console.error("\n[prerender] FAILED: " + message);
   console.error("[prerender] The build is stopped deliberately. Shipping an SPA shell with");
@@ -139,6 +142,7 @@ function headFor(route, canonicalPathFor) {
     `<title>${esc(route.title)}</title>`,
     `<meta name="description" content="${esc(route.description)}" />`,
     `<link rel="canonical" href="${esc(canonical)}" />`,
+    `<meta name="robots" content="${route.noindex ? "noindex,follow" : "index,follow"}" />`,
     `<meta property="og:title" content="${esc(route.title)}" />`,
     `<meta property="og:description" content="${esc(route.description)}" />`,
     `<meta property="og:url" content="${esc(canonical)}" />`,
@@ -198,7 +202,11 @@ async function main() {
         ? content.homePageContent(page)
         : page.path === "/contact"
           ? content.contactPageContent(page)
-          : content.staticPageContent(page),
+          : page.path === "/gallery"
+            ? content.galleryPageContent(page)
+            : content.staticPageContent(page),
+    // Legal pages stay reachable for people but are kept out of search (and out of the sitemap).
+    noindex: NOINDEX_STATIC_PATHS.has(page.path),
     image: page.image,
     // The homepage and /contact set the business schema at runtime; the raw HTML carried
     // none, so a crawler without JavaScript never saw the address, phone or hours. Emitted
@@ -225,6 +233,8 @@ async function main() {
     if (!posts.length) continue; // never emit a page that lists nothing
     routes.push({
       path: `/blog/category/${slug}`,
+      // Thin listings (1 to 5 articles each): noindex,follow until they carry their own content.
+      noindex: true,
       title: content.categoryTitle(category),
       description: content.categoryDescription(category),
       content: content.blogListContent(posts, category),

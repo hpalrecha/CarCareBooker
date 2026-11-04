@@ -802,6 +802,12 @@
 .p91x .br-name { font-size: clamp(48px, 7.4vw, 112px); font-weight: var(--fw-heading); letter-spacing: -.045em; line-height: .98; margin: 0 0 22px; text-wrap: balance; }
 .p91x .br-line { font-size: clamp(17px, 1.4vw, 20px); line-height: 1.6; color: var(--txt-2); max-width: 40ch; margin: 0 0 30px; }
 .p91x .br-actions { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; }
+/* /services: guides and price pages below the catalogue grid. */
+.p91x .sv-hub { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--medium-gray); display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.p91x .sv-hub-title { font-size: 18px; font-weight: 700; margin: 0 0 12px; }
+.p91x .sv-hub-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.p91x .sv-hub-note { color: var(--txt-2); font-size: 14px; }
+@media (max-width: 720px) { .p91x .sv-hub { grid-template-columns: 1fr; gap: 24px; } }
 /* Home "Popular packages": quiet outlined pills under the service list (dark section). */
 .p91x .ed-pkgs-label { margin: 22px 0 10px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
 .p91x .ed-pkgs { list-style: none; margin: 0 0 18px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }

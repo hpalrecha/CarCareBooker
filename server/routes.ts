@@ -449,14 +449,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { loc: "/blog/how-much-ppf-does-your-car-need", lastmod: "2026-09-05", priority: "0.6", changefreq: "yearly" },
         { loc: "/blog/monsoon-damage-car-bangalore", lastmod: "2026-09-02", priority: "0.6", changefreq: "yearly" },
         { loc: "/blog/best-car-detailing-in-bangalore", lastmod: "2026-10-07", priority: "0.6", changefreq: "yearly" },
-        // Category listings. Each is a real, prerendered, indexable URL rather than a
-        // client-side filter over /blog — otherwise the hub has exactly one crawlable
-        // listing page however much gets written. Slugs come from categorySlug() in
-        // client/src/lib/blog-posts.ts; adding a post in a NEW category means adding a
-        // line here, which tests/blog-seo.test.mjs enforces.
-        { loc: "/blog/category/protection", lastmod: "2026-10-07", priority: "0.5", changefreq: "monthly" },
-        { loc: "/blog/category/paint-care", lastmod: "2026-09-02", priority: "0.5", changefreq: "monthly" },
-        { loc: "/blog/category/glass-film", lastmod: "2026-07-30", priority: "0.5", changefreq: "monthly" },
+        // Blog category listings and the three legal pages are deliberately NOT listed: they are
+        // noindex,follow (scripts/prerender.mjs: NOINDEX_STATIC_PATHS and the category routes), and
+        // the sitemap carries only URLs that are meant to be indexed.
         // Campaign landing pages — the URLs that go into the advertisements, and the
         // canonical destination for transactional "PPF price" / "ceramic coating for
         // bikes" intent. Priority 0.9: these are the pages the business most wants found.
@@ -472,9 +467,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // "Legacy/duplicate URL redirects" block.
         { loc: "/gallery", priority: "0.6", changefreq: "monthly" },
         { loc: "/contact", priority: "0.6", changefreq: "yearly" },
-        { loc: "/terms-conditions", priority: "0.3", changefreq: "yearly" },
-        { loc: "/privacy-policy", priority: "0.3", changefreq: "yearly" },
-        { loc: "/refund-policy", priority: "0.3", changefreq: "yearly" },
       ];
 
       const escape = (s: string) =>

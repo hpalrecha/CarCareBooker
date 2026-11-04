@@ -384,3 +384,36 @@ describe('home links to the pages that carry the prices', () => {
     }
   });
 });
+
+describe('technical SEO brief: robots meta, hub links, gallery images', () => {
+  const prerenderSrc = read('scripts/prerender.mjs');
+
+  test('every prerendered route states index,follow, except the noindex,follow ones', () => {
+    assert.match(prerenderSrc, /route\.noindex \? "noindex,follow" : "index,follow"/);
+    assert.match(prerenderSrc, /NOINDEX_STATIC_PATHS = new Set\(\["\/terms-conditions", "\/privacy-policy", "\/refund-policy"\]\)/);
+    assert.match(read('server/vite.ts'), /content="index,follow"/, 'server-rendered /service/:slug must state index,follow too');
+  });
+
+  test('noindex pages are not in the sitemap', () => {
+    const routesSrc = read('server/routes.ts');
+    for (const p of ['/terms-conditions', '/privacy-policy', '/refund-policy', '/blog/category/']) {
+      assert.ok(!routesSrc.includes(`loc: "${p}`), `${p} is noindex and must not be listed`);
+    }
+  });
+
+  test('/services snapshot links every service guide and price page', () => {
+    const page = m.SERVICES_SEO;
+    const html = m.servicesListContent(page, []);
+    for (const href of ['/services/paint-protection-film-bangalore', '/services/ceramic-coating-bangalore', '/services/interior-detailing-bangalore', '/services/glass-sun-control-film-bangalore', '/ppf', '/ceramic-coating/car', '/ceramic-coating/bike']) {
+      assert.ok(html.includes(`<a href="${href}"`), `missing ${href}`);
+    }
+  });
+
+  test('/gallery snapshot carries crawlable images with alt text and service links', () => {
+    const page = m.STATIC_SEO_PAGES.find((x) => x.path === '/gallery');
+    const html = m.galleryPageContent(page);
+    const imgs = [...html.matchAll(/<img [^>]*alt="([^"]+)"/g)];
+    assert.ok(imgs.length >= 10, 'expected the studio photographs');
+    assert.ok(html.includes('<a href="/ppf"') && html.includes('<a href="/services/ceramic-coating-bangalore"'));
+  });
+});

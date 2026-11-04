@@ -7,6 +7,8 @@ import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { type ServiceRecord } from "@/lib/canonical-services";
 import { SERVICES_SEO } from "@/lib/static-seo";
 import { groupPpf } from "@/lib/ppf-groups";
+import { SERVICE_GUIDE_LINKS, SERVICE_PRICE_LINKS } from "@/lib/service-hub-links";
+import { Link } from "wouter";
 
 /**
  * The service catalogue as its own page.
@@ -104,6 +106,26 @@ export default function Services() {
               )}
             </ServiceFilter>
           )}
+
+          {/* Direct HTML links to every service guide and price page, so this hub links to all of them. */}
+          <div className="sv-hub" data-testid="section-service-guides">
+            {[
+              { title: "Service guides", links: SERVICE_GUIDE_LINKS },
+              { title: "Prices and booking", links: SERVICE_PRICE_LINKS },
+            ].map((group) => (
+              <div key={group.title} className="sv-hub-col">
+                <h2 className="sv-hub-title">{group.title}</h2>
+                <ul className="sv-hub-list">
+                  {group.links.map((l) => (
+                    <li key={l.href}>
+                      <Link href={l.href} className="ed-link">{l.label}</Link>
+                      <span className="sv-hub-note"> — {l.note}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

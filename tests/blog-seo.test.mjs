@@ -40,14 +40,14 @@ describe('every category is reachable and indexable', () => {
     }
   });
 
-  test('each category listing is in the sitemap', () => {
+  test('category listings are noindex,follow and therefore NOT in the sitemap', () => {
+    // Thin listings (1 to 5 articles): excluded from search until they carry their own content, per the
+    // technical SEO brief. The sitemap must hold only URLs that are meant to be indexed.
+    const prerender = fs.readFileSync(path.join(repoRoot, 'scripts/prerender.mjs'), 'utf8');
+    assert.match(prerender, /noindex: true,\s*\n\s*title: content\.categoryTitle/, 'category routes must be noindex');
     for (const c of categories()) {
       const loc = `/blog/category/${slugify(c)}`;
-      assert.ok(
-        routes.includes(`{ loc: "${loc}"`),
-        `${loc} is missing from the sitemap — the category page exists but nothing points ` +
-          `a crawler at it, so it will never be discovered`,
-      );
+      assert.ok(!routes.includes(`{ loc: "${loc}"`), `${loc} is noindex and must not be in the sitemap`);
     }
   });
 

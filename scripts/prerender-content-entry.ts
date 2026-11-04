@@ -32,6 +32,7 @@ export { STATIC_SEO_PAGES, SERVICES_SEO } from "@/lib/static-seo";
 export {
   staticPageContent,
   contactPageContent,
+  galleryPageContent,
   landingServiceExtras,
   faqPageSchema,
   homePageContent,
