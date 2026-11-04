@@ -12,6 +12,7 @@ import { HOME_FAQS, HOME_FAQ_HEADING, HOME_ABOUT_H2, homeFaqSchema } from "@/lib
 import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canonical-services";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
 import { PRODUCT_BRANDS } from "@/lib/nav-menu";
+import { HOME_PACKAGE_LINKS } from "@/lib/home-package-links";
 import { postsNewestFirst } from "@/lib/blog-posts";
 import BlogCarousel from "@/components/blog-carousel";
 import { FestivalOfferStrip } from "@/components/festival-offer";
@@ -488,6 +489,17 @@ export default function Home() {
               <p className="ed-care-sub" data-reveal>
                 Film, coating and care, all done in-studio in Adugodi.
               </p>
+              {/* Crawlable, visible links to the pages that carry the prices. Googlebot reads the rendered
+                  page, and the home page is the one indexed page that passes them weight: before this the
+                  rendered home linked to none of /ppf, /ceramic-coating/* or the interior-detailing guide. */}
+              <p className="ed-pkgs-label" data-reveal>Popular packages</p>
+              <ul className="ed-pkgs" data-reveal>
+                {HOME_PACKAGE_LINKS.map((l) => (
+                  <li key={l.href}>
+                    <Link href={l.href} className="ed-pkg" data-testid={`link-package-${l.id}`}>{l.label}</Link>
+                  </li>
+                ))}
+              </ul>
               <Link href="/services" className="ed-link" data-reveal data-testid="link-explore-services">
                 Explore services →
               </Link>

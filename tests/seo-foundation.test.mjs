@@ -372,3 +372,15 @@ describe('llms.txt', () => {
     assert.doesNotMatch(body, /rating|review|award|₹299|booking fee|limited/i);
   });
 });
+
+describe('home links to the pages that carry the prices', () => {
+  test('the rendered home page and its snapshot both link /ppf, /ceramic-coating/* and interior detailing', () => {
+    const page = m.STATIC_SEO_PAGES.find((x) => x.path === '/');
+    const html = m.homePageContent(page);
+    const home = read('client/src/pages/home.tsx');
+    assert.match(home, /HOME_PACKAGE_LINKS\.map/, 'home.tsx must render the package links');
+    for (const href of ['/ppf', '/ceramic-coating/car', '/ceramic-coating/bike', '/services/interior-detailing-bangalore']) {
+      assert.ok(html.includes(`<a href="${href}"`), `snapshot missing ${href}`);
+    }
+  });
+});

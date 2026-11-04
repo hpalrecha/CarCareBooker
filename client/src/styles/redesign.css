@@ -802,6 +802,15 @@
 .p91x .br-name { font-size: clamp(48px, 7.4vw, 112px); font-weight: var(--fw-heading); letter-spacing: -.045em; line-height: .98; margin: 0 0 22px; text-wrap: balance; }
 .p91x .br-line { font-size: clamp(17px, 1.4vw, 20px); line-height: 1.6; color: var(--txt-2); max-width: 40ch; margin: 0 0 30px; }
 .p91x .br-actions { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; }
+/* Home "Popular packages": quiet outlined pills under the service list (dark section). */
+.p91x .ed-pkgs-label { margin: 22px 0 10px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+.p91x .ed-pkgs { list-style: none; margin: 0 0 18px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.p91x .ed-pkg {
+  display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px;
+  border: 1px solid rgba(255,255,255,.3); border-radius: 999px;
+  color: #fff; font-size: 14px; text-decoration: none; transition: border-color .2s, background .2s;
+}
+.p91x .ed-pkg:hover { border-color: var(--neon-green); background: rgba(255,255,255,.06); }
 .p91x .ed-link-quiet { color: var(--txt-2); text-decoration-color: var(--medium-gray); }
 .p91x .br-ext { width: 14px; height: 14px; display: inline; vertical-align: -1px; }
 .p91x .br-figure { aspect-ratio: 4 / 5; max-height: 78svh; position: relative; }

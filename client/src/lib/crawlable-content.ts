@@ -7,6 +7,7 @@ import { formatINR } from "./canonical-services";
 import { ADDRESS_CONFIRMED, STREET_ADDRESS, POSTAL_CODE, PHONE } from "./local-business";
 import { PRODUCT_BRANDS, SERVICES_COLUMNS, resourcesGuideLinks } from "./nav-menu";
 import { BLOG_POSTS } from "./blog-posts";
+import { HOME_PACKAGE_LINKS } from "./home-package-links";
 import { HOME_FAQS, HOME_FAQ_HEADING, HOME_ABOUT_H2 } from "./home-faq";
 
 /**
@@ -244,6 +245,8 @@ export function homePageContent(page: StaticSeoPage): string {
       `<p><a href="/contact" style="color:#4ade80">Find the studio →</a></p>` +
       h2("Protection. Finish. Care.") +
       `<ul>${whatWeDo.map((s) => `<li><a href="${e(s.href)}" style="color:#4ade80">${e(s.name)}</a></li>`).join("")}</ul>` +
+      h2("Popular packages") +
+      `<ul>${HOME_PACKAGE_LINKS.map((l) => `<li><a href="${e(l.href)}" style="color:#4ade80">${e(l.label)}</a></li>`).join("")}</ul>` +
       `<p><a href="/services" style="color:#4ade80">Explore services →</a></p>` +
       h2("Real work, from our studio.") +
       `<ul>${realWork.map((caption) => `<li><a href="/gallery" style="color:#4ade80">${e(caption)}</a></li>`).join("")}</ul>` +
