@@ -197,7 +197,9 @@ describe('home first-paint poster', () => {
     const poster = script.slice(script.indexOf('function bootHeroHtml'), script.indexOf('function die'));
     assert.match(poster, /HERO_IMAGE_WIDTHS/);
     assert.match(poster, /HERO_IMAGE_BASE/);
-    assert.match(poster, /position:fixed/, 'fixed, so it cannot shift layout');
+    assert.match(poster, /position:absolute;top:0;left:0;width:100%;height:100vh;height:100svh;z-index:-1/, 'an absolute underlay: no layout space, behind the app');
+    // Chrome ignores an image that covers the whole viewport as a background, so it could never be the LCP element.
+    assert.match(poster, /height:94%/, 'the <img> must stay smaller than the viewport or it is never counted as LCP');
   });
 });
 

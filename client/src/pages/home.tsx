@@ -78,18 +78,11 @@ export default function Home() {
   // #boot-hero) to this page's own hero once that photo has loaded. Capped at 4 s so a failed
   // image can never leave the poster covering the page.
   useEffect(() => {
-    const boot = document.getElementById("boot-hero");
-    if (!boot) return;
-    const remove = () => boot.remove();
-    const handOver = () => requestAnimationFrame(() => requestAnimationFrame(remove));
-    const img = document.querySelector<HTMLImageElement>('[data-testid="img-hero"]');
-    if (!img || (img.complete && img.naturalWidth > 0)) handOver();
-    else {
-      img.addEventListener("load", handOver, { once: true });
-      img.addEventListener("error", remove, { once: true });
-    }
-    const t = window.setTimeout(remove, 4000);
-    return () => window.clearTimeout(t);
+    // The poster is an UNDERLAY (position:absolute, z-index:-1) under this page's own hero, which paints the
+    // identical photo over it. It is deliberately NOT removed once the app has painted: removing an LCP
+    // candidate makes the browser fall back to the later React-rendered image, so the page's LCP would be the
+    // slow one again. It only has to go when the visitor leaves the home route, or it would sit behind other pages.
+    return () => document.getElementById("boot-hero")?.remove();
   }, []);
 
   // Latest 3 real posts — same cap BlogCarousel documents itself ("up to three real
