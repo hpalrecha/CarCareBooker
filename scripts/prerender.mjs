@@ -30,7 +30,7 @@
  * below, and tests/prerender.test.mjs asserts those strings still match the components.
  */
 import fs from "node:fs/promises";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import esbuild from "esbuild";
@@ -103,6 +103,37 @@ function carouselPreloadTag(dir) {
   if (!entry) return undefined;
   const srcset = entry.widths.map((w) => `/attached_assets/_opt/${key}-${w}.avif ${w}w`).join(", ");
   return `<link rel="preload" as="image" imagesrcset="${srcset}" imagesizes="${CAROUSEL_SIZES}" type="image/avif" fetchpriority="high" />`;
+}
+
+/**
+ * Resource hints for the lazy campaign-landing route. The route is code-split, so the browser only learns about its chunk
+ * (and the dozen small chunks it imports) after index-*.js has run: a two-level request waterfall in front of the first
+ * render. Hinting them in the HTML lets them download in parallel with the app entry. Controlled A/B on /ppf (8
+ * alternating valid runs): LCP 4.0 -> 3.8 s, perf 85 -> 86. Returns [] if the build has no such chunk, so it can never
+ * break a build; the booking modal is NOT in this graph (it is a dynamic import, fetched on first touch).
+ */
+function landingRouteHints() {
+  const dir = path.join(DIST, "assets");
+  if (!existsSync(dir)) return [];
+  const files = readdirSync(dir);
+  const entry = files.find((f) => /^campaign-landing-.*\.js$/.test(f));
+  if (!entry) return [];
+  const seen = new Set();
+  const walk = (f) => {
+    if (seen.has(f) || !existsSync(path.join(dir, f))) return;
+    seen.add(f);
+    const src = readFileSync(path.join(dir, f), "utf8");
+    // Vite emits minified single-line chunks: statements are not at line starts, so match the specifier itself.
+    for (const m of src.matchAll(/from\s*"\.\/([^"]+\.js)"/g)) walk(m[1]);
+    for (const m of src.matchAll(/import\s*"\.\/([^"]+\.js)"/g)) walk(m[1]);
+  };
+  walk(entry);
+  const chunks = [...seen].filter((f) => f === entry || !/^(react-vendor|query-vendor|index-)/.test(f));
+  const css = files.filter((f) => /^(campaign-landing|use-hero-video)-.*\.css$/.test(f));
+  return [
+    ...chunks.map((f) => `<link rel="modulepreload" crossorigin href="/assets/${f}">`),
+    ...css.map((f) => `<link rel="preload" as="style" crossorigin href="/assets/${f}">`),
+  ];
 }
 
 function die(message) {
@@ -188,6 +219,7 @@ function headFor(route, canonicalPathFor) {
   // bandwidth budget on a photo it never shows.
   if (route.path === "/") tags.push(heroPreloadTag());
   if (route.preloadImage) tags.push(route.preloadImage);
+  if (route.extraHead) tags.push(...route.extraHead);
   return tags.map((t) => "    " + t).join("\n");
 }
 
@@ -359,6 +391,7 @@ async function main() {
       // The first hero-carousel slide is this page's LCP element; without a preload the browser only
       // finds it after React has rendered (~1.5 s later on a phone).
       preloadImage: p.heroCarousel ? carouselPreloadTag(p.heroCarousel.dir) : undefined,
+      extraHead: landingRouteHints(),
       jsonLd: [
         breadcrumbs([
           ["Home", "/"],
