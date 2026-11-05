@@ -53,6 +53,9 @@ export const SERVICES_COLUMNS: NavColumn[] = [
     heading: "Glass & Restoration",
     links: [
       { label: "Glass & sun film overview", href: "/services/glass-sun-control-film-bangalore" },
+      { label: "Windshield Glass Coating", href: "/service/windshield-glass-coating-new" },
+      { label: "Windshield Glass Polishing", href: "/service/windshield-glass-polishing" },
+      { label: "Headlight Restoration", href: "/service/headlight-restoration-both" },
     ],
   },
   {
