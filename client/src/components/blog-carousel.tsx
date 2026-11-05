@@ -84,6 +84,8 @@ export default function BlogCarousel({
                       alt={`Illustration for the article: ${post.title}`}
                       width={480}
                       height={270}
+                      // A card is ~300-380 px wide; without this the browser assumed 100vw and fetched the 1600 px file.
+                      sizes="(min-width: 861px) 380px, 80vw"
                       loading="lazy"
                     />
                   )}

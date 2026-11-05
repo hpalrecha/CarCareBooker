@@ -170,7 +170,7 @@
 .p91x .mega-panel.align-right { right: 0; }
 .p91x .mega-cols { display: flex; gap: 28px; }
 .p91x .mega-col { flex: 0 0 152px; }
-.p91x .mega-col h5 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--txt); opacity: .72; font-weight: 600; margin: 0 0 12px; }
+.p91x .mega-col h5, .p91x .mega-col .mega-h { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--txt); opacity: .72; font-weight: 600; margin: 0 0 12px; }
 .p91x .mega-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .p91x .mega-col a { color: var(--txt); font-size: 14px; }
 .p91x .mega-col a:hover { color: var(--txt); text-decoration: underline; text-underline-offset: 3px; }
@@ -1434,7 +1434,7 @@
 @media (max-width: 560px) {
   .p91x .foot-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px 20px; }
   .p91x .foot-brand, .p91x .foot-grid > .foot-col:last-child { grid-column: 1 / -1; }
-  .p91x .foot-col h4 { margin-bottom: 10px; }
+  .p91x .foot-col h4, .p91x .foot-col .foot-h { margin-bottom: 10px; }
   .p91x .foot-col a { padding: 4px 0; }
 }
 /* Below 768px the fixed "Get free estimate" bar sits over the page bottom. Pad the footer so
@@ -1455,7 +1455,8 @@
 .p91x .foot-btn.is-wa { border-color: rgba(37,211,102,.4); color: #4BE083; }
 .p91x .foot-btn.is-wa:hover { border-color: #25D366; color: #25D366; }
 
-.p91x .foot-col h4 {
+.p91x .foot-col .foot-h { line-height: 1.15; text-wrap: balance; }
+.p91x .foot-col h4, .p91x .foot-col .foot-h {
   font-family: "IBM Plex Sans", sans-serif;
   font-size: 11px; font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
   color: var(--txt-3); margin: 0 0 14px;
@@ -1913,7 +1914,7 @@
 .p91x footer.site .foot-btn:hover, .p91x footer.site .foot-col a:hover, .p91x footer.site .foot-legal a:hover { color: #fff; }
 .p91x footer.site .foot-btn.is-wa { color: #7BE8A6; }
 .p91x footer.site .foot-more { color: #fff; text-decoration: underline; text-decoration-color: var(--brand-accent); text-underline-offset: 4px; }
-.p91x footer.site .foot-col h4 { font-family: var(--font-mono); font-weight: 500; letter-spacing: .14em; }
+.p91x footer.site .foot-col h4, .p91x footer.site .foot-col .foot-h { font-family: var(--font-mono); font-weight: 500; letter-spacing: .14em; }
 .p91x footer.site .foot-bottom { margin-top: 28px; }
 /* CTA -> footer transition: the footer is a shade lighter than the CTA and opens with a hairline
    plus a short green rule, so the two dark bands read as two things without a gap or a colour change. */
@@ -1954,7 +1955,7 @@
   .p91x footer.site .foot-btn-ig { display: inline-flex; grid-column: 1 / -1; }
   .p91x footer.site .foot-li-ig { display: none; }
   .p91x footer.site .foot-col { min-width: 0; }
-  .p91x footer.site .foot-col h4 { margin: 0 0 6px; }
+  .p91x footer.site .foot-col h4, .p91x footer.site .foot-col .foot-h { margin: 0 0 6px; }
   .p91x footer.site .foot-col a { padding: 9px 0; font-size: 14px; }
   .p91x footer.site .foot-col-studio { grid-column: 1 / -1; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.14); }
   .p91x footer.site .foot-col-studio address { font-size: 14px; }

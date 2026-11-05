@@ -84,7 +84,8 @@ function summariseHours(hours: BusinessHour[]): { label: string; value: string; 
 function FootCol({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
     <div className={`foot-col foot-col-${id}`}>
-      <h4>{title}</h4>
+      {/* A label, not a document heading: the footer's group names must not outrank the page's own headings. */}
+      <p className="foot-h">{title}</p>
       {children}
     </div>
   );

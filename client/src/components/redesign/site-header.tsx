@@ -231,7 +231,7 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
                       <div className="mega-cols">
                         {SERVICES_COLUMNS.map((col) => (
                           <div className="mega-col" key={col.heading}>
-                            <h5>{col.heading}</h5>
+                            <p className="mega-h">{col.heading}</p>
                             <ul>
                               {col.links.map((l) => (
                                 <li key={l.href}>
@@ -291,7 +291,7 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
                     {menu.key === "resources" && (
                       <div className="mega-cols">
                         <div className="mega-col">
-                          <h5>Guides</h5>
+                          <p className="mega-h">Guides</p>
                           <ul>
                             <li><Link href="/blog" onClick={closeEverything}>All guides</Link></li>
                             {resourcesGuides.map((l) => (
@@ -302,7 +302,7 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
                           </ul>
                         </div>
                         <div className="mega-col">
-                          <h5>Get in touch</h5>
+                          <p className="mega-h">Get in touch</p>
                           <ul>
                             <li><Link href="/contact" onClick={closeEverything}>Contact us</Link></li>
                             <li><a href="tel:+917406619191" onClick={closeEverything}>Call 74066 19191</a></li>

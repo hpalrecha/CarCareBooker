@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { cloneElement, useState } from "react";
 import manifest from "@/lib/image-manifest.json";
 
 // A branded inline SVG placeholder (P91) shown when an image fails to load — so a
@@ -159,11 +159,17 @@ export function ImageWithFallback({
   if (!variants) return img;
 
   const { base, entry } = variants;
+  // No explicit size given: use the file's own dimensions from the manifest, so the browser can reserve the
+  // box before the image arrives (layout shift) without any CSS change: every rule here sizes by width or height.
+  const sized =
+    rest.width === undefined && rest.height === undefined
+      ? cloneElement(img, { width: entry.w, height: entry.h })
+      : img;
   return (
     <picture>
       <source type="image/avif" srcSet={srcSet(base, entry.widths, "avif")} sizes={sizes} />
       <source type="image/webp" srcSet={srcSet(base, entry.widths, "webp")} sizes={sizes} />
-      {img}
+      {sized}
     </picture>
   );
 }

@@ -171,6 +171,8 @@ function headFor(route, canonicalPathFor) {
     `<meta property="og:image:height" content="630" />`,
     `<meta property="og:image:alt" content="${esc(route.title)}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
+    `<meta name="twitter:title" content="${esc(route.title)}" />`,
+    `<meta name="twitter:description" content="${esc(route.description)}" />`,
     `<meta name="twitter:image" content="${esc(image)}" />`,
   ];
   for (const block of route.jsonLd || []) {
@@ -375,9 +377,7 @@ async function main() {
   // "P91 Car Care — Professional Car Detailing in Bangalore" og:title alongside its own.
   // Confirmed in the built output before fixing: two og:title tags on /ppf.
   //
-  // Kept from the shell deliberately: og:site_name, og:locale, twitter:title and
-  // twitter:description — headFor() does not emit those, so stripping them would leave
-  // the page with fewer tags than it has now.
+  // Kept from the shell deliberately: og:site_name and og:locale — headFor() does not emit those.
   const REEMITTED = [
     ["property", "og:title"],
     ["property", "og:description"],
@@ -386,6 +386,9 @@ async function main() {
     ["property", "og:image"],
     ["name", "twitter:card"],
     ["name", "twitter:image"],
+    // Now emitted per route too (they used to stay as the shell's generic text and disagreed with og:title).
+    ["name", "twitter:title"],
+    ["name", "twitter:description"],
   ];
 
   let stripped = shell
