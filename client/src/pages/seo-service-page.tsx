@@ -12,7 +12,7 @@ import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canoni
 import { GUIDE_IMAGES, GUIDE_LAYOUT } from "@/lib/real-service-images";
 import ParallaxFrame from "@/components/redesign/parallax-frame";
 import { useCinematic } from "@/hooks/use-cinematic";
-import { getSeoPage } from "@/lib/seo-pages";
+import { getSeoPage, guideLandingLink } from "@/lib/seo-pages";
 
 /** Drops the "✓ " some records prefix to each item — the list already draws a tick. */
 function cleanIncluded(item: string) {
@@ -92,6 +92,8 @@ export default function SeoServicePage() {
   const bySlug = new Map(list.map((s) => [s.slug, s]));
 
   const primary = bySlug.get(page.primaryServiceSlug);
+  // In-page link to the campaign landing page this guide feeds (bookHref/bookLabel in lib/seo-pages.ts).
+  const landingLink = guideLandingLink(page);
   // Sharp pictures chosen per guide (lib/real-service-images.ts), falling back to the linked
   // service's own image only for a guide that has none listed.
   const guideImages = GUIDE_IMAGES[page.slug];
@@ -359,6 +361,14 @@ export default function SeoServicePage() {
                 </li>
               ))}
             </ul>
+            {landingLink && (
+              <p style={{ marginTop: 16 }}>
+                {/* #15803d, not the #4ade80 of the option links above: that green is 1.74:1 on this white section. */}
+                <Link href={landingLink.href} style={{ color: "#15803d" }} data-testid="link-seo-landing">
+                  {landingLink.label}
+                </Link>
+              </p>
+            )}
           </div>
         </section>
       )}

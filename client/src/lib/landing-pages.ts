@@ -173,10 +173,9 @@ export const LANDING_PAGES: LandingPage[] = [
       {
         title: "Resists Bangalore's borewell water",
         body:
-          "Most of Adugodi runs on borewell supply with a high dissolved mineral content. " +
-          "When a droplet dries on a hot panel the water leaves and the calcium stays. A coating " +
-          "does not make paint immune, but it widens the window between the water landing and the " +
-          "damage starting.",
+          "Water here is mineral-heavy, and the minerals stay on the paint when a droplet dries. " +
+          "Coating does not make paint immune, but it gives you more time to wash the water off " +
+          "before it marks the clearcoat. The full guide explains how that damage happens.",
       },
       {
         title: "Water beads and rolls off",

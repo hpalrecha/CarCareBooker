@@ -36,7 +36,7 @@ before(async () => {
       'export * from "@/lib/crawlable-content";',
       'export * from "@/lib/service-seo";',
       'export * from "@/lib/llms-txt";',
-      'export { SEO_PAGES } from "@/lib/seo-pages";',
+      'export { SEO_PAGES, guideLandingLink } from "@/lib/seo-pages";',
       'export { BLOG_POSTS } from "@/lib/blog-posts";',
       'export { LANDING_PAGES } from "@/lib/landing-pages";',
     ].join('\n'),
@@ -320,6 +320,26 @@ describe('prerender and server wiring', () => {
       assert.ok(html.includes('href="/service/' + slug + '"'), 'missing link to ' + slug);
     }
     assert.ok(!html.includes('partial-ppf'), 'must not link slugs that are not in the catalogue');
+  });
+
+  test('PPF and ceramic guides link to their car pages with descriptive labels; other guides add no landing link', () => {
+    const link = (slug) => m.guideLandingLink(m.SEO_PAGES.find((x) => x.slug === slug));
+    assert.deepEqual(link('paint-protection-film-bangalore'), { href: '/ppf', label: 'Explore car PPF pricing and booking' });
+    assert.deepEqual(link('ceramic-coating-bangalore'), { href: '/ceramic-coating/car', label: 'Explore car ceramic coating pricing and booking' });
+    assert.equal(link('interior-detailing-bangalore'), null);
+    assert.equal(link('glass-sun-control-film-bangalore'), null);
+  });
+
+  test('every guide bookHref points at a real campaign landing page', () => {
+    const paths = new Set(m.LANDING_PAGES.map((p) => p.path));
+    for (const g of m.SEO_PAGES) if (g.bookHref) assert.ok(paths.has(g.bookHref), g.slug + ' -> ' + g.bookHref);
+  });
+
+  test('the guide component renders the landing link from the helper, and the snapshot is left alone', () => {
+    const src = read('client/src/pages/seo-service-page.tsx');
+    assert.match(src, /guideLandingLink\(page\)/);
+    assert.match(src, /data-testid="link-seo-landing"/);
+    assert.ok(!read('client/src/lib/crawlable-content.ts').includes('guideLandingLink'), 'the crawler snapshot must not duplicate the link');
   });
 
   test('/service/:slug and /services are filled from the database per request, with a safe fallback', () => {
