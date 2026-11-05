@@ -13,7 +13,7 @@
  * lives inside trackPurchase keyed on razorpay_payment_id — not at the call site, where a
  * future caller could forget it. These tests drive each of those paths.
  *
- * Ads (AW-11467752288), GA4 (G-QXEEJ4EK4J) and Clarity are separate tags and are not
+ * Ads (AW-11467752288), GA4 (G-D3QRLWNCY5, G-QXEEJ4EK4J) and Clarity are separate tags and are not
  * touched here; the assertions below are about what this module pushes to dataLayer/gtag.
  */
 import { test, describe, beforeEach } from 'node:test';

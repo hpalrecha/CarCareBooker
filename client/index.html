@@ -67,8 +67,13 @@
     />
     <meta name="twitter:image" content="https://p91carcare.com/og/og-default.jpg" />
 
-    <!-- Third-party tags: Google Ads / GA4 (gtag.js, AW-11467752288 -> G-QXEEJ4EK4J) and Microsoft
-         Clarity (yezkqr1rwm).
+    <!-- Third-party tags: Google Ads (gtag.js, AW-11467752288) and Microsoft Clarity (yezkqr1rwm).
+
+         GOOGLE ANALYTICS DESTINATIONS. The Ads tag is configured in Google (not in this file) to also report to two GA4
+         streams: G-D3QRLWNCY5 ("P91 Car Care", P91's own property) and G-QXEEJ4EK4J, which is the Just Signs property
+         (justsigns.co.in, GA4 property 343044602). Just Signs is the same company; P91 traffic is sent there for combined
+         reporting. This is deliberate. It does NOT affect Google Search indexing or ranking. To separate the two sites in
+         the Just Signs reports, filter on hostname = p91carcare.com.
 
          PERFORMANCE. Loaded straight from <head> they cost about 3.4 s (gtag) and 0.7 s (Clarity)
          of main-thread blocking on a mid-range phone, ahead of the app itself. They are now

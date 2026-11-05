@@ -8,7 +8,8 @@
  *
  * It sits alongside three tags that already exist and it touches none of them:
  *   Google Ads gtag  AW-11467752288   (client/index.html)
- *   GA4              G-QXEEJ4EK4J     (loaded by that gtag)
+ *   GA4              G-D3QRLWNCY5 (P91 Car Care) and G-QXEEJ4EK4J (the Just Signs property, deliberately shared),
+ *                    both loaded by that gtag
  *   Microsoft Clarity yezkqr1rwm      (client/index.html)
  *
  * ─────────────────────────────────────────────────────────────────────────────────────
