@@ -84,7 +84,7 @@ export const SEO_PAGES: SeoPage[] = [
       "Nano-ceramic coating with machine paint correction in Adugodi, Bangalore. Resists borewell water staining and makes every wash easier.",
     crumb: "Ceramic coating",
     lede:
-      "Machine paint correction followed by a nano-ceramic layer that resists borewell water staining, repels dirt, and makes every wash after it easier.",
+      "A plain-language guide to nano-ceramic coating in Bangalore: how borewell water damages clearcoat, what the studio job involves, and what a coating does and does not do.",
     primaryServiceSlug: "1-year-ceramic-coating",
     bookHref: "/ceramic-coating/car",
     priceServiceSlugs: [
