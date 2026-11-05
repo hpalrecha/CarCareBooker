@@ -417,3 +417,13 @@ describe('technical SEO brief: robots meta, hub links, gallery images', () => {
     assert.ok(html.includes('<a href="/ppf"') && html.includes('<a href="/services/ceramic-coating-bangalore"'));
   });
 });
+
+describe('guide pages bake FAQPage schema into the HTML', () => {
+  test('prerender adds FAQPage JSON-LD for every guide that has FAQs', () => {
+    assert.ok(read('scripts/prerender.mjs').includes('content.faqPageSchema(p.faqs)'));
+    for (const page of m.SEO_PAGES) {
+      const schema = m.faqPageSchema(page.faqs);
+      assert.ok(page.faqs.length === 0 || (schema && schema.mainEntity.length === page.faqs.length), page.slug);
+    }
+  });
+});

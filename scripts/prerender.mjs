@@ -332,6 +332,9 @@ async function main() {
           ["Services", "/services"],
           [p.h1 || p.title, `/services/${p.slug}`],
         ]),
+        // The page renders these FAQs and sets the same schema at runtime (pages/seo-service-page.tsx); baking it
+        // in means a crawler that does not run JavaScript sees it too.
+        ...(content.faqPageSchema(p.faqs) ? [content.faqPageSchema(p.faqs)] : []),
       ],
     });
   }
