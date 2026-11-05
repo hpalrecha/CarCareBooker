@@ -441,7 +441,12 @@ container_env() { # reads $FACTS
   image="$(fact1 IMAGEID)"
   [[ "$(fact ENV | grep -c . || true)" == "$(fact1 ENVCOUNT)" ]] \
     || die "an environment value contains a newline; cannot reproduce it safely"
-  comm -23 <(fact ENV | sort) <(image_facts "$image" | sed -n 's/^ENV //p' | sort)
+  # One line per variable NAME, the last value winning (what Docker itself resolves). Every deploy used to
+  # copy the running container's env and then append extra.env, so a name set in both piled up one more
+  # copy per deploy (about 30 of OPENAI_API_KEY by 2026-11-05). Docker keeps the last copy, so it worked,
+  # but an old value could sit in front of a new one and the list only ever grew.
+  comm -23 <(fact ENV | awk -F= '{ if (!($1 in at)) { at[$1] = ++n; name[n] = $1 } line[$1] = $0 } END { for (i = 1; i <= n; i++) print line[name[i]] }' | sort) \
+           <(image_facts "$image" | sed -n 's/^ENV //p' | sort)
 }
 env_names() { container_env | cut -d= -f1; }
 
@@ -492,7 +497,13 @@ write_env_file() { # container -> ENV_FILE (0600, outside Git, deleted on exit)
   fi
   install -d -m 700 "$STATE_DIR/run"
   ENV_FILE="$STATE_DIR/run/env-$TS"
-  ( umask 077; container_env > "$ENV_FILE"; extra_env >> "$ENV_FILE" )
+  # A name that extra.env sets is taken from extra.env ONLY: the running container's copy is dropped
+  # rather than left in front of it, so the new value is the single entry, not the last of several.
+  ( umask 077
+    extra="$(extra_env)"
+    container_env | awk -F= -v names="$(extra_env_names | tr '\n' ' ')" \
+      'BEGIN { n = split(names, a, " "); for (i = 1; i <= n; i++) skip[a[i]] = 1 } !($1 in skip)' > "$ENV_FILE"
+    [[ -z "$extra" ]] || printf '%s\n' "$extra" >> "$ENV_FILE" )
   [[ -z "$(extra_env_names)" ]] || note "  extra env added from $EXTRA_ENV_FILE (names only): $(extra_env_names | tr '\n' ' ')"
 }
 

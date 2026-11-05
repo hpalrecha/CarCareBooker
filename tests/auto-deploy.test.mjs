@@ -620,3 +620,88 @@ describe('the GitHub Actions build', () => {
     assert.doesNotMatch(code, /\bssh\b|scp|rsync|appleboy|lightsail/i);
   });
 });
+
+/**
+ * The env file a deploy hands to the new container. Every deploy used to copy the running container's
+ * env and then append extra.env, so a name set in both gained one more copy per deploy (about 30 copies of
+ * OPENAI_API_KEY by 2026-11-05). These run the real container_env() and write_env_file() from
+ * deploy-manual.sh against a fake `docker inspect` result.
+ */
+describe('deploy-manual: the new container env has each variable once', () => {
+  const MANUAL = path.join(repoRoot, 'scripts/deploy-manual.sh');
+
+  function envHarness({ facts, imageEnv = [], extra = null }) {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'p91-env-'));
+    const state = path.join(dir, 'state');
+    fs.mkdirSync(path.join(state, 'run'), { recursive: true });
+    const text = fs.readFileSync(MANUAL, 'utf8').replace(/\r\n/g, '\n');
+    const from = text.indexOf('container_env() {');
+    const to = text.indexOf('container_writes() {');
+    assert.ok(from > 0 && to > from, 'env block not found in deploy-manual.sh');
+    const script = `
+set -Eeuo pipefail
+STATE_DIR='${state}'; EXECUTE=1; TS=T1; ENV_FILE=""
+die() { echo "ABORT: $*" >&2; exit 1; }
+note() { echo "[deploy] $*"; }
+warn() { echo "[deploy] WARNING: $*" >&2; }
+install() { local d; for d; do :; done; mkdir -p "$d"; }
+stat() { if [[ "$2" == "%a" ]]; then printf '600'; else printf '0'; fi; }
+FACTS=$(cat <<'F'
+${facts.map((e) => `ENV ${e}`).join('\n')}
+ENVCOUNT ${facts.length}
+IMAGEID sha256:x
+F
+)
+fact()  { sed -n "s/^$1 //p" <<<"$FACTS"; }
+fact1() { fact "$1" | head -1; }
+image_facts() { printf '%s\n' ${imageEnv.map((e) => `'ENV ${e}'`).join(' ') || "''"}; }
+${text.slice(from, to)}
+write_env_file x
+cat "$ENV_FILE"
+`;
+    if (extra !== null) fs.writeFileSync(path.join(state, 'extra.env'), extra, { mode: 0o600 });
+    const sh = path.join(dir, 'h.sh');
+    fs.writeFileSync(sh, script);
+    let out = '';
+    try {
+      out = execFileSync('bash', [sh], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    } catch (e) {
+      out = `${e.stdout ?? ''}${e.stderr ?? ''}`;
+      assert.fail(out);
+    }
+    return out.split('\n').filter((l) => l && !l.startsWith('[deploy]'));
+  }
+
+  test('a name set in extra.env appears once, with the extra.env value, not 30 copies', () => {
+    const old = Array.from({ length: 30 }, () => 'OPENAI_API_KEY=sk-OLD');
+    const lines = envHarness({
+      facts: ['DATABASE_URL=postgres://x', ...old, 'SESSION_SECRET=s'],
+      extra: 'OPENAI_API_KEY=sk-NEW\nOPENAI_MODEL=gpt-4o-mini\n',
+    });
+    assert.equal(lines.filter((l) => l.startsWith('OPENAI_API_KEY=')).length, 1);
+    assert.ok(lines.includes('OPENAI_API_KEY=sk-NEW'));
+    assert.ok(!lines.includes('OPENAI_API_KEY=sk-OLD'), 'the old value must not survive anywhere');
+    assert.ok(lines.includes('OPENAI_MODEL=gpt-4o-mini'));
+    assert.ok(lines.includes('DATABASE_URL=postgres://x') && lines.includes('SESSION_SECRET=s'), 'other variables are kept');
+  });
+
+  test('repeated copies of a name NOT in extra.env collapse to one, the last value', () => {
+    const lines = envHarness({ facts: ['A=1', 'B=2', 'A=3', 'A=4'], extra: '' });
+    assert.deepEqual(lines.filter((l) => l.startsWith('A=')), ['A=4']);
+    assert.deepEqual(lines.filter((l) => l.startsWith('B=')), ['B=2']);
+  });
+
+  test('without extra.env every variable is kept, values containing = intact, image defaults dropped', () => {
+    const lines = envHarness({
+      facts: ['DATABASE_URL=postgres://u:p@h/db?sslmode=require', 'PATH=/usr/bin', 'NODE_ENV=production'],
+      imageEnv: ['PATH=/usr/bin', 'NODE_ENV=production'],
+    });
+    assert.deepEqual(lines, ['DATABASE_URL=postgres://u:p@h/db?sslmode=require']);
+  });
+
+  test('running it again on its own output does not grow the file', () => {
+    const first = envHarness({ facts: ['A=1', 'K=old'], extra: 'K=new\n' });
+    const second = envHarness({ facts: first, extra: 'K=new\n' });
+    assert.deepEqual([...second].sort(), [...first].sort());
+  });
+});
