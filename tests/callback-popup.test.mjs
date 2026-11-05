@@ -86,7 +86,10 @@ describe('the popup component', () => {
   test('marks the visit only when it actually opens, and clears its timer', () => {
     assert.match(popup, /markCallbackPopupShown\(\);\s*setOpen\(true\)/);
     assert.match(popup, /return \(\) => clearTimeout\(timer\)/);
-    assert.match(popup, /setTimeout\(attempt, CALLBACK_DELAY_MS\)/);
+    // The delay is a prop that defaults to CALLBACK_DELAY_MS (SitePopups mounts the popup late and passes the remainder).
+    assert.match(popup, /delayMs = CALLBACK_DELAY_MS/);
+    assert.match(popup, /setTimeout\(attempt, delayMs\)/);
+    assert.ok(read('client/src/components/site-popups.tsx').includes('CALLBACK_DELAY_MS - CALLBACK_MOUNT_MS'), 'the popup must still open at 15 s overall');
     assert.match(popup, /waited >= CALLBACK_MAX_WAIT_MS/);
   });
 

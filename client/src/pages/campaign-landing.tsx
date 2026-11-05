@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
 // `.lp-*` (landing-pages.css) is also used by ppf-ceramic-landing.tsx and
 // service-landing.tsx, each importing it themselves. Only this component uses the
@@ -12,7 +12,10 @@ import SiteFooter from "@/components/redesign/site-footer";
 import DeferUntilIdle from "@/components/defer-until-idle";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import SlideCarousel from "@/components/redesign/slide-carousel";
-import BookingModal from "@/components/booking-modal";
+// The booking stack (react-hook-form, zod schema, calendar, Razorpay loader, select, dialog: ~80 KB of JS) is only
+// needed once a visitor opens it, but a static import put it on the critical path of the page's first render.
+const loadBookingModal = () => import("@/components/booking-modal");
+const BookingModal = lazy(loadBookingModal);
 import CampaignOffer from "@/components/campaign-offer";
 import VehicleSelector from "@/components/vehicle-selector";
 import BlogCarousel from "@/components/blog-carousel";
@@ -80,6 +83,21 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
     () => page?.defaultCategoryKey ?? page?.categories?.[0]?.key ?? "",
   );
   const [bookingOpen, setBookingOpen] = useState(false);
+  // Mount the modal the first time it is opened (and keep it), and fetch its code on the visitor's first
+  // touch/scroll/key press so the first tap on "Book" is not waiting for it.
+  const [bookingMounted, setBookingMounted] = useState(false);
+  useEffect(() => {
+    if (bookingOpen) setBookingMounted(true);
+  }, [bookingOpen]);
+  useEffect(() => {
+    const events = ["pointerdown", "touchstart", "scroll", "keydown"] as const;
+    const warm = () => {
+      events.forEach((e) => window.removeEventListener(e, warm));
+      void loadBookingModal();
+    };
+    events.forEach((e) => window.addEventListener(e, warm, { once: true, passive: true }));
+    return () => events.forEach((e) => window.removeEventListener(e, warm));
+  }, []);
   const showHeroVideo = useHeroVideoGate();
   const [heroVideoReady, setHeroVideoReady] = useState(false);
 
@@ -663,16 +681,18 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
         chose — "PPF, car, SUV" rather than just "PPF" — without this page knowing anything
         about how a booking is submitted.
       */}
-      {service && (
-        <BookingModal
-          service={service as any}
-          isOpen={bookingOpen}
-          onClose={() => setBookingOpen(false)}
-          vehicleContext={{
-            vehicleType: page.vehicle,
-            vehicleCategory: page.categories ? selectedCategory?.key : undefined,
-          }}
-        />
+      {service && (bookingOpen || bookingMounted) && (
+        <Suspense fallback={null}>
+          <BookingModal
+            service={service as any}
+            isOpen={bookingOpen}
+            onClose={() => setBookingOpen(false)}
+            vehicleContext={{
+              vehicleType: page.vehicle,
+              vehicleCategory: page.categories ? selectedCategory?.key : undefined,
+            }}
+          />
+        </Suspense>
       )}
     </div>
   );

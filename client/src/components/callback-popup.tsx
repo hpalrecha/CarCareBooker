@@ -27,11 +27,14 @@ export default function CallbackPopup({
   serviceTitle,
   serviceSlug,
   isBikeService,
+  delayMs = CALLBACK_DELAY_MS,
 }: {
   /** Omitted on pages that are not about one service: the popup then asks for a call generally. */
   serviceTitle?: string;
   serviceSlug?: string;
   isBikeService: boolean;
+  /** Wait before the popup is first considered. Defaults to CALLBACK_DELAY_MS; SitePopups mounts this late, so it passes less. */
+  delayMs?: number;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -52,7 +55,7 @@ export default function CallbackPopup({
       markCallbackPopupShown();
       setOpen(true);
     };
-    timer = setTimeout(attempt, CALLBACK_DELAY_MS);
+    timer = setTimeout(attempt, delayMs);
     return () => clearTimeout(timer);
   }, [serviceSlug]);
   const slug = serviceSlug ?? "";
