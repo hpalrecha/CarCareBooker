@@ -427,3 +427,13 @@ describe('guide pages bake FAQPage schema into the HTML', () => {
     }
   });
 });
+
+describe('duplicate homepage URL', () => {
+  test('/index.html is a permanent redirect to "/", not a second 200 page', () => {
+    const src = read('server/routes.ts');
+    const needle = 'index\\.html$/i'; // the regex source as written in routes.ts: index\.html$/i
+    assert.ok(src.includes(needle), 'route missing');
+    const at = src.indexOf(needle);
+    assert.ok(src.slice(at, at + 120).includes('res.redirect(301, "/")'), 'must be a 301 to "/"');
+  });
+});

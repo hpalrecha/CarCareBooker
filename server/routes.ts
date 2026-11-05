@@ -408,6 +408,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/ppf-ceramic-coating", (_req, res) => {
     res.redirect(301, "/services");
   });
+  // /index.html served the prerendered homepage with 200 (express.static finds the file), a duplicate of "/".
+  // Its canonical already pointed at "/", but a real 301 is the unambiguous signal.
+  app.get(/^\/index\.html$/i, (_req, res) => {
+    res.redirect(301, "/");
+  });
 
   // sitemap.xml — generated from the live active-service rows rather than a checked-in
   // file, so a service added or deactivated in the admin panel is reflected without a
