@@ -71,6 +71,9 @@ export interface SeoPage {
    */
   bookHref?: string;
 
+  /** Anchor text for the link to bookHref. Both are needed for the link to render. */
+  bookLabel?: string;
+
   /** Slugs of the other SEO pages linked at the foot. */
   related: string[];
 }
@@ -87,6 +90,7 @@ export const SEO_PAGES: SeoPage[] = [
       "A plain-language guide to nano-ceramic coating in Bangalore: how borewell water damages clearcoat, what the studio job involves, and what a coating does and does not do.",
     primaryServiceSlug: "1-year-ceramic-coating",
     bookHref: "/ceramic-coating/car",
+    bookLabel: "Explore car ceramic coating pricing and booking",
     priceServiceSlugs: [
       "1-year-ceramic-coating",
       "1-year-bike-ceramic-coating",
@@ -137,6 +141,7 @@ export const SEO_PAGES: SeoPage[] = [
       "A self-healing urethane layer over your paint, cut to the panel and fitted in a controlled bay — so stone chips, trolleys and kerbs hit the film instead of the clearcoat.",
     primaryServiceSlug: "ppf-sedan",
     bookHref: "/ppf",
+    bookLabel: "Explore car PPF pricing and booking",
     priceServiceSlugs: [
       "ppf-hatchback",
       "ppf-sedan",
@@ -280,4 +285,10 @@ export const SEO_PAGES: SeoPage[] = [
 
 export function getSeoPage(slug: string): SeoPage | undefined {
   return SEO_PAGES.find((p) => p.slug === slug);
+}
+
+/** The in-page link from a guide to the campaign landing page that sells what it describes, or null. */
+export function guideLandingLink(page: SeoPage): { href: string; label: string } | null {
+  if (!page.bookHref || !page.bookLabel) return null;
+  return { href: page.bookHref, label: page.bookLabel };
 }
