@@ -207,3 +207,31 @@ The `*.itest.mjs` integration suites need a running server and database and were
 5. After approval, use Start Validation for Soft 404 and Discovered, and Request Indexing for the main pages. I have not done this.
 6. Optional: review access logs on `p91-apps` (about 14 days retained) and Cloudflare firewall events to see who still requests the spam URLs.
 7. The admin hint text at `client/src/pages/admin-dashboard.tsx:767` suggests sharing `/ppf-ceramic-coating`, a redirecting URL. Changing it to `/ppf` is a small optional fix.
+
+## 10. Hack assessment and monitoring (2026-11-06)
+
+Question asked: were the foreign URLs injected by an attacker, and is the site clean now?
+
+Evidence that the site itself is clean today (live checks by `scripts/seo-monitor.mjs`, 31 pages):
+- No page differs between a browser, Googlebot and a Google-Spain-referred visitor (no cloaking). One apparent difference on `/contact` was Cloudflare re-encoding the contact email on each request, not content.
+- No iframes, obfuscated script loaders, hidden links or spam keywords in any page's HTML.
+- The only external hosts linked or loaded: `stek-india.in`, `wa.me`, `www.google.com`, `www.nasiol.in`. All expected.
+- Sitemap: 31 URLs, all 200, self-canonical, none noindex. No unknown URLs.
+- Common attack paths (`/wp-login.php`, `/xmlrpc.php`, `/.env`, `/.git/config`, `/shell.php`, extra sitemaps) all return 404. The SPA returns its 404 page, not a file.
+- Other hostnames: `booking.` and `www.` 301 to the main domain; `admin.`, `mail.`, `blog.` and `shop.` do not resolve.
+- Source tree and git history contain none of the spam product names or any code that could create such pages.
+
+Evidence about origin (inference, not proof):
+- The 22 URLs were last crawled by Google between 2026-02-11 and 2026-04-05. All are foreign-language store-listing slugs ending in a numeric id.
+- The app has no route that builds pages from a root slug, so these URLs never produced content here. Google reported them as Soft 404 because the old server answered 200 or a generic page.
+- This pattern fits legacy URLs from a previous owner of the domain, or links pointing at the domain from scraped product pages. It also matches the "URL injection" spam class, where attackers get URLs crawled on a site without adding real pages. I cannot tell the two apart from outside. Server logs from Feb to Apr 2026 (before this repo's 410 handling, commit `bcc6575`) would settle it and are probably gone (about 14 days retained).
+- The web search tool found no public record for these specific URLs. The Wayback Machine did not respond, so domain ownership history is unchecked.
+
+Why the site dropped out of Google "long back" cannot be proven from here. Search Console shows no Security Issues or Manual Action data to me; someone with access must check both (Security & Manual Actions menu). If either lists a problem, send it to me.
+
+Monitoring added:
+- `scripts/seo-monitor.mjs`: read-only, no credentials. Checks the 23 spam URLs, invented URLs, sitemap health, cloaking, injection markers, link allowlist, redirects, robots.txt and the API noindex header. Exit code 1 on any alert.
+- `scripts/seo-monitor-baseline.json`: the reviewed known-good state (31 sitemap URLs, 5 hosts). Re-run with `--write-baseline` only after reviewing a change on purpose (new page, new partner link).
+- Run: `node scripts/seo-monitor.mjs`. First run on 2026-11-06: no alerts.
+
+Search Console side (manual, nobody can automate without API access): weekly look at Pages, Security & Manual Actions, Crawl stats, and Sitemaps ("Success", 31 discovered).
