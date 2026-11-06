@@ -3,6 +3,8 @@
  * whenever Search Console shows something odd. It changes nothing and needs no credentials.
  *
  *   node scripts/seo-monitor.mjs                 check, exit 1 if anything needs attention
+ *   node scripts/seo-monitor.mjs --only=indexing   daily: sitemap, canonicals, noindex, redirects, robots, API
+ *   node scripts/seo-monitor.mjs --only=spam       weekly: spam URLs, cloaking, injected markup, link hosts
  *   node scripts/seo-monitor.mjs --write-baseline  record the current sitemap, link hosts and page
  *                                                  fingerprints as the reviewed, known-good state
  *   node scripts/seo-monitor.mjs --origin=https://staging.example   check another origin
@@ -27,6 +29,11 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const BASELINE = path.join(here, 'seo-monitor-baseline.json');
 const args = process.argv.slice(2);
 const WRITE = args.includes('--write-baseline');
+const ONLY = (args.find((a) => a.startsWith('--only=')) || '--only=all').slice(7);
+if (!['all', 'indexing', 'spam'].includes(ONLY)) throw new Error('--only must be all, indexing or spam');
+if (WRITE && ONLY !== 'all') throw new Error('--write-baseline needs the full run (no --only)');
+const RUN_SPAM = ONLY !== 'indexing'; // spam URLs, cloaking, injected markup, link hosts (weekly)
+const RUN_INDEX = ONLY !== 'spam'; // sitemap, canonicals, noindex, redirects, robots, API (daily)
 const ORIGIN = (args.find((a) => a.startsWith('--origin=')) || '--origin=https://p91carcare.com').slice(9);
 
 const UA_BROWSER = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
@@ -89,11 +96,11 @@ const baseline = fs.existsSync(BASELINE) ? JSON.parse(fs.readFileSync(BASELINE, 
 const state = { sitemap: [], hosts: new Set(), fingerprints: {} };
 
 // ---- 1 + 2: spam and invented URLs --------------------------------------------------------
-for (const p of SPAM_PATHS) {
+if (RUN_SPAM) for (const p of SPAM_PATHS) {
   const r = await get(ORIGIN + p);
   if (r.status !== 410 && r.status !== 404) alert(`SPAM URL not gone: ${r.status} ${p}${r.location ? ' -> ' + r.location : ''}`);
 }
-for (const p of ['/Zapatillas-Running-Hombre-Oferta-Verano-123456', '/this-page-should-never-exist-' + Date.now()]) {
+if (RUN_SPAM) for (const p of ['/Zapatillas-Running-Hombre-Oferta-Verano-123456', '/this-page-should-never-exist-' + Date.now()]) {
   const r = await get(ORIGIN + p);
   if (r.status === 200 || (r.status >= 300 && r.status < 400)) alert(`Unknown URL answers ${r.status}, expected 404/410: ${p}`);
 }
@@ -104,10 +111,10 @@ if (sm.status !== 200) alert(`sitemap.xml status ${sm.status}`);
 const locs = [...sm.body.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map((m) => m[1]);
 if (locs.length === 0) alert('sitemap.xml has no <loc> entries');
 state.sitemap = [...locs].sort();
-if (baseline) {
+if (baseline && RUN_INDEX) {
   for (const u of locs) if (!baseline.sitemap.includes(u)) alert(`NEW sitemap URL not in baseline (review it): ${u}`);
   for (const u of baseline.sitemap) if (!locs.includes(u)) alert(`Sitemap URL MISSING vs baseline: ${u}`);
-} else notes.push('No baseline yet: run with --write-baseline after reviewing this output.');
+} else if (!baseline) notes.push('No baseline yet: run with --write-baseline after reviewing this output.');
 
 const canonicalOf = (html) => (html.match(/<link[^>]+rel=["']canonical["'][^>]*>/i)?.[0].match(/href=["']([^"']+)["']/i) || [])[1];
 const robotsMeta = (html) => (html.match(/<meta[^>]+name=["']robots["'][^>]*>/i)?.[0].match(/content=["']([^"']+)["']/i) || [])[1] || '';
@@ -131,11 +138,13 @@ for (const url of pages) {
     alert(`Page not 200: ${b.status} ${url}`);
     continue;
   }
-  if (locs.includes(url)) {
+  if (RUN_INDEX && locs.includes(url)) {
     const canon = canonicalOf(b.body);
     if (canon !== url) alert(`Canonical mismatch on ${url}: ${canon || '(none)'}`);
     if (/noindex/i.test(robotsMeta(b.body)) || /noindex/i.test(b.headers.get('x-robots-tag') || '')) alert(`Sitemap URL is noindex: ${url}`);
   }
+
+  if (!RUN_SPAM) continue;
 
   // 4: cloaking
   const g = await get(url, { ua: UA_GOOGLEBOT });
@@ -158,9 +167,9 @@ for (const url of pages) {
   for (const m of html.matchAll(/(?:href|src|action)=["'](https?:)?\/\/([^/"'?#:]+)/gi)) state.hosts.add(m[2].toLowerCase());
 }
 
-if (baseline) {
+if (baseline && RUN_SPAM) {
   for (const h of state.hosts) if (!baseline.hosts.includes(h)) alert(`Link/asset host not in baseline allowlist: ${h}`);
-} else notes.push(`Hosts seen: ${[...state.hosts].sort().join(', ')}`);
+} else if (!baseline && RUN_SPAM) notes.push(`Hosts seen: ${[...state.hosts].sort().join(', ')}`);
 
 // ---- 6: redirects, robots, API --------------------------------------------------------------
 const expectRedirect = async (from, to) => {
@@ -168,22 +177,22 @@ const expectRedirect = async (from, to) => {
   const target = r.location ? new URL(r.location, from).href : '';
   if (r.status !== 301 || target !== to) alert(`Redirect ${from}: got ${r.status} ${r.location || ''}, expected 301 ${to}`);
 };
-if (ORIGIN === 'https://p91carcare.com') {
+if (RUN_INDEX && ORIGIN === 'https://p91carcare.com') {
   await expectRedirect('http://p91carcare.com/', 'https://p91carcare.com/');
   await expectRedirect('https://www.p91carcare.com/', 'https://p91carcare.com/');
 }
-await expectRedirect(ORIGIN + '/index.html', ORIGIN + '/');
-await expectRedirect(ORIGIN + '/services/', ORIGIN + '/services');
+if (RUN_INDEX) await expectRedirect(ORIGIN + '/index.html', ORIGIN + '/');
+if (RUN_INDEX) await expectRedirect(ORIGIN + '/services/', ORIGIN + '/services');
 
-const robots = await get(ORIGIN + '/robots.txt');
-for (const need of ['Allow: /', 'Disallow: /admin/', 'Disallow: /api/admin/', 'Disallow: /booking-confirmation/', 'Sitemap: https://p91carcare.com/sitemap.xml'])
+const robots = RUN_INDEX ? await get(ORIGIN + '/robots.txt') : { body: '' };
+if (RUN_INDEX) for (const need of ['Allow: /', 'Disallow: /admin/', 'Disallow: /api/admin/', 'Disallow: /booking-confirmation/', 'Sitemap: https://p91carcare.com/sitemap.xml'])
   if (!robots.body.includes(need)) alert(`robots.txt missing "${need}"`);
 if (/^\s*Disallow:\s*\/\s*$/m.test(robots.body)) alert('robots.txt blocks the whole site');
-for (const line of robots.body.split('\n')) if (/^\s*Disallow:\s*\/api\/?\s*$/i.test(line)) alert('robots.txt blocks the public API');
+if (RUN_INDEX) for (const line of robots.body.split('\n')) if (/^\s*Disallow:\s*\/api\/?\s*$/i.test(line)) alert('robots.txt blocks the public API');
 
-const api = await get(ORIGIN + '/api/services');
-if (api.status !== 200) alert(`/api/services status ${api.status}`);
-if (!/noindex/i.test(api.headers.get('x-robots-tag') || '')) alert('/api/services lost X-Robots-Tag: noindex');
+const api = RUN_INDEX ? await get(ORIGIN + '/api/services') : null;
+if (api && api.status !== 200) alert(`/api/services status ${api.status}`);
+if (api && !/noindex/i.test(api.headers.get('x-robots-tag') || '')) alert('/api/services lost X-Robots-Tag: noindex');
 
 // ---- output ---------------------------------------------------------------------------------
 if (WRITE) {
@@ -194,7 +203,7 @@ if (WRITE) {
   console.log(`Baseline written: ${state.sitemap.length} sitemap URLs, ${state.hosts.size} hosts.`);
   console.log('Hosts:', [...state.hosts].sort().join(', '));
 }
-console.log(`Checked ${pages.length} pages, ${SPAM_PATHS.length} spam URLs on ${ORIGIN}`);
+console.log(`Mode: ${ONLY}. Checked ${pages.length} pages on ${ORIGIN}${RUN_SPAM ? `, ${SPAM_PATHS.length} spam URLs` : ''}`);
 for (const n of notes) console.log('note:', n);
 if (alerts.length) {
   console.log(`\n${alerts.length} ALERT(S):`);
