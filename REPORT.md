@@ -749,26 +749,28 @@ Evidence labels: **[LOCAL]** repo, build or test run; **[PROD-READ]** read-only 
 
 Files changed [LOCAL]:
 - `client/src/lib/service-related-links.ts` (new): the link map. Descriptive anchor text, no generic anchors.
-- `client/src/pages/service-landing.tsx`: renders a section "Related guides, brands and reading" from the map, using the existing `.mini-grid` / `.mini` card classes, placed after the existing "Other services" block. Routes, SEO metadata, booking flow and design are untouched.
+- `client/src/pages/service-landing.tsx`: renders a section "Related guides, products and reading" from the map, using the existing `.mini-grid` / `.mini` card classes, placed after the existing "Other services" block. Routes, SEO metadata, booking flow and design are untouched.
 - `client/src/lib/crawlable-content.ts`: the same links appear in the first HTML that crawlers read (see 14.3).
 - Tests: `tests/seo-foundation.test.mjs` (6 new tests).
 
-The topic match was checked against the blog posts' own text (hard water, windshield and glass, interior, headlight coverage in the PPF article). Where no single brand page fits a service, the link goes to the `/products` hub whose label says exactly what it lists; **no brand is implied to be used on that service.**
+The topic match was checked against the blog posts' own text (hard water, windshield and glass, interior, headlight coverage in the PPF article). **Superseded by section 15:** the first version linked single brand pages (STEK, Nasiol) from three service pages. None of the seven catalogue records names a brand, so that could read as "this service uses that brand". The corrected map below links **only the /products hub, with a label that names no brand**, from every page.
 
-| Service page | Related service links | Product / brand link | Article links |
+| Service page | Related service links | Products link | Article links |
 |---|---|---|---|
-| `/service/exterior-detailing-hard-water-new` | Ceramic coating guide; All services | Nasiol nano-ceramic coating | Hard water spots; Monsoon damage |
-| `/service/headlight-restoration-both` | PPF guide; All services | Products hub (STEK, Nasiol, P91 Premium PPF) | How much PPF your car needs; How to choose a studio |
+| `/service/exterior-detailing-hard-water-new` | Ceramic coating guide; All services | Products hub | Hard water spots; Monsoon damage |
+| `/service/headlight-restoration-both` | PPF guide; All services | Products hub | How much PPF your car needs; How to choose a studio |
 | `/service/interior-detailing-service` | Interior detailing guide; All services | Products hub | How to choose a studio; Monsoon damage |
-| `/service/premium-car-wash-special` | Ceramic coating guide; All services | Products hub | Hard water spots; How to choose a studio |
-| `/service/windshield-glass-coating-new` | Sun control film and glass guide; All services | STEK paint protection and sun-control film | Windshield heat rejection film; How to choose a studio |
-| `/service/windshield-glass-polishing` | Sun control film and glass guide; All services | STEK paint protection and sun-control film | Windshield heat rejection film; How to choose a studio |
+| `/service/premium-car-wash-special` | All services (the ceramic guide was removed, see section 15) | Products hub | Hard water spots; How to choose a studio |
+| `/service/windshield-glass-coating-new` | Sun control film and glass guide; All services | Products hub | Windshield heat rejection film; How to choose a studio |
+| `/service/windshield-glass-polishing` | Sun control film and glass guide; All services | Products hub | Windshield heat rejection film; How to choose a studio |
 | `/service/annual-maintenance-package` | Interior detailing guide; All services | Products hub | How to choose a studio; Monsoon damage |
 
-Editorial note for the business [ASSUME]: the pairings are topic-based. The headlight, car-wash, interior and annual pages have no brand page that fits them, so they link to the hub. Your manager may prefer different pairings; they are one file to change.
+Hub anchor text (all seven pages): "Browse the films and coatings P91 Car Care fits, on the products page". The section heading is "Related guides, products and reading".
+
+Editorial note for the business [ASSUME]: the pairings are topic-based and live in one file, `client/src/lib/service-related-links.ts`. Your manager may prefer different ones.
 
 Verified [LOCAL]:
-- Rendered through a local build at 390 px and 1280 px on all 7 pages: the section appears with 5 cards, **no horizontal overflow, exactly one `<h1>`, zero console errors, layout shift 0**. The page grows by about 686 px on mobile (664 px on the two windshield pages). I looked at the mobile and desktop screenshots of one page and they match the existing card styling.
+- Rendered through a local build at 390 px and 1280 px on all 7 pages: the section appears with 5 cards (4 on the car-wash page, see section 15), **no horizontal overflow, exactly one `<h1>`, zero console errors, layout shift 0**. The page grows by about 686 px on mobile (664 px on the two windshield pages). I looked at the mobile and desktop screenshots of one page and they match the existing card styling.
 - `tsc` reports the same 35 pre-existing errors as `origin/main`, none in the changed files.
 - Not verified: a real (non-preview) server response with the database, because that would connect to production. The unit tests cover `servicePageContent()`.
 
@@ -845,3 +847,62 @@ Test results [LOCAL]: `gone-paths`, `trailing-slash`, `canonical-host`, `sitemap
 ### 14.10 Files changed in the worktree (uncommitted)
 
 Modified: `client/src/lib/crawlable-content.ts`, `client/src/pages/service-landing.tsx`, `server/middleware/gone-paths.ts`, `server/middleware/trailing-slash.ts`, `tests/gone-paths.itest.mjs`, `tests/seo-foundation.test.mjs`, `tests/trailing-slash.itest.mjs`. New: `client/src/lib/service-related-links.ts`, `server/lib/gone-response.ts`. 7 files changed, 213 insertions, 14 deletions, plus the 2 new files. The worktree branch `seo/service-links-html` has no commits of its own yet.
+
+
+---
+
+## 15. Review corrections and merge plan (2026-11-10)
+
+### 15.1 Independent review of `origin/seo/service-links-html` (tip `2f9375f`) and the corrections
+
+An independent review before merge found three links that could be read as brand claims, and one weak link. Evidence [PROD-READ + LOCAL]: none of the seven catalogue records mentions STEK, Nasiol, film or ceramic. The two windshield services are glass *coating* and *polishing*, not film. The exterior hard-water service lists "Protective wax application", not a coating.
+
+Corrections (commit `936acb0`, on top of the two earlier commits, pushed to the same branch):
+
+| Change | Detail |
+|---|---|
+| Windshield glass coating and polishing | STEK sun-control film link replaced by the `/products` hub |
+| Exterior detailing (hard water) | Nasiol ceramic coating link replaced by the `/products` hub |
+| Hub anchor text, all seven pages | "Browse the films and coatings P91 Car Care fits, on the products page". Names no brand. |
+| Car-wash page | Ceramic coating guide link **removed**. No replacement: the page already lists exterior detailing as a related service, so any other link would duplicate it or be weak. The page keeps 4 cards (all services, products hub, two articles). |
+| Wording | The section heading and the card tag now say "products" instead of "brands", in the page and in the first HTML |
+
+Tests and checks after the corrections [LOCAL]:
+- `npm test`: **490 tests, 490 pass, 0 fail, 0 skipped**.
+- The 6 integration suites (`gone-paths`, `trailing-slash`, `canonical-host`, `sitemap-indexable`, `service-page-unavailable`, `security-headers`): **44 of 44 pass** (33 without a build present, since 11 `sitemap-indexable` tests need `dist/`).
+- `vite build` and `scripts/prerender.mjs`: succeed. `tsc`: the same 35 pre-existing errors as `origin/main`, none in the changed files.
+- New tests: no service page links a single brand page; the hub label names no brand, in both the page data and the first-HTML block; the car-wash page has no ceramic guide link and keeps its two articles. A mutation check (temporarily putting a STEK link back) made the new test fail, then the file was restored.
+- Browser check of the rebuilt pages at 390 px and 1280 px on all 7 pages: no horizontal overflow, exactly one `<h1>`, zero console errors, layout shift 0. Six pages show 5 cards; the car-wash page shows 4.
+- First HTML versus the rendered page, all 7 pages: the related links are identical in destination, anchor text and order; every label appears in the rendered page; the heading appears in both; no link to a brand page.
+
+Not changed by this correction: the 410 and `//` middleware, the bike FAQ script (never run), the annual-package price, Blogger, any production data.
+
+### 15.2 Merge order and report reconciliation (Plan A, tested, not performed)
+
+Both branches change `REPORT.md`, and only that file conflicts. `seo/monitoring`'s `REPORT.md` is a byte-for-byte prefix of the one on `seo/service-links-html`, which adds sections 12.7, 13, 14 and 15. So the version on this branch is the complete one.
+
+Plan A, verified in a temporary local worktree on 2026-11-10 (the temporary worktree and branch were deleted; nothing was pushed):
+1. Merge `seo/service-links-html` into `main` first (fast-forward; the branch is based on the current `origin/main`). **A merge to `main` triggers the production auto-deploy.**
+2. Then merge `origin/seo/monitoring` into `main`. Git stops with a conflict in `REPORT.md` only.
+3. Resolve it with the `main` side: `git checkout --ours REPORT.md`, then `git add REPORT.md` and commit. The result is identical to the service-links branch's `REPORT.md`, so no section is lost.
+4. The merge adds exactly three files: `scripts/seo-monitor.mjs`, `scripts/seo-monitor-baseline.json` and `blogger-draft-handover-inspection.md`. None affects the running website.
+5. Check afterwards: `git diff origin/seo/service-links-html -- REPORT.md` shows nothing.
+
+Fallback (Plan B, also tested): commit this branch's `REPORT.md` onto `seo/monitoring` first; a later merge then has no conflict.
+
+**Neither merge has been performed.** Both wait for your explicit approval.
+
+### 15.3 Merge readiness after the corrections
+
+| Check | Result |
+|---|---|
+| Diff contains only intended changes | PASS |
+| Link pairings: no misleading brand association | **PASS** (corrected) |
+| First HTML consistent with the rendered page | PASS |
+| 410 and `//path` middleware, valid routes | PASS (Cloudflare behaviour for `//` unverified) |
+| Tests and build | PASS |
+| Independent of `seo/monitoring` | PASS |
+| Report reconciliation plan | PASS (tested) |
+| Real-database boot and staging test | **BLOCKED** (not available) |
+
+Remaining before or after merge: the production auto-deploy follows any merge to `main`; after deploy, check one `/service/*` page's first HTML and rendered links, one 410 (`text/html`) and `//services` (301), and run `node scripts/seo-monitor.mjs` locally. The bike FAQ script, the annual-package price, FAQ and photo content, and the manager's choice of link pairings still depend on you, your manager or the business, as listed in section 14.9.
