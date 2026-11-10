@@ -247,7 +247,7 @@ Properties the account can see: `sc-domain:p91carcare.com` and `https://p91carca
 - Sitemap `https://p91carcare.com/sitemap.xml`: last downloaded 2026-11-05, 31 URLs submitted, 0 errors, 0 warnings. The "indexed" count the API reports for sitemaps (0) is a legacy field and not reliable.
 - **Homepage `https://p91carcare.com/`: "Submitted and indexed" (PASS), last crawl 2026-11-07, user and Google canonical match.** The site is in Google's index again.
 - `http://p91carcare.com/`: "Page with redirect", last crawl 2026-10-21, canonical `https://p91carcare.com/`. Confirms section 2.
-- Crawled - currently not indexed, canonicals correct, robots allowed (22 URLs): `/products`, `/products/stek`, `/products/nasiol`, `/products/p91-premium-ppf`, `/blog`, all 8 blog articles, `/ceramic-coating/car`, `/ceramic-coating/bike`, `/ppf`, `/gallery`, `/contact`, `/blog/category/glass-film`. Several were recrawled on 2026-11-04 and 2026-11-05, so Google is revisiting them. Google gives no reason for not indexing.
+- Crawled - currently not indexed, canonicals correct, robots allowed (19 URLs; an earlier version of this line said 22 in error): `/products`, `/products/stek`, `/products/nasiol`, `/products/p91-premium-ppf`, `/blog`, all 8 blog articles, `/ceramic-coating/car`, `/ceramic-coating/bike`, `/ppf`, `/gallery`, `/contact`, `/blog/category/glass-film`. Several were recrawled on 2026-11-04 and 2026-11-05, so Google is revisiting them. Google gives no reason for not indexing.
 - "URL is unknown to Google" per the API (not yet crawled): `/services`, the four `/services/*-bangalore` guides, all seven `/service/*` pages, and the noindex pages (`/blog/category/paint-care`, `/blog/category/protection`, the three policy pages). The Search Console UI lists most of these as "Discovered - currently not indexed". The API does not expose that state, so the two views are consistent.
 - `/ppf-ceramic-coating` and `/service/glass-polishing` (the 301 candidates): unknown to Google, so they are not the "Page with redirect" URL. Confirmed.
 
@@ -280,3 +280,93 @@ Redirect error re-check (API re-run 2026-11-10 and live probes):
 - So the error cannot be reproduced and the redirect itself is correct. Google's smartphone crawl of these two freshly published posts hit it once; the other two posts have not been crawled yet. It is most likely transient.
 - Optional fix, in Blogger (needs the blog owner): Theme > gear icon next to Customize > Mobile settings > "No. Show desktop template on mobile devices". That removes the `?m=1` redirect entirely, along with the "Alternate page with proper canonical tag" report for `?m=1` URLs.
 - Then in Search Console, run Test Live URL on both posts and request indexing for them if the live test passes.
+
+
+## 12. Second pass, 2026-11-10 (main site, Blogger, duplicate article)
+
+Nothing in this section was committed, deployed or changed on Blogger or the website. Search Console actions (Test Live URL, Request Indexing, Start Validation) were not performed and cannot be done through the API.
+
+### 12.1 Main site: latest indexing status (verified, URL Inspection API, 2026-11-10 08:56 UTC)
+
+Compared with the section 11 snapshot taken earlier the same day: **no difference. Google has not crawled any additional page since.** The most recent crawl dates are still 2026-11-04 and 2026-11-05 (`/products`, `/products/nasiol`, `/products/p91-premium-ppf`, `/ppf`, `/ceramic-coating/car`, `/gallery`, `/contact`, `/blog/hard-water-spot-removal-bangalore`). The homepage was last crawled 2026-11-07.
+
+Of the 31 sitemap URLs:
+
+| Status | Count | URLs |
+|---|---|---|
+| Submitted and indexed | 1 | `/` |
+| Crawled, currently not indexed | 18 | `/products`, `/products/stek`, `/products/nasiol`, `/products/p91-premium-ppf`, `/blog`, the 8 blog articles, `/ceramic-coating/car`, `/ceramic-coating/bike`, `/ppf`, `/gallery`, `/contact` |
+| Unknown to Google (not yet crawled) | 12 | `/services`, the four `/services/*-bangalore` guides, the seven `/service/*` pages |
+
+Outside the sitemap: `/blog/category/glass-film` is also "Crawled, currently not indexed" (19 crawled-not-indexed URLs in total). Correction: section 11 and earlier chat messages said 22; the API list contains 19, and 1 + 18 + 12 = 31 sitemap URLs. `/blog/category/paint-care`, `/blog/category/protection` and the three policy pages are unknown to Google (intentional noindex). `/ppf-ceramic-coating` and `/service/glass-polishing` are unknown to Google. `http://p91carcare.com/` is the single "Page with redirect".
+
+Sitemap API: `/sitemap.xml` last downloaded 2026-11-05, 31 submitted, 0 errors, 0 warnings.
+
+**Genuine technical issues that still need code changes: none found.** Every URL Google has crawled shows a successful fetch, robots allowed, indexing allowed, and user canonical equal to Google canonical. The remaining non-indexing is either Google's quality and crawl-priority decision (19 URLs) or not yet crawled (12 URLs). No code was changed to force indexing.
+
+Not verified: why Google chose not to index the 19 pages. The API gives no reason. Page quality and the shared catalogue text (section 4) remain the working hypothesis.
+
+### 12.2 Blogger redirect investigation
+
+URLs: `/2026/11/car-detailing-in-bangalore-complete.html` and `/2026/10/best-ppf-studio-near-koramangala-how-to.html` on `p91carcare.blogspot.com`.
+
+Verified, Search Console API: both are still "Redirect error" (fetch state `REDIRECT_ERROR`), last crawled 2026-11-05 and 2026-11-04, crawled as MOBILE, robots allowed. There is no newer crawl. The other two posts and the homepage are "Discovered - currently not indexed".
+
+Verified, live requests (curl, up to 10 redirects followed, 2026-11-10):
+
+| User agent | Result for each post |
+|---|---|
+| Desktop browser | 200, no redirect, canonical is the post URL itself |
+| Googlebot desktop | 200, no redirect, canonical is the post URL itself |
+| Googlebot smartphone | One `302 Moved Temporarily` to the same URL plus `?m=1`, which returns 200. The canonical on that page points back to the clean URL. |
+
+- Redirect loop: **none**. With `--max-redirs 3` the final status was 200 after 1 redirect. The `?m=1` URL itself returns 200 and does not redirect again.
+- No `X-Robots-Tag` header and no robots meta tag on either post.
+
+Not verified: what exactly Google saw on 2026-11-04 and 2026-11-05. I cannot reproduce a redirect error, and the API does not return the redirect chain.
+
+Is changing Blogger's mobile template setting necessary? **No, not on the current evidence.** A one-hop `302` to `?m=1` with a correct canonical is Blogger's standard mobile behaviour and is not an error by itself. The other two posts use the same mechanism and have simply not been crawled yet. Assumption: the error was a one-off failure on the first mobile crawl of freshly published posts. Do not change the setting yet. Run Test Live URL first, and change it only if the live test reproduces a redirect error. The trade-off of turning it off is that phones get the desktop layout, which can look worse for readers.
+
+### 12.3 Duplicate Blogger article
+
+Recheck, same method as section 11 (5-word phrase overlap), 2026-11-10: results unchanged.
+
+| Blogspot post | Overlap with its closest main-site page |
+|---|---|
+| **`/2026/10/best-car-detailing-in-bangalore-buyers.html`, "Best Car Detailing in Bangalore: A Buyer's Guide \| P91 Car Care"** | **96%** with `/blog/best-car-detailing-in-bangalore`. The section headings are identical to the main-site article. |
+| `.../best-ppf-studio-near-koramangala-how-to.html` | 18% with `/blog/best-car-detailing-in-bangalore` |
+| `.../car-detailing-in-bangalore-complete.html` | 4% |
+| `.../how-to-protect-your-cars-paint-in.html` | 6% |
+
+No specific issue found with the 18%, 4% and 6% posts; they are unchanged.
+
+Replacement draft for the 96% post: `blogger-draft-handover-inspection.md` in the repo root (untracked, not published). Angle: how to prepare for a detailing visit and how to inspect the car at handover. Verified: 0.0% to 0.1% phrase overlap with the 4 Blogspot posts and 7 main-site pages. It contains no P91 business facts. Where such facts would help (studio policy, contact details, process) there are `[P91: ...]` placeholders for the business to fill in or delete.
+
+Assumption: the general car-care advice in the draft (checking paint in daylight, residue in panel gaps, interior drying time, and so on) is standard practice but was written from general knowledge, not from P91's own process. The owner should read it and delete anything that contradicts how the studio works.
+
+### 12.4 Recommended actions
+
+1. Main site: no code change. Wait for Google to crawl the 12 unknown URLs. Do not rerun validation or request indexing in bulk.
+2. Blogger: run Test Live URL on both posts. Leave the mobile setting alone unless the live test reproduces an error.
+3. Blogger: replace the 96% duplicate (edit it in place with the new draft, or delete it and publish a new post).
+4. Keep monitoring with `scripts/seo-monitor.mjs`. The cloud routines still cannot reach the site (section 10), so run it locally.
+
+### 12.5 Remaining manual actions and access limits
+
+- Search Console (you): Test Live URL on the two Blogger posts. Request indexing for them only if the live test passes. Request indexing for a few key main-site URLs when quota allows: `/services`, the other three `/services/*` guides, `/products/p91-premium-ppf`, `/products/nasiol`, `/service/annual-maintenance-package`, `/service/windshield-glass-coating-new`, `/service/exterior-detailing-hard-water-new`, `/gallery`.
+- Blogger (you): replace the duplicate post using the draft. Change the mobile setting only if needed.
+- Access limits: the API cannot request indexing, start validation, or list issue-group URLs. I have no Blogger editing access. The cloud monitoring routines are blocked by the sandbox network allowlist. The Security Issues and Manual Actions screens are not visible to me.
+
+### 12.6 Update after the user's Test Live URL and Request Indexing (2026-11-10, about 09:10 UTC)
+
+Reported by the user (screenshot): Test Live URL for `/2026/11/car-detailing-in-bangalore-complete.html` shows "URL is available to Google" and "Page can be indexed", live test time 10 Nov 2026 14:36:29 IST. Indexing was requested for both Blogger posts. The Security Issues report shows no issues for both properties (user report, not visible to me).
+
+Verified (API, re-run at 09:10 UTC): the indexed-record status of both posts is **still "Redirect error"** (`REDIRECT_ERROR`), and the crawl time is now 2026-11-10T09:09:45Z and 09:09:44Z, crawled as MOBILE. So Google's real mobile crawl, a few minutes after the passing live test, again recorded a redirect error.
+
+This corrects section 12.2. I called the error likely transient and said the mobile setting should be left alone. The error has now been recorded on a second crawl, so it is reproducible by Google's mobile crawler even though the live test passes and my own requests see only a single `302` to `?m=1` followed by a 200.
+
+Verified (live, 2026-11-10): the `?m=1` page and the clean page return identical 110,902-byte HTML, both with the canonical pointing to the clean URL, and neither contains a meta refresh or a JavaScript redirect. Three repeat requests per post with a Googlebot-smartphone user agent all returned the same `302` to `?m=1`.
+
+Not verified: the exact redirect step that Google's crawler rejects. The API does not return the redirect chain. The `302` from the post URL to `?m=1`, on the smartphone user agent only, is the only redirect in the path, so it is the likely cause. That is an inference.
+
+Revised recommendation: turn off Blogger's mobile redirect (Blogger > Theme > gear icon next to Customize > Mobile settings > "No. Show desktop template on mobile devices"). It is reversible and removes both Search Console reports ("Redirect error" and "Alternate page with proper canonical tag"), because the `?m=1` URLs stop existing. After the change, wait for Google to recrawl (or request indexing again once) and re-check with the API.
