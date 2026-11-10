@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { isSpamProductPath } from "../lib/spam-paths";
+import { sendGone } from "../lib/gone-response";
 
 // Foreign spam URLs left over from the domain's previous owner (server/lib/spam-paths.ts) are
 // answered 410 Gone + X-Robots-Tag: noindex before anything else runs, with or without a
@@ -12,6 +13,5 @@ import { isSpamProductPath } from "../lib/spam-paths";
 export function goneForSpamPaths(req: Request, res: Response, next: NextFunction) {
   if (req.method !== "GET" && req.method !== "HEAD") return next();
   if (!isSpamProductPath(req.path)) return next();
-  res.setHeader("X-Robots-Tag", "noindex");
-  return res.status(410).type("text/plain").send("Gone");
+  return sendGone(res);
 }

@@ -18,6 +18,7 @@ import { serviceCanonicalPath } from "@/lib/canonical-overrides";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
 import { deriveCategory, deriveVehicle } from "@/lib/service-taxonomy";
 import { formatServiceTime } from "@/lib/service-time";
+import { relatedLinksFor } from "@/lib/service-related-links";
 import { serviceSeoTitle, serviceSeoDescription, serviceStructuredData } from "@/lib/service-seo";
 import { useHeroVideoGate } from "@/hooks/use-hero-video";
 import { slotFeeFor } from "@/lib/booking-fee";
@@ -569,6 +570,12 @@ export default function ServiceLanding() {
         )
         .slice(0, 3)
     : [];
+
+  /**
+   * Related guides, brands and articles for the seven catalogue pages (lib/service-related-links.ts),
+   * the same list baked into the crawlable HTML. Null for every other service.
+   */
+  const relatedLinks = relatedLinksFor(service.slug);
 
   /**
    * Which of the sticky sub-nav's five tabs this service actually has content for, and —
@@ -1195,6 +1202,29 @@ export default function ServiceLanding() {
                 >
                   <b>{s.title.trim()}</b>
                   <span>{formatINR(s.price)}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+      {/* Related guides, brands and articles: descriptive links to the guide, brand page and blog posts
+          that cover this service's topic (brief section 7). Same .mini cards as the block above. */}
+      {relatedLinks && (
+        <section className="section light-band" data-testid="section-related-links">
+          <div className="wrap narrow">
+            <div className="section-head" data-cine="rise">
+              <h2>Related guides, brands and reading</h2>
+            </div>
+            <div className="mini-grid">
+              {[
+                ...relatedLinks.guides.map((l) => ({ ...l, kind: "Service guide" })),
+                ...relatedLinks.products.map((l) => ({ ...l, kind: "Brand" })),
+                ...relatedLinks.posts.map((l) => ({ ...l, kind: "Article" })),
+              ].map((l) => (
+                <Link key={l.href} href={l.href} className="mini" data-testid={`link-related-content-${l.href.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "")}`}>
+                  <b>{l.label}</b>
+                  <span>{l.kind}</span>
                 </Link>
               ))}
             </div>

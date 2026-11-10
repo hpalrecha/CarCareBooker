@@ -11,6 +11,8 @@ import { HOME_PACKAGE_LINKS } from "./home-package-links";
 import { SERVICE_GUIDE_LINKS, SERVICE_PRICE_LINKS, type HubLink } from "./service-hub-links";
 import { STUDIO_PHOTOS } from "./gallery-photos";
 import { HOME_FAQS, HOME_FAQ_HEADING, HOME_ABOUT_H2 } from "./home-faq";
+import { relatedLinksFor, type RelatedLink } from "./service-related-links";
+import { formatServiceTime } from "./service-time";
 
 /**
  * The page's real content as plain HTML, baked into the initial response inside
@@ -397,6 +399,9 @@ export function brandPageContent(page: BrandPage): string {
 export interface CrawlableService {
   title?: string | null;
   slug: string;
+  /** Minutes, as stored; formatted by formatServiceTime() exactly as the page does. */
+  duration?: number | string | null;
+  durationText?: string | null;
   description?: string | null;
   price?: string | number | null;
   originalPrice?: string | number | null;
@@ -405,6 +410,12 @@ export interface CrawlableService {
   process?: { title?: string | null; description?: string | null }[] | null;
   faq?: { question?: string | null; answer?: string | null }[] | null;
 }
+
+/** A sub-heading and a list of descriptive links, or "" when there are no links. */
+const linkList = (heading: string, links: RelatedLink[]) =>
+  links.length
+    ? `<h3>${e(heading)}</h3><ul>${links.map((l) => `<li><a href="${e(l.href)}" style="color:#4ade80">${e(l.label)}</a></li>`).join("")}</ul>`
+    : "";
 
 const cleanItem = (item: string) => String(item).replace(/^\s*[✓✔]\s*/, "").trim();
 
@@ -426,17 +437,35 @@ export function servicePageContent(service: CrawlableService): string {
   const faqs = faqList(service.faq || []);
   const why = String(service.whyChoose || "").trim();
   const steps = (service.process || []).filter((s) => s?.title?.trim());
+  // Same figure the page's offer card prints ("About 4 hrs"), from the same function. Omitted when
+  // the record has no plausible duration, exactly as the page omits it.
+  const time = formatServiceTime({
+    slug: service.slug,
+    duration: service.duration ?? undefined,
+    durationText: service.durationText,
+  });
+  const timeLine = time ? p(`Time at the studio: about ${time}.`) : "";
+  // Related guides, brands and articles (lib/service-related-links.ts): the links the page shows.
+  const related = relatedLinksFor(service.slug);
+  const relatedHtml = related
+    ? h2("Related guides, brands and reading") +
+      linkList("Related services", related.guides) +
+      linkList("Products and brands", related.products) +
+      linkList("Guides from the studio", related.posts)
+    : "";
   return shell(
     h1(title) +
       (service.description ? p(String(service.description).trim()) : "") +
       priceLine +
+      timeLine +
       (included.length ? h2("What's Included") + ul(included) : "") +
       (why ? h2(`Why ${title}`) + p(why) : "") +
       (steps.length
         ? h2("How we do it") +
           ul(steps.map((s) => (s.description?.trim() ? `${s.title!.trim()}: ${s.description.trim()}` : s.title!.trim())))
         : "") +
-      (faqs ? h2(`${title} in Adugodi, Bangalore: FAQs`) + faqs : ""),
+      (faqs ? h2(`${title} in Adugodi, Bangalore: FAQs`) + faqs : "") +
+      relatedHtml,
   );
 }
 

@@ -39,6 +39,8 @@ before(async () => {
       'export { SEO_PAGES, guideLandingLink } from "@/lib/seo-pages";',
       'export { BLOG_POSTS } from "@/lib/blog-posts";',
       'export { LANDING_PAGES } from "@/lib/landing-pages";',
+      'export { SERVICE_RELATED, relatedLinksFor } from "@/lib/service-related-links";',
+      'export { PRODUCT_BRANDS } from "@/lib/nav-menu";',
     ].join('\n'),
   );
   const out = path.join(dir, 'seo-foundation.mjs');
@@ -455,5 +457,78 @@ describe('duplicate homepage URL', () => {
     assert.ok(src.includes(needle), 'route missing');
     const at = src.indexOf(needle);
     assert.ok(src.slice(at, at + 120).includes('res.redirect(301, "/")'), 'must be a 301 to "/"');
+  });
+});
+
+describe('related guides, brands and articles on the /service/* pages', () => {
+  const SEVEN = [
+    'annual-maintenance-package',
+    'exterior-detailing-hard-water-new',
+    'headlight-restoration-both',
+    'interior-detailing-service',
+    'premium-car-wash-special',
+    'windshield-glass-coating-new',
+    'windshield-glass-polishing',
+  ];
+  const record = (slug) => ({ ...SERVICE, slug, title: 'Test service' });
+
+  test('all seven catalogue pages have related links, and nothing else does', () => {
+    assert.deepEqual(Object.keys(m.SERVICE_RELATED).sort(), [...SEVEN].sort());
+    assert.equal(m.relatedLinksFor('ppf-sedan'), null);
+    assert.equal(m.relatedLinksFor(undefined), null);
+  });
+
+  test('every link points at a real page: blog post, brand page, service guide, hub', () => {
+    const posts = new Set(m.BLOG_POSTS.map((p) => '/blog/' + p.slug));
+    const brands = new Set(m.PRODUCT_BRANDS.map((b) => b.href));
+    const guides = new Set(m.SEO_PAGES.map((g) => '/services/' + g.slug));
+    for (const slug of SEVEN) {
+      const r = m.SERVICE_RELATED[slug];
+      for (const l of r.posts) assert.ok(posts.has(l.href), slug + ' -> ' + l.href);
+      for (const l of r.products) assert.ok(l.href === '/products' || brands.has(l.href), slug + ' -> ' + l.href);
+      for (const l of r.guides) assert.ok(l.href === '/services' || guides.has(l.href), slug + ' -> ' + l.href);
+    }
+  });
+
+  test('each page has at least one product link and one article link, no duplicates, descriptive anchors', () => {
+    for (const slug of SEVEN) {
+      const r = m.SERVICE_RELATED[slug];
+      assert.ok(r.products.length >= 1 && r.posts.length >= 1 && r.guides.length >= 1, slug);
+      const all = [...r.guides, ...r.products, ...r.posts];
+      assert.equal(new Set(all.map((l) => l.href)).size, all.length, slug + ' has a duplicate link');
+      for (const l of all) {
+        assert.ok(l.label.length >= 15, 'anchor too short: ' + l.label);
+        assert.doesNotMatch(l.label, /click here|read more|learn more|^here$/i, l.label);
+      }
+    }
+  });
+
+  test('the crawlable HTML carries the links and the duration, with one h1 and no invented content', () => {
+    const html = m.servicePageContent(record('windshield-glass-coating-new'));
+    assert.equal(h1Count(html), 1);
+    const r = m.SERVICE_RELATED['windshield-glass-coating-new'];
+    for (const l of [...r.guides, ...r.products, ...r.posts]) {
+      assert.ok(html.includes('href="' + l.href + '"'), l.href);
+      assert.ok(html.includes('>' + l.label.replace(/&/g, '&amp;') + '<'), l.label);
+    }
+    assert.ok(text(html).includes('Related guides, brands and reading'));
+    // Duration comes from the same function as the page ("About 24 hrs" there, a legacy range override).
+    assert.ok(text(html).includes('Time at the studio: about 24 hrs.'), text(html).slice(0, 300));
+  });
+
+  test('records without related links and without a plausible duration get neither section', () => {
+    const html = m.servicePageContent({ ...SERVICE, slug: 'ppf-sedan', duration: 4 });
+    assert.ok(!text(html).includes('Related guides, brands and reading'));
+    assert.ok(!text(html).includes('Time at the studio'), 'a duration under 15 minutes is a unit error, not a figure');
+    assert.equal(h1Count(html), 1);
+  });
+
+  test('the page renders the same helper, as a section with testable cards', () => {
+    const src = read('client/src/pages/service-landing.tsx');
+    assert.match(src, /relatedLinksFor\(service\.slug\)/);
+    assert.match(src, /data-testid="section-related-links"/);
+    assert.match(src, /Related guides, brands and reading/);
+    // The page keeps exactly one h1 (the service title); the new block adds only an h2.
+    assert.equal((src.match(/<h1\b/g) || []).length, 2, 'unchanged: the title and the not-found message');
   });
 });

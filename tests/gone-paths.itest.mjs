@@ -65,3 +65,33 @@ test("real routes, typos and non-GET requests are left alone", async () => {
     server.close();
   }
 });
+
+function fetchRaw(port, path) {
+  return new Promise((resolve, reject) => {
+    http
+      .get({ port, path }, (res) => {
+        let body = "";
+        res.setEncoding("utf8");
+        res.on("data", (c) => (body += c));
+        res.on("end", () => resolve({ status: res.statusCode, headers: res.headers, body }));
+      })
+      .on("error", reject);
+  });
+}
+
+test("the 410 is a minimal text/html page with noindex, no redirect and no app shell", async () => {
+  const { server, port } = await start();
+  try {
+    for (const p of ["/Para-Trompeta-Negro-Guatemala-341053", "/Para-Trompeta-Negro-Guatemala-341053/", "/le48"]) {
+      const r = await fetchRaw(port, p);
+      assert.equal(r.status, 410, p);
+      assert.match(r.headers["content-type"], /^text\/html/, p);
+      assert.equal(r.headers["x-robots-tag"], "noindex", p);
+      assert.equal(r.headers.location, undefined, p);
+      assert.match(r.body, /<h1>410 Gone<\/h1>/, p);
+      assert.doesNotMatch(r.body, /<script|<a |<link|id="root"/i, p);
+    }
+  } finally {
+    server.close();
+  }
+});
