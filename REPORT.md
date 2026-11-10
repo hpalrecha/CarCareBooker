@@ -235,3 +235,28 @@ Monitoring added:
 - Run: `node scripts/seo-monitor.mjs`. First run on 2026-11-06: no alerts.
 
 Search Console side (manual, nobody can automate without API access): weekly look at Pages, Security & Manual Actions, Crawl stats, and Sitemaps ("Success", 31 discovered).
+
+## 11. Search Console API snapshot (2026-11-10)
+
+Source: URL Inspection API and Sitemaps API, read-only scope, using the `gsc-reader` service account (full user on both properties below). Scripts ran from a scratch folder outside the repo; no credential was printed or stored.
+
+Properties the account can see: `sc-domain:p91carcare.com` and `https://p91carcare.blogspot.com/` (a separate Blogger site, see below).
+
+### Main site (`sc-domain:p91carcare.com`)
+
+- Sitemap `https://p91carcare.com/sitemap.xml`: last downloaded 2026-11-05, 31 URLs submitted, 0 errors, 0 warnings. The "indexed" count the API reports for sitemaps (0) is a legacy field and not reliable.
+- **Homepage `https://p91carcare.com/`: "Submitted and indexed" (PASS), last crawl 2026-11-07, user and Google canonical match.** The site is in Google's index again.
+- `http://p91carcare.com/`: "Page with redirect", last crawl 2026-10-21, canonical `https://p91carcare.com/`. Confirms section 2.
+- Crawled - currently not indexed, canonicals correct, robots allowed (22 URLs): `/products`, `/products/stek`, `/products/nasiol`, `/products/p91-premium-ppf`, `/blog`, all 8 blog articles, `/ceramic-coating/car`, `/ceramic-coating/bike`, `/ppf`, `/gallery`, `/contact`, `/blog/category/glass-film`. Several were recrawled on 2026-11-04 and 2026-11-05, so Google is revisiting them. Google gives no reason for not indexing.
+- "URL is unknown to Google" per the API (not yet crawled): `/services`, the four `/services/*-bangalore` guides, all seven `/service/*` pages, and the noindex pages (`/blog/category/paint-care`, `/blog/category/protection`, the three policy pages). The Search Console UI lists most of these as "Discovered - currently not indexed". The API does not expose that state, so the two views are consistent.
+- `/ppf-ceramic-coating` and `/service/glass-polishing` (the 301 candidates): unknown to Google, so they are not the "Page with redirect" URL. Confirmed.
+
+### Blogspot property (`https://p91carcare.blogspot.com/`)
+
+This is a separate Blogger blog titled "P91 CarCare", not part of the main site's code. It has 4 posts (published 2026-10-05, 10-07, 10-26, 11-05) and a sitemap with 4 URLs. The 2026-11-09 Search Console email ("Redirect error" and "Alternate page with proper canonical tag") is about this property.
+
+- "Alternate page with proper canonical tag" is the `?m=1` mobile variant of the homepage. The canonical points to the clean URL. This is normal Blogger behaviour and needs no fix.
+- "Redirect error": two posts show it in Google's last crawl: `/2026/11/car-detailing-in-bangalore-complete.html` (crawled 2026-11-05) and `/2026/10/best-ppf-studio-near-koramangala-how-to.html` (crawled 2026-11-04). Both were published or edited around then.
+- Live check from India with Googlebot user agents: both return 200 with no redirect, and the canonical points to themselves. I could not reproduce the error. It may be transient or geographic (Blogger can redirect by visitor country). Next step: run Test Live URL on both in Search Console. If it fails again, report the exact redirect chain.
+- The other two posts and the homepage are "Discovered - currently not indexed".
+- One post (`best-car-detailing-in-bangalore-buyers`) has a title matching the main site's `/blog/best-car-detailing-in-bangalore` article. I did not compare the text. If it is a copy, point its canonical at the main-site article or rewrite it, so the two do not compete.
