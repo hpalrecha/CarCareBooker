@@ -1,5 +1,5 @@
 /**
- * Related guides, brands and articles for each /service/:slug page, with descriptive anchor text.
+ * Related guides, products and articles for each /service/:slug page, with descriptive anchor text.
  *
  * Why this exists (technical-SEO brief, section 7): individual service pages must link to related
  * services, relevant products and related blog articles. The seven catalogue pages below used to
@@ -10,9 +10,10 @@
  *  - A link is added only where the destination really covers the service's topic. The topic match is
  *    checked against the blog posts' own text (hard water, windshield/glass, interior, headlights in
  *    the PPF coverage article), not guessed.
- *  - Where no single brand page fits a service (interior cleaning, car wash, headlights, annual
- *    package), the link goes to the /products hub, whose label says exactly what it lists. No brand is
- *    implied to be used on the service.
+ *  - No service here links to a single brand page (STEK, Nasiol, P91 Premium PPF). None of these
+ *    catalogue records says which brand, if any, is used for that service, so a brand link would imply
+ *    a claim the record does not make. Every product link goes to the /products hub instead, and its
+ *    anchor text names no brand, so it cannot be read as "this service uses X".
  *  - Anchor text describes the destination; no "click here". Blog labels are the articles' own
  *    subjects, not invented claims.
  *  - Slugs are checked against BLOG_POSTS and the brand pages in tests/seo-foundation.test.mjs, so a
@@ -34,10 +35,8 @@ export interface ServiceRelated {
 
 const PRODUCTS_HUB: RelatedLink = {
   href: "/products",
-  label: "Films and coatings we fit: STEK, Nasiol and P91 Premium PPF",
+  label: "Browse the films and coatings P91 Car Care fits, on the products page",
 };
-const STEK: RelatedLink = { href: "/products/stek", label: "STEK paint protection film and sun-control film" };
-const NASIOL: RelatedLink = { href: "/products/nasiol", label: "Nasiol nano-ceramic coating" };
 
 const POST = (slug: string, label: string): RelatedLink => ({ href: `/blog/${slug}`, label });
 const HARD_WATER = POST("hard-water-spot-removal-bangalore", "How to protect your car paint from hard water spots in Bangalore");
@@ -55,7 +54,7 @@ const ALL_SERVICES: RelatedLink = { href: "/services", label: "All P91 Car Care 
 export const SERVICE_RELATED: Record<string, ServiceRelated> = {
   "exterior-detailing-hard-water-new": {
     guides: [GUIDE_CERAMIC, ALL_SERVICES],
-    products: [NASIOL],
+    products: [PRODUCTS_HUB],
     posts: [HARD_WATER, MONSOON],
   },
   "headlight-restoration-both": {
@@ -69,18 +68,18 @@ export const SERVICE_RELATED: Record<string, ServiceRelated> = {
     posts: [CHOOSE_STUDIO, MONSOON],
   },
   "premium-car-wash-special": {
-    guides: [GUIDE_CERAMIC, ALL_SERVICES],
+    guides: [ALL_SERVICES],
     products: [PRODUCTS_HUB],
     posts: [HARD_WATER, CHOOSE_STUDIO],
   },
   "windshield-glass-coating-new": {
     guides: [GUIDE_GLASS, ALL_SERVICES],
-    products: [STEK],
+    products: [PRODUCTS_HUB],
     posts: [WINDSHIELD_FILM, CHOOSE_STUDIO],
   },
   "windshield-glass-polishing": {
     guides: [GUIDE_GLASS, ALL_SERVICES],
-    products: [STEK],
+    products: [PRODUCTS_HUB],
     posts: [WINDSHIELD_FILM, CHOOSE_STUDIO],
   },
   "annual-maintenance-package": {

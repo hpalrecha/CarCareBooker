@@ -1214,12 +1214,12 @@ export default function ServiceLanding() {
         <section className="section light-band" data-testid="section-related-links">
           <div className="wrap narrow">
             <div className="section-head" data-cine="rise">
-              <h2>Related guides, brands and reading</h2>
+              <h2>Related guides, products and reading</h2>
             </div>
             <div className="mini-grid">
               {[
                 ...relatedLinks.guides.map((l) => ({ ...l, kind: "Service guide" })),
-                ...relatedLinks.products.map((l) => ({ ...l, kind: "Brand" })),
+                ...relatedLinks.products.map((l) => ({ ...l, kind: "Products" })),
                 ...relatedLinks.posts.map((l) => ({ ...l, kind: "Article" })),
               ].map((l) => (
                 <Link key={l.href} href={l.href} className="mini" data-testid={`link-related-content-${l.href.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "")}`}>

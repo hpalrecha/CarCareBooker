@@ -503,6 +503,37 @@ describe('related guides, brands and articles on the /service/* pages', () => {
     }
   });
 
+  test('no service page links to a single brand: product links go to the hub, with a label that names no brand', () => {
+    // None of the seven catalogue records says which brand (STEK, Nasiol, P91 Premium PPF) is used for the
+    // service, so a brand link would imply a claim the record does not make.
+    const brandNames = /stek|nasiol|p91 premium/i;
+    for (const slug of SEVEN) {
+      const r = m.SERVICE_RELATED[slug];
+      assert.equal(r.products.length, 1, slug);
+      assert.equal(r.products[0].href, '/products', slug + ' must link the hub, not a brand page');
+      assert.doesNotMatch(r.products[0].label, brandNames, slug + ' hub label must not name a brand');
+      for (const l of [...r.guides, ...r.posts]) {
+        assert.ok(!/^\/products\/[a-z0-9-]+$/.test(l.href), slug + ' links a brand page: ' + l.href);
+      }
+    }
+    // The same text reaches the first HTML, so a crawler reads no brand claim either.
+    for (const slug of ['windshield-glass-coating-new', 'windshield-glass-polishing', 'exterior-detailing-hard-water-new']) {
+      const html = m.servicePageContent(record(slug));
+      const related = html.slice(html.indexOf('Related guides, products and reading'));
+      const block = related.slice(0, related.indexOf('</ul>', related.lastIndexOf('Guides from the studio')) + 5);
+      assert.ok(block.includes('href="/products"') && block.includes('href="/blog/'), slug + ': the block under test must be the real related list, not an empty slice');
+      assert.doesNotMatch(text(block), brandNames, slug);
+      assert.ok(!block.includes('href="/products/'), slug);
+    }
+  });
+
+  test('the car-wash page has no ceramic-coating guide link; it keeps the hub, two articles and all-services', () => {
+    const r = m.SERVICE_RELATED['premium-car-wash-special'];
+    assert.ok(!r.guides.some((l) => l.href === '/services/ceramic-coating-bangalore'));
+    assert.deepEqual(r.guides.map((l) => l.href), ['/services']);
+    assert.deepEqual(r.posts.map((l) => l.href), ['/blog/hard-water-spot-removal-bangalore', '/blog/best-car-detailing-in-bangalore']);
+  });
+
   test('the crawlable HTML carries the links and the duration, with one h1 and no invented content', () => {
     const html = m.servicePageContent(record('windshield-glass-coating-new'));
     assert.equal(h1Count(html), 1);
@@ -511,14 +542,14 @@ describe('related guides, brands and articles on the /service/* pages', () => {
       assert.ok(html.includes('href="' + l.href + '"'), l.href);
       assert.ok(html.includes('>' + l.label.replace(/&/g, '&amp;') + '<'), l.label);
     }
-    assert.ok(text(html).includes('Related guides, brands and reading'));
+    assert.ok(text(html).includes('Related guides, products and reading'));
     // Duration comes from the same function as the page ("About 24 hrs" there, a legacy range override).
     assert.ok(text(html).includes('Time at the studio: about 24 hrs.'), text(html).slice(0, 300));
   });
 
   test('records without related links and without a plausible duration get neither section', () => {
     const html = m.servicePageContent({ ...SERVICE, slug: 'ppf-sedan', duration: 4 });
-    assert.ok(!text(html).includes('Related guides, brands and reading'));
+    assert.ok(!text(html).includes('Related guides, products and reading'));
     assert.ok(!text(html).includes('Time at the studio'), 'a duration under 15 minutes is a unit error, not a figure');
     assert.equal(h1Count(html), 1);
   });
@@ -527,7 +558,7 @@ describe('related guides, brands and articles on the /service/* pages', () => {
     const src = read('client/src/pages/service-landing.tsx');
     assert.match(src, /relatedLinksFor\(service\.slug\)/);
     assert.match(src, /data-testid="section-related-links"/);
-    assert.match(src, /Related guides, brands and reading/);
+    assert.match(src, /Related guides, products and reading/);
     // The page keeps exactly one h1 (the service title); the new block adds only an h2.
     assert.equal((src.match(/<h1\b/g) || []).length, 2, 'unchanged: the title and the not-found message');
   });

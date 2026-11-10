@@ -448,7 +448,7 @@ export function servicePageContent(service: CrawlableService): string {
   // Related guides, brands and articles (lib/service-related-links.ts): the links the page shows.
   const related = relatedLinksFor(service.slug);
   const relatedHtml = related
-    ? h2("Related guides, brands and reading") +
+    ? h2("Related guides, products and reading") +
       linkList("Related services", related.guides) +
       linkList("Products and brands", related.products) +
       linkList("Guides from the studio", related.posts)
