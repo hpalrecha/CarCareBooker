@@ -260,3 +260,23 @@ This is a separate Blogger blog titled "P91 CarCare", not part of the main site'
 - Live check from India with Googlebot user agents: both return 200 with no redirect, and the canonical points to themselves. I could not reproduce the error. It may be transient or geographic (Blogger can redirect by visitor country). Next step: run Test Live URL on both in Search Console. If it fails again, report the exact redirect chain.
 - The other two posts and the homepage are "Discovered - currently not indexed".
 - One post (`best-car-detailing-in-bangalore-buyers`) has a title matching the main site's `/blog/best-car-detailing-in-bangalore` article. I did not compare the text. If it is a copy, point its canonical at the main-site article or rewrite it, so the two do not compete.
+
+### Blogspot follow-up (2026-11-10): text comparison and redirect re-check
+
+Text comparison (5-word phrase overlap of each Blogspot post against the 8 main-site blog articles, the homepage and the four service guides; Blogspot text taken from the blog's public feed, main-site text from the served HTML):
+
+| Blogspot post | Most similar main-site page | Overlap | Verdict |
+|---|---|---|---|
+| `best-car-detailing-in-bangalore-buyers` (2026-10-07) | `/blog/best-car-detailing-in-bangalore` | **96%** | Copy of the main-site article, same title with the "P91 Car Care" suffix |
+| `best-ppf-studio-near-koramangala-how-to` (2026-10-26) | `/blog/best-car-detailing-in-bangalore` | 18% | Partial overlap, mostly separate text |
+| `car-detailing-in-bangalore-complete` (2026-11-05) | same | 4% | Original |
+| `how-to-protect-your-cars-paint-in` (2026-10-05) | `/blog/ppf-koramangala-...` | 6% | Original |
+
+Recommendation: the 96% post competes with the main site's own article, and Google has not indexed it (Discovered). Delete it on Blogger, or rewrite it. The 18% post can stay; add a link from each remaining Blogspot post to the matching main-site service page.
+
+Redirect error re-check (API re-run 2026-11-10 and live probes):
+- Google's status for the two posts is unchanged: "Redirect error", last crawled 2026-11-04 and 2026-11-05, crawled as MOBILE. No newer crawl exists.
+- Cause found: Blogger sends mobile visitors a `302` from the post URL to the same URL with `?m=1`, which returns 200 with a canonical pointing back to the clean URL. With a Googlebot-smartphone user agent I get exactly one hop: `302` to `...?m=1`, then `200`. No loop and no chain. A desktop user agent gets a straight `200`.
+- So the error cannot be reproduced and the redirect itself is correct. Google's smartphone crawl of these two freshly published posts hit it once; the other two posts have not been crawled yet. It is most likely transient.
+- Optional fix, in Blogger (needs the blog owner): Theme > gear icon next to Customize > Mobile settings > "No. Show desktop template on mobile devices". That removes the `?m=1` redirect entirely, along with the "Alternate page with proper canonical tag" report for `?m=1` URLs.
+- Then in Search Console, run Test Live URL on both posts and request indexing for them if the live test passes.
