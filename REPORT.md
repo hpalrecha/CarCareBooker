@@ -906,3 +906,49 @@ Fallback (Plan B, also tested): commit this branch's `REPORT.md` onto `seo/monit
 | Real-database boot and staging test | **BLOCKED** (not available) |
 
 Remaining before or after merge: the production auto-deploy follows any merge to `main`; after deploy, check one `/service/*` page's first HTML and rendered links, one 410 (`text/html`) and `//services` (301), and run `node scripts/seo-monitor.mjs` locally. The bike FAQ script, the annual-package price, FAQ and photo content, and the manager's choice of link pairings still depend on you, your manager or the business, as listed in section 14.9.
+
+
+---
+
+## 16. Pre-merge sitemap, robots.txt and discovery-file verification (2026-11-10)
+
+Question: does merging `seo/service-links-html` require any change to `sitemap.xml`, `robots.txt` or other discovery files? **Answer: no. Nothing was changed.**
+
+All checks are against production with a Googlebot user agent [PROD], unless marked [LOCAL].
+
+### 16.1 `sitemap.xml`
+
+| Check | Result |
+|---|---|
+| Served | 200, `application/xml`, `X-Robots-Tag: noindex` (a resource, not a search result), valid XML with the sitemap namespace |
+| Entries | 31, no duplicates, all absolute `https://p91carcare.com`, no trailing-slash (except the root), no query strings, no off-host URLs |
+| `lastmod` | present on 16 entries, none invalid, none in the future |
+| The seven `/service/*` pages | **all seven present**: annual-maintenance-package, exterior-detailing-hard-water-new, headlight-restoration-both, interior-detailing-service, premium-car-wash-special, windshield-glass-coating-new, windshield-glass-polishing |
+| Every sitemap URL fetched | **31 of 31: HTTP 200, no redirect, canonical equal to the sitemap URL, meta robots `index,follow`, no `X-Robots-Tag`**, `text/html` |
+| Redirecting, noindex, 404 or 410 URLs in the sitemap | **none** (0 problems) |
+| Consolidated PPF and ceramic variant pages (`/service/ppf-sedan` and similar) | correctly **not** in the sitemap: they canonicalise to `/ppf`, `/ceramic-coating/car` or `/ceramic-coating/bike` |
+| Noindex pages (3 blog categories, 3 legal pages) | correctly not in the sitemap |
+
+### 16.2 Does the branch change what the sitemap should contain?
+
+- The branch changes **no sitemap, robots, llms.txt, IndexNow or canonical-mapping code**: of its 11 files, none matches those names, and neither `server/routes.ts` nor `client/src/lib/canonical-overrides.ts` is touched [LOCAL].
+- It adds **no new URL and no new route.** It adds links and one in-page section only.
+- Every destination of the new links is already in the sitemap and returns 200: `/products`, `/services`, the four `/services/*-bangalore` guides and the five blog posts used [PROD + LOCAL]. So no link points at a URL the sitemap would need to gain or lose.
+- The sitemap is generated from the live active-service rows, so adding or retiring a service in the admin panel already updates it without a deploy. The `//path` redirect and the `text/html` 410 do not affect any sitemap URL (all 31 are clean, slash-free paths).
+
+### 16.3 `robots.txt`
+
+Unchanged and correct: `Allow: /`; `Disallow: /admin/`, `/api/admin/`, `/booking-confirmation/`; `Sitemap: https://p91carcare.com/sitemap.xml`. It does not block `/api/` (pages render from it) or any page in the sitemap. No change needed.
+
+### 16.4 Other discovery files
+
+| File | Status | Needs a change? |
+|---|---|---|
+| `/llms.txt` | 200, 35 URLs, all return 200; lists all seven `/service/*` pages | No. It also lists the six PPF variants, the two ceramic variants, `/refund-policy` and the root without a slash. They are not sitemap entries (llms.txt is not a sitemap and is for AI readers, not Google), they return 200, and nothing here is wrong. Optional tidy-up for later, not part of this task. |
+| `/site.webmanifest` | 200 | No |
+| `/ads.txt`, `/humans.txt`, `/.well-known/security.txt`, `/sitemap_index.xml`, `/news-sitemap.xml` | 404 (do not exist) | No. None is required. |
+| IndexNow (`scripts/indexnow.mjs`) | not run | Not needed for this merge. It notifies Bing and others, not Google, and only about URLs that exist or changed. No URL is new. It could be run after deploy if you want Bing to recrawl the seven pages; that is optional. |
+
+### 16.5 Conclusion
+
+`sitemap.xml`, `robots.txt` and the other discovery files are correct and **need no modification** for this merge. They were left unchanged. Reminder: after the deploy (a merge to `main` triggers it), re-run `node scripts/seo-monitor.mjs` locally; it re-checks the same sitemap conditions.
