@@ -1,6 +1,7 @@
 import { formatINR, type ServiceRecord } from "@/lib/canonical-services";
 import { displayableIncludes, type CategoryOption } from "@/lib/landing-pages";
 import { formatServiceTime } from "@/lib/service-time";
+import { showPreviousPrice } from "@/lib/offer-scope";
 
 /**
  * Body-category picker for services priced by vehicle size.
@@ -64,8 +65,9 @@ export default function VehicleSelector({
   // a struck-through figure identical to the live one invents a saving that does not exist.
   const price = service ? parseFloat(String(service.price)) : NaN;
   const wasPrice = service?.originalPrice ? parseFloat(String(service.originalPrice)) : NaN;
+  // No struck-through price for the PPF rows: it has no approved source (lib/offer-scope.ts showPreviousPrice).
   const hasRealDiscount =
-    Number.isFinite(price) && Number.isFinite(wasPrice) && wasPrice > price;
+    Number.isFinite(price) && Number.isFinite(wasPrice) && wasPrice > price && showPreviousPrice(service);
 
   return (
     <div className={compact ? "vsel vsel-compact" : "vsel"} data-testid="vehicle-selector">

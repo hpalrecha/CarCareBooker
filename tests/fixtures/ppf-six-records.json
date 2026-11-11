@@ -1,0 +1,485 @@
+{
+ "source": "GET https://p91carcare.com/api/services (public, read-only), the six PPF rows, captured 2026-11-11. Prices and includes are the catalogue values the page must show.",
+ "records": [
+  {
+   "id": "ppf-hatchback",
+   "slug": "ppf-hatchback",
+   "title": "P91 PPF Basic - Hatchback",
+   "price": "50000.00",
+   "originalPrice": "85000.00",
+   "duration": 4320,
+   "durationText": "2-3 days",
+   "whatIncluded": [
+    "Full body PPF coverage",
+    "Self-healing technology",
+    "5-year warranty",
+    "Stone chip protection",
+    "UV protection",
+    "Hydrophobic coating"
+   ],
+   "description": "Complete Paint Protection Film coverage for hatchback vehicles. Our premium PPF protects your car from stone chips, scratches, bird droppings, and UV damage while maintaining the original paint finish.",
+   "whyChoose": "Paint protection film puts a clear urethane layer between your hatchback and the road. The bonnet, bumper and mirror backs take the constant low-level impacts of city and highway driving, and the film absorbs them instead of the clearcoat. Light scratching from washing and drying collects in the film, so the panel underneath stays in the condition it was in when the film went on. The film is optically clear, so the colour and gloss you see are still your own paint. Factory paint is only original once; fitting film over it protects that finish rather than repairing it later.",
+   "process": [
+    {
+     "step": 1,
+     "title": "Book online and bring the car to our Adugodi studio",
+     "description": "Choose your body type and book a slot on this page. The work is done at our studio in Adugodi, Bangalore."
+    },
+    {
+     "step": 2,
+     "title": "Paint inspection",
+     "description": "We inspect the paint before anything is fitted, so the starting condition is clear."
+    },
+    {
+     "step": 3,
+     "title": "Full decontamination",
+     "description": "The car is washed and decontaminated so the film goes onto a clean surface."
+    },
+    {
+     "step": 4,
+     "title": "Film cut and fitted panel by panel",
+     "description": "The film is cut and fitted one panel at a time."
+    },
+    {
+     "step": 5,
+     "title": "Final inspection",
+     "description": "Every panel is checked before the car is handed over."
+    },
+    {
+     "step": 6,
+     "title": "Handover with written warranty terms",
+     "description": "You receive the warranty terms in writing when you collect the car."
+    }
+   ],
+   "faq": [
+    {
+     "answer": "This package lists: Full body PPF coverage; Self-healing technology; 5-year warranty; Stone chip protection; UV protection; Hydrophobic coating. It is fitted to a hatchback at our studio in Adugodi, Bangalore.",
+     "question": "What does P91 PPF Basic - Hatchback cover?"
+    },
+    {
+     "answer": "This package lists a 5-year warranty. Warranty on any job is the film manufacturer's, issued in writing at handover.",
+     "question": "What warranty comes with it?"
+    },
+    {
+     "answer": "The catalogue lists 2-3 days for this package at our Adugodi studio.",
+     "question": "How long does it take?"
+    },
+    {
+     "answer": "At our studio: 49, 13th Cross, Ayappa Garden, Adugodi, Bengaluru 560030. Call +91 74066 19191 if you need directions or want to check a slot.",
+     "question": "Where is the work done?"
+    },
+    {
+     "answer": "Paint protection film is a physical film that absorbs stone chips and washing marks. Ceramic coating is a liquid layer that adds gloss and repels water and dirt. Our guide \"PPF vs Ceramic Coating\" at /blog/ppf-vs-ceramic-coating-bangalore compares the two for Bangalore conditions.",
+     "question": "How is paint protection film different from ceramic coating?"
+    }
+   ],
+   "images": [
+    "/attached_assets/services/p91-full-ppf-hatchback.webp"
+   ],
+   "isActive": true,
+   "maxBookingsPerSlot": 3,
+   "metaTitle": "",
+   "metaDescription": ""
+  },
+  {
+   "id": "ppf-suv",
+   "slug": "ppf-suv",
+   "title": "P91 PPF Basic - SUV",
+   "price": "70000.00",
+   "originalPrice": "95000.00",
+   "duration": 4320,
+   "durationText": "2-3 days",
+   "whatIncluded": [
+    "Full body PPF coverage",
+    "Self-healing technology",
+    "5-year warranty",
+    "Stone chip protection",
+    "UV protection",
+    "Hydrophobic coating"
+   ],
+   "description": "Complete Paint Protection Film coverage for SUV and larger vehicles. Our premium PPF protects your car from stone chips, scratches, bird droppings, and UV damage while maintaining the original paint finish.",
+   "whyChoose": "Paint protection film puts a clear urethane layer between your SUV and the road. The bonnet, bumper and mirror backs take the constant low-level impacts of city and highway driving, and the film absorbs them instead of the clearcoat. Light scratching from washing and drying collects in the film, so the panel underneath stays in the condition it was in when the film went on. The film is optically clear, so the colour and gloss you see are still your own paint. Factory paint is only original once; fitting film over it protects that finish rather than repairing it later.",
+   "process": [
+    {
+     "step": 1,
+     "title": "Book online and bring the car to our Adugodi studio",
+     "description": "Choose your body type and book a slot on this page. The work is done at our studio in Adugodi, Bangalore."
+    },
+    {
+     "step": 2,
+     "title": "Paint inspection",
+     "description": "We inspect the paint before anything is fitted, so the starting condition is clear."
+    },
+    {
+     "step": 3,
+     "title": "Full decontamination",
+     "description": "The car is washed and decontaminated so the film goes onto a clean surface."
+    },
+    {
+     "step": 4,
+     "title": "Film cut and fitted panel by panel",
+     "description": "The film is cut and fitted one panel at a time."
+    },
+    {
+     "step": 5,
+     "title": "Final inspection",
+     "description": "Every panel is checked before the car is handed over."
+    },
+    {
+     "step": 6,
+     "title": "Handover with written warranty terms",
+     "description": "You receive the warranty terms in writing when you collect the car."
+    }
+   ],
+   "faq": [
+    {
+     "answer": "This package lists: Full body PPF coverage; Self-healing technology; 5-year warranty; Stone chip protection; UV protection; Hydrophobic coating. It is fitted to a SUV at our studio in Adugodi, Bangalore.",
+     "question": "What does P91 PPF Basic - SUV cover?"
+    },
+    {
+     "answer": "This package lists a 5-year warranty. Warranty on any job is the film manufacturer's, issued in writing at handover.",
+     "question": "What warranty comes with it?"
+    },
+    {
+     "answer": "The catalogue lists 2-3 days for this package at our Adugodi studio.",
+     "question": "How long does it take?"
+    },
+    {
+     "answer": "At our studio: 49, 13th Cross, Ayappa Garden, Adugodi, Bengaluru 560030. Call +91 74066 19191 if you need directions or want to check a slot.",
+     "question": "Where is the work done?"
+    },
+    {
+     "answer": "Paint protection film is a physical film that absorbs stone chips and washing marks. Ceramic coating is a liquid layer that adds gloss and repels water and dirt. Our guide \"PPF vs Ceramic Coating\" at /blog/ppf-vs-ceramic-coating-bangalore compares the two for Bangalore conditions.",
+     "question": "How is paint protection film different from ceramic coating?"
+    }
+   ],
+   "images": [
+    "/attached_assets/services/p91-full-ppf-suv.webp"
+   ],
+   "isActive": true,
+   "maxBookingsPerSlot": 3,
+   "metaTitle": "",
+   "metaDescription": ""
+  },
+  {
+   "id": "ppf-sedan",
+   "slug": "ppf-sedan",
+   "title": "P91 PPF Basic - Sedan",
+   "price": "60000.00",
+   "originalPrice": "85000.00",
+   "duration": 4320,
+   "durationText": "2-3 days",
+   "whatIncluded": [
+    "Full body PPF coverage",
+    "Self-healing technology",
+    "5-year warranty",
+    "Stone chip protection",
+    "UV protection",
+    "Hydrophobic coating"
+   ],
+   "description": "Complete Paint Protection Film coverage for sedan vehicles. Our premium PPF protects your car from stone chips, scratches, bird droppings, and UV damage while maintaining the original paint finish.",
+   "whyChoose": "Paint protection film puts a clear urethane layer between your sedan and the road. The bonnet, bumper and mirror backs take the constant low-level impacts of city and highway driving, and the film absorbs them instead of the clearcoat. Light scratching from washing and drying collects in the film, so the panel underneath stays in the condition it was in when the film went on. The film is optically clear, so the colour and gloss you see are still your own paint. Factory paint is only original once; fitting film over it protects that finish rather than repairing it later.",
+   "process": [
+    {
+     "step": 1,
+     "title": "Book online and bring the car to our Adugodi studio",
+     "description": "Choose your body type and book a slot on this page. The work is done at our studio in Adugodi, Bangalore."
+    },
+    {
+     "step": 2,
+     "title": "Paint inspection",
+     "description": "We inspect the paint before anything is fitted, so the starting condition is clear."
+    },
+    {
+     "step": 3,
+     "title": "Full decontamination",
+     "description": "The car is washed and decontaminated so the film goes onto a clean surface."
+    },
+    {
+     "step": 4,
+     "title": "Film cut and fitted panel by panel",
+     "description": "The film is cut and fitted one panel at a time."
+    },
+    {
+     "step": 5,
+     "title": "Final inspection",
+     "description": "Every panel is checked before the car is handed over."
+    },
+    {
+     "step": 6,
+     "title": "Handover with written warranty terms",
+     "description": "You receive the warranty terms in writing when you collect the car."
+    }
+   ],
+   "faq": [
+    {
+     "answer": "This package lists: Full body PPF coverage; Self-healing technology; 5-year warranty; Stone chip protection; UV protection; Hydrophobic coating. It is fitted to a sedan at our studio in Adugodi, Bangalore.",
+     "question": "What does P91 PPF Basic - Sedan cover?"
+    },
+    {
+     "answer": "This package lists a 5-year warranty. Warranty on any job is the film manufacturer's, issued in writing at handover.",
+     "question": "What warranty comes with it?"
+    },
+    {
+     "answer": "The catalogue lists 2-3 days for this package at our Adugodi studio.",
+     "question": "How long does it take?"
+    },
+    {
+     "answer": "At our studio: 49, 13th Cross, Ayappa Garden, Adugodi, Bengaluru 560030. Call +91 74066 19191 if you need directions or want to check a slot.",
+     "question": "Where is the work done?"
+    },
+    {
+     "answer": "Paint protection film is a physical film that absorbs stone chips and washing marks. Ceramic coating is a liquid layer that adds gloss and repels water and dirt. Our guide \"PPF vs Ceramic Coating\" at /blog/ppf-vs-ceramic-coating-bangalore compares the two for Bangalore conditions.",
+     "question": "How is paint protection film different from ceramic coating?"
+    }
+   ],
+   "images": [
+    "/attached_assets/services/p91-full-ppf-sedan.webp"
+   ],
+   "isActive": true,
+   "maxBookingsPerSlot": 3,
+   "metaTitle": "",
+   "metaDescription": ""
+  },
+  {
+   "id": "c844422a-3312-4ee1-8e69-58a6b22ec283",
+   "slug": "ppf-premium-hatchback",
+   "title": "P91 PPF Premium - Hatchback",
+   "price": "70000.00",
+   "originalPrice": null,
+   "duration": 4320,
+   "durationText": "2-3 days",
+   "whatIncluded": [
+    "7-year warranty",
+    "Full body PPF coverage — premium-grade film",
+    "Enhanced self-healing technology",
+    "Stone chip and scratch protection",
+    "UV protection",
+    "Hydrophobic coating"
+   ],
+   "description": "Our premium-tier Paint Protection Film for hatchbacks, with a higher-grade film for tougher stone-chip and scratch resistance and a glossier finish than the Basic tier.",
+   "whyChoose": "Our Premium PPF tier steps up from Basic with a higher-grade film for tougher stone-chip and scratch resistance, stronger self-healing, and a glossier, more durable finish — full-body coverage for your hatchback.",
+   "process": [
+    {
+     "step": 1,
+     "title": "Book online and bring the car to our Adugodi studio",
+     "description": "Choose your body type and book a slot on this page. The work is done at our studio in Adugodi, Bangalore."
+    },
+    {
+     "step": 2,
+     "title": "Paint inspection",
+     "description": "We inspect the paint before anything is fitted, so the starting condition is clear."
+    },
+    {
+     "step": 3,
+     "title": "Full decontamination",
+     "description": "The car is washed and decontaminated so the film goes onto a clean surface."
+    },
+    {
+     "step": 4,
+     "title": "Film cut and fitted panel by panel",
+     "description": "The film is cut and fitted one panel at a time."
+    },
+    {
+     "step": 5,
+     "title": "Final inspection",
+     "description": "Every panel is checked before the car is handed over."
+    },
+    {
+     "step": 6,
+     "title": "Handover with written warranty terms",
+     "description": "You receive the warranty terms in writing when you collect the car."
+    }
+   ],
+   "faq": [
+    {
+     "answer": "This package lists: 7-year warranty; Full body PPF coverage — premium-grade film; Enhanced self-healing technology; Stone chip and scratch protection; UV protection; Hydrophobic coating. It is fitted to a hatchback at our studio in Adugodi, Bangalore.",
+     "question": "What does P91 PPF Premium - Hatchback cover?"
+    },
+    {
+     "answer": "This package lists a 7-year warranty. Warranty on any job is the film manufacturer's, issued in writing at handover.",
+     "question": "What warranty comes with it?"
+    },
+    {
+     "answer": "The catalogue lists 2-3 days for this package at our Adugodi studio.",
+     "question": "How long does it take?"
+    },
+    {
+     "answer": "At our studio: 49, 13th Cross, Ayappa Garden, Adugodi, Bengaluru 560030. Call +91 74066 19191 if you need directions or want to check a slot.",
+     "question": "Where is the work done?"
+    },
+    {
+     "answer": "Paint protection film is a physical film that absorbs stone chips and washing marks. Ceramic coating is a liquid layer that adds gloss and repels water and dirt. Our guide \"PPF vs Ceramic Coating\" at /blog/ppf-vs-ceramic-coating-bangalore compares the two for Bangalore conditions.",
+     "question": "How is paint protection film different from ceramic coating?"
+    }
+   ],
+   "images": [
+    "/attached_assets/services/p91-full-ppf-hatchback.webp"
+   ],
+   "isActive": true,
+   "maxBookingsPerSlot": 3,
+   "metaTitle": null,
+   "metaDescription": null
+  },
+  {
+   "id": "33fdbbbb-bc25-4ad7-92c1-d7722a0cf5ae",
+   "slug": "ppf-premium-suv",
+   "title": "P91 PPF Premium - SUV",
+   "price": "90000.00",
+   "originalPrice": null,
+   "duration": 4320,
+   "durationText": "2-3 days",
+   "whatIncluded": [
+    "7-year warranty",
+    "Full body PPF coverage — premium-grade film",
+    "Enhanced self-healing technology",
+    "Stone chip and scratch protection",
+    "UV protection",
+    "Hydrophobic coating"
+   ],
+   "description": "Our premium-tier Paint Protection Film for SUVs, with a higher-grade film for tougher stone-chip and scratch resistance and a glossier finish than the Basic tier.",
+   "whyChoose": "Our Premium PPF tier steps up from Basic with a higher-grade film for tougher stone-chip and scratch resistance, stronger self-healing, and a glossier, more durable finish — full-body coverage for your SUV.",
+   "process": [
+    {
+     "step": 1,
+     "title": "Book online and bring the car to our Adugodi studio",
+     "description": "Choose your body type and book a slot on this page. The work is done at our studio in Adugodi, Bangalore."
+    },
+    {
+     "step": 2,
+     "title": "Paint inspection",
+     "description": "We inspect the paint before anything is fitted, so the starting condition is clear."
+    },
+    {
+     "step": 3,
+     "title": "Full decontamination",
+     "description": "The car is washed and decontaminated so the film goes onto a clean surface."
+    },
+    {
+     "step": 4,
+     "title": "Film cut and fitted panel by panel",
+     "description": "The film is cut and fitted one panel at a time."
+    },
+    {
+     "step": 5,
+     "title": "Final inspection",
+     "description": "Every panel is checked before the car is handed over."
+    },
+    {
+     "step": 6,
+     "title": "Handover with written warranty terms",
+     "description": "You receive the warranty terms in writing when you collect the car."
+    }
+   ],
+   "faq": [
+    {
+     "answer": "This package lists: 7-year warranty; Full body PPF coverage — premium-grade film; Enhanced self-healing technology; Stone chip and scratch protection; UV protection; Hydrophobic coating. It is fitted to a SUV at our studio in Adugodi, Bangalore.",
+     "question": "What does P91 PPF Premium - SUV cover?"
+    },
+    {
+     "answer": "This package lists a 7-year warranty. Warranty on any job is the film manufacturer's, issued in writing at handover.",
+     "question": "What warranty comes with it?"
+    },
+    {
+     "answer": "The catalogue lists 2-3 days for this package at our Adugodi studio.",
+     "question": "How long does it take?"
+    },
+    {
+     "answer": "At our studio: 49, 13th Cross, Ayappa Garden, Adugodi, Bengaluru 560030. Call +91 74066 19191 if you need directions or want to check a slot.",
+     "question": "Where is the work done?"
+    },
+    {
+     "answer": "Paint protection film is a physical film that absorbs stone chips and washing marks. Ceramic coating is a liquid layer that adds gloss and repels water and dirt. Our guide \"PPF vs Ceramic Coating\" at /blog/ppf-vs-ceramic-coating-bangalore compares the two for Bangalore conditions.",
+     "question": "How is paint protection film different from ceramic coating?"
+    }
+   ],
+   "images": [
+    "/attached_assets/services/p91-full-ppf-suv.webp"
+   ],
+   "isActive": true,
+   "maxBookingsPerSlot": 3,
+   "metaTitle": null,
+   "metaDescription": null
+  },
+  {
+   "id": "febc9277-a176-4a73-ab3b-170c6cc8e25e",
+   "slug": "ppf-premium-sedan",
+   "title": "P91 PPF Premium - Sedan",
+   "price": "80000.00",
+   "originalPrice": null,
+   "duration": 4320,
+   "durationText": "2-3 days",
+   "whatIncluded": [
+    "7-year warranty",
+    "Full body PPF coverage — premium-grade film",
+    "Enhanced self-healing technology",
+    "Stone chip and scratch protection",
+    "UV protection",
+    "Hydrophobic coating"
+   ],
+   "description": "Our premium-tier Paint Protection Film for sedans, with a higher-grade film for tougher stone-chip and scratch resistance and a glossier finish than the Basic tier.",
+   "whyChoose": "Our Premium PPF tier steps up from Basic with a higher-grade film for tougher stone-chip and scratch resistance, stronger self-healing, and a glossier, more durable finish — full-body coverage for your sedan.",
+   "process": [
+    {
+     "step": 1,
+     "title": "Book online and bring the car to our Adugodi studio",
+     "description": "Choose your body type and book a slot on this page. The work is done at our studio in Adugodi, Bangalore."
+    },
+    {
+     "step": 2,
+     "title": "Paint inspection",
+     "description": "We inspect the paint before anything is fitted, so the starting condition is clear."
+    },
+    {
+     "step": 3,
+     "title": "Full decontamination",
+     "description": "The car is washed and decontaminated so the film goes onto a clean surface."
+    },
+    {
+     "step": 4,
+     "title": "Film cut and fitted panel by panel",
+     "description": "The film is cut and fitted one panel at a time."
+    },
+    {
+     "step": 5,
+     "title": "Final inspection",
+     "description": "Every panel is checked before the car is handed over."
+    },
+    {
+     "step": 6,
+     "title": "Handover with written warranty terms",
+     "description": "You receive the warranty terms in writing when you collect the car."
+    }
+   ],
+   "faq": [
+    {
+     "answer": "This package lists: 7-year warranty; Full body PPF coverage — premium-grade film; Enhanced self-healing technology; Stone chip and scratch protection; UV protection; Hydrophobic coating. It is fitted to a sedan at our studio in Adugodi, Bangalore.",
+     "question": "What does P91 PPF Premium - Sedan cover?"
+    },
+    {
+     "answer": "This package lists a 7-year warranty. Warranty on any job is the film manufacturer's, issued in writing at handover.",
+     "question": "What warranty comes with it?"
+    },
+    {
+     "answer": "The catalogue lists 2-3 days for this package at our Adugodi studio.",
+     "question": "How long does it take?"
+    },
+    {
+     "answer": "At our studio: 49, 13th Cross, Ayappa Garden, Adugodi, Bengaluru 560030. Call +91 74066 19191 if you need directions or want to check a slot.",
+     "question": "Where is the work done?"
+    },
+    {
+     "answer": "Paint protection film is a physical film that absorbs stone chips and washing marks. Ceramic coating is a liquid layer that adds gloss and repels water and dirt. Our guide \"PPF vs Ceramic Coating\" at /blog/ppf-vs-ceramic-coating-bangalore compares the two for Bangalore conditions.",
+     "question": "How is paint protection film different from ceramic coating?"
+    }
+   ],
+   "images": [
+    "/attached_assets/services/p91-full-ppf-sedan.webp"
+   ],
+   "isActive": true,
+   "maxBookingsPerSlot": 3,
+   "metaTitle": null,
+   "metaDescription": null
+  }
+ ]
+}

@@ -17,10 +17,12 @@ import {
   servicesListContent,
   type CrawlableService,
   landingServiceExtras,
+  ppfPackagesContent,
   faqPageSchema,
   escapeHtml,
 } from "../client/src/lib/crawlable-content";
 import { summariseHours } from "../client/src/lib/hours-summary";
+import { displayableFaqs } from "../client/src/lib/withheld-claims";
 import { SERVICES_SEO } from "../client/src/lib/static-seo";
 import { isSpamProductPath } from "./lib/spam-paths";
 import { BRAND_PAGES } from "../client/src/lib/brand-pages";
@@ -235,9 +237,16 @@ export function serveStatic(app: Express, distPathOverride?: string) {
             landing.categories?.[0]?.serviceSlug;
           const { storage } = await import("./storage");
           const service = slug ? await storage.getServiceBySlug(slug) : undefined;
-          const extras = service?.isActive ? landingServiceExtras(service as CrawlableService) : "";
+          const catalogueExtras = service?.isActive ? landingServiceExtras(service as CrawlableService) : "";
+          // /ppf: the Basic and Premium packages and all six prices, in the first response (not only after a click).
+          // Read from the same catalogue rows as the page; any failure falls through to the unchanged behaviour.
+          const packages = landing.packageComparison
+            ? ppfPackagesContent((await storage.getAllServices()) as unknown as Parameters<typeof ppfPackagesContent>[0])
+            : "";
+          const extras = packages + catalogueExtras;
           if (!extras) return res.sendFile(candidate);
-          const faqSchema = faqPageSchema((service as CrawlableService).faq);
+          // The FAQPage JSON-LD uses the same filtered FAQ as the HTML above and the page (lib/withheld-claims.ts).
+          const faqSchema = catalogueExtras ? faqPageSchema(displayableFaqs((service as CrawlableService).faq)) : null;
           let html = fs.readFileSync(candidate, "utf8").replace(/<\/main>/, `${extras}</main>`);
           if (faqSchema) {
             html = html.replace(

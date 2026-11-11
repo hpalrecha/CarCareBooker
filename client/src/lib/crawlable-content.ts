@@ -13,6 +13,9 @@ import { STUDIO_PHOTOS } from "./gallery-photos";
 import { HOME_FAQS, HOME_FAQ_HEADING, HOME_ABOUT_H2 } from "./home-faq";
 import { relatedLinksFor, type RelatedLink } from "./service-related-links";
 import { formatServiceTime } from "./service-time";
+import { buildPpfPackages, studioTimeLine, type PpfCatalogueRow } from "./ppf-packages";
+import { displayableIncludes, displayableFaqs, isWithheldClaim } from "./withheld-claims";
+import { WARRANTY_BATCH_LINE, WARRANTY_HANDOVER_LINE, neutraliseWarrantyIssuer } from "./warranty-wording";
 
 /**
  * The page's real content as plain HTML, baked into the initial response inside
@@ -172,7 +175,7 @@ const ulRich = (items: string[]) =>
 function faqList(faqs: { question?: string | null; answer?: string | null }[]): string {
   const real = faqs.filter((f) => f?.question?.trim() && f?.answer?.trim());
   if (!real.length) return "";
-  return real.map((f) => `<h3>${e(String(f.question).trim())}</h3><p>${e(String(f.answer).trim())}</p>`).join("");
+  return real.map((f) => `<h3>${e(String(f.question).trim())}</h3><p>${e(neutraliseWarrantyIssuer(String(f.answer).trim()))}</p>`).join("");
 }
 
 /** Hand-written pages: their h1 and lede, as the page renders them. */
@@ -263,10 +266,7 @@ export function homePageContent(page: StaticSeoPage): string {
       ]) +
       h2("The brands behind our work") +
       brands +
-      p(
-        "Warranty on any job is the film or coating manufacturer's, issued in writing at " +
-          "handover. Ask to see the batch details before work starts.",
-      ) +
+      p(`${WARRANTY_HANDOVER_LINE} ${WARRANTY_BATCH_LINE}`) +
       h2(HOME_FAQ_HEADING) +
       faqList(HOME_FAQS.map((f) => ({ question: f.question, answer: f.answer }))),
   );
@@ -477,10 +477,13 @@ export function servicePageContent(service: CrawlableService): string {
  */
 export function landingServiceExtras(service: CrawlableService): string {
   const title = String(service.title || "").trim();
-  const included = Array.from(new Set((service.whatIncluded || []).map(cleanItem).filter(Boolean)));
-  const why = String(service.whyChoose || "").trim();
+  // Landing pages withhold unconfirmed claims (lib/withheld-claims.ts): the includes list, the FAQ and the text below
+  // are filtered by the same rule the visible page uses, so the server HTML cannot say more than the page does.
+  const included = Array.from(new Set(displayableIncludes(service.whatIncluded || []).map(cleanItem).filter(Boolean)));
+  const whyRaw = String(service.whyChoose || "").trim();
+  const why = isWithheldClaim(whyRaw) ? "" : whyRaw;
   const steps = (service.process || []).filter((s) => s?.title?.trim());
-  const faqs = faqList(service.faq || []);
+  const faqs = faqList(displayableFaqs(service.faq || []));
   return (
     (why ? h2(`Why ${title}`) + p(why) : "") +
     (included.length ? h2("What's included") + ul(included) : "") +
@@ -490,6 +493,36 @@ export function landingServiceExtras(service: CrawlableService): string {
       : "") +
     (faqs ? h2("Frequently asked questions") + faqs : "")
   );
+}
+
+/**
+ * The Basic and Premium PPF packages for /ppf as plain HTML, so every price and the two warranty terms
+ * are in the first response and not only after a click. Built by the same function the page renders
+ * (ppf-packages.ts) from the live catalogue rows; empty when no row exists.
+ */
+export function ppfPackagesContent(rows: ReadonlyArray<PpfCatalogueRow> | null | undefined): string {
+  const tiers = buildPpfPackages(rows);
+  if (!tiers) return "";
+  const h3 = (t: string) => `<h3>${e(t)}</h3>`;
+  const sections = tiers
+    .map((tier) => {
+      const heading = tier.warrantyYears ? `${tier.label}: ${tier.warrantyYears}-year warranty` : tier.label;
+      const cards = tier.cards
+        .map((c) => {
+          const time = tier.sharedStudioTime ? null : studioTimeLine(c.studioTime);
+          return `<li>${e(c.bodyLabel)} (${e(c.examples)}): ${e(c.priceLabel)}. ${e(c.title)}${time ? `. ${e(time)}` : ""}</li>`;
+        })
+        .join("");
+      const shared = studioTimeLine(tier.sharedStudioTime);
+      return (
+        h3(heading) +
+        (tier.includes.length ? `<p>Includes:</p>` + ul(tier.includes) : "") +
+        `<ul>${cards}</ul>` +
+        (shared ? p(shared) : "")
+      );
+    })
+    .join("");
+  return h2("Choose your PPF package") + sections + p(WARRANTY_HANDOVER_LINE);
 }
 
 /** FAQPage JSON-LD for a catalogue row, or null when it has no complete question and answer. */
@@ -502,7 +535,7 @@ export function faqPageSchema(faq: CrawlableService["faq"]): Record<string, unkn
     mainEntity: real.map((f) => ({
       "@type": "Question",
       name: String(f.question).trim(),
-      acceptedAnswer: { "@type": "Answer", text: String(f.answer).trim() },
+      acceptedAnswer: { "@type": "Answer", text: neutraliseWarrantyIssuer(String(f.answer).trim()) },
     })),
   };
 }

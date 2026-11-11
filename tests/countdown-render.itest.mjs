@@ -25,6 +25,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import CampaignCountdown from "../client/src/components/campaign-countdown.tsx";
 import CampaignOffer from "../client/src/components/campaign-offer.tsx";
+import HeroOfferStrip from "../client/src/components/hero-offer-strip.tsx";
 
 const HOUR = 3_600_000, DAY = 86_400_000;
 
@@ -135,6 +136,7 @@ describe("CampaignOffer — wording and price are inseparable", () => {
         landingPage: "/ceramic-coating/car",
         servicePrice: "5999.00",
         serviceTitle: "1 Year Ceramic Coating",
+        serviceSlug: "1-year-ceramic-coating",
         onBook: noop,
       }),
       { [campaignKey("/ceramic-coating/car")]: activeCampaign() },
@@ -152,9 +154,10 @@ describe("CampaignOffer — wording and price are inseparable", () => {
         landingPage: "/ppf",
         servicePrice: "45000.00",
         serviceTitle: "P91 PPF - Hatchback",
+        serviceSlug: "ppf-hatchback",
         onBook: noop,
       }),
-      { [campaignKey("/ppf")]: activeCampaign({ landingPage: "/ppf" }) },
+      { [campaignKey("/ppf")]: activeCampaign({ landingPage: "/ppf", serviceSlug: "ppf-hatchback" }) },
     );
 
     assert.match(html, /Book free/, "the claim");
@@ -168,9 +171,10 @@ describe("CampaignOffer — wording and price are inseparable", () => {
         landingPage: "/ppf",
         servicePrice: "45000.00",
         serviceTitle: "P91 PPF - Hatchback",
+        serviceSlug: "ppf-hatchback",
         onBook: noop,
       }),
-      { [campaignKey("/ppf")]: activeCampaign({ landingPage: "/ppf" }) },
+      { [campaignKey("/ppf")]: activeCampaign({ landingPage: "/ppf", serviceSlug: "ppf-hatchback" }) },
     );
 
     const forbidden = [
@@ -204,6 +208,70 @@ describe("CampaignOffer — wording and price are inseparable", () => {
       },
     );
     assert.equal(html, "");
+  });
+});
+
+// ===========================================================================
+// FREE BOOKING IS PER ROW. /api/campaigns/active answers per landing page, but the server waives the fee for ONE row (the
+// campaign's serviceSlug), so the offer blocks must say "free" only for that row. These render the REAL components.
+describe("free-booking promise follows the package on screen", () => {
+  const noop = () => {};
+  const ppfCampaign = activeCampaign({ landingPage: "/ppf", serviceSlug: "ppf-hatchback", ctaText: "Book Now" });
+  const ALL_ROWS = ["ppf-hatchback", "ppf-sedan", "ppf-suv", "ppf-premium-hatchback", "ppf-premium-sedan", "ppf-premium-suv"];
+
+  const offerBlock = (slug, data) => renderWithData(
+    React.createElement(CampaignOffer, { landingPage: "/ppf", servicePrice: "50000.00", serviceTitle: "A package", serviceSlug: slug, onBook: noop }),
+    data,
+  );
+  const strip = (slug, data) => renderWithData(
+    React.createElement(HeroOfferStrip, { landingPage: "/ppf", servicePrice: "50000.00", serviceSlug: slug }),
+    data,
+  );
+
+  test("a campaign for Basic Hatchback: the offer block and the hero strip appear for that row only", () => {
+    const data = { [campaignKey("/ppf")]: ppfCampaign, [offerKey]: { free: false, until: null } };
+    for (const slug of ALL_ROWS) {
+      const free = slug === "ppf-hatchback";
+      assert.equal(/Book free/.test(offerBlock(slug, data)), free, `offer block, ${slug}`);
+      assert.equal(/Booking is free/.test(strip(slug, data)), free, `hero strip, ${slug}`);
+    }
+  });
+
+  test("a campaign for Premium Sedan: only Premium Sedan", () => {
+    const data = { [campaignKey("/ppf")]: activeCampaign({ landingPage: "/ppf", serviceSlug: "ppf-premium-sedan" }), [offerKey]: { free: false, until: null } };
+    for (const slug of ALL_ROWS) {
+      const free = slug === "ppf-premium-sedan";
+      assert.equal(/Book free/.test(offerBlock(slug, data)), free, slug);
+      assert.equal(/Booking is free/.test(strip(slug, data)), free, slug);
+    }
+  });
+
+  test("the legacy free_booking_until window frees every row, so the blocks show for all six", () => {
+    const data = { [offerKey]: { free: true, until: "2099-12-31" } };
+    for (const slug of ALL_ROWS) {
+      assert.match(offerBlock(slug, data), /Booking Is Free/, slug);
+      assert.match(strip(slug, data), /Booking is free/, slug);
+    }
+  });
+
+  test("no campaign, no legacy window: nothing says free for any row", () => {
+    const data = { [campaignKey("/ppf")]: { serverNow: new Date().toISOString(), __clientNow: Date.now(), campaign: null }, [offerKey]: { free: false, until: null } };
+    for (const slug of ALL_ROWS) {
+      assert.equal(offerBlock(slug, data), "", slug);
+      assert.equal(strip(slug, data), "", slug);
+    }
+  });
+
+  test("an unknown row (no slug) is never described as free by a campaign", () => {
+    const data = { [campaignKey("/ppf")]: ppfCampaign, [offerKey]: { free: false, until: null } };
+    assert.equal(offerBlock(undefined, data), "");
+    assert.equal(strip(undefined, data), "");
+  });
+
+  test("a presentation-only campaign (offerType none) is not described as free for its own row", () => {
+    const data = { [campaignKey("/ppf")]: activeCampaign({ landingPage: "/ppf", serviceSlug: "ppf-hatchback", offerType: "none" }), [offerKey]: { free: false, until: null } };
+    assert.equal(offerBlock("ppf-hatchback", data), "");
+    assert.equal(strip("ppf-hatchback", data), "");
   });
 });
 

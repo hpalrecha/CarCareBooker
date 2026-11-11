@@ -158,7 +158,7 @@ export const SEO_PAGES: SeoPage[] = [
       "Full decontamination and paint inspection before fitting",
       "Wrapped edges where the panel allows, so no lifting line is visible",
       "Squeegee and heat-set, then a controlled cure",
-      "Manufacturer warranty card issued at handover",
+      "Written warranty terms provided at handover",
     ],
     context: {
       heading: "How Bangalore traffic damages a front bumper",

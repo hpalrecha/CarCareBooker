@@ -3,6 +3,7 @@ import CampaignCountdown from "@/components/campaign-countdown";
 import { useCampaign } from "@/hooks/use-campaign";
 import { useBookingOffer, formatOfferEnd } from "@/hooks/use-booking-offer";
 import { formatINR } from "@/lib/canonical-services";
+import { freeBookingSource } from "@/lib/offer-scope";
 
 /**
  * The free-booking offer block: what the offer is, when it ends, and what the service
@@ -47,6 +48,12 @@ interface CampaignOfferProps {
   servicePrice: string | number | undefined;
   /** Catalogue title, e.g. "1 Year Ceramic Coating". Used in the price line. */
   serviceTitle?: string;
+  /**
+   * Catalogue slug of the row being advertised right now. A free-booking campaign applies to ONE row (its serviceSlug),
+   * so this block renders only for that row (or while the legacy all-rows window is open); see lib/offer-scope.ts.
+   * Missing means unknown, which means no offer is shown.
+   */
+  serviceSlug: string | undefined;
   /** Rendered as the primary action. The caller owns opening the booking modal. */
   onBook: () => void;
   "data-testid"?: string;
@@ -56,6 +63,7 @@ export default function CampaignOffer({
   landingPage,
   servicePrice,
   serviceTitle,
+  serviceSlug,
   onBook,
   "data-testid": testId = "campaign-offer",
 }: CampaignOfferProps) {
@@ -73,8 +81,15 @@ export default function CampaignOffer({
   const [expiredLive, setExpiredLive] = useState(false);
 
   const priceLabel = formatINR(servicePrice);
-  const showCampaign = campaign !== null && isFreeBooking && !expiredLive;
-  const showLegacy = !showCampaign && legacy.free;
+  // The campaign's wording only for the row the campaign is for; the legacy window frees every row.
+  const source = freeBookingSource({
+    rowSlug: serviceSlug,
+    campaign: isFreeBooking ? campaign : null,
+    legacyFree: legacy.free,
+  });
+  const campaignApplies = campaign !== null && isFreeBooking && campaign.serviceSlug === serviceSlug;
+  const showCampaign = campaignApplies && !expiredLive;
+  const showLegacy = !showCampaign && source === "legacy-window";
 
   if (!showCampaign && !showLegacy) return null;
 

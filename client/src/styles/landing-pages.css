@@ -372,3 +372,81 @@
   .p91x .vsel-compact .vsel-opt-eg { font-size: 10px; line-height: 1.25; }
   .p91x .vsel-compact .vsel-pkg { margin-top: 10px; padding-top: 10px; }
 }
+
+/* ---------- /ppf: Basic and Premium packages ----------
+   Two clearly separated sections, three priced cards in each, nothing hidden behind a click.
+   Premium gets one quiet treatment: the accent border and a faint accent wash at the top.
+   Basic keeps the standard card chrome, so neither tier looks like the afterthought. No animation. */
+.p91x .lp-packages .section-head { margin-bottom: 8px; }
+.p91x .lp-packages-lede { margin: 8px 0 0; color: var(--txt-2); font-size: 15px; max-width: 60ch; }
+
+.p91x .lp-tier {
+  margin-top: 20px;
+  padding: 24px;
+  border: 1px solid var(--medium-gray);
+  border-radius: 16px;
+  background: var(--dark-gray);
+}
+.p91x .lp-tier--premium {
+  border-color: var(--neon-line);
+  background: linear-gradient(180deg, var(--neon-soft) 0%, var(--dark-gray) 38%);
+}
+.p91x .lp-tier-head {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 8px 16px; margin: 0 0 14px;
+}
+.p91x .lp-tier-head h3 { margin: 0; font-size: 22px; line-height: 1.2; }
+.p91x .lp-tier-warranty {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--neon-line); background: var(--neon-soft);
+  color: var(--neon-green); font-size: 14px; font-weight: 600; white-space: nowrap;
+}
+.p91x .lp-tier-warranty .i { width: 16px; height: 16px; }
+
+.p91x .lp-tier-inc {
+  list-style: none; margin: 0 0 20px; padding: 0;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 24px;
+  color: var(--txt-2); font-size: 14.5px;
+}
+.p91x .lp-tier-inc li { display: flex; gap: 8px; align-items: flex-start; line-height: 1.45; }
+.p91x .lp-tier-inc .i { flex: none; width: 16px; height: 16px; margin-top: 2px; color: var(--neon-green); }
+.p91x .lp-tier-inc li.is-diff { color: var(--txt); font-weight: 600; }
+
+.p91x .lp-pkg-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.p91x .lp-pkg {
+  display: flex; flex-direction: column;
+  padding: 18px; border: 1px solid var(--medium-gray); border-radius: 12px; background: var(--deep-black);
+}
+.p91x .lp-pkg h4 { margin: 0; font-size: 17px; line-height: 1.2; }
+.p91x .lp-pkg-eg { margin: 4px 0 0; color: var(--txt-3); font-size: 12.5px; line-height: 1.4; }
+.p91x .lp-pkg-price {
+  margin: 14px 0 4px; font-size: 28px; line-height: 1.1; font-weight: 700;
+  color: var(--accent-ink); font-variant-numeric: tabular-nums;
+}
+.p91x .lp-pkg-time { margin: 0 0 12px; color: var(--txt-3); font-size: 13px; }
+.p91x .lp-pkg-book {
+  margin-top: auto; padding: 11px 14px; min-height: 44px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--neon-line); background: var(--neon-soft); color: var(--txt);
+  font: inherit; font-weight: 600;
+}
+.p91x .lp-pkg-book:hover { border-color: var(--neon-green); }
+.p91x .lp-pkg-book:focus-visible { outline: 2px solid var(--neon-green); outline-offset: 2px; }
+.p91x .lp-pkg-price + .lp-pkg-book { margin-top: 14px; }
+
+.p91x .lp-tier-time { margin: 16px 0 0; color: var(--txt-2); font-size: 14px; }
+.p91x .lp-tier-time b { color: var(--txt); }
+.p91x .lp-packages-note { margin: 18px 0 0; color: var(--txt-3); font-size: 13.5px; line-height: 1.6; }
+
+@media (max-width: 860px) {
+  .p91x .lp-tier { padding: 18px; }
+  .p91x .lp-tier-inc { grid-template-columns: minmax(0, 1fr); }
+  .p91x .lp-pkg-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .p91x .lp-pkg {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: center;
+    padding: 14px 16px;
+  }
+  .p91x .lp-pkg h4, .p91x .lp-pkg-eg, .p91x .lp-pkg-time { grid-column: 1; }
+  .p91x .lp-pkg-price { grid-column: 2; grid-row: 1 / span 2; margin: 0; text-align: right; font-size: 24px; }
+  .p91x .lp-pkg-book { grid-column: 1 / -1; margin-top: 12px; }
+}

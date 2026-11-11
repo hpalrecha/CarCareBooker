@@ -1,5 +1,6 @@
 import type { BusinessHour } from "@shared/schema";
 import { localBusinessSchema } from "./local-business";
+import { neutraliseWarrantyIssuer } from "./warranty-wording";
 
 /**
  * Metadata and structured data for a /service/:slug page.
@@ -148,7 +149,7 @@ export function serviceStructuredData(
       mainEntity: faqs.map((f) => ({
         "@type": "Question",
         name: String(f.question).trim(),
-        acceptedAnswer: { "@type": "Answer", text: String(f.answer).trim() },
+        acceptedAnswer: { "@type": "Answer", text: neutraliseWarrantyIssuer(String(f.answer).trim()) },
       })),
     });
   }

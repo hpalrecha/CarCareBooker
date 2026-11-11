@@ -12,6 +12,7 @@ import { HOME_FAQS, HOME_FAQ_HEADING, HOME_ABOUT_H2, homeFaqSchema } from "@/lib
 import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canonical-services";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
 import { PRODUCT_BRANDS } from "@/lib/nav-menu";
+import { WARRANTY_BATCH_LINE, WARRANTY_HANDOVER_LINE } from "@/lib/warranty-wording";
 import { HOME_PACKAGE_LINKS } from "@/lib/home-package-links";
 import { postsNewestFirst } from "@/lib/blog-posts";
 import BlogCarousel from "@/components/blog-carousel";
@@ -406,7 +407,7 @@ export default function Home() {
           Editorial two-column: a short label, a large headline, two lines of copy, a
           four-row spec list and one text link on the left; one tall real photograph on the
           right. Every fact here is already stated elsewhere on the site (studio location,
-          STEK / Nasiol / P91 Premium PPF, written manufacturer warranty at handover) — no
+          STEK / Nasiol / P91 Premium PPF, written warranty terms at handover) — no
           founding year, counts or awards, because nothing in this codebase states one and
           tests/regression.test.mjs holds the homepage to that. The photo is a real studio
           photograph (attached_assets/about/, an upright, resized copy of the camera original
@@ -419,8 +420,8 @@ export default function Home() {
               <h2 className="ed-title" data-reveal>{HOME_ABOUT_H2}</h2>
               <p className="ed-lede" data-reveal>
                 P91 Car Care is a car detailing, ceramic coating and paint protection film
-                studio in Adugodi, Bangalore. Every coating and PPF job is backed by a written
-                warranty from the film or coating manufacturer, issued at handover.
+                studio in Adugodi, Bangalore. Every coating and PPF job comes with written warranty
+                terms provided at handover.
               </p>
               <dl className="ed-specs" data-reveal>
                 <div><dt>Studio</dt><dd>Adugodi, Bangalore</dd></div>
@@ -624,8 +625,7 @@ export default function Home() {
             </div>
           </div>
           <p className="ed-fine" data-reveal>
-            Warranty on any job is the film or coating manufacturer's, issued in writing at
-            handover. Ask to see the batch details before work starts.
+            {WARRANTY_HANDOVER_LINE} {WARRANTY_BATCH_LINE}
           </p>
         </div>
       </section>
