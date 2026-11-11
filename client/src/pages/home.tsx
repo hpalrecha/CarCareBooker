@@ -16,7 +16,6 @@ import { WARRANTY_BATCH_LINE, WARRANTY_HANDOVER_LINE } from "@/lib/warranty-word
 import { HOME_PACKAGE_LINKS } from "@/lib/home-package-links";
 import { postsNewestFirst } from "@/lib/blog-posts";
 import BlogCarousel from "@/components/blog-carousel";
-import { FestivalOfferStrip } from "@/components/festival-offer";
 import type { BusinessHour } from "@shared/schema";
 
 // Same dialog the mobile estimate bar opens; loaded on first tap.
@@ -361,7 +360,6 @@ export default function Home() {
             fades behind the copy column — see .hero-bg-scrim for why it's two gradients. */}
         <div className="hero-bg-scrim" aria-hidden="true" />
         <div className="wrap copy">
-          <FestivalOfferStrip />
           <span className="eyebrow">Detailing Studio · Adugodi</span>
           <h1 className="hero-solid">
             P91 Car Care: Detailing, PPF &amp; Ceramic Coating in Adugodi, Bangalore

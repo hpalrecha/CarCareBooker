@@ -6,7 +6,6 @@ import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import LazyVideo from "@/components/redesign/lazy-video";
 import { ImageWithFallback } from "@/components/image-with-fallback";
-import { FestivalOfferBanner } from "@/components/festival-offer";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { STUDIO_PHOTOS } from "@/lib/gallery-photos";
 import { GALLERY_SEO } from "@/lib/static-seo";
@@ -130,7 +129,6 @@ export default function Gallery() {
             </p>
           </div>
           <nav className="gl-jump" aria-label="On this page">
-            <a href="#festival-offer" className="gl-jump-hot">Diwali offer</a>
             <a href="#watch">Watch</a>
             <a href="#offers">Offers</a>
             <a href="#posts">Posts</a>
@@ -139,8 +137,6 @@ export default function Gallery() {
           </nav>
         </div>
       </section>
-
-      <FestivalOfferBanner />
 
       {/* ---- footage ---- */}
       <section id="watch" className="gl-dark">
