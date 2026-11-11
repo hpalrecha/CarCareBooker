@@ -13,6 +13,7 @@ import { STUDIO_PHOTOS } from "./gallery-photos";
 import { HOME_FAQS, HOME_FAQ_HEADING, HOME_ABOUT_H2 } from "./home-faq";
 import { relatedLinksFor, type RelatedLink } from "./service-related-links";
 import { formatServiceTime } from "./service-time";
+import { withCeramicTiming } from "./ceramic-timing";
 import { buildPpfPackages, studioTimeLine, type PpfCatalogueRow } from "./ppf-packages";
 import { displayableIncludes, displayableFaqs, isWithheldClaim } from "./withheld-claims";
 import { WARRANTY_BATCH_LINE, WARRANTY_HANDOVER_LINE, neutraliseWarrantyIssuer } from "./warranty-wording";
@@ -424,7 +425,8 @@ const cleanItem = (item: string) => String(item).replace(/^\s*[✓✔]\s*/, "").
  * what the page's offer card shows; the booking fee is NOT stated because it depends on
  * the live offer state and could disagree with checkout.
  */
-export function servicePageContent(service: CrawlableService): string {
+export function servicePageContent(rawService: CrawlableService): string {
+  const service = withCeramicTiming(rawService);
   const title = String(service.title || "").trim();
   const price = formatINR(service.price ?? undefined);
   const original = formatINR(service.originalPrice ?? undefined);
@@ -475,7 +477,8 @@ export function servicePageContent(service: CrawlableService): string {
  * the server adds them per request. Same record, same text as the rendered page — nothing invented,
  * and no price (it loads live). Returns "" when the record has nothing to add.
  */
-export function landingServiceExtras(service: CrawlableService): string {
+export function landingServiceExtras(rawService: CrawlableService): string {
+  const service = withCeramicTiming(rawService);
   const title = String(service.title || "").trim();
   // Landing pages withhold unconfirmed claims (lib/withheld-claims.ts): the includes list, the FAQ and the text below
   // are filtered by the same rule the visible page uses, so the server HTML cannot say more than the page does.

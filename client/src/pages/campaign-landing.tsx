@@ -29,6 +29,7 @@ import { useHeroVideoGate } from "@/hooks/use-hero-video";
 import { useQuery } from "@tanstack/react-query";
 import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canonical-services";
 import { formatServiceTime } from "@/lib/service-time";
+import { withCeramicTiming } from "@/lib/ceramic-timing";
 import {
   getLandingPage,
   relevantPosts,
@@ -165,9 +166,11 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
    * package name, the includes list, the FAQs and the booking all read from — so those
    * five things cannot disagree with each other.
    */
-  const service: ServiceRecord | undefined = page.categories
+  const catalogueRow: ServiceRecord | undefined = page.categories
     ? bySlug.get(selectedCategory?.serviceSlug ?? "")
     : bySlug.get(page.primaryServiceSlug ?? "");
+  // Confirmed ceramic studio time over the row's stale FAQ answer (lib/ceramic-timing.ts); other rows pass through.
+  const service: ServiceRecord | undefined = withCeramicTiming(catalogueRow) ?? undefined;
 
   // The row the booking modal opens with: the package card that was clicked, else the hero selector's service.
   const bookingService: ServiceRecord | undefined = (pkgBooking ? bySlug.get(pkgBooking.slug) : undefined) ?? service;

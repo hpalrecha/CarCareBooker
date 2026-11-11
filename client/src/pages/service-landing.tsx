@@ -19,6 +19,7 @@ import { serviceCanonicalPath } from "@/lib/canonical-overrides";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
 import { deriveCategory, deriveVehicle } from "@/lib/service-taxonomy";
 import { formatServiceTime } from "@/lib/service-time";
+import { withCeramicTiming } from "@/lib/ceramic-timing";
 import { relatedLinksFor } from "@/lib/service-related-links";
 import { serviceSeoTitle, serviceSeoDescription, serviceStructuredData } from "@/lib/service-seo";
 import { useHeroVideoGate } from "@/hooks/use-hero-video";
@@ -344,7 +345,8 @@ export default function ServiceLanding() {
   // this, each tab click showed a full-page spinner while that GET ran. The record is the same
   // data either way — same price, same booking — only the wait is gone.
   const listed = allServices?.find((s) => s.slug === slug) as unknown as Service | undefined;
-  const service = fetched ?? listed;
+  // Confirmed ceramic studio time over the row's stale FAQ answer (lib/ceramic-timing.ts); other rows pass through.
+  const service = withCeramicTiming(fetched ?? listed) ?? undefined;
   const isLoading = !service && fetching;
 
   // Deep link from the chat widget's "Book this slot" button (?date=&time=), or any other

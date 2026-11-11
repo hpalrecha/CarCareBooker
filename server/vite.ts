@@ -23,6 +23,7 @@ import {
 } from "../client/src/lib/crawlable-content";
 import { summariseHours } from "../client/src/lib/hours-summary";
 import { displayableFaqs } from "../client/src/lib/withheld-claims";
+import { withCeramicTiming } from "../client/src/lib/ceramic-timing";
 import { SERVICES_SEO } from "../client/src/lib/static-seo";
 import { isSpamProductPath } from "./lib/spam-paths";
 import { BRAND_PAGES } from "../client/src/lib/brand-pages";
@@ -246,7 +247,7 @@ export function serveStatic(app: Express, distPathOverride?: string) {
           const extras = packages + catalogueExtras;
           if (!extras) return res.sendFile(candidate);
           // The FAQPage JSON-LD uses the same filtered FAQ as the HTML above and the page (lib/withheld-claims.ts).
-          const faqSchema = catalogueExtras ? faqPageSchema(displayableFaqs((service as CrawlableService).faq)) : null;
+          const faqSchema = catalogueExtras ? faqPageSchema(displayableFaqs(withCeramicTiming(service as CrawlableService).faq)) : null;
           let html = fs.readFileSync(candidate, "utf8").replace(/<\/main>/, `${extras}</main>`);
           if (faqSchema) {
             html = html.replace(

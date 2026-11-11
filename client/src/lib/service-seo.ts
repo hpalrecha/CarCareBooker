@@ -21,6 +21,8 @@ import { neutraliseWarrantyIssuer } from "./warranty-wording";
  * Relative imports only: server/vite.ts is bundled by esbuild and imports this directly.
  */
 
+import { withCeramicTiming } from "./ceramic-timing";
+
 export interface ServiceSeoInput {
   title?: string | null;
   slug: string;
@@ -123,9 +125,11 @@ export function serviceSeoDescription(service: ServiceSeoInput): string {
 }
 
 export function serviceStructuredData(
-  service: ServiceSeoInput,
+  rawService: ServiceSeoInput,
   { origin, businessHours }: { origin: string; businessHours?: BusinessHour[] },
 ): Record<string, unknown>[] {
+  // Confirmed ceramic studio time (lib/ceramic-timing.ts), so the FAQPage agrees with the page.
+  const service = withCeramicTiming(rawService);
   const business = localBusinessSchema({ origin, businessHours });
   const images = Array.isArray(service.images) ? service.images : [];
   const raw = typeof images[0] === "string" && images[0].trim() ? (images[0] as string) : null;
