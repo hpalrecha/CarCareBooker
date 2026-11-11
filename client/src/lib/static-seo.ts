@@ -18,6 +18,8 @@
  * ─────────────────────────────────────────────────────────────────────────────────────
  */
 
+import { festivalOfferHasEnded } from "./festival-offer-window";
+
 export interface StaticSeoPage {
   path: string;
   title: string;
@@ -93,6 +95,26 @@ export const GALLERY_SEO: StaticSeoPage = {
     "Adugodi, Bangalore, straight from our Instagram.",
   h1: "Our work, up close.",
 };
+
+/**
+ * /offer/de-dhana-dhan once the offer has ended (8 November 2026). Same path, so the canonical, the robots tag, the
+ * sitemap and every redirect are unchanged; only the words stop presenting the promotion as available.
+ */
+export const OFFER_ENDED_SEO: StaticSeoPage = {
+  path: "/offer/de-dhana-dhan",
+  title: "De Dhana Dhan Offer (Ended) | P91 Car Care",
+  description:
+    "The De Dhana Dhan Dussehra and Diwali offer ended on 8 November 2026. See P91 Car Care's " +
+    "current services and prices in Adugodi, Bangalore.",
+  h1: "De Dhana Dhan offer",
+  image: "/og/og-offer-de-dhana-dhan.jpg",
+  lede: "This offer ended on 8 November 2026. Current prices and packages are on the services page.",
+};
+
+/** The offer page's SEO copy for `now`: the live offer until it ends, the ended notice after. */
+export function currentOfferSeo(now: Date = new Date()): StaticSeoPage {
+  return festivalOfferHasEnded(now) ? OFFER_ENDED_SEO : OFFER_SEO;
+}
 
 export const OFFER_SEO: StaticSeoPage = {
   path: "/offer/de-dhana-dhan",

@@ -74,6 +74,22 @@ export function servicesItemListSchema(
 const SNIPPET_MAX = 160;
 const PLACE = " Studio in Adugodi, Bangalore.";
 
+const DANGLING_END = /\s+(and|or|the|a|an|of|to|with|your|such as|that)$/i;
+
+/**
+ * Remove trailing connectives until the text ends on a content word. A single pass left "... resistance and"
+ * after cutting "... resistance and a" (the "a" went, the "and" stayed), which then read
+ * "... resistance and. Studio in Adugodi, Bangalore.".
+ */
+export function dropDanglingWords(text: string): string {
+  let out = text;
+  for (;;) {
+    const next = out.replace(DANGLING_END, "");
+    if (next === out) return out;
+    out = next;
+  }
+}
+
 /**
  * A meta description that fits the ~160 characters a search snippet shows and names the
  * studio's neighbourhood — "Adugodi" is the local term this page should match.
@@ -98,9 +114,7 @@ export function serviceSeoDescription(service: ServiceSeoInput): string {
       // paint shine") over a dangling word ("…and provides").
       const cut = text.slice(0, room);
       const comma = cut.lastIndexOf(",");
-      text = comma > room * 0.5
-        ? cut.slice(0, comma)
-        : cut.replace(/\s+\S*$/, "").replace(/\s+(and|or|the|a|an|of|to|with|your|such as|that)$/i, "");
+      text = comma > room * 0.5 ? cut.slice(0, comma) : dropDanglingWords(cut.replace(/\s+\S*$/, ""));
     }
   }
   if (named) return text;

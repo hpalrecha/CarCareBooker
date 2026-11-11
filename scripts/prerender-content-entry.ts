@@ -12,7 +12,9 @@
  *
  * Not shipped to the browser and not part of the client graph.
  */
+export { blogPostingSchema } from "@/lib/blog-schema";
 export {
+  BLOG_AUTHOR,
   BLOG_POSTS,
   BLOG_INDEX_TITLE,
   BLOG_INDEX_DESCRIPTION,
@@ -28,7 +30,7 @@ export { BRAND_PAGES } from "@/lib/brand-pages";
 
 // Phase 1 SEO/GEO: static page copy (shared with the components) and the builders that
 // bake each page's real content into the initial HTML.
-export { STATIC_SEO_PAGES, SERVICES_SEO } from "@/lib/static-seo";
+export { STATIC_SEO_PAGES, SERVICES_SEO, OFFER_SEO, currentOfferSeo } from "@/lib/static-seo";
 export {
   staticPageContent,
   contactPageContent,
