@@ -16,6 +16,8 @@ import { trackBeginCheckout, trackPurchase, trackFreeBooking } from "@/lib/analy
 import { attributionPayload } from "@/lib/attribution";
 import { trackBooking as trackMetaBooking } from "@/lib/meta-pixel";
 import { useBookingOffer, formatOfferEnd } from "@/hooks/use-booking-offer";
+import { useCampaign } from "@/hooks/use-campaign";
+import { bookingIsFreeForRow, showPreviousPrice } from "@/lib/offer-scope";
 import { isHighValueService, HIGH_VALUE_BOOKING_FEE } from "@/lib/booking-fee";
 import { bookingFormSchema, type BlackoutDate, type BusinessHour } from "@shared/schema";
 import { ImageWithFallback } from "@/components/image-with-fallback";
@@ -41,6 +43,12 @@ interface BookingModalProps {
   };
   isOpen: boolean;
   onClose: () => void;
+  /**
+   * The campaign landing page the booking started on (e.g. "/ppf"). Optional, so every other call site is unchanged.
+   * When present, a running free-booking campaign for THIS row is shown as free, matching what the server charges
+   * (server/lib/campaign.ts campaignFreeBookingForService); a campaign for a different row is not (lib/offer-scope.ts).
+   */
+  landingPage?: string;
   /**
    * What the customer actually selected on a campaign landing page.
    *
@@ -70,7 +78,7 @@ interface BookingModalProps {
   initialTime?: string;
 }
 
-export default function BookingModal({ service, isOpen, onClose, vehicleContext, initialDate, initialTime }: BookingModalProps) {
+export default function BookingModal({ service, isOpen, onClose, landingPage, vehicleContext, initialDate, initialTime }: BookingModalProps) {
   const [selectedDate, setSelectedDate] = useState("");
   const [bookingAmount, setBookingAmount] = useState(299);
   const { toast } = useToast();
@@ -173,8 +181,14 @@ export default function BookingModal({ service, isOpen, onClose, vehicleContext,
    * free booking the backend intends to charge for.
    */
   const offer = useBookingOffer();
-  const isFreeBooking = offer.free;
-  const offerEnds = formatOfferEnd(offer.until);
+  // A running free_booking campaign frees ONE row; the legacy window frees every row. Same rule as the server.
+  const { campaign: pageCampaign, isFreeBooking: pageCampaignIsFree } = useCampaign(landingPage);
+  const isFreeBooking = bookingIsFreeForRow({
+    rowSlug: service?.slug,
+    campaign: pageCampaignIsFree ? pageCampaign : null,
+    legacyFree: offer.free,
+  });
+  const offerEnds = offer.free ? formatOfferEnd(offer.until) : null;
   const isAnnualPackage = service?.title === 'Annual Maintenance Package';
   const serviceTime = service ? formatServiceTime(service) : null;
 
@@ -787,7 +801,8 @@ export default function BookingModal({ service, isOpen, onClose, vehicleContext,
                 <span className="text-xl font-bold text-[var(--txt)]" data-testid="text-current-price">
                   {formatINR(service.price)}
                 </span>
-                {service.originalPrice && (
+                {/* No previous price for the PPF rows: it has no approved source (lib/offer-scope.ts showPreviousPrice). */}
+                {showPreviousPrice(service) && (
                   <span className="text-xs text-[var(--txt-3)] line-through" data-testid="text-original-price">
                     {formatINR(service.originalPrice)}
                   </span>

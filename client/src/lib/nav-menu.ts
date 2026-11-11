@@ -1,4 +1,5 @@
 import { blogCategories, categorySlug } from "./blog-posts";
+import { WARRANTY_HANDOVER_LINE } from "./warranty-wording";
 
 /**
  * Static content for the header's three mega-menus (Services / Products / Resources).
@@ -98,7 +99,7 @@ export const PRODUCT_BRANDS: ProductBrand[] = [
     name: "STEK",
     tagline: "Paint protection film and window film",
     line: "Paint protection film and sun-control film, fitted in our Adugodi studio.",
-    points: ["Gloss & matte finishes", "Self-healing film", "PPF and sun-control films"],
+    points: ["Gloss & matte finishes", "PPF and sun-control films"],
     href: "/products/stek",
   },
   {
@@ -112,13 +113,12 @@ export const PRODUCT_BRANDS: ProductBrand[] = [
     name: "P91 Premium PPF",
     tagline: "Our own PPF line, fitted in-studio",
     line: "Our own paint protection film line, fitted in-studio.",
-    points: ["Hatchback, sedan & SUV packages", "Self-healing film", "Fitted and warranty-backed"],
+    points: ["Hatchback, sedan & SUV packages", "Fitted with written warranty terms"],
     href: "/products/p91-premium-ppf",
   },
 ];
 
-export const PRODUCT_FINE_PRINT =
-  "Warranty on any job is the film or coating manufacturer's, issued in writing at handover.";
+export const PRODUCT_FINE_PRINT = WARRANTY_HANDOVER_LINE;
 
 /** Blog categories, derived live from BLOG_POSTS so this can never list a category with no posts. */
 export function resourcesGuideLinks(): NavLink[] {

@@ -18,6 +18,9 @@ const loadBookingModal = () => import("@/components/booking-modal");
 const BookingModal = lazy(loadBookingModal);
 import CampaignOffer from "@/components/campaign-offer";
 import VehicleSelector from "@/components/vehicle-selector";
+import PpfPackages from "@/components/ppf-packages";
+import { WARRANTY_BATCH_LINE, WARRANTY_HANDOVER_LINE } from "@/lib/warranty-wording";
+import { buildPpfPackages, ppfAggregateOffer, type PpfBodyKey, type PpfCatalogueRow } from "@/lib/ppf-packages";
 import BlogCarousel from "@/components/blog-carousel";
 import HeroOfferStrip from "@/components/hero-offer-strip";
 import NotFound from "@/pages/not-found";
@@ -30,6 +33,7 @@ import {
   getLandingPage,
   relevantPosts,
   displayableIncludes,
+  displayableFaqs,
   type CategoryOption,
 } from "@/lib/landing-pages";
 
@@ -61,6 +65,18 @@ import {
  * BookingModal — so the page cannot advertise a price checkout will not charge.
  */
 
+const STUDIO_TEL_HREF = "tel:+917406619191";
+
+/** Shown instead of the price and package selector when the catalogue is unavailable. */
+function PricingUnavailable() {
+  return (
+    <p className="lp-price-pending" data-testid="landing-price-pending">
+      Call the studio for current pricing:{" "}
+      <a href={STUDIO_TEL_HREF} data-testid="link-pricing-call">74066 19191</a>
+    </p>
+  );
+}
+
 interface CampaignLandingProps {
   /** The route this instance serves. Passed by App.tsx so one component covers three paths. */
   path: string;
@@ -69,7 +85,7 @@ interface CampaignLandingProps {
 export default function CampaignLanding({ path }: CampaignLandingProps) {
   const page = getLandingPage(path);
 
-  const { data: services } = useQuery<ServiceRecord[]>({ queryKey: ["/api/services"] });
+  const { data: services, isError: catalogueError, isSuccess: catalogueLoaded } = useQuery<ServiceRecord[]>({ queryKey: ["/api/services"] });
 
   const bySlug = useMemo(() => {
     const list = Array.isArray(services) ? services : [];
@@ -83,6 +99,29 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
     () => page?.defaultCategoryKey ?? page?.categories?.[0]?.key ?? "",
   );
   const [bookingOpen, setBookingOpen] = useState(false);
+  // Set when a package card (Basic or Premium, any body type) opened the modal; null for every other opener
+  // (header Book Now, the offer block), which keep booking the hero selector's service exactly as before.
+  //
+  // WHAT EACH SIX ROWS ARE CHARGED TO BOOK (decided on the server, server/lib/booking-amount.ts; never by this page):
+  //   - a RUNNING free_booking campaign waives the fee for ONE catalogue row only: the campaign's `serviceSlug`
+  //     (server/lib/campaign.ts campaignFreeBookingForService). The page-level offer block is keyed to the landing
+  //     page, not to a row, so it can read "free" while another row's package is booked at the normal deposit.
+  //   - the legacy `free_booking_until` window waives it for EVERY row, Basic and Premium.
+  //   - otherwise each of the six PPF rows (all priced over ₹10,000) takes the ₹499 slot deposit.
+  // The package cards do not change any of this; they only choose which row the existing modal opens with.
+  const [pkgBooking, setPkgBooking] = useState<{ slug: string; bodyKey: PpfBodyKey } | null>(null);
+  const openBooking = (pkg?: { slug: string; bodyKey: PpfBodyKey }) => {
+    // The catalogue could not be read (or does not hold the row about to be booked): there is no booking flow that can
+    // work, so send the customer to the phone instead of opening nothing. Never a price, never a fallback booking.
+    const heroCategory = page?.categories?.find((c) => c.key === categoryKey) ?? page?.categories?.[0];
+    const rowSlug = pkg?.slug ?? (page?.categories ? heroCategory?.serviceSlug : page?.primaryServiceSlug);
+    if (catalogueError || (catalogueLoaded && (!rowSlug || !bySlug.get(rowSlug)))) {
+      window.location.href = STUDIO_TEL_HREF;
+      return;
+    }
+    setPkgBooking(pkg ?? null);
+    setBookingOpen(true);
+  };
   // Mount the modal the first time it is opened (and keep it), and fetch its code on the visitor's first
   // touch/scroll/key press so the first tap on "Book" is not waiting for it.
   const [bookingMounted, setBookingMounted] = useState(false);
@@ -130,6 +169,13 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
     ? bySlug.get(selectedCategory?.serviceSlug ?? "")
     : bySlug.get(page.primaryServiceSlug ?? "");
 
+  // The row the booking modal opens with: the package card that was clicked, else the hero selector's service.
+  const bookingService: ServiceRecord | undefined = (pkgBooking ? bySlug.get(pkgBooking.slug) : undefined) ?? service;
+
+  // Settled without a usable price: the read failed, or it succeeded without the row this page sells. While the
+  // request is still in flight nothing is claimed either way.
+  const pricingUnavailable = catalogueError || (catalogueLoaded && !service);
+
   const heroImage = resolveServiceImage(service);
   const posts = useMemo(() => relevantPosts(page), [page]);
 
@@ -140,6 +186,11 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
   const hasRealDiscount = Number.isFinite(price) && Number.isFinite(wasPrice) && wasPrice > price;
 
   const origin = typeof window === "undefined" ? "https://p91carcare.com" : window.location.origin;
+
+  // /ppf: prices of the packages that exist, read from the catalogue rows (no discount, no validity date).
+  const packageOffers = page.packageComparison
+    ? ppfAggregateOffer(buildPpfPackages(services as unknown as PpfCatalogueRow[] | undefined), origin)
+    : null;
 
   const provider = {
     "@type": "AutoRepair",
@@ -168,17 +219,19 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
       areaServed: { "@type": "City", name: "Bengaluru" },
       // Priced from the live record only. No literal fallback: a schema price that
       // disagrees with checkout is worse than emitting no offer block at all.
-      ...(service
-        ? {
-            offers: {
-              "@type": "Offer",
-              price: service.price,
-              priceCurrency: "INR",
-              availability: "https://schema.org/InStock",
-              url: `${origin}${page.path}`,
-            },
-          }
-        : {}),
+      ...(packageOffers
+        ? { offers: packageOffers }
+        : service
+          ? {
+              offers: {
+                "@type": "Offer",
+                price: service.price,
+                priceCurrency: "INR",
+                availability: "https://schema.org/InStock",
+                url: `${origin}${page.path}`,
+              },
+            }
+          : {}),
     },
     // NO BreadcrumbList here, deliberately.
     //
@@ -202,7 +255,9 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
    * markup and renders no FAQ section — rather than authoring questions to fill the
    * layout, which would be inventing business content.
    */
-  const faqs = Array.isArray(service?.faq) ? service!.faq!.filter((f) => f?.question && f?.answer) : [];
+  // The same filter as the includes list: a catalogue FAQ answer that restates a withheld claim is cleaned or dropped,
+  // so the FAQ the page shows, the server HTML and the FAQPage schema agree (lib/withheld-claims.ts).
+  const faqs = displayableFaqs(Array.isArray(service?.faq) ? service!.faq! : []);
   if (faqs.length > 0) {
     schemas.push({
       "@context": "https://schema.org",
@@ -226,7 +281,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
   return (
     <div className="p91x lp min-h-screen">
       {/* The one Book Now on this page: it opens the booking modal, so the in-page buttons are not needed. */}
-      <SiteHeader onBookNow={() => setBookingOpen(true)} />
+      <SiteHeader onBookNow={() => openBooking()} />
       <main id="main">
 
       {/* ---------- 1-3. hero: what, for whom, how much ---------- */}
@@ -253,17 +308,21 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
               {page.categories ? (
                 // The picker only renders once the catalogue has loaded. Its slot reserves the height it
                 // will take (see .lp-selector-slot), so the hero copy, photo and buttons below do not jump.
-                <div className="lp-selector-slot">
-                  <VehicleSelector
-                    categories={page.categories}
-                    bySlug={bySlug}
-                    selectedKey={selectedCategory?.key ?? ""}
-                    onSelect={(c) => setCategoryKey(c.key)}
-                    hideDuration={page.hideDuration}
-                    showIncludes={false}
-                    compact
-                  />
-                </div>
+                pricingUnavailable ? (
+                  <PricingUnavailable />
+                ) : (
+                  <div className="lp-selector-slot">
+                    <VehicleSelector
+                      categories={page.categories}
+                      bySlug={bySlug}
+                      selectedKey={selectedCategory?.key ?? ""}
+                      onSelect={(c) => setCategoryKey(c.key)}
+                      hideDuration={page.hideDuration}
+                      showIncludes={false}
+                      compact
+                    />
+                  </div>
+                )
               ) : service ? (
                 <div className="lp-price" data-testid="landing-price">
                   <span className="lp-price-now">{formatINR(service.price)}</span>
@@ -275,20 +334,18 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
                   )}
                   <span className="lp-price-name">{service.title.trim()}</span>
                 </div>
-              ) : (
-                // The catalogue has not loaded, or the slug is missing. Say so plainly
-                // rather than rendering an empty price slot or a placeholder number.
-                <p className="lp-price-pending" data-testid="landing-price-pending">
-                  Call the studio for current pricing on this work.
-                </p>
-              )}
+              ) : pricingUnavailable ? (
+                // The catalogue could not be read, or does not hold this row. Say so plainly, with a working phone
+                // link, rather than an empty price slot, a placeholder number or any remembered price.
+                <PricingUnavailable />
+              ) : null}
 
               {/*
                 One line reconciling "free" with the price directly above it. The FULL
                 offer block and countdown stay further down — this is not a replacement
                 for them, it exists so the first viewport is self-consistent.
               */}
-              <HeroOfferStrip landingPage={page.path} servicePrice={service?.price} />
+              <HeroOfferStrip landingPage={page.path} servicePrice={service?.price} serviceSlug={service?.slug} />
 
               {/* Duration, but never for PPF's raw corrupt minutes — see the data note in
                   lib/landing-pages.ts. An explicit durationText (e.g. "2-3 days") is
@@ -315,10 +372,13 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
                   (.hero-facts, redesign.css) — this page never had one. Wording is generic
                   and unnumbered on purpose: it must hold for every category a body-type
                   selector can pick, and the itest guards against invented statistics. */}
+              {/* Booking and installation are separate things. This says only what is true of booking (the customer
+                  picks a date and time in the booking modal); how long the car is in the studio is the catalogue's own
+                  "Approx. 2-3 days" line above and on each package. Nothing here promises when a car is ready. */}
               <div className="hero-facts">
                 <span>
                   <Clock className="i" aria-hidden="true" />
-                  <b>Same-day</b> slots
+                  Book your slot online
                 </span>
                 <span>
                   <ShieldCheck className="i" aria-hidden="true" />
@@ -416,6 +476,12 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
       {/* The body-type selector lives in the HERO (see above), not in its own section —
           the customer must choose before seeing a price, not after scrolling past one. */}
 
+      {/* /ppf: Basic and Premium packages, all six prices visible. Rendered with the hero (outside DeferUntilIdle)
+          because it is the page's main comparison and is baked into the server HTML as well. */}
+      {page.packageComparison && (
+        <PpfPackages rows={services} onBook={(pkg) => openBooking(pkg)} />
+      )}
+
       {/* Everything below the hero mounts once the browser is idle (or on first scroll/touch) so the hero, the
           LCP element, is not held back by rendering the rest of the page. See components/defer-until-idle.tsx. */}
       <DeferUntilIdle minHeight={1600}>
@@ -439,8 +505,8 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
                 </div>
                 <div className="cell">
                   <ShieldCheck className="i" aria-hidden="true" />
-                  <b>Manufacturer-backed warranty</b>
-                  <span>A real written warranty on the film, issued at handover — not a verbal promise.</span>
+                  <b>Written warranty</b>
+                  <span>{WARRANTY_HANDOVER_LINE}</span>
                 </div>
                 <div className="cell">
                   <Layers className="i" aria-hidden="true" />
@@ -479,7 +545,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
                 <div className="guide-collage-copy">
                   <h2>Catch damage before it costs you</h2>
                   <p>
-                    A self-healing film absorbs stone chips, kerb scrapes and swirl marks before
+                    A clear film absorbs stone chips, kerb scrapes and swirl marks before
                     they ever reach your clearcoat — so the paint underneath stays exactly as it
                     left the factory.
                   </p>
@@ -498,7 +564,8 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
             landingPage={page.path}
             servicePrice={service?.price}
             serviceTitle={service?.title?.trim()}
-            onBook={() => setBookingOpen(true)}
+            serviceSlug={service?.slug}
+            onBook={() => openBooking()}
           />
         </div>
       </section>
@@ -592,8 +659,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
       <section className="section lp-tight">
         <div className="wrap narrow">
           <p className="lp-warranty" data-testid="landing-warranty">
-            Warranty on any job is the film or coating manufacturer's, issued in writing at
-            handover. Ask to see the batch details before work starts.
+            {WARRANTY_HANDOVER_LINE} {WARRANTY_BATCH_LINE}
           </p>
         </div>
       </section>
@@ -631,11 +697,11 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
           <div className="row cols-3">
             <div className="cell">
               <Clock className="i" aria-hidden="true" />
-              <b>Same-day slots</b><span>Most jobs finished the day you book</span>
+              <b>Online booking</b><span>Pick your date and time</span>
             </div>
             <div className="cell">
               <ShieldCheck className="i" aria-hidden="true" />
-              <b>Written warranty</b><span>Issued at handover, from the film or coating maker</span>
+              <b>Written warranty</b><span>{WARRANTY_HANDOVER_LINE}</span>
             </div>
             <div className="cell">
               <MapPin className="i" aria-hidden="true" />
@@ -681,15 +747,16 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
         chose — "PPF, car, SUV" rather than just "PPF" — without this page knowing anything
         about how a booking is submitted.
       */}
-      {service && (bookingOpen || bookingMounted) && (
+      {bookingService && (bookingOpen || bookingMounted) && (
         <Suspense fallback={null}>
           <BookingModal
-            service={service as any}
+            service={bookingService as any}
+            landingPage={page.path}
             isOpen={bookingOpen}
             onClose={() => setBookingOpen(false)}
             vehicleContext={{
               vehicleType: page.vehicle,
-              vehicleCategory: page.categories ? selectedCategory?.key : undefined,
+              vehicleCategory: pkgBooking?.bodyKey ?? (page.categories ? selectedCategory?.key : undefined),
             }}
           />
         </Suspense>

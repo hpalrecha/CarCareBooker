@@ -4,6 +4,7 @@ import { useParams, useLocation, useSearch, Link } from "wouter";
 // it must import it directly now that main.tsx no longer loads it globally (see main.tsx:
 // moved out to stop blocking every route with CSS most routes don't use).
 import "@/styles/landing-pages.css";
+import { neutraliseWarrantyIssuer } from "@/lib/warranty-wording";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle, Star, Clock, Shield, MapPin, Play, ArrowRight, Maximize2, Droplet, Eye, Leaf } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -1178,7 +1179,7 @@ export default function ServiceLanding() {
                 .map((item, index) => (
                   <details className="lp-faq" key={index}>
                     <summary>{item.question.trim()}</summary>
-                    <p>{item.answer.trim()}</p>
+                    <p>{neutraliseWarrantyIssuer(item.answer.trim())}</p>
                   </details>
                 ))}
             </div>

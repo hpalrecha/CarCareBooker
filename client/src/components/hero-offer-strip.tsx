@@ -1,6 +1,7 @@
 import { useCampaign } from "@/hooks/use-campaign";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
 import { formatINR } from "@/lib/canonical-services";
+import { bookingIsFreeForRow } from "@/lib/offer-scope";
 
 /**
  * One line in the hero that reconciles "free" with the price beside it.
@@ -36,20 +37,29 @@ interface HeroOfferStripProps {
   landingPage: string;
   /** Live catalogue price of the service currently selected. Required. */
   servicePrice: string | number | undefined;
+  /**
+   * Catalogue slug of the row currently selected. A free-booking campaign applies to ONE row (its serviceSlug), so the
+   * strip says "free" only for that row (lib/offer-scope.ts). Missing means unknown, which means not free.
+   */
+  serviceSlug: string | undefined;
   "data-testid"?: string;
 }
 
 export default function HeroOfferStrip({
   landingPage,
   servicePrice,
+  serviceSlug,
   "data-testid": testId = "hero-offer-strip",
 }: HeroOfferStripProps) {
   const { campaign, isFreeBooking } = useCampaign(landingPage);
   const legacy = useBookingOffer();
 
-  // Same precedence as CampaignOffer: an active free_booking campaign, else the legacy
-  // free_booking_until setting, else nothing. One authority, consulted twice.
-  const offerRunning = (campaign !== null && isFreeBooking) || legacy.free;
+  // Same rule the server charges by: the legacy window frees every row, a campaign frees only its own row.
+  const offerRunning = bookingIsFreeForRow({
+    rowSlug: serviceSlug,
+    campaign: isFreeBooking ? campaign : null,
+    legacyFree: legacy.free,
+  });
 
   const price = formatINR(servicePrice);
   if (!offerRunning || !price) return null;

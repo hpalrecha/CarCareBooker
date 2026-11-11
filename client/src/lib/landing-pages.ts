@@ -133,6 +133,12 @@ export interface LandingPage {
   /** Suppress the duration line — see the header note on corrupt PPF data. */
   hideDuration?: boolean;
 
+  /**
+   * Show the Basic and Premium package comparison (components/ppf-packages.tsx) and bake the same block
+   * into the server HTML (server/vite.ts). /ppf only: it reads the six PPF catalogue rows.
+   */
+  packageComparison?: boolean;
+
   /** Blog posts to surface first. Slugs, so a renamed post fails loudly rather than silently. */
   preferredPostSlugs: string[];
 
@@ -155,7 +161,7 @@ export const LANDING_PAGES: LandingPage[] = [
     title: "Car Ceramic Coating Price in Bangalore | P91 Car Care",
     description:
       "1-year nano-ceramic coating for cars in Adugodi, Bangalore. See the live price, " +
-      "what the job includes, and book your appointment free.",
+      "what the job includes, and book your appointment online.",
     eyebrow: "Ceramic coating · Cars",
     h1: "Ceramic Coating for Your Car",
     lede:
@@ -205,7 +211,7 @@ export const LANDING_PAGES: LandingPage[] = [
       },
     ],
     howItWorks: [
-      "Book your appointment online — free during the current offer",
+      "Book your appointment online",
       "Bring the car to our Adugodi studio",
       "Decontamination wash and clay bar treatment",
       "Machine paint correction to remove swirls and water-spot etching",
@@ -226,7 +232,7 @@ export const LANDING_PAGES: LandingPage[] = [
     title: "Bike Ceramic Coating in Bangalore | P91 Car Care",
     description:
       "1-year ceramic coating for motorcycles in Adugodi, Bangalore. Tank, fairings and " +
-      "panels. See the live price and book your appointment free.",
+      "panels. See the live price and book your appointment online.",
     eyebrow: "Ceramic coating · Motorcycles",
     h1: "Ceramic Coating for Your Motorcycle",
     lede:
@@ -278,7 +284,7 @@ export const LANDING_PAGES: LandingPage[] = [
       },
     ],
     howItWorks: [
-      "Book your appointment online — free during the current offer",
+      "Book your appointment online",
       "Bring the bike to our Adugodi studio",
       "Full decontamination wash, including the areas behind the fairings",
       "Paint correction where the finish needs it",
@@ -302,7 +308,7 @@ export const LANDING_PAGES: LandingPage[] = [
     title: "Car PPF Price in Bangalore — Hatchback, Sedan, SUV | P91",
     description:
       "Paint protection film for cars in Adugodi, Bangalore. Pick your body type for the " +
-      "exact package and live price, then book your appointment free.",
+      "exact package and live price, then book your appointment online.",
     eyebrow: "Paint protection film · Cars",
     h1: "Paint Protection Film for Your Car",
     lede:
@@ -311,6 +317,7 @@ export const LANDING_PAGES: LandingPage[] = [
     // Hatchback opens the page: it is the lowest entry price of the three, so the first
     // figure an ad visitor sees is the most accessible one rather than the largest.
     defaultCategoryKey: "hatchback",
+    packageComparison: true,
     categories: [
       {
         key: "hatchback",
@@ -374,7 +381,9 @@ export const LANDING_PAGES: LandingPage[] = [
     ],
     howItWorks: [
       "Choose your body type above for the exact package and price",
-      "Book your appointment online — free during the current offer",
+      // No "free" here: whether booking is free depends on the package (lib/offer-scope.ts), and a static step list
+      // cannot know. The offer block says so, for the package it applies to.
+      "Book your appointment online",
       "Bring the car to our Adugodi studio",
       "Paint inspection and full decontamination before anything is fitted",
       "Film cut and fitted panel by panel",
@@ -421,25 +430,9 @@ export function getLandingPage(path: string): LandingPage | undefined {
  * deliberately one shared constant so there is exactly one place to undo.
  * ─────────────────────────────────────────────────────────────────────────────────────
  */
-const WITHHELD_CLAIM_PATTERNS: RegExp[] = [/self[-\s]?heal/i];
-
-/**
- * A catalogue `whatIncluded` list with unconfirmed claims removed.
- *
- * Everything else is passed through untouched — this drops lines, it never rewrites them.
- * Rewriting business copy to be "safer" would be inventing content just as surely as
- * adding a claim would.
- */
-export function displayableIncludes(items: unknown): string[] {
-  // Takes `unknown` deliberately: ServiceRecord.whatIncluded is typed loosely because it
-  // comes back from a JSON API, and this function already validates every element. A
-  // narrower signature would only move the cast to the call sites.
-  if (!Array.isArray(items)) return [];
-  return items.filter((item): item is string => {
-    if (typeof item !== "string") return false;
-    return !WITHHELD_CLAIM_PATTERNS.some((pattern) => pattern.test(item));
-  });
-}
+// The rule itself now lives in one dependency-free module so the server-rendered HTML, the FAQ and the FAQPage
+// JSON-LD apply it too (see lib/withheld-claims.ts). Re-exported here so existing imports keep working.
+export { displayableIncludes, displayableFaqs } from "./withheld-claims";
 
 /**
  * Posts for a page's carousel: preferred ones first, then the most recent to fill.

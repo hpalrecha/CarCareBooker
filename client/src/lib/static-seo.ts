@@ -70,7 +70,7 @@ export const PRODUCTS_SEO: StaticSeoPage = {
   title: "Products: STEK, Nasiol & P91 Premium PPF | P91 Car Care",
   description:
     "The film and coating brands P91 Car Care fits in Bangalore — STEK, Nasiol and " +
-    "P91 Premium PPF — each backed by the manufacturer's written warranty.",
+    "P91 Premium PPF — with written warranty terms provided at handover.",
   h1: "Products",
   lede: "The film and coating brands we fit, and what each one is for.",
 };
