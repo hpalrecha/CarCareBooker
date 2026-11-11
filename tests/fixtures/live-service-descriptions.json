@@ -1,0 +1,112 @@
+{
+ "source": "GET https://p91carcare.com/api/services (public, read-only), captured 2026-11-11. expected = serviceSeoDescription output after the dangling-word fix; previousOutput is present only where the old code differed.",
+ "records": [
+  {
+   "slug": "1-year-bike-ceramic-coating",
+   "title": "1 Year Bike Ceramic Coating ",
+   "description": "Protect your motorcycle with our premium 1-Year Bike Ceramic Coating. The professional-grade 9H hardness coating shields the fuel tank, fairings and every painted body panel from UV rays, light scratches, dirt and road grime. Its hydrophobic layer makes water bead off instantly, so your bike stays cleaner between washes and keeps a deep, mirror-like gloss for a full year.",
+   "metaDescription": "Protect your motorcycle with our 1-Year Bike Ceramic Coating (9H hardness) at just ₹2,999 (50% off). Hydrophobic protection, UV resistance and a mirror-like gloss on tank, fairings and body panels. Book now at P91 Car Care, Bangalore!",
+   "expected": "Protect your motorcycle with our 1-Year Bike Ceramic Coating (9H hardness) at just ₹2,999 (50% off). Studio in Adugodi, Bangalore."
+  },
+  {
+   "slug": "1-year-ceramic-coating",
+   "title": "1 Year Ceramic Coating",
+   "description": "Transform your car with our premium 1-Year Ceramic Coating that provides unmatched protection against UV rays, scratches, dirt, and environmental contaminants. Our professional-grade 9H hardness ceramic coating creates a hydrophobic layer that makes water bead off effortlessly while giving your vehicle a stunning mirror-like shine that lasts for a full year..",
+   "metaDescription": "Protect your car with our premium 1-Year Ceramic Coating (9H hardness) at just ₹5,999 (50% off). Get hydrophobic protection, UV resistance, and mirror-like shine. Book now at P91 Car Care, Bangalore!",
+   "expected": "Protect your car with our premium 1-Year Ceramic Coating (9H hardness) at just ₹5,999 (50% off). Studio in Adugodi, Bangalore."
+  },
+  {
+   "slug": "annual-maintenance-package",
+   "title": "Annual Maintenance Package",
+   "description": "Complete yearly car care package with 6 car washes, 2 interior rejuvenation sessions, and 1 exterior restoration. Best value for year-round car maintenance!",
+   "metaDescription": "Complete annual car maintenance package for ₹18,000. Includes 6 car washes, 2 interior rejuvenation sessions, and 1 exterior restoration with pickup service.",
+   "expected": "Complete annual car maintenance package for ₹18,000. Studio in Adugodi, Bangalore."
+  },
+  {
+   "slug": "exterior-detailing-hard-water-new",
+   "title": "Exterior Detailing with Hard Water Spot Removal",
+   "description": "Comprehensive exterior detailing service that removes stubborn hard water spots, restores paint shine, and provides protection against environmental contaminants. Transform your vehicle exterior completely.",
+   "metaDescription": "",
+   "expected": "Comprehensive exterior detailing service that removes stubborn hard water spots, restores paint shine. Studio in Adugodi, Bangalore."
+  },
+  {
+   "slug": "headlight-restoration-both",
+   "title": "Headlight Restoration - Both Lights",
+   "description": "Professional headlight restoration service for both headlights. Our advanced restoration process removes yellowing, oxidation, and cloudiness, dramatically improving your night-time visibility and vehicle appearance.",
+   "metaDescription": null,
+   "expected": "Professional headlight restoration service for both headlights. Studio in Adugodi, Bangalore."
+  },
+  {
+   "slug": "interior-detailing-service",
+   "title": "Interior Rejuvenation Service",
+   "description": "Complete interior cleaning and restoration service that deep cleans every surface, removes stains, and leaves your car interior looking and smelling fresh like new.",
+   "metaDescription": null,
+   "expected": "Complete interior cleaning and restoration service that deep cleans every surface, removes stains. Studio in Adugodi, Bangalore."
+  },
+  {
+   "slug": "ppf-hatchback",
+   "title": "P91 PPF Basic - Hatchback",
+   "description": "Complete Paint Protection Film coverage for hatchback vehicles. Our premium PPF protects your car from stone chips, scratches, bird droppings, and UV damage while maintaining the original paint finish.",
+   "metaDescription": "",
+   "expected": "Complete Paint Protection Film coverage for hatchback vehicles. Studio in Adugodi, Bangalore."
+  },
+  {
+   "slug": "ppf-suv",
+   "title": "P91 PPF Basic - SUV",
+   "description": "Complete Paint Protection Film coverage for SUV and larger vehicles. Our premium PPF protects your car from stone chips, scratches, bird droppings, and UV damage while maintaining the original paint finish.",
+   "metaDescription": "",
+   "expected": "Complete Paint Protection Film coverage for SUV and larger vehicles. Studio in Adugodi, Bangalore."
+  },
+  {
+   "slug": "ppf-sedan",
+   "title": "P91 PPF Basic - Sedan",
+   "description": "Complete Paint Protection Film coverage for sedan vehicles. Our premium PPF protects your car from stone chips, scratches, bird droppings, and UV damage while maintaining the original paint finish.",
+   "metaDescription": "",
+   "expected": "Complete Paint Protection Film coverage for sedan vehicles. Studio in Adugodi, Bangalore."
+  },
+  {
+   "slug": "ppf-premium-hatchback",
+   "title": "P91 PPF Premium - Hatchback",
+   "description": "Our premium-tier Paint Protection Film for hatchbacks, with a higher-grade film for tougher stone-chip and scratch resistance and a glossier finish than the Basic tier.",
+   "metaDescription": null,
+   "expected": "Our premium-tier Paint Protection Film for hatchbacks, with a higher-grade film for tougher stone-chip and scratch resistance. Studio in Adugodi, Bangalore."
+  },
+  {
+   "slug": "ppf-premium-suv",
+   "title": "P91 PPF Premium - SUV",
+   "description": "Our premium-tier Paint Protection Film for SUVs, with a higher-grade film for tougher stone-chip and scratch resistance and a glossier finish than the Basic tier.",
+   "metaDescription": null,
+   "expected": "Our premium-tier Paint Protection Film for SUVs, with a higher-grade film for tougher stone-chip and scratch resistance. Studio in Adugodi, Bangalore.",
+   "previousOutput": "Our premium-tier Paint Protection Film for SUVs, with a higher-grade film for tougher stone-chip and scratch resistance and. Studio in Adugodi, Bangalore."
+  },
+  {
+   "slug": "ppf-premium-sedan",
+   "title": "P91 PPF Premium - Sedan",
+   "description": "Our premium-tier Paint Protection Film for sedans, with a higher-grade film for tougher stone-chip and scratch resistance and a glossier finish than the Basic tier.",
+   "metaDescription": null,
+   "expected": "Our premium-tier Paint Protection Film for sedans, with a higher-grade film for tougher stone-chip and scratch resistance. Studio in Adugodi, Bangalore.",
+   "previousOutput": "Our premium-tier Paint Protection Film for sedans, with a higher-grade film for tougher stone-chip and scratch resistance and. Studio in Adugodi, Bangalore."
+  },
+  {
+   "slug": "premium-car-wash-special",
+   "title": "Premium Car Wash Special",
+   "description": "Professional car wash service that provides thorough exterior cleaning with premium products, leaving your vehicle spotless and protected. Best value car wash in Bangalore!",
+   "metaDescription": "",
+   "expected": "Professional car wash service that provides thorough exterior cleaning with premium products. Studio in Adugodi, Bangalore."
+  },
+  {
+   "slug": "windshield-glass-coating-new",
+   "title": "Windshield Glass Coating",
+   "description": "Premium glass coating service available for windshield only (₹1,999) or upgrade to full car glass surfaces (₹2,499). Provides superior water repellency, enhanced visibility, and long-lasting protection. **IMPORTANT: Vehicle must be kept at our studio for 24 hours for proper curing.**",
+   "metaDescription": null,
+   "expected": "Premium glass coating service available for windshield only (₹1,999) or upgrade to full car glass surfaces (₹2,499). Studio in Adugodi, Bangalore."
+  },
+  {
+   "slug": "windshield-glass-polishing",
+   "title": "Windshield Glass Polishing",
+   "description": "Professional glass polishing service available for windshield only (₹1,699) or upgrade to full car glass surfaces (₹1,999). Removes water spots, scratches, and restores crystal-clear visibility.",
+   "metaDescription": "Professional windshield glass polishing service in Bangalore. Removes water spots, scratches, and haze. Same-day service available. Book today!",
+   "expected": "Professional windshield glass polishing service in Bangalore. Studio in Adugodi, Bangalore."
+  }
+ ]
+}

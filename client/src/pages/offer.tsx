@@ -8,7 +8,7 @@ import QuoteForm from "@/components/quote-form";
 import { FESTIVAL_OFFER, FestivalCountdown, festivalOfferActive, reportOffer, useOfferCountdown } from "@/components/festival-offer";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { useToast } from "@/hooks/use-toast";
-import { OFFER_SEO } from "@/lib/static-seo";
+import { currentOfferSeo } from "@/lib/static-seo";
 import { festivalOfferSchema } from "@/lib/offer-schema";
 import { loadRazorpay } from "@/lib/razorpay";
 import { attributionPayload } from "@/lib/attribution";
@@ -73,12 +73,15 @@ async function confirmPayment(response: {
 }
 
 export default function OfferPage() {
+  // The live offer's metadata until it ends; after that the ended notice and no Offer structured data (lib/static-seo.ts,
+  // lib/offer-schema.ts). Same path, so canonical, robots and sitemap behave as before.
+  const seo = currentOfferSeo();
   useSeoMeta({
-    title: OFFER_SEO.title,
-    description: OFFER_SEO.description,
-    canonicalPath: OFFER_SEO.path,
-    image: OFFER_SEO.image,
-    structuredData: festivalOfferSchema("https://p91carcare.com"),
+    title: seo.title,
+    description: seo.description,
+    canonicalPath: seo.path,
+    image: seo.image,
+    structuredData: festivalOfferSchema("https://p91carcare.com") ?? undefined,
   });
   const { toast } = useToast();
   const { done } = useOfferCountdown();
@@ -176,7 +179,7 @@ export default function OfferPage() {
         <div className="wrap gl-fest-row">
           <img src={o.image} alt={o.alt} className="gl-fest-img" width={1080} height={1350} />
           <div className="gl-fest-copy">
-            <p className="gl-fest-kicker">{o.kicker} · Limited time</p>
+            <p className="gl-fest-kicker">{live ? `${o.kicker} · Limited time` : o.kicker}</p>
             <h1 className="gl-offer-h1">De Dhana Dhan offer</h1>
             {paid ? (
               <div className="gl-offer-paid" data-testid="offer-paid">

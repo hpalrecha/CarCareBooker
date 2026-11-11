@@ -10,6 +10,7 @@ import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { resolveServiceImage, type ServiceRecord } from "@/lib/canonical-services";
 import { getPost, formatPostDate, BLOG_POSTS, BLOG_AUTHOR } from "@/lib/blog-posts";
+import { blogPostingSchema, SITE_LOGO_PATH } from "@/lib/blog-schema";
 import InstagramReels from "@/components/instagram-reels";
 import { REELS_BY_POST } from "@/lib/instagram-reels";
 import ParallaxFrame from "@/components/redesign/parallax-frame";
@@ -108,34 +109,16 @@ export default function BlogPost() {
     ? image.startsWith("http")
       ? image
       : `${origin}${image.startsWith("/") ? "" : "/"}${image}`
-    : `${origin}/Car Care (4)_1753951564515.png`;
+    : `${origin}${SITE_LOGO_PATH}`;
 
   useSeoMeta({
     title: post.seoTitle,
     description: post.excerpt,
     image,
     canonicalPath: `/blog/${post.slug}`,
-    structuredData: {
-      "@context": "https://schema.org",
-      "@type": "BlogPosting",
-      "@id": `${origin}/blog/${post.slug}`,
-      mainEntityOfPage: { "@type": "WebPage", "@id": `${origin}/blog/${post.slug}` },
-      headline: post.title,
-      description: post.excerpt,
-      articleSection: post.category,
-      datePublished: post.date,
-      dateModified: post.updated || post.date,
-      author: { "@type": "Organization", name: BLOG_AUTHOR, url: origin },
-      publisher: {
-        "@type": "AutoRepair",
-        "@id": `${origin}/#business`,
-        name: "P91 Car Care",
-        logo: { "@type": "ImageObject", url: `${origin}/Car Care (4)_1753951564515.png` },
-      },
-      image: absoluteImage,
-      url: `${origin}/blog/${post.slug}`,
-      inLanguage: "en-IN",
-    },
+    // One builder shared with the prerenderer (lib/blog-schema.ts): the publisher is an Organization, not the
+    // business entity, so a blog page no longer carries a local-business node that lacks an address.
+    structuredData: blogPostingSchema(post, origin, BLOG_AUTHOR, absoluteImage),
   });
 
   const others = BLOG_POSTS.filter((p) => p.slug !== post.slug);

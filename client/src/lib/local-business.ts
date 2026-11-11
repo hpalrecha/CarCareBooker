@@ -117,7 +117,8 @@ export function localBusinessSchema(
     url: origin,
     telephone: PHONE,
     priceRange: "₹₹",
-    image: `${origin}/Car Care (4)_1753951564515.png`,
+    // Percent-encoded: the file name holds spaces and parentheses, which are not valid in a URL as written.
+    image: `${origin}/Car%20Care%20(4)_1753951564515.png`,
     description:
       "Professional car detailing in Bangalore: ceramic coating, paint protection film, " +
       "interior and exterior detailing, glass coating and headlight restoration.",

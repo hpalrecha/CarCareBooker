@@ -242,7 +242,10 @@ async function main() {
 
   // Every route carries `content`: the page's real text, baked into <div id="root"> so a
   // crawler that does not run JavaScript still reads the page (see lib/crawlable-content.ts).
-  const routes = STATIC_SEO_PAGES.map((page) => ({
+  // The offer page is built for the date of the build: its live copy until the offer ends, the ended notice after it
+  // (lib/static-seo.ts currentOfferSeo). Path, canonical, robots and sitemap are unchanged.
+  const staticPages = STATIC_SEO_PAGES.map((page) => (page.path === content.OFFER_SEO.path ? content.currentOfferSeo() : page));
+  const routes = staticPages.map((page) => ({
     path: page.path,
     title: page.title,
     description: page.description,
@@ -307,21 +310,8 @@ async function main() {
       ogType: "article",
       content: content.blogPostContent(p),
       jsonLd: [
-        {
-          "@context": "https://schema.org",
-          "@type": "BlogPosting",
-          "@id": `${ORIGIN}/blog/${p.slug}`,
-          mainEntityOfPage: { "@type": "WebPage", "@id": `${ORIGIN}/blog/${p.slug}` },
-          headline: p.title,
-          description: p.excerpt,
-          articleSection: p.category,
-          datePublished: p.date,
-          dateModified: p.updated || p.date,
-          author: { "@type": "Organization", name: "P91 Car Care", url: ORIGIN },
-          publisher: { "@type": "AutoRepair", "@id": `${ORIGIN}/#business`, name: "P91 Car Care" },
-          url: `${ORIGIN}/blog/${p.slug}`,
-          inLanguage: "en-IN",
-        },
+        // Same builder as the page (client/src/lib/blog-schema.ts): publisher is an Organization with the logo.
+        content.blogPostingSchema(p, ORIGIN, content.BLOG_AUTHOR),
         breadcrumbs([
           ["Home", "/"],
           ["Blog", "/blog"],
@@ -539,7 +529,8 @@ async function main() {
 /** Schema for the hand-written pages other than the homepage and /contact: the live offer, and breadcrumbs. */
 function extraJsonLd(pagePath, content) {
   if (pagePath === "/offer/de-dhana-dhan") {
-    return [content.festivalOfferSchema(ORIGIN), breadcrumbs([["Home", "/"], ["De Dhana Dhan offer", pagePath]])];
+    // festivalOfferSchema is null once the offer has ended: the page then carries its breadcrumb only.
+    return [content.festivalOfferSchema(ORIGIN), breadcrumbs([["Home", "/"], ["De Dhana Dhan offer", pagePath]])].filter(Boolean);
   }
   if (pagePath === "/gallery" || pagePath === "/products") {
     return [breadcrumbs([["Home", "/"], [pagePath === "/gallery" ? "Gallery" : "Products", pagePath]])];
