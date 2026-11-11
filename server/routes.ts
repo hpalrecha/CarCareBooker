@@ -2482,71 +2482,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Test route for debugging payment flow
-  app.post("/api/test-payment", async (req, res) => {
-    try {
-      console.log("Test payment called with:", req.body);
-      res.json({ status: "success", message: "Test payment endpoint working" });
-    } catch (error) {
-      console.error("Test payment error:", error);
-      res.status(500).json({ message: "Test payment failed" });
-    }
-  });
-
-  // Test payment confirmation manually (for debugging)
-  app.post("/api/test-payment-confirmation", async (req, res) => {
-    try {
-      const { bookingId } = req.body;
-      
-      if (!bookingId) {
-        return res.status(400).json({ message: "Booking ID required" });
-      }
-      
-      console.log("🧪 Testing payment confirmation for booking:", bookingId);
-      
-      // Get the booking
-      const booking = await storage.getBooking(bookingId);
-      if (!booking) {
-        return res.status(404).json({ message: "Booking not found" });
-      }
-      
-      // Update to paid status
-      await storage.updateBooking(bookingId, {
-        paymentStatus: "paid",
-        paymentId: `test_${Date.now()}`
-      });
-      
-      // Get service for WhatsApp
-      const service = await storage.getService(booking.serviceId);
-      if (service) {
-        const waResult = await whatsappService.sendBookingConfirmation(
-          booking.customerPhone,
-          booking.customerName,
-          service.title,
-          booking.appointmentDate || new Date().toLocaleDateString(),
-          booking.appointmentTime || "10:00 AM",
-          booking.amount.toString()
-        );
-
-        console.log(
-          `🧪 Test WhatsApp result: success=${waResult.success} messageId=${waResult.messageId ?? "(none)"}`
-        );
-
-        res.json({
-          success: true,
-          message: "Test payment confirmation complete",
-          whatsappSent: waResult.success,
-          whatsappMessageId: waResult.messageId,
-          booking: booking
-        });
-      } else {
-        res.json({ success: false, message: "Service not found" });
-      }
-    } catch (error) {
-      console.error("Test payment confirmation error:", error);
-      res.status(500).json({ message: "Test failed" });
-    }
-  });
+  // The debug routes POST /api/test-payment and POST /api/test-payment-confirmation were removed: they were
+  // unauthenticated, unreferenced, and the second marked ANY booking paid (fake payment id) and sent a WhatsApp
+  // confirmation. Do not reintroduce debug routes; tests/security-unauthenticated-endpoints.itest.mjs and
+  // tests/no-debug-endpoints.test.mjs fail if one is mounted.
 
   // Razorpay Webhook for payment confirmations
   app.post("/api/razorpay-webhook", express.raw({ type: 'application/json' }), async (req, res) => {
@@ -2806,89 +2745,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  // Test WhatsApp endpoint - send actual booking confirmation
-  app.post("/api/test-whatsapp", async (req, res) => {
-    try {
-      const { to, customerName, serviceName, appointmentDate, appointmentTime, bookingAmount } = req.body;
-      
-      console.log("Sending booking confirmation WhatsApp message to:", to);
-      
-      const config = await whatsappService.getConfig();
-      if (!config) {
-        return res.status(500).json({ success: false, message: "WhatsApp not configured" });
-      }
-
-      // Use the booking reminder template
-      const bookingMessage = {
-        messaging_product: "whatsapp",
-        to: to.replace(/^\+/, ""),
-        type: "template",
-        template: {
-          name: "p91_booking_reminder",
-          language: {
-            code: "en"
-          },
-          components: [
-            {
-              type: "body",
-              parameters: [
-                { type: "text", text: customerName || "Jagpreet" },
-                { type: "text", text: serviceName || "Headlight Restoration - Both Lights" },
-                { type: "text", text: `${appointmentDate || "August 2, 2025"} at ${appointmentTime || "11:00 AM"}` }
-              ]
-            }
-          ]
-        }
-      };
-
-      console.log("Sending booking confirmation:", JSON.stringify(bookingMessage, null, 2));
-
-      const response = await fetch(
-        `https://graph.facebook.com/v18.0/${config.phoneNumberId}/messages`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${config.accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(bookingMessage),
-        }
-      );
-
-      const result = await response.json();
-      console.log("WhatsApp API response:", result);
-
-      if (response.ok) {
-        console.log("Booking confirmation sent successfully to:", to);
-        res.json({ 
-          success: true, 
-          message: `Booking confirmation sent to ${to}`,
-          details: {
-            customerName: customerName || "Jagpreet",
-            serviceName: serviceName || "Headlight Restoration - Both Lights",
-            appointmentDate: appointmentDate || "August 2, 2025",
-            appointmentTime: appointmentTime || "11:00 AM",
-            bookingAmount: `₹${bookingAmount || "299"}`
-          },
-          whatsappResponse: result
-        });
-      } else {
-        console.log("Failed to send booking confirmation:", result);
-        res.status(500).json({ 
-          success: false, 
-          message: "Failed to send booking confirmation",
-          error: result
-        });
-      }
-    } catch (error) {
-      console.error("Booking confirmation error:", error);
-      res.status(500).json({ 
-        success: false, 
-        message: "Error sending booking confirmation",
-        error: error.message 
-      });
-    }
-  });
+  // POST /api/test-whatsapp was removed for the same reason: unauthenticated, it sent a WhatsApp template through the
+  // business account to any number with caller-chosen text.
 
   // Manual payment status update for debugging (Admin only)
   // Push a PAID booking to ERP (n8n) again. Sends no WhatsApp and changes nothing else on the booking.
