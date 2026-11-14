@@ -58,7 +58,7 @@ describe('prerendered metadata matches the page it represents', () => {
 
   test('the prerender script carries no copy of its own', () => {
     assert.ok(!script.includes('const STATIC_ROUTES'), 'the duplicated table must not come back');
-    assert.match(script, /STATIC_SEO_PAGES\.map\(/);
+    assert.match(script, /staticPages = STATIC_SEO_PAGES;/);
     assert.match(read('scripts/prerender-content-entry.ts'), /export \{ STATIC_SEO_PAGES/);
   });
 

@@ -242,9 +242,7 @@ async function main() {
 
   // Every route carries `content`: the page's real text, baked into <div id="root"> so a
   // crawler that does not run JavaScript still reads the page (see lib/crawlable-content.ts).
-  // The offer page is built for the date of the build: its live copy until the offer ends, the ended notice after it
-  // (lib/static-seo.ts currentOfferSeo). Path, canonical, robots and sitemap are unchanged.
-  const staticPages = STATIC_SEO_PAGES.map((page) => (page.path === content.OFFER_SEO.path ? content.currentOfferSeo() : page));
+  const staticPages = STATIC_SEO_PAGES;
   const routes = staticPages.map((page) => ({
     path: page.path,
     title: page.title,
@@ -528,10 +526,6 @@ async function main() {
 
 /** Schema for the hand-written pages other than the homepage and /contact: the live offer, and breadcrumbs. */
 function extraJsonLd(pagePath, content) {
-  if (pagePath === "/offer/de-dhana-dhan") {
-    // festivalOfferSchema is null once the offer has ended: the page then carries its breadcrumb only.
-    return [content.festivalOfferSchema(ORIGIN), breadcrumbs([["Home", "/"], ["De Dhana Dhan offer", pagePath]])].filter(Boolean);
-  }
   if (pagePath === "/gallery" || pagePath === "/products") {
     return [breadcrumbs([["Home", "/"], [pagePath === "/gallery" ? "Gallery" : "Products", pagePath]])];
   }

@@ -185,5 +185,5 @@ export const STATIC_SEO_PAGES: StaticSeoPage[] = [
   REFUND_SEO,
   CONTACT_SEO,
   GALLERY_SEO,
-  OFFER_SEO,
+  // The /offer/de-dhana-dhan page was removed (410 Gone, server/middleware/gone-paths.ts); it is no longer built.
 ];

@@ -2,13 +2,14 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
 import express from "express";
-import { goneForSpamPaths } from "../server/middleware/gone-paths.ts";
+import { goneForSpamPaths, goneForRemovedPages } from "../server/middleware/gone-paths.ts";
 import { stripTrailingSlash } from "../server/middleware/trailing-slash.ts";
 
 // Same order as server/index.ts.
 function start() {
   const app = express();
   app.use(goneForSpamPaths);
+  app.use(goneForRemovedPages);
   app.use(stripTrailingSlash);
   app.all("*", (_req, res) => res.status(200).send("ok"));
   return new Promise((resolve) => {
@@ -91,6 +92,24 @@ test("the 410 is a minimal text/html page with noindex, no redirect and no app s
       assert.match(r.body, /<h1>410 Gone<\/h1>/, p);
       assert.doesNotMatch(r.body, /<script|<a |<link|id="root"/i, p);
     }
+  } finally {
+    server.close();
+  }
+});
+
+test("the removed offer page answers 410 + noindex, slash or not, GET and HEAD; POST and neighbours are untouched", async () => {
+  const { server, port } = await start();
+  try {
+    for (const p of ["/offer/de-dhana-dhan", "/offer/de-dhana-dhan/", "/Offer/De-Dhana-Dhan", "/offer/de-dhana-dhan?utm_source=x"]) {
+      for (const method of ["GET", "HEAD"]) {
+        const r = await request(port, p, method);
+        assert.equal(r.status, 410, `${method} ${p}`);
+        assert.equal(r.robots, "noindex", `${method} ${p}`);
+        assert.equal(r.location, undefined, `no redirect: ${p}`);
+      }
+    }
+    assert.equal((await request(port, "/offer/de-dhana-dhan", "POST")).status, 200, "non-GET is never swallowed");
+    for (const p of ["/offer", "/offer/other", "/ppf", "/services"]) assert.equal((await request(port, p)).status, 200, p);
   } finally {
     server.close();
   }

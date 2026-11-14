@@ -1,6 +1,6 @@
 /**
- * The expired offer page: /offer/de-dhana-dhan must not present the De Dhana Dhan promotion as available after 8 November
- * 2026, and must keep everything else about the page (canonical, robots, sitemap, no redirect).
+ * The ended De Dhana Dhan offer (8 November 2026). The offer window and the (now unused) ended-notice copy are still pinned
+ * below. The page itself /offer/de-dhana-dhan was REMOVED: 410 Gone, no route, no prerender, not in the sitemap.
  */
 import { test, describe, before } from 'node:test';
 import assert from 'node:assert/strict';
@@ -12,7 +12,6 @@ import esbuild from 'esbuild';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 const DIST = path.join(repoRoot, 'dist', 'public');
-const built = fs.existsSync(path.join(DIST, 'offer', 'de-dhana-dhan', 'index.html'));
 const ended = new Date() > new Date('2026-11-08T23:59:59+05:30');
 
 let seo, win;
@@ -60,38 +59,35 @@ describe('currentOfferSeo', () => {
   });
 });
 
-describe('the page component', () => {
-  test('uses the date-aware metadata and shows "Limited time" only while live', () => {
-    const page = read('client/src/pages/offer.tsx');
-    assert.match(page, /currentOfferSeo\(\)/);
-    assert.match(page, /festivalOfferSchema\("https:\/\/p91carcare\.com"\) \?\? undefined/);
-    assert.match(page, /live \? `\$\{o\.kicker\} · Limited time` : o\.kicker/);
-    assert.ok(!/OFFER_SEO\./.test(page.replace(/\/\*[\s\S]*?\*\//g, '')), 'the page no longer reads the live constant directly');
-  });
-});
-
-describe('the prerendered page (after `npm run build`)', { skip: !built ? 'run `npm run build` first' : false }, () => {
-  const html = () => read('dist/public/offer/de-dhana-dhan/index.html');
-
-  test('canonical, robots and the path are unchanged', () => {
-    assert.match(html(), /<link rel="canonical" href="https:\/\/p91carcare\.com\/offer\/de-dhana-dhan"/);
-    assert.match(html(), /<meta name="robots" content="index,follow"/);
+describe('the page was removed (410 Gone), not just marked ended', () => {
+  test('no client route and no page component remain', () => {
+    assert.ok(!fs.existsSync(path.join(repoRoot, 'client/src/pages/offer.tsx')));
+    assert.ok(!/de-dhana-dhan|pages\/offer"/.test(read('client/src/App.tsx')), 'App.tsx no longer routes it');
   });
 
-  test('the offer is stated as ended once the build date is past the end', { skip: !ended ? 'built before the offer ended' : false }, () => {
-    const h = html();
-    assert.match(h, /<title>De Dhana Dhan Offer \(Ended\)/);
-    assert.match(h, /name="description" content="The De Dhana Dhan Dussehra and Diwali offer ended on 8 November 2026/);
-    assert.match(h, /This offer ended on 8 November 2026/);
-    assert.ok(!/Free Dash Cam|Slots ₹499|Valid till 8 November/i.test(h.replace(/<script[\s\S]*?<\/script>/g, '')), 'no live promotion text in the page');
-    assert.ok(!/"@type":"Offer"/.test(h) && !/InStock/.test(h));
+  test('it is no longer in the static SEO list, so it is not prerendered', () => {
+    assert.ok(!seo.STATIC_SEO_PAGES.some((p) => p.path === '/offer/de-dhana-dhan'));
+    assert.ok(!/OFFER_SEO\.path|currentOfferSeo\(\)/.test(read('scripts/prerender.mjs').replace(/\/\/.*$/gm, '')), 'prerender does not special-case it');
   });
 
-  test('the page is still not in the sitemap and no redirect was added for it', () => {
+  test('the server answers it 410 early, with or without a trailing slash, GET and HEAD only', () => {
+    const src = read('server/middleware/gone-paths.ts');
+    assert.match(src, /REMOVED_PAGES[^=]*=\s*new Set\(\["\/offer\/de-dhana-dhan"\]\)/);
+    assert.match(src, /req\.method !== "GET" && req\.method !== "HEAD"\) return next\(\)/);
+    assert.match(src, /return sendGone\(res\)/);
+    const idx = read('server/index.ts');
+    assert.ok(idx.indexOf('app.use(goneForRemovedPages)') > 0 && idx.indexOf('app.use(goneForRemovedPages)') < idx.indexOf('app.use(stripTrailingSlash)'), 'mounted before the slash redirect');
+  });
+
+  test('it is not in the sitemap and has no redirect', () => {
     const routes = read('server/routes.ts');
     const start = routes.indexOf('app.get("/sitemap.xml"');
     assert.ok(start > 0, 'found the sitemap handler');
     assert.ok(!/de-dhana-dhan/.test(routes.slice(start, start + 6000)), 'not listed in the sitemap handler');
     assert.ok(!/redirect\([^)]*de-dhana/.test(routes), 'no redirect');
+  });
+
+  test('a build contains no prerendered file for it', { skip: !fs.existsSync(DIST) ? 'run `npm run build` first' : false }, () => {
+    assert.ok(!fs.existsSync(path.join(DIST, 'offer', 'de-dhana-dhan', 'index.html')));
   });
 });

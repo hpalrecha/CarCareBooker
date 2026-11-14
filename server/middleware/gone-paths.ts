@@ -15,3 +15,17 @@ export function goneForSpamPaths(req: Request, res: Response, next: NextFunction
   if (!isSpamProductPath(req.path)) return next();
   return sendGone(res);
 }
+
+/**
+ * Pages the studio has removed on purpose. Answered 410 Gone + X-Robots-Tag: noindex, with or without a trailing slash, before
+ * any static-file or prerender lookup, so a stale build output can never serve them. 410 (not 404) tells Google the removal is
+ * permanent. /offer/de-dhana-dhan: the Dussehra and Diwali offer ended on 8 November 2026 and the page was taken down.
+ */
+export const REMOVED_PAGES: ReadonlySet<string> = new Set(["/offer/de-dhana-dhan"]);
+
+export function goneForRemovedPages(req: Request, res: Response, next: NextFunction) {
+  if (req.method !== "GET" && req.method !== "HEAD") return next();
+  const p = req.path.replace(/\/+$/, "").toLowerCase();
+  if (!REMOVED_PAGES.has(p)) return next();
+  return sendGone(res);
+}
