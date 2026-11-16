@@ -9,6 +9,7 @@ import { PRODUCT_BRANDS, SERVICES_COLUMNS, resourcesGuideLinks } from "./nav-men
 import { BLOG_POSTS } from "./blog-posts";
 import { HOME_PACKAGE_LINKS } from "./home-package-links";
 import { SERVICE_GUIDE_LINKS, SERVICE_PRICE_LINKS, type HubLink } from "./service-hub-links";
+import { hubOptionLinks } from "./hub-option-links";
 import { STUDIO_PHOTOS } from "./gallery-photos";
 import { HOME_FAQS, HOME_FAQ_HEADING, HOME_ABOUT_H2 } from "./home-faq";
 import { relatedLinksFor, type RelatedLink } from "./service-related-links";
@@ -102,6 +103,8 @@ function siteLinkBlock(): string {
       { label: "All services", href: "/services" },
       { label: "Car PPF price in Bangalore", href: "/ppf" },
       { label: "Car ceramic coating price in Bangalore", href: "/ceramic-coating/car" },
+      { label: "Bike ceramic coating price in Bangalore", href: "/ceramic-coating/bike" },
+      { label: "Interior detailing overview", href: "/services/interior-detailing-bangalore" },
     ]) +
     group("Products", [
       ...PRODUCT_BRANDS.map((b) => ({ label: b.name, href: b.href })),
@@ -296,9 +299,12 @@ const GUIDE_OPTION_TITLES: Record<string, string> = {
 /** /services/:slug — the local guide pages (lib/seo-pages.ts). */
 export function seoGuideContent(page: SeoPage): string {
   const ctx = page.context;
-  const options = (page.priceServiceSlugs || [])
-    .filter((slug) => GUIDE_OPTION_TITLES[slug])
-    .map((slug) => `<li><a href="/service/${e(slug)}" style="color:#4ade80">${e(GUIDE_OPTION_TITLES[slug])}</a></li>`)
+  // Canonical targets (six PPF rows -> one /ppf link; ceramic rows -> their landing pages): lib/hub-option-links.ts.
+  const options = hubOptionLinks(
+    (page.priceServiceSlugs || []).filter((slug) => GUIDE_OPTION_TITLES[slug]).map((slug) => ({ slug, title: GUIDE_OPTION_TITLES[slug] })),
+    page.bookHref ? page.bookLabel : undefined,
+  )
+    .map((o) => `<li><a href="${e(o.href)}" style="color:#4ade80">${e(o.label)}</a></li>`)
     .join("");
   return shell(
     h1(page.h1) +

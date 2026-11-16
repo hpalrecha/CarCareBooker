@@ -13,6 +13,7 @@ import { GUIDE_IMAGES, GUIDE_LAYOUT } from "@/lib/real-service-images";
 import ParallaxFrame from "@/components/redesign/parallax-frame";
 import { useCinematic } from "@/hooks/use-cinematic";
 import { getSeoPage, guideLandingLink } from "@/lib/seo-pages";
+import { hubOptionLinks } from "@/lib/hub-option-links";
 
 /** Drops the "✓ " some records prefix to each item — the list already draws a tick. */
 function cleanIncluded(item: string) {
@@ -108,6 +109,12 @@ export default function SeoServicePage() {
   const priceRows = page.priceServiceSlugs
     .map((slug) => bySlug.get(slug))
     .filter((s): s is ServiceRecord => Boolean(s));
+
+  // Links to the CANONICAL pages (six PPF rows -> /ppf; the two ceramic rows -> their landing pages): lib/hub-option-links.ts.
+  const optionLinks = hubOptionLinks(
+    priceRows.map((s) => ({ slug: s.slug, title: s.title.trim() })),
+    landingLink?.label,
+  );
 
   // What "Book Now" books: the variant shown in the Explore tabs when there are several, otherwise the
   // page's primary service. Always a real catalogue row, so the modal prices and charges it like any other.
@@ -353,15 +360,15 @@ export default function SeoServicePage() {
               <h2>All {page.crumb} options</h2>
             </div>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 12 }}>
-              {priceRows.map((s) => (
-                <li key={s.id}>
-                  <Link href={`/service/${s.slug}`} style={{ color: "#4ade80" }} data-testid={`link-option-${s.slug}`}>
-                    {s.title.trim()}
+              {optionLinks.map((o) => (
+                <li key={o.href}>
+                  <Link href={o.href} style={{ color: "#4ade80" }} data-testid={`link-option-${o.slug}`}>
+                    {o.label}
                   </Link>
                 </li>
               ))}
             </ul>
-            {landingLink && (
+            {landingLink && !optionLinks.some((o) => o.href === landingLink.href && o.label === landingLink.label) && (
               <p style={{ marginTop: 16 }}>
                 {/* #15803d, not the #4ade80 of the option links above: that green is 1.74:1 on this white section. */}
                 <Link href={landingLink.href} style={{ color: "#15803d" }} data-testid="link-seo-landing">

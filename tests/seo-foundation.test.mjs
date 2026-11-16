@@ -203,9 +203,9 @@ describe('crawlable content baked into the initial HTML', () => {
       assert.ok(hrefs.has(must), 'missing link ' + must);
     }
     for (const post of m.BLOG_POSTS) assert.ok(hrefs.has('/blog/' + post.slug), 'missing guide ' + post.slug);
-    // The two car price pages are linked from the raw HTML so Google can find them; bike stays out.
-    for (const must of ['/ppf', '/ceramic-coating/car']) assert.ok(hrefs.has(must), must);
-    assert.ok(!hrefs.has('/ceramic-coating/bike'));
+    // The car price pages are linked from the raw HTML so Google can find them. The bike page joined them on 2026-11-16
+    // (approved P0 internal-link change: it had 4 inbound pages against the car page's 30), with the interior overview.
+    for (const must of ['/ppf', '/ceramic-coating/car', '/ceramic-coating/bike', '/services/interior-detailing-bangalore']) assert.ok(hrefs.has(must), must);
   });
 
   test('campaign pages get the catalogue record sections and FAQPage schema; empty records add nothing', () => {
@@ -314,12 +314,18 @@ describe('prerender and server wiring', () => {
     assert.match(script, /<h1> tags in the HTML — expected exactly 1/);
   });
 
-  test('each guide page links every catalogue option it lists, so no service page hangs off one link', () => {
+  test('each guide page links every catalogue option it lists, through its canonical URL', () => {
+    // Since 2026-11-16 (approved P0 change) a hub links the CANONICAL page of each option: the six consolidated PPF size
+    // variants are one link to /ppf, and the two ceramic records link their landing pages (lib/hub-option-links.ts). The six
+    // /service/ppf-* pages themselves stay linked from /services.
     const ppf = m.SEO_PAGES.find((x) => x.slug === 'paint-protection-film-bangalore');
     const html = m.seoGuideContent(ppf);
+    assert.ok(html.includes('href="/ppf"'), 'the PPF hub links /ppf');
     for (const slug of ['ppf-hatchback', 'ppf-sedan', 'ppf-suv', 'ppf-premium-hatchback', 'ppf-premium-sedan', 'ppf-premium-suv']) {
-      assert.ok(html.includes('href="/service/' + slug + '"'), 'missing link to ' + slug);
+      assert.ok(!html.includes('href="/service/' + slug + '"'), 'the hub no longer links the non-canonical /service/' + slug);
     }
+    const ceramic = m.seoGuideContent(m.SEO_PAGES.find((x) => x.slug === 'ceramic-coating-bangalore'));
+    for (const href of ['/ceramic-coating/car', '/ceramic-coating/bike', '/service/windshield-glass-coating-new']) assert.ok(ceramic.includes('href="' + href + '"'), 'missing ' + href);
     assert.ok(!html.includes('partial-ppf'), 'must not link slugs that are not in the catalogue');
   });
 
