@@ -87,7 +87,7 @@ export const SEO_PAGES: SeoPage[] = [
       "Nano-ceramic coating with machine paint correction in Adugodi, Bangalore. Resists borewell water staining and makes every wash easier.",
     crumb: "Ceramic coating",
     lede:
-      "A plain-language guide to nano-ceramic coating in Bangalore: how borewell water damages clearcoat, what the studio job involves, and what a coating does and does not do.",
+      "A plain guide to nano-ceramic coating in Bangalore: how borewell water damages clearcoat, what we do in the studio, and what a coating can and cannot do.",
     primaryServiceSlug: "1-year-ceramic-coating",
     bookHref: "/ceramic-coating/car",
     bookLabel: "Explore car ceramic coating pricing and booking",
@@ -106,25 +106,25 @@ export const SEO_PAGES: SeoPage[] = [
     context: {
       heading: "How Bangalore borewell water damages clearcoats",
       paragraphs: [
-        "Most of Adugodi and the surrounding areas run on borewell supply with a high dissolved mineral content. When a droplet dries on a hot panel, the water leaves and the calcium and magnesium stay — sitting as a concentrated alkaline deposit directly on your clearcoat.",
-        "In shade that washes off. In direct sun it begins etching a crater within days, and at that point no chemical will fix it — the panel needs machine polishing. A coating does not make paint immune, but it widens the window between the water landing and the damage starting.",
+        "Most of Adugodi and the surrounding areas run on borewell supply with a high dissolved mineral content. When a droplet dries on a hot panel, the water leaves and the calcium and magnesium stay behind as a hard, alkaline deposit sitting right on your clearcoat.",
+        "In shade it washes off. In direct sun it starts etching a crater within days, and after that no chemical will fix it. The panel needs machine polishing. A coating does not make paint immune, but it gives you more time between the water landing and the damage starting.",
       ],
     },
     faqs: [
       {
         question: "How long does the car stay with you?",
         answer:
-          "Typically a full day. Paint correction is the slow part; the coating goes on quickly but needs controlled curing before the car goes back out.",
+          "Usually a full day. Paint correction is the slow part. The coating itself goes on quickly, but it needs to cure properly before the car goes back out.",
       },
       {
         question: "Is 9H a meaningful number?",
         answer:
-          "Not really. It refers to a pencil hardness test on a flat panel and does not translate to scratch resistance on a car. Judge a coating by its warranty and who is installing it.",
+          "Not really. It comes from a pencil hardness test on a flat panel and says little about scratches on a real car. Judge a coating by its warranty and by who is installing it.",
       },
       {
         question: "Can I wash the car normally afterwards?",
         answer:
-          "Yes, after the initial cure. Use pH-neutral shampoo and dry the car rather than letting it air-dry — the coating helps with hard water, it does not make it harmless.",
+          "Yes, once it has cured. Use pH-neutral shampoo and dry the car by hand instead of letting it air-dry. The coating helps with hard water, but hard water can still mark it.",
       },
     ],
     related: ["paint-protection-film-bangalore", "interior-detailing-bangalore", "glass-sun-control-film-bangalore"],
@@ -135,10 +135,10 @@ export const SEO_PAGES: SeoPage[] = [
     h1: "Paint Protection Film (PPF) in Adugodi, Bangalore",
     title: "Paint Protection Film in Bangalore | P91 Car Care",
     description:
-      "Self-healing paint protection film fitted in Adugodi, Bangalore. Full-body and partial coverage for stone chips and kerb damage.",
+      "Paint protection film fitted in Adugodi, Bangalore. Full-body and partial coverage for stone chips and kerb damage.",
     crumb: "Paint protection film",
     lede:
-      "A self-healing urethane layer over your paint, cut to the panel and fitted in a controlled bay — so stone chips, trolleys and kerbs hit the film instead of the clearcoat.",
+      "A clear urethane layer over your paint, cut to each panel and fitted in a controlled bay, so stone chips, trolleys and kerbs hit the film instead of the clearcoat.",
     primaryServiceSlug: "ppf-sedan",
     bookHref: "/ppf",
     bookLabel: "Explore car PPF pricing and booking",
@@ -163,25 +163,25 @@ export const SEO_PAGES: SeoPage[] = [
     context: {
       heading: "How Bangalore traffic damages a front bumper",
       paragraphs: [
-        "Stop-start traffic is the problem, not speed. Sitting in a queue on the Outer Ring Road puts your bumper directly behind someone else's tyres for an hour at a time, and every one of those tyres is throwing grit forward at the panel closest to it.",
-        "That is why damage concentrates on the bumper, bonnet leading edge and wing mirrors rather than spreading evenly. Film on those panels costs a fraction of full-body coverage and takes most of the abuse a Bangalore commute delivers.",
+        "Stop-start traffic is the problem, not speed. Sit in a queue on the Outer Ring Road and your bumper is right behind someone else's tyres for an hour, with every one of them flicking grit at the nearest panel.",
+        "That is why the damage collects on the bumper, the front edge of the bonnet and the wing mirrors instead of spreading evenly. Film on just those panels costs a fraction of full-body coverage and takes most of what a Bangalore commute throws at it.",
       ],
     },
     faqs: [
       {
         question: "Full body or just the front?",
         answer:
-          "For a daily commute, front-end coverage handles the majority of real damage. Full body makes sense for a car you intend to keep long-term or resell at a premium.",
+          "For a daily commute, the front end takes most of the real damage. Full body makes sense if you plan to keep the car for years or sell it at a good price.",
       },
       {
         question: "Does film change the colour of the paint?",
         answer:
-          "A gloss film should be visually indistinguishable once fitted. Matte film deliberately changes the finish, which is a choice rather than a side effect.",
+          "Gloss film should look the same as bare paint once it is fitted. Matte film changes the finish on purpose, so that is your choice, not a side effect.",
       },
       {
         question: "Can film be removed later?",
         answer:
-          "Yes. Quality film is designed to come off without taking the clearcoat with it, which is one reason the film brand matters more than the price.",
+          "Yes. Good film is made to come off without pulling the clearcoat with it, which is one reason the film brand matters more than the price.",
       },
     ],
     related: ["ceramic-coating-bangalore", "glass-sun-control-film-bangalore", "interior-detailing-bangalore"],
@@ -195,7 +195,7 @@ export const SEO_PAGES: SeoPage[] = [
       "Deep interior cleaning in Adugodi, Bangalore: seat shampoo, dashboard and vents, leather conditioning and odour removal.",
     crumb: "Interior detailing",
     lede:
-      "Seats shampooed, vents cleared, leather conditioned and the cabin deodorised — a full reset of the space you actually sit in.",
+      "Seats shampooed, vents cleared, leather conditioned and the cabin deodorised. A full reset of the space you sit in.",
     primaryServiceSlug: "interior-detailing-service",
     priceServiceSlugs: ["interior-detailing-service"],
     includes: [
@@ -208,25 +208,25 @@ export const SEO_PAGES: SeoPage[] = [
     context: {
       heading: "Why Bangalore interiors need more than a vacuum",
       paragraphs: [
-        "Two things work against a cabin here: humidity and dust. Monsoon humidity keeps upholstery damp enough for mould to establish in the foam under the seat cover, which is why a car can smell musty even when it looks clean.",
-        "The dust is finer than a domestic vacuum can lift and settles into the vents, so it returns to the cabin every time the fan runs. Extraction cleaning and vent work address both; surface vacuuming addresses neither.",
+        "Humidity and dust both work against a cabin here. In the monsoon the upholstery stays damp enough for mould to settle into the foam under the seat cover, which is why a car can smell musty even when it looks clean.",
+        "The dust is finer than a home vacuum can lift, and it settles in the vents and comes back every time the fan runs. Extraction cleaning and vent work deal with both. Surface vacuuming deals with neither.",
       ],
     },
     faqs: [
       {
         question: "How long does interior detailing take?",
         answer:
-          "Most cars take a few hours. Upholstery has to dry properly before the car goes back out, which is the part that cannot be rushed.",
+          "Most cars take a few hours. The upholstery has to dry properly before the car goes back out, and that part cannot be rushed.",
       },
       {
         question: "Will it remove smoke or pet odour?",
         answer:
-          "Usually, because the source is almost always in the fabric rather than the air. Odour that has soaked into foam over years can need a second treatment.",
+          "Usually, because the smell sits in the fabric, not the air. Odour that has soaked into the foam over years can need a second treatment.",
       },
       {
         question: "Are the products safe for leather?",
         answer:
-          "Yes. Leather is cleaned with a pH-appropriate product and conditioned afterwards, rather than being scrubbed with an all-purpose cleaner.",
+          "Yes. Leather is cleaned with a pH-suitable product and conditioned afterwards. We do not scrub it with an all-purpose cleaner.",
       },
     ],
     related: ["ceramic-coating-bangalore", "paint-protection-film-bangalore", "glass-sun-control-film-bangalore"],
@@ -240,7 +240,7 @@ export const SEO_PAGES: SeoPage[] = [
       "Heat-rejection sun control film and rain-repellent windshield glass coating fitted in Adugodi, Bangalore.",
     crumb: "Glass & sun film",
     lede:
-      "Heat-rejection film for the cabin and a rain-repellent coating for the windshield — two different jobs that people usually ask about together.",
+      "Heat-rejection film for the cabin and a rain-repellent coating for the windshield. They are two different jobs, but people usually ask about both.",
     primaryServiceSlug: "stek-suncontrol-films",
     priceServiceSlugs: [
       "stek-suncontrol-films",
@@ -256,27 +256,27 @@ export const SEO_PAGES: SeoPage[] = [
       "Manufacturer spec sheet provided for the film fitted",
     ],
     context: {
-      heading: "What the numbers on sun film actually mean",
+      heading: "What the numbers on sun film mean",
       paragraphs: [
-        "Film is sold on three figures and only one of them describes how cool the car will be. VLT is how dark the film looks and is what the law regulates. IR rejection is measured at a single wavelength, so a film can advertise a high number and still pass plenty of heat.",
-        "TSER — total solar energy rejected — is the one that matters, because it accounts for visible light, infrared and ultraviolet together. Ask for the manufacturer's TSER figure for the exact film being fitted, and check your state's VLT limits before committing.",
+        "Film is sold on three figures, and only one of them tells you how cool the car will be. VLT is how dark the film looks, and it is what the law regulates. IR rejection is measured at a single wavelength, so a film can advertise a high number and still let plenty of heat through.",
+        "TSER (total solar energy rejected) is the one that matters, because it counts visible light, infrared and ultraviolet together. Ask for the manufacturer's TSER figure for the exact film being fitted, and check your state's VLT limits before you commit.",
       ],
     },
     faqs: [
       {
         question: "Is sun film legal in Karnataka?",
         answer:
-          "Visible light transmission limits are set by law and are enforced. Ask for the VLT figure of the specific film before it is fitted, and keep the spec sheet in the car.",
+          "Visible light transmission limits are set by law and they are enforced. Ask for the VLT figure of the exact film before it is fitted, and keep the spec sheet in the car.",
       },
       {
         question: "Does darker film mean a cooler cabin?",
         answer:
-          "No. Darkness and heat rejection are separate properties. A nearly clear film with a high TSER can outperform a much darker cheap film.",
+          "No. Darkness and heat rejection are separate things. A nearly clear film with a high TSER can beat a much darker cheap one.",
       },
       {
         question: "What does windshield glass coating do?",
         answer:
-          "It makes rain bead and clear at speed, which mostly helps night driving in the monsoon. It is a different product from sun film and is often done at the same time.",
+          "It makes rain bead up and clear off at speed, which helps most with night driving in the monsoon. It is a different product from sun film, and we often do both at the same visit.",
       },
     ],
     related: ["ceramic-coating-bangalore", "paint-protection-film-bangalore", "interior-detailing-bangalore"],

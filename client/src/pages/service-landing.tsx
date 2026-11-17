@@ -9,7 +9,6 @@ import { useQuery } from "@tanstack/react-query";
 import { CheckCircle, Star, Clock, Shield, MapPin, Play, ArrowRight, Maximize2, Droplet, Eye, Leaf } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import BookingModal from "@/components/booking-modal";
-import CallbackPopup from "@/components/callback-popup";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
@@ -787,7 +786,7 @@ export default function ServiceLanding() {
                     <div style={{ color: "#E9B949", fontWeight: 700 }}>Vehicle stays 24 hours</div>
                     <p style={{ color: "rgba(241,244,241,.7)", fontSize: 14, marginTop: 4 }}>
                       The coating needs a full 24-hour cure in our controlled environment to bond
-                      properly. Please plan for this — an early pickup compromises the finish.
+                      properly. Please plan for this. An early pickup compromises the finish.
                     </p>
                   </div>
                 </div>
@@ -816,7 +815,7 @@ export default function ServiceLanding() {
 
               <p style={{ marginTop: 16, borderRadius: 8, border: "1px solid var(--neon-line)", background: "rgba(78,184,72,.14)", padding: "10px 12px", fontSize: 13.5, color: "var(--neon-green)", fontWeight: 600 }}>
                 {offer.free
-                  ? 'No booking fee — reserve your slot online free.'
+                  ? 'No booking fee. Reserve your slot online.'
                   : isAnnualPackage
                     ? `Pay ${formatINR(service.price)} online for the full annual package.`
                     : `Pay just ₹${slotFee} online today to hold your slot.`}
@@ -842,19 +841,19 @@ export default function ServiceLanding() {
                 {/* Never quote a price the server will not charge: `free` comes from the
                     same server that decides the amount. */}
                 {offer.free
-                  ? 'Reserve your slot — no fee'
+                  ? 'Reserve your slot, no fee'
                   : isAnnualPackage
-                    ? `Book the package — ${formatINR(service.price)}`
+                    ? `Book the package: ${formatINR(service.price)}`
                     : `Reserve your slot for ₹${slotFee}`}
                 <ArrowRight className="i" aria-hidden="true" />
               </button>
 
               <p style={{ marginTop: 12, textAlign: "center", fontSize: 12, color: "rgba(241,244,241,.55)" }}>
                 {offer.free
-                  ? 'Nothing to pay online, so nothing to cancel — just call or message us.'
+                  ? 'Nothing to pay online, so nothing to cancel. Just call or message us.'
                   : isAnnualPackage
                     // The package is paid in full, so the ₹299-fee refund rule does not apply.
-                    ? 'Paid in full online — cancellation terms apply.'
+                    ? 'Paid in full online. Cancellation terms apply.'
                     : 'Full refund of the booking fee if you cancel 24+ hours ahead.'}{' '}
                 <a href="/refund-policy" style={{ color: "rgba(241,244,241,.8)", textDecoration: "underline" }}>Refund policy</a>
               </p>
@@ -921,8 +920,8 @@ export default function ServiceLanding() {
             <div className="section-head" data-cine="rise" style={{ textAlign: "center" }}>
               <h2>Dramatic Transformations</h2>
               <p style={{ margin: "10px auto 0" }}>
-                See the incredible before and after results of our expert car detailing services.
-                These real transformations speak for themselves.
+                See before and after results from our car detailing work.
+                These are real transformations.
               </p>
             </div>
 
@@ -1234,13 +1233,6 @@ export default function ServiceLanding() {
           </div>
         </section>
       )}
-      {/* "Prefer a call?" is a popup now (components/callback-popup.tsx): it was an inline
-          section, then a card under the price, and both read as out of place on the page. */}
-      <CallbackPopup
-        serviceTitle={service.title.trim()}
-        serviceSlug={service.slug}
-        isBikeService={isBikeService}
-      />
       {/* Guarantee Section + the trust strip right after it share one light band (see
           .light-band in redesign.css) — same "opposite palette, by request" scoping as
           .faq-light above, just spanning these two adjacent sections instead of one, so
@@ -1266,7 +1258,7 @@ export default function ServiceLanding() {
               <svg className="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M12 2l8 3v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V5z" /><path d="M9 12l2 2 4-4" />
               </svg>
-              <b>Warranty-backed</b><span>Written warranty on every coating and PPF job</span>
+              <b>Written warranty</b><span>On every coating and PPF job</span>
             </div>
             <div className="cell">
               <svg className="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

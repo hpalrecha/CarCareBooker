@@ -26,7 +26,7 @@ export const HOME_FAQS: HomeFaq[] = [
     answer:
       "Ceramic coating is a thin layer on the paint that helps it shrug off water and dirt and " +
       "widens the window before hard-water damage starts. Paint protection film (PPF) is a " +
-      "self-healing urethane layer fitted over the paint, so stone chips and kerb damage hit the " +
+      "urethane layer fitted over the paint, so stone chips and kerb damage hit the " +
       "film instead of the clearcoat. They protect against different things.",
   },
   {

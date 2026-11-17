@@ -11,8 +11,6 @@ import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { resolveServiceImage, type ServiceRecord } from "@/lib/canonical-services";
 import { getPost, formatPostDate, BLOG_POSTS, BLOG_AUTHOR } from "@/lib/blog-posts";
 import { blogPostingSchema, SITE_LOGO_PATH } from "@/lib/blog-schema";
-import InstagramReels from "@/components/instagram-reels";
-import { REELS_BY_POST } from "@/lib/instagram-reels";
 import ParallaxFrame from "@/components/redesign/parallax-frame";
 import { useCinematic } from "@/hooks/use-cinematic";
 import type { BlogBlock } from "@/lib/blog-posts";
@@ -346,11 +344,9 @@ export default function BlogPost() {
             );
           })}
 
-          {/* The studio's own reels on this article's subject (lib/instagram-reels.ts).
-              Posts without a matching reel render nothing here. */}
-          <div className="wrap post-wrap">
-            <InstagramReels reels={REELS_BY_POST[post.slug] ?? []} heading="Watch it on Instagram" variant="inline" className="my-10" />
-          </div>
+          {/* The Instagram reel block ("Watch it on Instagram") was removed from articles at the
+              studio's request. The data (lib/instagram-reels.ts REELS_BY_POST) and the component
+              are kept: to bring it back, import InstagramReels and render it here. */}
 
           {!hasContact && (
             <div className="wrap post-wrap">

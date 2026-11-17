@@ -90,11 +90,11 @@ export default function PrivacyPolicy() {
               <p>We also use the following third-party services, which set cookies and collect usage data:</p>
               <ul className="list-disc ml-6 space-y-2">
                 <li>
-                  <strong>Google Analytics</strong> — to understand how visitors use the
+                  <strong>Google Analytics</strong>: to understand how visitors use the
                   site. Sets <code>_ga</code> and related cookies.
                 </li>
                 <li>
-                  <strong>Google Ads (conversion tracking and remarketing)</strong> — to
+                  <strong>Google Ads (conversion tracking and remarketing)</strong>: to
                   measure the performance of our advertising and to show you our ads on
                   other websites. Sets <code>_gcl_au</code>, and Google may set cookies on
                   the doubleclick.net domain.

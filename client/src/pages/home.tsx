@@ -365,8 +365,8 @@ export default function Home() {
             P91 Car Care: Detailing, PPF &amp; Ceramic Coating in Adugodi, Bangalore
           </h1>
           <p className="lede">
-            Ceramic coating, paint protection film and full interior work — done properly,
-            warranty-backed, and bookable online in under a minute.
+            Ceramic coating, paint protection film and full interior work, done properly.
+            Written warranty terms come with every job, and you can book online in under a minute.
           </p>
           {/* One primary action. On phones it is the sticky "Get Free Estimate" bar
               (mobile-estimate-bar.tsx), so this button shows from 768px up only. Everything
@@ -397,6 +397,22 @@ export default function Home() {
             <li>Same-day slots</li>
             <li>Warranty on coatings</li>
             <li>Adugodi, Bangalore</li>
+          </ul>
+        </div>
+      </section>
+
+      {/* ---------- films and coatings strip (from the redesign canvas) ----------
+          Same brand list and links as the navbar and the brand stories lower down (PRODUCT_BRANDS),
+          so it cannot name a brand the rest of the site does not. */}
+      <section className="ed-brandstrip" aria-label="Films and coatings we fit" data-testid="section-brandstrip">
+        <div className="wrap ed-brandstrip-row">
+          <p className="ed-brandstrip-label">Films and coatings we fit</p>
+          <ul className="ed-brandstrip-list">
+            {PRODUCT_BRANDS.map((b) => (
+              <li key={b.name}>
+                <Link href={b.href}>{b.name}</Link>
+              </li>
+            ))}
           </ul>
         </div>
       </section>
@@ -562,6 +578,38 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ---------- how it works ----------
+          Four plain steps, from the redesign canvas. No price or fee is quoted here: the booking
+          flow owns those figures (see the "Why P91" block below). */}
+      <section className="ed-steps" id="how-it-works" data-testid="section-steps">
+        <div className="wrap">
+          <p className="ed-label" data-reveal>How it works</p>
+          <h2 className="ed-title ed-title-wide" data-reveal>From estimate to handover.</h2>
+          <ol className="ed-steps-list" data-reveal>
+            <li>
+              <span className="ed-step-n">Step 1</span>
+              <h3>Get an estimate</h3>
+              <p>Tell us your car and what you want done. We quote a price for your body type before you book.</p>
+            </li>
+            <li>
+              <span className="ed-step-n">Step 2</span>
+              <h3>Book a slot</h3>
+              <p>Pick a day online. You reserve the slot now and settle the balance at the studio.</p>
+            </li>
+            <li>
+              <span className="ed-step-n">Step 3</span>
+              <h3>Prep and fit</h3>
+              <p>We wash, decontaminate and prep the paint, then fit the film or coating in the bay.</p>
+            </li>
+            <li>
+              <span className="ed-step-n">Step 4</span>
+              <h3>Handover</h3>
+              <p>Walk round the car with us. {WARRANTY_HANDOVER_LINE}</p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
       {/* ---------- 04 why p91 + brands ----------
           The former trust strip (four facts) and the brands strip, merged into one compact
           block. Facts and the booking-fee line are unchanged, including the live
@@ -571,14 +619,14 @@ export default function Home() {
         <div className="wrap">
           <p className="ed-label" data-reveal>04 / Why P91</p>
           <dl className="ed-why-grid" data-reveal>
-            <div><dt>Warranty-backed</dt><dd>Written warranty on every coating and PPF job</dd></div>
+            <div><dt>Written warranty</dt><dd>On every coating and PPF job</dd></div>
             <div><dt>Same-day service</dt><dd>Most detailing finished the day you book</dd></div>
             <div><dt>Pickup &amp; drop</dt><dd>Available across Bangalore at cost</dd></div>
             <div>
               {offer.free ? (
                 <>
                   <dt>Free to book</dt>
-                  <dd>No payment to reserve — settle at the store, no hidden charges</dd>
+                  <dd>No payment to reserve. Settle at the store, no hidden charges</dd>
                 </>
               ) : (
                 <>
@@ -651,6 +699,29 @@ export default function Home() {
           existed but was never linked from the homepage). Same component campaign-landing.tsx
           already uses, same live imagery mechanism — nothing new to build or maintain. */}
       <BlogCarousel posts={homeBlogPosts} bySlug={bySlug} heading="Guides from the studio" />
+
+      {/* ---------- visit the studio ----------
+          Same address and phone as the footer and the Google Business Profile. Opening hours live
+          on /contact (read from the booking system), so they are linked, not repeated here. */}
+      <section className="ed-visit" id="visit" data-testid="section-visit">
+        <div className="wrap ed-visit-inner">
+          <div>
+            <p className="ed-label" data-reveal>Visit us</p>
+            <h2 className="ed-title" data-reveal>Visit the studio in Adugodi.</h2>
+            <address data-reveal>
+              P91 Car Care<br />
+              49, 13th Cross, Ayappa Garden, Adugodi<br />
+              Bengaluru, Karnataka 560030
+            </address>
+          </div>
+          <div className="ed-visit-actions" data-reveal>
+            <a className="ed-visit-btn is-solid" href="tel:+917406619191">Call +91 74066 19191</a>
+            <a className="ed-visit-btn" href="https://wa.me/917406619191">WhatsApp us</a>
+            <a className="ed-visit-btn" href="https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Adugodi+Bengaluru">Get directions</a>
+            <Link href="/contact" className="ed-visit-link">See opening hours →</Link>
+          </div>
+        </div>
+      </section>
 
       </main>
 

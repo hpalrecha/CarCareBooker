@@ -41,15 +41,15 @@ export const HOME_SEO: StaticSeoPage = {
   title: "Paint Protection Film & Ceramic Coating in Adugodi | P91",
   description:
     "Ceramic coating, paint protection film and full interior detailing in Adugodi, " +
-    "Bangalore — warranty-backed and bookable online in under a minute.",
+    "Bangalore. Written warranty terms come with every job.",
   // "Car Care" (the brand name and the audit's target keyword) did not appear verbatim in
   // the H1 before — it only said "Car Detailing" — so the page's most-weighted on-page
   // signal never matched its own brand/service term. Same facts, brand name restored.
   // 68 characters: the audit's limit is 70 (the previous 75 added "Studio"). Same words otherwise.
   h1: "P91 Car Care: Detailing, PPF & Ceramic Coating in Adugodi, Bangalore",
   lede:
-    "Ceramic coating, paint protection film and full interior work — done properly, " +
-    "warranty-backed, and bookable online in under a minute.",
+    "Ceramic coating, paint protection film and full interior work, done properly. " +
+    "Written warranty terms come with every job, and you can book online in under a minute.",
 };
 
 export const SERVICES_SEO: StaticSeoPage = {
@@ -61,8 +61,8 @@ export const SERVICES_SEO: StaticSeoPage = {
     "exterior detailing, glass film and headlight restoration in Adugodi.",
   h1: "All Services",
   lede:
-    "Filter by what your vehicle is and what it needs. Prices, offers and availability are " +
-    "live — the same ones you will see at checkout.",
+    "Pick your vehicle and what it needs. Prices and availability are live, " +
+    "the same figures you will see at checkout.",
 };
 
 export const PRODUCTS_SEO: StaticSeoPage = {

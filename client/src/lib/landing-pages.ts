@@ -187,14 +187,14 @@ export const LANDING_PAGES: LandingPage[] = [
         title: "Water beads and rolls off",
         body:
           "The coated surface is hydrophobic, so rain and wash water sheet away instead of sitting " +
-          "in flat puddles and evaporating in place. That is the mechanism behind coated cars " +
-          "staying clean longer, not just looking glossier.",
+          "in flat puddles and evaporating in place. That is why coated cars " +
+          "stay clean longer as well as looking glossier.",
       },
       {
         title: "Easier to wash, harder to mark",
         body:
-          "Road film and dust have less to key into, so routine cleaning takes less agitation — " +
-          "and less agitation is what keeps swirl marks out of the clearcoat over time.",
+          "Road film and dust have less to grip, so routine cleaning takes less rubbing. " +
+          "Less rubbing is what keeps swirl marks out of the clearcoat over time.",
       },
       {
         title: "Gloss with depth, not just shine",
@@ -207,7 +207,7 @@ export const LANDING_PAGES: LandingPage[] = [
         title: "UV and environmental resistance",
         body:
           "A sacrificial layer between your clearcoat and sunlight, tree sap, bird lime and road " +
-          "grime — the things that dull and oxidise paint on a car parked outdoors.",
+          "grime, the things that dull and oxidise paint on a car parked outdoors.",
       },
     ],
     howItWorks: [
@@ -236,7 +236,7 @@ export const LANDING_PAGES: LandingPage[] = [
     eyebrow: "Ceramic coating · Motorcycles",
     h1: "Ceramic Coating for Your Motorcycle",
     lede:
-      "A nano-ceramic layer over the tank, fairings and painted panels — so fuel splashes, road " +
+      "A nano-ceramic layer over the tank, fairings and painted panels, so fuel splashes, road " +
       "grime and chain fling wipe off instead of settling in.",
     primaryServiceSlug: "1-year-bike-ceramic-coating",
     heroAlt:
@@ -261,7 +261,7 @@ export const LANDING_PAGES: LandingPage[] = [
         title: "Chain fling and road grime release more easily",
         body:
           "Lube thrown off the chain lands on the swingarm, rear panels and wheel. It comes off a " +
-          "coated surface with far less scrubbing — and scrubbing is what puts marks into paint.",
+          "coated surface with far less scrubbing, and scrubbing is what puts marks into paint.",
       },
       {
         title: "Most bikes live outdoors",
@@ -369,13 +369,13 @@ export const LANDING_PAGES: LandingPage[] = [
       {
         title: "The original paint is preserved",
         body:
-          "Factory paint is only original once. Film is fitted over it and removed later without " +
-          "taking it with them, which is the whole argument for protecting rather than repairing.",
+          "Factory paint is original only once. Film is fitted over it and can be removed later " +
+          "without taking the paint with it. That is the case for protecting rather than repairing.",
       },
       {
         title: "Optically clear",
         body:
-          "The film is transparent — the colour and gloss you see are still your own paint, not a " +
+          "The film is transparent. The colour and gloss you see are still your own paint, not a " +
           "coating over the top of it.",
       },
     ],

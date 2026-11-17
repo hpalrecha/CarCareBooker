@@ -362,7 +362,7 @@ export default function SeoServicePage() {
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 12 }}>
               {optionLinks.map((o) => (
                 <li key={o.href}>
-                  <Link href={o.href} style={{ color: "#4ade80" }} data-testid={`link-option-${o.slug}`}>
+                  <Link href={o.href} style={{ color: "#15803d" }} data-testid={`link-option-${o.slug}`}>
                     {o.label}
                   </Link>
                 </li>

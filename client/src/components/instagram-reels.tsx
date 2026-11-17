@@ -99,7 +99,7 @@ export default function InstagramReels({
   const body = (
     <>
       <div className={variant === "section" ? "mb-8 text-center" : "mb-5"}>
-        <Heading className={variant === "section" ? "text-2xl font-bold text-white sm:text-3xl lg:text-4xl" : "text-xl font-bold text-white sm:text-2xl"}>
+        <Heading className={variant === "section" ? "text-2xl font-bold text-white sm:text-3xl lg:text-4xl" : "text-xl font-bold text-[#10241A] sm:text-2xl"}>
           {heading}
         </Heading>
         {intro && <p className={variant === "section" ? "mx-auto mt-3 max-w-xl text-gray-300" : ""}>{intro}</p>}
@@ -114,7 +114,7 @@ export default function InstagramReels({
           href={INSTAGRAM_PROFILE_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-green-400 hover:text-green-300"
+          className={`inline-flex min-h-[44px] items-center gap-2 text-sm font-medium ${variant === "section" ? "text-green-400 hover:text-green-300" : "text-[#2E7D32] hover:text-[#10241A]"}`}
           data-testid="link-instagram-profile"
         >
           <SiInstagram className="h-4 w-4" aria-hidden="true" />

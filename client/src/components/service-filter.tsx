@@ -143,7 +143,7 @@ export default function ServiceFilter<T extends ServiceLike>({ services, childre
 
       {/* Vehicle and category combine; one quiet line says so. */}
       <p className="sv-hint">
-        Vehicle and category apply <b>together</b> — choosing SUV then PPF shows only the SUV paint
+        Vehicle and category apply <b>together</b>. Choosing SUV then PPF shows only the SUV paint
         protection packages.
       </p>
 

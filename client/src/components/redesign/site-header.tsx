@@ -432,7 +432,7 @@ export default function SiteHeader({ onBookNow, overHero }: { onBookNow?: () => 
                           <Link key={r.href} href={r.href} onClick={closeEverything}>{r.label}</Link>
                         ))
                       ) : (
-                        <Link href="/services" onClick={closeEverything}>No matches — browse all services →</Link>
+                        <Link href="/services" onClick={closeEverything}>No matches. Browse all services →</Link>
                       )}
                     </div>
                   )}

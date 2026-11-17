@@ -119,13 +119,9 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
     assert.ok(hero.includes('className="pdp-panel"'));
   });
 
-  test('"Prefer a call?" is a popup, not an inline section', () => {
+  test('"Prefer a call?" is gone from the page: no inline form, no popup', () => {
     assert.ok(!/<QuoteForm\b/.test(src), 'no inline form left on the page');
-    assert.match(src, /<CallbackPopup\s+serviceTitle=\{service\.title\.trim\(\)\}\s+serviceSlug=\{service\.slug\}\s+isBikeService=\{isBikeService\}/);
-    const popup = read('client/src/components/callback-popup.tsx');
-    // Same form, so same validation, endpoint and Lead event.
-    assert.match(popup, /<QuoteForm[\s\S]*?heading="Prefer a call\?"[\s\S]*?lockVehicleType[\s\S]*?onSubmitted=\{markCallbackRequested\}/);
-    assert.match(popup, /<DialogTitle className="sr-only">Prefer a call\?<\/DialogTitle>/, 'the dialog is named');
+    assert.ok(!/CallbackPopup/.test(src), 'the callback popup is not mounted on the service page');
   });
 
   test('the title is plain type, not a gradient that clips descenders', () => {

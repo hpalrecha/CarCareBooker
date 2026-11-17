@@ -400,7 +400,7 @@
   display: inline-flex; align-items: center; gap: 6px;
   padding: 6px 12px; border-radius: 999px;
   border: 1px solid var(--neon-line); background: var(--neon-soft);
-  color: var(--neon-green); font-size: 14px; font-weight: 600; white-space: nowrap;
+  color: #1F6B26; font-size: 14px; font-weight: 600; white-space: nowrap;
 }
 .p91x .lp-tier-warranty .i { width: 16px; height: 16px; }
 

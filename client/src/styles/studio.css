@@ -1,0 +1,246 @@
+/* Studio layer (2026-11-17): typography, rhythm and shape pass over redesign.css.
+ *
+ * CSS only. No copy, markup, class names, links or folder layout change; this file is loaded
+ * after redesign.css and only overrides it, so deleting the import in main.tsx restores the
+ * previous look exactly.
+ *
+ * Direction: a paint-shop spec sheet. White ground, near-black bays, the logo green used as a
+ * single "film edge" line and for actions. The memorable move is the headline scale and the green
+ * edge on the dark bands; everything else stays quiet.
+ *
+ *   Colour  Film green #4EB848 (fills, rules)  ·  Ink green #2E7D32 (small text on white)
+ *           Studio white #FFFFFF  ·  Bay grey #F3F6F3  ·  Black #0B0F0D  ·  Text #10241A
+ *   Type    Archivo for headings AND the small labels (the old mono, tracked all-caps labels are
+ *           now plain sentence-case Archivo); IBM Plex Sans for body. Counters keep the mono face.
+ *   Shape   Actions are squarer (6px), photos 4px, chips stay pills. Not one radius for everything.
+ */
+
+/* ---------- small labels: sentence case, not tracked mono caps ---------- */
+.p91x .ed-label,
+.p91x .ed-specs dt,
+.p91x .ed-caption,
+.p91x .sv-label,
+.p91x .sv-cat,
+.p91x .ed-work-cap,
+.p91x .ed-brands-label,
+.p91x .ed-brand-kind,
+.p91x .ed-step-n,
+.p91x footer.site .foot-col h4,
+.p91x footer.site .foot-col .foot-h,
+.p91x .gl-fest-kicker,
+.p91x .post-tag,
+.p91x .post-more-cat,
+.p91x .post-compare thead th,
+.p91x .post-compare tbody th {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.p91x .ed-label { font-size: 15px; gap: 14px; margin-bottom: 22px; color: var(--accent-ink); }
+.p91x .ed-label::before { width: 36px; height: 2px; }
+.p91x .ed-care .ed-label, .p91x .ed-visit .ed-label { color: rgba(255, 255, 255, .78); }
+.p91x .ed-specs dt, .p91x .sv-label, .p91x .sv-cat, .p91x .ed-brands-label, .p91x .ed-brand-kind, .p91x .ed-step-n, .p91x .ed-caption, .p91x .ed-work-cap { font-size: 14px; }
+
+/* The hero's pill eyebrow becomes a plain line with the green rule. */
+.p91x .eyebrow {
+  background: none; border: 0; padding: 0; border-radius: 0;
+  font-family: var(--font-display); font-weight: 600; font-size: 15px;
+  letter-spacing: 0; text-transform: none;
+}
+.p91x .hero-bg .copy > .eyebrow { color: #fff; display: flex; align-items: center; gap: 14px; }
+.p91x .hero-bg .copy > .eyebrow::before { content: ""; width: 36px; height: 2px; background: var(--brand-accent); }
+
+/* ---------- headings: larger, tighter, one measure ---------- */
+.p91x .hero-bg h1.hero-solid {
+  font-size: clamp(40px, 6.4vw, 96px);
+  font-weight: 800;
+  letter-spacing: -.04em;
+  line-height: 1;
+  max-width: 17ch;
+  text-wrap: balance;
+}
+.p91x .ed-title, .p91x .sv-title { font-weight: 700; letter-spacing: -.035em; line-height: 1.02; text-wrap: balance; }
+.p91x .ed-lede, .p91x .sv-lede { max-width: 58ch; }
+.p91x .prose p, .p91x .post-sec-body p { max-width: 66ch; line-height: 1.7; }
+
+/* ---------- rhythm: more air between home sections ---------- */
+.p91x.home-page .ed-about,
+.p91x.home-page .ed-work,
+.p91x.home-page .ed-why,
+.p91x.home-page .ed-faq,
+.p91x.home-page .ed-steps {
+  padding-block: clamp(72px, 11vh, 128px);
+}
+
+/* ---------- dark bands: the green film edge ---------- */
+.p91x.home-page .ed-care,
+.p91x.home-page .ed-visit { border-top: 4px solid var(--brand-accent); }
+
+/* ---------- actions are squarer than chips ---------- */
+.p91x .btn-book,
+.p91x .cta-lg,
+.p91x .cta-ghost,
+.p91x .ed-visit-btn { border-radius: 6px; }
+.p91x .btn-book, .p91x .cta-lg { font-weight: 700; letter-spacing: -.005em; }
+.p91x .ed-visit-btn.is-solid { color: var(--surface-dark); }
+
+/* ---------- photos: tighter corners ---------- */
+.p91x main figure img,
+.p91x .ed-brand-photo img,
+.p91x .ed-brand-photo { border-radius: 4px; }
+
+/* ---------- keyboard focus: always visible ---------- */
+.p91x a:focus-visible,
+.p91x button:focus-visible,
+.p91x input:focus-visible,
+.p91x select:focus-visible,
+.p91x textarea:focus-visible,
+.p91x summary:focus-visible {
+  outline: 3px solid var(--accent-ink);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.p91x .hero-bg a:focus-visible,
+.p91x .ed-care a:focus-visible,
+.p91x .ed-visit a:focus-visible,
+.p91x footer.site a:focus-visible { outline-color: #fff; }
+
+/* ---------- phones ---------- */
+@media (max-width: 640px) {
+  .p91x .hero-bg h1.hero-solid { font-size: clamp(36px, 10.5vw, 48px); letter-spacing: -.035em; }
+  .p91x .ed-label { font-size: 14px; margin-bottom: 16px; }
+  .p91x.home-page .ed-about,
+  .p91x.home-page .ed-work,
+  .p91x.home-page .ed-why,
+  .p91x.home-page .ed-faq,
+  .p91x.home-page .ed-steps { padding-block: 56px; }
+}
+
+/* ---------- legal pages (privacy, terms, refund) ----------
+   These pages still carry the old dark-theme utility classes (text-white, text-gray-300,
+   prose-invert, a green-to-white gradient title) on a ground that is white since the green and
+   white theme. Body text measured 1.2 to 1.5 against white, which is unreadable. Scoped to the
+   legal wrapper (bg-deep-black), so the dark 404 page is untouched. Wording is not changed. */
+.p91-brand.bg-deep-black { color: var(--txt); }
+.p91-brand.bg-deep-black .prose,
+.p91-brand.bg-deep-black .prose-invert {
+  --tw-prose-body: var(--txt-2);
+  --tw-prose-headings: var(--txt);
+  --tw-prose-bold: var(--txt);
+  --tw-prose-links: var(--accent-ink);
+  --tw-prose-invert-body: var(--txt-2);
+  --tw-prose-invert-headings: var(--txt);
+  --tw-prose-invert-bold: var(--txt);
+  --tw-prose-invert-links: var(--accent-ink);
+}
+.p91-brand.bg-deep-black .text-gray-200,
+.p91-brand.bg-deep-black .text-gray-300,
+.p91-brand.bg-deep-black .text-gray-400,
+.p91-brand.bg-deep-black .text-gray-500 { color: var(--txt-2); }
+.p91-brand.bg-deep-black .text-white,
+.p91-brand.bg-deep-black strong,
+.p91-brand.bg-deep-black h3 { color: var(--txt); }
+.p91-brand.bg-deep-black h2 { color: var(--accent-ink); }
+.p91-brand.bg-deep-black h1.gradient-text {
+  background: none; -webkit-background-clip: border-box; background-clip: border-box;
+  -webkit-text-fill-color: var(--txt); color: var(--txt);
+}
+.p91-brand.bg-deep-black .prose a { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 3px; }
+.p91-brand.bg-deep-black .text-yellow-400, .p91-brand.bg-deep-black .text-yellow-300 { color: var(--warn); }
+.p91-brand.bg-deep-black .text-green-400, .p91-brand.bg-deep-black .text-green-300 { color: var(--accent-ink); }
+.p91-brand.bg-deep-black .text-blue-300, .p91-brand.bg-deep-black .text-blue-400 { color: #1D4ED8; }
+.p91-brand.bg-deep-black .text-red-400, .p91-brand.bg-deep-black .text-red-300 { color: var(--danger); }
+.p91-brand.bg-deep-black .bg-medium-gray { background: var(--dark-gray); }
+
+/* ---------- blog: a button inside article text keeps its own colour ---------- */
+.p91x .prose a.cta-lg, .p91x .post-sec-body a.cta-lg { color: var(--surface-dark); text-decoration: none; }
+
+/* ---------- /ppf tier warranty pill: ink green on the pale green fill ---------- */
+.p91x .lp-tier-warranty { color: var(--accent-ink); }
+.p91-brand.bg-deep-black code { color: var(--txt); background: var(--medium-gray); padding: 1px 6px; border-radius: 4px; }
+.p91-brand.bg-deep-black .text-yellow-400, .p91-brand.bg-deep-black .text-yellow-300 { color: #6B5314; }
+.p91x .lp-tier-warranty { color: #1F6B26; }
+
+/* ---------- films and coatings strip (home, under the hero) ---------- */
+.p91x.home-page .ed-brandstrip { border-bottom: 1px solid var(--medium-gray); background: var(--deep-black); }
+.p91x .ed-brandstrip-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 44px; padding-block: 26px; }
+.p91x .ed-brandstrip-label { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 15px; color: var(--txt-2); }
+.p91x .ed-brandstrip-list { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 40px; list-style: none; margin: 0; padding: 0; }
+.p91x .ed-brandstrip-list a { display: inline-flex; align-items: center; min-height: 44px; font-family: var(--font-display); font-weight: 800; font-size: clamp(22px, 2.6vw, 30px); letter-spacing: -.02em; color: var(--txt); text-decoration: none; border-bottom: 2px solid transparent; }
+.p91x .ed-brandstrip-list a:hover { border-bottom-color: var(--brand-accent); }
+@media (max-width: 640px) { .p91x .ed-brandstrip-row { padding-block: 18px; gap: 4px 28px; } }
+
+/* =====================================================================================
+   PRODUCTS (/products): one large row per brand, a dark "which one" band at the foot.
+   ===================================================================================== */
+.p91x .pd-hero { padding: clamp(120px, 17vh, 184px) 0 clamp(36px, 6vh, 64px); }
+.p91x .pd-title { font-size: var(--fs-display); font-weight: 800; letter-spacing: -.04em; line-height: 1; margin: 0 0 22px; }
+.p91x .pd-lede { margin: 0; max-width: 46ch; font-size: clamp(18px, 1.7vw, 22px); line-height: 1.55; color: var(--txt-2); }
+
+.p91x .pd-row {
+  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 80px); align-items: center;
+  padding-block: clamp(40px, 7vh, 80px); border-top: 1px solid var(--medium-gray);
+}
+.p91x .pd-row:nth-child(even) .pd-media { order: 2; }
+.p91x .pd-media { display: block; overflow: hidden; border-radius: 4px; background: var(--dark-gray); }
+.p91x .pd-media img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; transition: transform .6s cubic-bezier(.22, .61, .36, 1); }
+.p91x .pd-row:hover .pd-media img { transform: scale(1.025); }
+.p91x .pd-kind { margin: 0 0 14px; font-family: var(--font-display); font-weight: 600; font-size: 15px; color: var(--accent-ink); }
+.p91x .pd-name { margin: 0 0 16px; font-size: clamp(36px, 5.2vw, 68px); font-weight: 800; letter-spacing: -.04em; line-height: 1; }
+.p91x .pd-name a { color: inherit; text-decoration: none; }
+.p91x .pd-tagline { margin: 0 0 22px; max-width: 40ch; font-size: clamp(17px, 1.4vw, 19px); line-height: 1.6; color: var(--txt-2); }
+.p91x .pd-points { list-style: none; margin: 0 0 28px; padding: 0; display: grid; gap: 10px; }
+.p91x .pd-points li { position: relative; padding-left: 22px; font-size: 16px; color: var(--txt); }
+.p91x .pd-points li::before { content: ""; position: absolute; left: 0; top: .62em; width: 10px; height: 2px; background: var(--brand-accent); }
+
+.p91x .pd-choose { background: var(--surface-dark); color: #fff; border-top: 4px solid var(--brand-accent); padding-block: clamp(56px, 9vh, 104px); }
+.p91x .pd-choose .ed-title { color: #fff; font-size: clamp(32px, 4.4vw, 60px); margin: 0 0 clamp(28px, 5vh, 48px); }
+.p91x .pd-choose-list { list-style: none; margin: 0 0 clamp(28px, 5vh, 44px); padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(24px, 3vw, 48px); }
+.p91x .pd-choose-list li { border-top: 2px solid var(--brand-accent); padding-top: 20px; }
+.p91x .pd-need { margin: 0 0 8px; font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -.02em; line-height: 1.2; }
+.p91x .pd-answer { margin: 0 0 14px; color: rgba(255, 255, 255, .78); font-size: 16px; line-height: 1.6; max-width: 32ch; }
+.p91x .pd-choose .ed-link { color: #fff; }
+.p91x .pd-help { margin: 0 0 12px; color: rgba(255, 255, 255, .86); font-size: 17px; }
+.p91x .pd-help a { color: #fff; text-decoration: underline; text-decoration-color: var(--brand-accent); text-decoration-thickness: 2px; text-underline-offset: 5px; }
+.p91x .pd-fine { color: rgba(255, 255, 255, .6); }
+@media (max-width: 860px) {
+  .p91x .pd-row { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+  .p91x .pd-row:nth-child(even) .pd-media { order: 0; }
+  .p91x .pd-choose-list { grid-template-columns: minmax(0, 1fr); }
+  .p91x .pd-hero { padding-top: 104px; }
+}
+
+/* =====================================================================================
+   SERVICES (/services): four start tiles above the filterable list; a 3-column list on wide screens.
+   ===================================================================================== */
+.p91x .sv-start { margin: 0 0 clamp(40px, 6vh, 64px); }
+.p91x .sv-start ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.p91x .sv-start-tile {
+  display: flex; flex-direction: column; gap: 8px; height: 100%; box-sizing: border-box;
+  padding: clamp(22px, 2.6vw, 34px); border: 1px solid var(--medium-gray); border-radius: 6px; background: var(--dark-gray);
+  color: var(--txt); text-decoration: none; transition: border-color .2s, background .2s;
+}
+.p91x .sv-start-tile:hover { border-color: var(--brand-accent); background: #fff; }
+.p91x .sv-start-name { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 2.3vw, 30px); letter-spacing: -.025em; line-height: 1.12; }
+.p91x .sv-start-tile:hover .sv-start-name { text-decoration: underline; text-decoration-color: var(--brand-accent); text-decoration-thickness: 3px; text-underline-offset: 6px; }
+.p91x .sv-start-note { color: var(--txt-2); font-size: 16px; line-height: 1.55; max-width: 44ch; }
+@media (max-width: 640px) { .p91x .sv-start ul { grid-template-columns: minmax(0, 1fr); gap: 12px; } }
+@media (min-width: 1100px) { .p91x .sv-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.p91x .sv-title { font-weight: 800; letter-spacing: -.04em; }
+.p91x .sv-hub { margin-top: clamp(48px, 8vh, 88px); }
+.p91x .sv-hub-title { font-family: var(--font-display); font-size: 22px; letter-spacing: -.02em; }
+
+/* =====================================================================================
+   SERVICE GUIDE PAGES (/services/*): larger intro, calmer FAQ.
+   ===================================================================================== */
+.p91x .article-lede { font-size: clamp(19px, 1.9vw, 25px); line-height: 1.5; color: var(--txt); max-width: 58ch; }
+.p91x .seo-hero-h1 { letter-spacing: -.035em; text-wrap: balance; }
+.p91x .lp-faq summary { font-family: var(--font-display); font-weight: 700; letter-spacing: -.01em; }
+
+/* ---------- service guide pages, phones: the variant tabs scroll sideways in one row ---------- */
+@media (max-width: 640px) {
+  .p91x .explore-tabs { flex-wrap: nowrap; overflow-x: auto; gap: 4px 22px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .p91x .explore-tabs::-webkit-scrollbar { display: none; }
+  .p91x .explore-tab { flex: none; white-space: nowrap; min-height: 44px; }
+}

@@ -64,8 +64,8 @@ export const BRAND_PAGES: BrandPage[] = [
     ],
     benefits: [
       { title: "Gloss and matte finishes", body: "Film that keeps the paint as it is, or changes the finish, without touching the original paint." },
-      { title: "Self-healing film", body: "Light marks in the film's surface disappear, so the finish stays clean." },
-      { title: "Heat and glare control", body: "Sun-control film for the glass: a cooler cabin without changing how the car looks." },
+      { title: "Clean, clear finish", body: "A clear film that protects the paint and keeps the finish looking as it should." },
+      { title: "Heat and glare control", body: "Sun-control film for the glass. A cooler cabin, and the car looks the same." },
     ],
     images: [
       { src: `${G}p91-lux-nissan-gtr.webp`, alt: "A white Nissan GT-R with a black bonnet in front of a STEK wall in the P91 studio", caption: "Nissan GT-R · STEK PPF" },
@@ -116,7 +116,7 @@ export const BRAND_PAGES: BrandPage[] = [
       "P91 Premium PPF is P91 Car Care's own paint protection film line, fitted at the Adugodi studio in Basic, Premium and Partial packages for hatchbacks, sedans and SUVs.",
     about: [
       "P91 Premium PPF is P91 Car Care's own paint protection film line. It is fitted at our Adugodi studio, and it is the film behind the P91 PPF packages.",
-      "The packages are Basic, Premium and Partial, each priced for hatchbacks, sedans and SUVs. Current prices and what each one includes are on the PPF page, and they are the same figures used when you book.",
+      "The packages are Basic, Premium and Partial, each priced for hatchbacks, sedans and SUVs. Current prices and what each one includes are on the PPF page, and the same figures apply when you book.",
     ],
     fits: [
       { name: "Full-body PPF packages", note: "Basic and Premium, for hatchbacks, sedans and SUVs.", href: "/services/paint-protection-film-bangalore" },
@@ -124,8 +124,8 @@ export const BRAND_PAGES: BrandPage[] = [
     ],
     benefits: [
       { title: "Stone chips hit the film", body: "The bonnet, bumper and mirror backs take low-level impacts on the film instead of the clearcoat." },
-      { title: "Self-healing film", body: "Light marks in the film's surface disappear, so the finish stays clean." },
-      { title: "Fitted and warranty-backed", body: "Fitted at the studio, with the warranty terms handed over with the car." },
+      { title: "Clean, clear finish", body: "A clear film that protects the paint and keeps the finish looking as it should." },
+      { title: "Fitted in the studio", body: "Fitted by our team, with written warranty terms provided at handover." },
     ],
     images: [
       { src: `${G}p91-lux-range-rover-evoque.webp`, alt: "A white Range Rover Evoque in the P91 studio, protected with P91 Premium PPF", caption: "Range Rover Evoque · P91 Premium PPF" },

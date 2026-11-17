@@ -83,7 +83,7 @@ describe('presentation', () => {
 
   test('used on the PPF/ceramic page, blog posts, and linked in the footer', () => {
     assert.match(read('client/src/pages/ppf-ceramic-landing.tsx'), /reels=\{REELS_FOR_PPF_CERAMIC_PAGE\}/);
-    assert.match(read('client/src/pages/blog-post.tsx'), /reels=\{REELS_BY_POST\[post\.slug\] \?\? \[\]\}/);
+    assert.ok(!/InstagramReels/.test(read('client/src/pages/blog-post.tsx').replace(/\{\/\*[\s\S]*?\*\/\}/g, '')), 'the reel block was removed from blog posts by request');
     assert.match(read('client/src/components/redesign/site-footer.tsx'), /data-testid="link-footer-instagram"/);
   });
 

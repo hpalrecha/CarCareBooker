@@ -183,7 +183,7 @@ export default function QuoteForm({
   if (submitted) {
     return (
       <div className="rounded-2xl border border-green-500/40 bg-gray-900/70 p-6" data-testid={`${testId}-done`}>
-        <h3 className="text-lg font-bold text-white">Thanks — we have your details.</h3>
+        <h3 className="text-lg font-bold text-white">Thanks, we have your details.</h3>
         <p className="mt-1 text-sm text-gray-300">
           The studio will call you about {serviceTitle ?? "your enquiry"}.
         </p>

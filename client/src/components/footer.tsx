@@ -119,7 +119,7 @@ export default function Footer() {
               © {copyrightYear()} {COMPANY_NAME}. All rights reserved.
             </p>
             <p className="text-gray-400 text-sm mt-4 md:mt-0">
-              Made with ❤️ for car enthusiasts in Bangalore
+              Made for car enthusiasts in Bangalore
             </p>
           </div>
         </div>

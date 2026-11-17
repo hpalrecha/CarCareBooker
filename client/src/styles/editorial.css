@@ -38,18 +38,18 @@
      Warmer and lighter than the commercial black. --ed-bg is not pure black:
      #0E0E11 against #EDEEF0 body text is a slightly softer contrast that is
      easier to hold for a long read, while still clearing WCAG AA comfortably. */
-  --ed-bg:        #0E0E11;
-  --ed-surface:   #16161A;
-  --ed-line:      #24242B;
-  --ed-line-soft: #1C1C22;
+  --ed-bg:        #FFFFFF;
+  --ed-surface:   #F3F6F3;
+  --ed-line:      #E1E8E1;
+  --ed-line-soft: #EDF1ED;
 
   /* ---- ink ----------------------------------------------------------------
      --ed-ink-3 is for metadata only (dates, reading time). It is deliberately
      NOT used for body copy: it measures under 4.5:1 on --ed-bg and would fail
      AA for anything a reader has to actually read. */
-  --ed-ink:       #F2F3F5;
-  --ed-ink-2:     #B4B8BF;
-  --ed-ink-3:     #8A9099;
+  --ed-ink:       #10241A;
+  --ed-ink-2:     #4B5B52;
+  --ed-ink-3:     #5E6D65;
 
   /* ---- accent -------------------------------------------------------------
      ONE accent, used for links and the active category only. The commercial
@@ -57,9 +57,9 @@
      here almost nothing is, so an accent that appeared as often would stop
      meaning anything. --ed-accent is the same hue as --neon-green, dropped in
      lightness so it sits against long-form text instead of shouting over it. */
-  --ed-accent:      hsl(142, 62%, 62%);
-  --ed-accent-soft: hsla(142, 62%, 62%, 0.12);
-  --ed-accent-line: hsla(142, 62%, 62%, 0.32);
+  --ed-accent:      #2E7D32;
+  --ed-accent-soft: hsla(117, 44%, 50%, 0.14);
+  --ed-accent-line: hsla(125, 46%, 33%, 0.4);
 
   /* ---- type scale ---------------------------------------------------------
      A modular scale at roughly 1.25, fluid between a 360px phone and a 1280px
@@ -92,7 +92,7 @@
 
   background: var(--ed-bg);
   color: var(--ed-ink-2);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-body);
   font-size: var(--ed-step-0);
   line-height: 1.72;
   -webkit-font-smoothing: antialiased;
@@ -104,17 +104,18 @@
 .p91x-editorial h2,
 .p91x-editorial h3,
 .p91x-editorial h4 {
-  font-family: Merriweather, Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
+  font-weight: 700;
   color: var(--ed-ink);
   /* Merriweather is wide; the negative tracking that suits Archivo would crowd
      it. Kept near-neutral and tightened only at display sizes. */
-  letter-spacing: -0.005em;
-  line-height: 1.22;
+  letter-spacing: -0.025em;
+  line-height: 1.08;
   text-wrap: balance;
   margin: 0;
 }
-.p91x-editorial h1 { font-size: var(--ed-step-4); letter-spacing: -0.018em; line-height: 1.12; }
-.p91x-editorial h2 { font-size: var(--ed-step-3); letter-spacing: -0.012em; }
+.p91x-editorial h1 { font-size: var(--ed-step-4); letter-spacing: -0.03em; line-height: 1.04; }
+.p91x-editorial h2 { font-size: var(--ed-step-3); letter-spacing: -0.025em; }
 .p91x-editorial h3 { font-size: var(--ed-step-2); }
 .p91x-editorial h4 { font-size: var(--ed-step-1); }
 
@@ -163,11 +164,11 @@
 /* Small uppercase label above a heading. Letter-spaced because uppercase text
    at this size is unreadable without it. */
 .p91x-editorial .ed-kicker {
-  font-family: Inter, sans-serif;
+  font-family: var(--font-display);
   font-size: var(--ed-step--1);
   font-weight: 600;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ed-accent);
 }
 

@@ -549,7 +549,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
                   <h2>Catch damage before it costs you</h2>
                   <p>
                     A clear film absorbs stone chips, kerb scrapes and swirl marks before
-                    they ever reach your clearcoat — so the paint underneath stays exactly as it
+                    they reach your clearcoat, so the paint underneath stays as it
                     left the factory.
                   </p>
                 </div>
@@ -708,7 +708,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
             </div>
             <div className="cell">
               <MapPin className="i" aria-hidden="true" />
-              <b>Adugodi studio</b><span>Bangalore — pickup &amp; drop available</span>
+              <b>Adugodi studio</b><span>Bangalore, pickup &amp; drop available</span>
             </div>
           </div>
         </div>

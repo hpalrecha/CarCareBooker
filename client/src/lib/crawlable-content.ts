@@ -139,7 +139,7 @@ function shell(main: string): string {
     ` · <a href="/blog" style="color:#e5e7eb">Blog</a>` +
     ` · <a href="/contact" style="color:#e5e7eb">Contact</a></nav></header>` +
     `<main>${main}</main>` +
-    `<footer>${SITE_LINK_BLOCK}<p>P91 Car Care — ${address} — <a href="tel:${e(PHONE)}" style="color:#4ade80">${e(PHONE_DISPLAY)}</a></p></footer>` +
+    `<footer>${SITE_LINK_BLOCK}<p>P91 Car Care, ${address}, <a href="tel:${e(PHONE)}" style="color:#4ade80">${e(PHONE_DISPLAY)}</a></p></footer>` +
     `</div>`
   );
 }
@@ -264,7 +264,7 @@ export function homePageContent(page: StaticSeoPage): string {
       `<p><a href="/gallery" style="color:#4ade80">See all our work →</a></p>` +
       h2("Why P91") +
       ul([
-        "Warranty-backed: written warranty on every coating and PPF job",
+        "Written warranty: on every coating and PPF job",
         "Same-day service: most detailing finished the day you book",
         "Pickup & drop: available across Bangalore at cost",
       ]) +
@@ -357,7 +357,7 @@ export function blogListContent(posts: BlogPost[], category?: string): string {
     ? `Everything we have written on ${category.toLowerCase()}, for Bangalore conditions.`
     : "Straight answers to what customers ask us most, written for Bangalore traffic, water and weather.";
   const items = posts
-    .map((post) => `<li><a href="/blog/${e(post.slug)}" style="color:#4ade80">${e(post.title)}</a> — ${e(post.excerpt)}</li>`)
+    .map((post) => `<li><a href="/blog/${e(post.slug)}" style="color:#4ade80">${e(post.title)}</a>: ${e(post.excerpt)}</li>`)
     .join("");
   return shell(h1(heading) + p(intro) + `<ul>${items}</ul>`);
 }
@@ -385,7 +385,7 @@ export function landingPageContent(page: LandingPage): string {
 export function brandPageContent(page: BrandPage): string {
   const fits = page.fits.length
     ? h2("What we fit") +
-      `<ul>${page.fits.map((f) => `<li><a href="${e(f.href)}" style="color:#4ade80">${e(f.name)}</a> — ${e(f.note)}</li>`).join("")}</ul>`
+      `<ul>${page.fits.map((f) => `<li><a href="${e(f.href)}" style="color:#4ade80">${e(f.name)}</a>: ${e(f.note)}</li>`).join("")}</ul>`
     : "";
   const benefits = (page.benefits || []).map((b) => `<h3>${e(b.title)}</h3>${p(b.body)}`).join("");
   const official = page.official
@@ -555,7 +555,7 @@ export function servicesListContent(page: StaticSeoPage, services: CrawlableServ
     .filter((s) => s.slug && String(s.title || "").trim())
     .map((s) => {
       const price = formatINR(s.price ?? undefined);
-      return `<li><a href="/service/${e(s.slug)}" style="color:#4ade80">${e(String(s.title).trim())}</a>${price ? ` — ${e(price)}` : ""}</li>`;
+      return `<li><a href="/service/${e(s.slug)}" style="color:#4ade80">${e(String(s.title).trim())}</a>${price ? `: ${e(price)}` : ""}</li>`;
     })
     .join("");
   return shell(
@@ -571,7 +571,7 @@ export function servicesListContent(page: StaticSeoPage, services: CrawlableServ
 export function hubLinkSection(title: string, links: HubLink[]): string {
   return (
     h2(title) +
-    `<ul>${links.map((l) => `<li><a href="${e(l.href)}" style="color:#4ade80">${e(l.label)}</a> — ${e(l.note)}</li>`).join("")}</ul>`
+    `<ul>${links.map((l) => `<li><a href="${e(l.href)}" style="color:#4ade80">${e(l.label)}</a>: ${e(l.note)}</li>`).join("")}</ul>`
   );
 }
 

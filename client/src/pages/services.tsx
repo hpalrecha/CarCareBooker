@@ -74,13 +74,26 @@ export default function Services() {
             <p className="ed-label">Services</p>
             <h1 className="sv-title">All Services</h1>
             <p className="sv-lede">
-              Filter by what your vehicle is and what it needs. Prices, offers and availability are
-              live — the same ones you will see at checkout.
+              Pick your vehicle and what it needs. Prices and availability are live,
+              the same figures you will see at checkout.
             </p>
           </header>
 
-          {/* The "Book by service" row that used to sit here is gone (2026-09-24): it duplicated the PPF
-              and ceramic entries in the list below and pointed at the same pages. */}
+          {/* Start here: the four service guides as large tiles, so the first screen answers "what do you
+              do" before the full filterable list. Same links as the hub at the foot of the page
+              (lib/service-hub-links.ts), so the two cannot disagree. */}
+          <nav className="sv-start" aria-label="Start with a service" data-testid="section-service-start">
+            <ul>
+              {SERVICE_GUIDE_LINKS.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className="sv-start-tile">
+                    <span className="sv-start-name">{l.label}</span>
+                    <span className="sv-start-note">{l.note}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
           {/* The cards below use h3 titles; this gives them an h2 parent so the heading levels never skip
               (axe heading-order), and keeps the hub's own titles below at h3 so the footer's h4 follows h3. */}
@@ -123,7 +136,7 @@ export default function Services() {
                   {group.links.map((l) => (
                     <li key={l.href}>
                       <Link href={l.href} className="ed-link">{l.label}</Link>
-                      <span className="sv-hub-note"> — {l.note}</span>
+                      <span className="sv-hub-note">: {l.note}</span>
                     </li>
                   ))}
                 </ul>

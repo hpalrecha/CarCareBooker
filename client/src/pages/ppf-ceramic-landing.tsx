@@ -273,7 +273,7 @@ export default function PpfCeramicLanding() {
         vehicleType: form.getValues("vehicleType"),
       });
       toast({
-        title: "Thank you!",
+        title: "Thank you",
         description: "We'll contact you within 24 hours to discuss your requirements.",
       });
       form.reset();
@@ -303,7 +303,7 @@ export default function PpfCeramicLanding() {
         vehicleType: exitForm.getValues("vehicleType"),
       });
       toast({
-        title: "Free Car Wash Confirmed!",
+        title: "Free car wash confirmed",
         description: "We'll contact you to schedule your free car wash at our studio.",
       });
       exitForm.reset();
@@ -541,7 +541,7 @@ export default function PpfCeramicLanding() {
               </div>
 
               <p className="lp-lede">
-                Protect your investment with world-class paint protection.
+                Protect your paint properly.
                 We use premium brands including our exclusive <strong style={{ color: "var(--neon-green)" }}>P91 Premium PPF</strong>,
                 plus STEK and Nasiol ceramic coating.
               </p>
@@ -631,7 +631,7 @@ export default function PpfCeramicLanding() {
                   <div style={{ width: 56, height: 56, background: "var(--neon-soft)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
                     <Check style={{ width: 28, height: 28, color: "var(--neon-green)" }} />
                   </div>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Thank You!</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Thank you</h3>
                   <p style={{ color: "var(--txt-3)" }}>We've received your inquiry. Our team will contact you shortly.</p>
                   <button
                     type="button"
@@ -796,7 +796,7 @@ export default function PpfCeramicLanding() {
                     </button>
 
                     <p style={{ fontSize: 12, color: "var(--txt-3)", textAlign: "center" }}>
-                      By submitting, you agree to be contacted by our team. No spam, we promise!
+                      By submitting, you agree to be contacted by our team. No spam.
                     </p>
                   </form>
                 </Form>
@@ -906,7 +906,7 @@ export default function PpfCeramicLanding() {
                   </div>
                 ))}
                 <p style={{ padding: 14, borderRadius: 10, background: "var(--neon-soft)", border: "1px solid var(--neon-line)", fontSize: 13.5, color: "var(--txt-2)" }}>
-                  <strong style={{ color: "var(--neon-green)" }}>Pro Tip:</strong> Combine PPF + Ceramic Coating for ultimate protection and shine!
+                  <strong style={{ color: "var(--neon-green)" }}>Pro Tip:</strong> Combine PPF and ceramic coating for protection and shine.
                 </p>
               </div>
             </div>
@@ -972,7 +972,7 @@ export default function PpfCeramicLanding() {
             </span>
             <h2 style={{ marginTop: 14 }}>Transparent Pricing</h2>
             <p style={{ margin: "10px auto 0" }}>
-              All prices include professional installation and warranty. These are DISCOUNTED rates for a limited time only!
+              All prices include installation and warranty. These are discounted rates for a limited time.
             </p>
           </div>
 
@@ -1212,10 +1212,10 @@ export default function PpfCeramicLanding() {
           <DialogHeader>
             <DialogTitle className="text-2xl text-center flex items-center justify-center gap-2">
               <Gift className="w-8 h-8 text-green-400" />
-              Wait! Free Car Wash Offer
+              Free Car Wash Offer
             </DialogTitle>
             <DialogDescription className="text-center text-gray-400">
-              Don't leave empty-handed! Fill this form and get a <strong className="text-green-400">FREE Premium Car Wash</strong> worth ₹599 at our studio!
+              Fill in this form and get a <strong className="text-green-400">FREE Premium Car Wash</strong> worth ₹599 at our studio.
             </DialogDescription>
           </DialogHeader>
 

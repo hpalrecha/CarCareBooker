@@ -137,7 +137,7 @@ export default function BookingConfirmation() {
             <CheckCircle className={`w-8 h-8 ${isConfirmed ? 'text-green-300' : 'text-yellow-300'}`} />
           </div>
           <h1 className="text-3xl font-bold gradient-text mb-2" data-testid="text-confirmation-title">
-            {isConfirmed ? "Booking Confirmed!" : "Booking Created"}
+            {isConfirmed ? "Booking confirmed" : "Booking Created"}
           </h1>
           <p className="text-gray-300" data-testid="text-confirmation-subtitle">
             {isConfirmed 

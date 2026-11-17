@@ -123,7 +123,7 @@ export default function Gallery() {
             <p className="ed-label">Gallery</p>
             <h1 className="sv-title">Our work, up close.</h1>
             <p className="sv-lede">
-              Real cars, real footage, straight from the studio floor in Adugodi. Follow{" "}
+              Real cars and footage from the studio floor in Adugodi. Follow{" "}
               <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer" className="ed-link">@{INSTAGRAM_HANDLE}</a>{" "}
               for the next one.
             </p>
@@ -143,7 +143,7 @@ export default function Gallery() {
         <div className="wrap">
           <div className="gl-sec-head">
             <h2>Watch the work</h2>
-            <p>Straight from our reels. Plays as you scroll, no sound.</p>
+            <p>From our reels. Plays as you scroll, no sound.</p>
           </div>
           <div className="gl-videos">
             {REEL_VIDEOS.map((v) => (

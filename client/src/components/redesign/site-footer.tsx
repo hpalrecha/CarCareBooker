@@ -105,7 +105,7 @@ export default function SiteFooter() {
         <div className="foot-grid">
           <div className="foot-brand">
             <ImageWithFallback src={logoPath} alt="P91 Car Care" width={140} height={34} sizes="140px" />
-            <p>Detailing, ceramic coating and paint protection film, done properly — in Adugodi, Bangalore.</p>
+            <p>Detailing, ceramic coating and paint protection film, done properly, in Adugodi, Bangalore.</p>
             <div className="foot-actions">
               <a className="foot-btn" href="tel:+917406619191" data-testid="link-footer-call">☎&nbsp; 74066 19191</a>
               <a className="foot-btn is-wa" href="https://wa.me/917406619191" data-testid="link-footer-whatsapp">WhatsApp</a>
