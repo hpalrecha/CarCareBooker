@@ -3,7 +3,9 @@
  * policy pages, the booking confirmation and the admin stay light. client/index.html repeats this list
  * in a one-line script so the class is on <html> before first paint.
  */
-export const DARK_SEGMENTS = ["services", "service", "ppf", "ceramic-coating", "products", "blog", "contact", "gallery"];
+// Empty on purpose: the owner wants white pages with dark green bands, no black-background pages.
+// To turn the dark theme back on, list the path segments here AND in the script in client/index.html.
+export const DARK_SEGMENTS: string[] = [];
 
 export function isDarkRoute(path: string): boolean {
   return DARK_SEGMENTS.includes(path.split("/")[1] ?? "");

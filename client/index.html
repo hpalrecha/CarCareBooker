@@ -9,7 +9,7 @@
     <!-- Inner pages use the dark studio theme (src/styles/studio-dark.css). The class is set here, before first paint,
          so a dark page never flashes white; App.tsx keeps it in step on client-side navigation. The home page,
          the policy pages and the admin stay light. Keep this pattern in step with DARK_ROUTE in src/lib/dark-route.ts. -->
-    <script>(function(){try{var s=location.pathname.split("/")[1];if(["services","service","ppf","ceramic-coating","products","blog","contact","gallery"].indexOf(s)>-1)document.documentElement.classList.add("sd")}catch(e){}})()</script>
+    <script>(function(){try{var s=location.pathname.split("/")[1];if([].indexOf(s)>-1)document.documentElement.classList.add("sd")}catch(e){}})()</script>
     <!-- Default document title and description. Routes override these via
          usePageTitle/useSeoMeta. Without this the document had no <title> at all, so the
          browser tab and any shared link fell back to the bare URL. -->

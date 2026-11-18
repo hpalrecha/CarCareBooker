@@ -102,3 +102,17 @@ html.sd .p91x .light-band .card { background: #FFFFFF; border-color: #D9D6CF; co
 html.sd .p91x .light-band .card h3, html.sd .p91x .light-band .card strong, html.sd .p91x .light-band .card-body { color: #121314; }
 html.sd .p91x .light-band .card p { color: #33443C !important; }
 html.sd .p91x .light-band .card p:first-of-type { color: #121314 !important; }
+
+/* Desktop mega-nav dropdowns (Services / Products / Resources). redesign.css paints the panel white at 95%
+   opacity; with the dark theme's light text that left the links unreadable. Same graphite as the cards. */
+html.sd .p91x .mega-panel {
+  background: rgba(23, 25, 27, .98);
+  border-color: rgba(255, 255, 255, .1);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .55), 0 2px 8px rgba(0, 0, 0, .35);
+}
+html.sd .p91x .mega-col h5, html.sd .p91x .mega-col .mega-h { color: #F3F1EC; opacity: .8; }
+html.sd .p91x .mega-col a, html.sd .p91x .mega-brand b, html.sd .p91x .mega-promo-cta { color: #F3F1EC; }
+html.sd .p91x .mega-col a:hover { color: #7FD879; }
+html.sd .p91x .mega-promo p, html.sd .p91x .mega-brand span, html.sd .p91x .mega-fineprint { color: #B9B6AE; opacity: 1; }
+html.sd .p91x .mega-promo, html.sd .p91x .mega-brand, html.sd .p91x .mega-products .mega-fineprint { border-color: rgba(255, 255, 255, .12); }
+html.sd .p91x .mega-brand:hover { border-color: #4EB848; }

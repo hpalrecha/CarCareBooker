@@ -393,7 +393,7 @@
   --txt-3: #5E6E66;
   --dark-gray: #F5F7F6;
   --medium-gray: #E4E9E6;
-  --surface-dark: #12211B;
+  --surface-dark: #0F3B26; /* deep green for bands and the footer: white and dark green, no black */
   --brand-accent: #4DB848;
   --accent-ink: #2E7D32;
   --action: #2E7D32;
@@ -493,3 +493,6 @@ body, .p91x, .p91-brand { font-variant-ligatures: none; font-feature-settings: "
 .p91x .ed-reviews-list footer { display: flex; flex-direction: column; gap: 2px; font-size: 15px; color: var(--txt-3); }
 .p91x .ed-reviews-list footer strong { color: var(--txt); }
 @media (max-width: 860px) { .p91x .ed-reviews-list { grid-template-columns: minmax(0, 1fr); } }
+
+/* White and deep green only: the footer, the dark strip and the product panel were near-black hex values. */
+.p91x footer.site.site, .p91x .strip.strip-dark, .p91x .pdp-panel { background: var(--surface-dark); }
