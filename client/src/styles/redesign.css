@@ -959,7 +959,7 @@
 @media (max-width: 520px) { .p91x .ed-why-grid { grid-template-columns: minmax(0, 1fr); } }
 
 /* ---------- how it works (home) ---------- */
-.p91x.home-page .ed-steps { padding-block: clamp(64px, 9vh, 104px); border-top: 1px solid var(--medium-gray); }
+.p91x .ed-steps { padding-block: clamp(64px, 9vh, 104px); border-top: 1px solid var(--medium-gray); }
 .p91x .ed-steps-list { list-style: none; margin: clamp(28px, 5vh, 48px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px clamp(20px, 3vw, 44px); }
 .p91x .ed-steps-list li { border-top: 3px solid var(--brand-accent); padding-top: 20px; }
 .p91x .ed-step-n { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); }
@@ -969,7 +969,7 @@
 @media (max-width: 520px) { .p91x .ed-steps-list { grid-template-columns: minmax(0, 1fr); } }
 
 /* ---------- visit the studio (home, dark band) ---------- */
-.p91x.home-page .ed-visit { background: var(--surface-dark); color: #fff; padding-block: clamp(56px, 8vh, 96px); }
+.p91x .ed-visit { background: var(--surface-dark); color: #fff; padding-block: clamp(56px, 8vh, 96px); }
 .p91x .ed-visit-inner { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: clamp(28px, 5vw, 72px); align-items: end; }
 .p91x .ed-visit .ed-label { color: #9FD9A0; }
 .p91x .ed-visit .ed-title { color: #fff; font-size: clamp(32px, 4.4vw, 60px); max-width: 14ch; margin: 0 0 20px; }

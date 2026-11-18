@@ -6,6 +6,7 @@ import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { PRODUCT_BRANDS, PRODUCT_FINE_PRINT } from "@/lib/nav-menu";
 import { getBrandPage } from "@/lib/brand-pages";
 import { PRODUCTS_SEO } from "@/lib/static-seo";
+import { VisitStudio } from "@/components/redesign/studio-sections";
 
 /**
  * /products: the three brands P91 fits, one large row each.
@@ -103,6 +104,8 @@ export default function Products() {
           <p className="mega-fineprint pd-fine">{PRODUCT_FINE_PRINT}</p>
         </div>
       </section>
+      <VisitStudio id={"visit"} />
+
 
       </main>
 

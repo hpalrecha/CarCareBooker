@@ -8,7 +8,8 @@ import SiteFooter from "@/components/redesign/site-footer";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
-import { resolveServiceImage, type ServiceRecord } from "@/lib/canonical-services";
+import { resolveServiceImage, type ServiceRecord } from "@/lib/canonical-services";
+import { VisitStudio } from "@/components/redesign/studio-sections";
 import {
   BLOG_POSTS,
   blogCategories,
@@ -246,6 +247,8 @@ export default function BlogIndex() {
           )
         )}
       </div>
+      <VisitStudio id={"visit"} />
+
 
       </main>
 

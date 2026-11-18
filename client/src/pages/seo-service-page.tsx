@@ -14,6 +14,7 @@ import ParallaxFrame from "@/components/redesign/parallax-frame";
 import { useCinematic } from "@/hooks/use-cinematic";
 import { getSeoPage, guideLandingLink } from "@/lib/seo-pages";
 import { hubOptionLinks } from "@/lib/hub-option-links";
+import { HowItWorks, VisitStudio } from "@/components/redesign/studio-sections";
 
 /** Drops the "✓ " some records prefix to each item — the list already draws a tick. */
 function cleanIncluded(item: string) {
@@ -463,6 +464,9 @@ export default function SeoServicePage() {
           </div>
         </div>
       </section>
+      <HowItWorks id={"how-it-works"} />
+      <VisitStudio id={"visit"} />
+
 
       </main>
 

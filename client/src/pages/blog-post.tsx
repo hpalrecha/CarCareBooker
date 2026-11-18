@@ -14,7 +14,8 @@ import { blogPostingSchema, SITE_LOGO_PATH } from "@/lib/blog-schema";
 import ParallaxFrame from "@/components/redesign/parallax-frame";
 import { useCinematic } from "@/hooks/use-cinematic";
 import type { BlogBlock } from "@/lib/blog-posts";
-import "@/styles/blog-post.css";
+import "@/styles/blog-post.css";
+import { VisitStudio } from "@/components/redesign/studio-sections";
 
 // The same quote dialog the estimate bar opens; loaded on first tap.
 const EstimateDialog = lazy(() => import("@/components/mobile-estimate-dialog"));
@@ -381,6 +382,8 @@ export default function BlogPost() {
             </section>
           )}
         </article>
+      <VisitStudio id={"visit"} />
+
       </main>
 
       {estimateOpen && (

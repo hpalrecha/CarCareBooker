@@ -16,6 +16,7 @@ import { WARRANTY_BATCH_LINE, WARRANTY_HANDOVER_LINE } from "@/lib/warranty-word
 import { HOME_PACKAGE_LINKS } from "@/lib/home-package-links";
 import { postsNewestFirst } from "@/lib/blog-posts";
 import BlogCarousel from "@/components/blog-carousel";
+import { HowItWorks, VisitStudio } from "@/components/redesign/studio-sections";
 import type { BusinessHour } from "@shared/schema";
 
 // Same dialog the mobile estimate bar opens; loaded on first tap.
@@ -581,34 +582,7 @@ export default function Home() {
       {/* ---------- how it works ----------
           Four plain steps, from the redesign canvas. No price or fee is quoted here: the booking
           flow owns those figures (see the "Why P91" block below). */}
-      <section className="ed-steps" id="how-it-works" data-testid="section-steps">
-        <div className="wrap">
-          <p className="ed-label" data-reveal>How it works</p>
-          <h2 className="ed-title ed-title-wide" data-reveal>From estimate to handover.</h2>
-          <ol className="ed-steps-list" data-reveal>
-            <li>
-              <span className="ed-step-n">Step 1</span>
-              <h3>Get an estimate</h3>
-              <p>Tell us your car and what you want done. We quote a price for your body type before you book.</p>
-            </li>
-            <li>
-              <span className="ed-step-n">Step 2</span>
-              <h3>Book a slot</h3>
-              <p>Pick a day online. You reserve the slot now and settle the balance at the studio.</p>
-            </li>
-            <li>
-              <span className="ed-step-n">Step 3</span>
-              <h3>Prep and fit</h3>
-              <p>We wash, decontaminate and prep the paint, then fit the film or coating in the bay.</p>
-            </li>
-            <li>
-              <span className="ed-step-n">Step 4</span>
-              <h3>Handover</h3>
-              <p>Walk round the car with us. {WARRANTY_HANDOVER_LINE}</p>
-            </li>
-          </ol>
-        </div>
-      </section>
+      <HowItWorks />
 
       {/* ---------- 04 why p91 + brands ----------
           The former trust strip (four facts) and the brands strip, merged into one compact
@@ -703,25 +677,7 @@ export default function Home() {
       {/* ---------- visit the studio ----------
           Same address and phone as the footer and the Google Business Profile. Opening hours live
           on /contact (read from the booking system), so they are linked, not repeated here. */}
-      <section className="ed-visit" id="visit" data-testid="section-visit">
-        <div className="wrap ed-visit-inner">
-          <div>
-            <p className="ed-label" data-reveal>Visit us</p>
-            <h2 className="ed-title" data-reveal>Visit the studio in Adugodi.</h2>
-            <address data-reveal>
-              P91 Car Care<br />
-              49, 13th Cross, Ayappa Garden, Adugodi<br />
-              Bengaluru, Karnataka 560030
-            </address>
-          </div>
-          <div className="ed-visit-actions" data-reveal>
-            <a className="ed-visit-btn is-solid" href="tel:+917406619191">Call +91 74066 19191</a>
-            <a className="ed-visit-btn" href="https://wa.me/917406619191">WhatsApp us</a>
-            <a className="ed-visit-btn" href="https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Adugodi+Bengaluru">Get directions</a>
-            <Link href="/contact" className="ed-visit-link">See opening hours →</Link>
-          </div>
-        </div>
-      </section>
+      <VisitStudio />
 
       </main>
 

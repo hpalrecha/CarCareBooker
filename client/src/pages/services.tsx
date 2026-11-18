@@ -9,6 +9,7 @@ import { SERVICES_SEO } from "@/lib/static-seo";
 import { groupPpf } from "@/lib/ppf-groups";
 import { SERVICE_GUIDE_LINKS, SERVICE_PRICE_LINKS } from "@/lib/service-hub-links";
 import { Link } from "wouter";
+import { HowItWorks, VisitStudio } from "@/components/redesign/studio-sections";
 
 /**
  * The service catalogue as its own page.
@@ -145,6 +146,9 @@ export default function Services() {
           </div>
         </div>
       </section>
+      <HowItWorks id={"how-it-works"} />
+      <VisitStudio id={"visit"} />
+
 
       </main>
 

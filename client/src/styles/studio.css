@@ -69,13 +69,13 @@
 .p91x.home-page .ed-work,
 .p91x.home-page .ed-why,
 .p91x.home-page .ed-faq,
-.p91x.home-page .ed-steps {
+.p91x .ed-steps {
   padding-block: clamp(72px, 11vh, 128px);
 }
 
 /* ---------- dark bands: the green film edge ---------- */
 .p91x.home-page .ed-care,
-.p91x.home-page .ed-visit { border-top: 4px solid var(--brand-accent); }
+.p91x .ed-visit { border-top: 4px solid var(--brand-accent); }
 
 /* ---------- actions are squarer than chips ---------- */
 .p91x .btn-book,
@@ -114,7 +114,7 @@
   .p91x.home-page .ed-work,
   .p91x.home-page .ed-why,
   .p91x.home-page .ed-faq,
-  .p91x.home-page .ed-steps { padding-block: 56px; }
+  .p91x .ed-steps { padding-block: 56px; }
 }
 
 /* ---------- legal pages (privacy, terms, refund) ----------
@@ -243,4 +243,135 @@
   .p91x .explore-tabs { flex-wrap: nowrap; overflow-x: auto; gap: 4px 22px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   .p91x .explore-tabs::-webkit-scrollbar { display: none; }
   .p91x .explore-tab { flex: none; white-space: nowrap; min-height: 44px; }
+}
+
+/* ---------- shared closing blocks on inner pages (HowItWorks, VisitStudio) ---------- */
+.p91x .ed-visit { border-top: 4px solid var(--brand-accent); }
+.p91x .ed-steps .ed-title-wide, .p91x .ed-visit .ed-title { text-wrap: balance; }
+/* Blog index heading uses the same display scale as the other page headers. */
+.p91x-editorial h1 { font-size: var(--fs-display); font-weight: 800; letter-spacing: -.04em; line-height: 1; }
+
+/* =====================================================================================
+   MOBILE-FIRST PASS (phones and small tablets, up to 768px). Desktop is untouched.
+   Targets from a measured audit at 360, 390, 414 and 768px: body text at least 16px,
+   captions and fine print at least 14px, every standalone link and button at least 44x44px,
+   no sideways scroll. Nothing here hides text: all copy stays in the page on every width.
+   ===================================================================================== */
+@media (max-width: 768px) {
+  /* ---- body text: 16px minimum ---- */
+  .p91x .ed-brand p,
+  .p91x .ed-specs dd,
+  .p91x .ed-why-grid dd,
+  .p91x .ed-steps-list p,
+  .p91x .ed-brandstrip-label,
+  .p91x .sv-hint,
+  .p91x .sv-desc,
+  .p91x .overview-copy-lede,
+  .p91x .guide-collage-copy p,
+  .p91x .lp-faq summary,
+  .p91x .lp-faq p,
+  .p91x .pd-kind,
+  .p91x .br-benefit p,
+  .p91x .br-benefits p,
+  .p91x .br-prose p,
+  .p91x .br-hero-copy .ed-label,
+  .p91x .pdp-lede,
+  .p91x .pdp-panel p,
+  .p91x .lp-lede,
+  .p91x .lp-meta,
+  .p91x .lp-package,
+  .p91x .lp-include li,
+  .p91x .feature-item p,
+  .p91x .contact-line,
+  .p91x .article-cta p,
+  .p91x .inline-cta p,
+  .p91x .hero-facts li,
+  .p91x .post-q-text,
+  .p91x .ed-faq-list dd,
+  .p91x .ed-faq-list dt { font-size: 16px; line-height: 1.6; }
+
+  /* ---- captions, labels and fine print: 14px minimum ---- */
+  .p91x .ed-caption,
+  .p91x .ed-work-cap,
+  .p91x .br-caption,
+  .p91x figure figcaption,
+  .p91x .mega-fineprint,
+  .p91x .fineprint,
+  .p91x .pd-fine,
+  .p91x .ed-fine { font-size: 14px; line-height: 1.55; }
+
+  /* ---- tap targets: 44px minimum for standalone links and buttons ---- */
+  .p91x .ed-link,
+  .p91x .ed-pkg,
+  .p91x .ed-cat,
+  .p91x .ed-meta a,
+  .p91x .crumb a,
+  .p91x .pdp-crumb,
+  .p91x .gl-jump a,
+  .p91x .pd-name a,
+  .p91x .ed-visit-link,
+  .p91x .hero-secondary a,
+  .p91x .sv-hub-list a,
+  .p91x .foot-col a,
+  .p91x .foot-legal a,
+  .p91x .nav .links a,
+  .p91x .nav .links button,
+  .p91x .pdp-hero-grid a,
+  .p91x .hero-fact { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; box-sizing: border-box; }
+  .p91x .ed-link { padding-block: 8px; }
+  .p91x .sv-chip,
+  .p91x .sv-tab,
+  .p91x .explore-tab { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; }
+  .p91x .sv-chips { gap: 8px; }
+  .p91x .sv-tabs { gap: 2px 18px; }
+  .p91x .pdp-slide-dot::after { inset: -20px -9px; }
+  .p91x .pdp-slide-btn, .p91x .pdp-arrow { min-width: 44px; min-height: 44px; }
+
+  /* ---- images and media never exceed their container ---- */
+  .p91x img, .p91x picture, .p91x video, .p91x iframe, .p91x svg { max-width: 100%; }
+  .p91x main figure img, .p91x .pd-media img, .p91x .ed-brand-photo img { height: auto; }
+
+  /* ---- columns stack to one ---- */
+  .p91x .ed-about-grid, .p91x .ed-care-grid, .p91x .br-hero-grid, .p91x .br-two, .p91x .pdp-hero-grid,
+  .p91x .lp-hero-grid, .p91x .overview-grid, .p91x .guide-collage, .p91x .contact-grid, .p91x .seo-alt-grid,
+  .p91x .gl-fest-row { grid-template-columns: minmax(0, 1fr); }
+  .p91x .wrap { padding-inline: 16px; }
+  .p91x main { overflow-x: clip; }
+}
+@media (max-width: 480px) {
+  .p91x .ed-visit-btn, .p91x .cta-lg, .p91x .cta-ghost { min-height: 48px; }
+}
+
+/* ---- phone floor, second pass: wins over the lazily loaded landing-page styles ---- */
+@media (max-width: 768px) {
+  .p91x .ed-brand p, .p91x .ed-brand li, .p91x .ed-brand-line, .p91x .lp-hero-copy p, .p91x .lp-hero-copy li,
+  .p91x .lp-lede, .p91x .lp-meta, .p91x .lp-package, .p91x .lp-include li, .p91x .lp-faq p, .p91x .lp-faq summary,
+  .p91x .wrap.narrow li, .p91x .wrap.narrow p, .p91x .pdp-panel p, .p91x .pdp-panel li, .p91x .contact-card p,
+  .p91x .contact-line, .p91x .spec .v, .p91x .v, .p91x .hero-fact span, .p91x .feature-item p,
+  .p91-brand p, .p91-brand li, .p91-brand .text-sm, .p91-brand .text-xs { font-size: 16px !important; line-height: 1.6 !important; }
+  .p91x figure figcaption, .p91x .ed-caption, .p91x .ed-work-cap, .p91x .br-caption, .p91x .fineprint,
+  .p91x .mega-fineprint, .p91x .pd-fine, .p91x .contact-card .fineprint { font-size: 14px !important; line-height: 1.55 !important; }
+
+  .p91x .foot-more, .p91x nav[aria-label="Breadcrumb"] a, .p91x .crumb a, .p91x .hero-fact, .p91x .hero-fact a,
+  .p91x footer.site a, .p91x .ed-brand-link, .p91x label { min-height: 44px; display: inline-flex; align-items: center; box-sizing: border-box; }
+  .p91x .foot-more { width: 100%; }
+}
+
+/* ---- phone floor, third pass: footer and hero-fact links ---- */
+@media (max-width: 768px) {
+  .p91x footer a, .p91x footer .foot-more, .p91x .foot-legal a, .p91x .pdp-panel .hero-fact a {
+    min-height: 44px !important; display: inline-flex; align-items: center; box-sizing: border-box;
+  }
+  .p91x footer .foot-more { display: flex; }
+}
+
+/* ---- phone floor, fourth pass: the service page tab strip and the studio link in the hero ---- */
+@media (max-width: 768px) {
+  .p91x [class*="subnav"] a, .p91x .subnav a, .p91x .hero-fact a { min-height: 44px !important; display: inline-flex; align-items: center; box-sizing: border-box; padding-inline: 4px; }
+}
+
+/* ---- phone floor, fifth pass ---- */
+@media (max-width: 768px) {
+  .p91x .hero-facts a, .p91x .tier-tab, .p91x .tier-tab a { min-height: 44px !important; display: inline-flex; align-items: center; box-sizing: border-box; }
+  .p91x .crumb a, .p91x nav[aria-label="Breadcrumb"] a, .p91x .pdp-crumb { min-width: 44px !important; justify-content: center; }
 }

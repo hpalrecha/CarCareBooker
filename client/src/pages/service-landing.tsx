@@ -26,7 +26,8 @@ import { slotFeeFor } from "@/lib/booking-fee";
 import { ILLUSTRATIVE_SLUGS } from "@/lib/real-service-images";
 import ParallaxFrame from "@/components/redesign/parallax-frame";
 import { useCinematic } from "@/hooks/use-cinematic";
-import type { BusinessHour } from "@shared/schema";
+import type { BusinessHour } from "@shared/schema";
+import { VisitStudio } from "@/components/redesign/studio-sections";
 
 // The one before/after pair that is verifiably P91's own: the studio's photographs of a customer's
 // orange Hyundai, before (WhatsApp image, 2025-01-03) and after (camera original 20241227_164016).
@@ -1280,6 +1281,7 @@ export default function ServiceLanding() {
       {/* Hidden from the footer onwards (finalCtaRef, declared above) — the floating
           sticky CTA bar hides once the page bottom is reached, so it never sits on top of
           the footer's own contact links for the rest of the scroll. */}
+      <VisitStudio id="visit" />
       </main>
       <section ref={finalCtaRef}>
         <SiteFooter />
