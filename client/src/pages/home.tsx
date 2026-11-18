@@ -16,7 +16,7 @@ import { WARRANTY_BATCH_LINE, WARRANTY_HANDOVER_LINE } from "@/lib/warranty-word
 import { HOME_PACKAGE_LINKS } from "@/lib/home-package-links";
 import { postsNewestFirst } from "@/lib/blog-posts";
 import BlogCarousel from "@/components/blog-carousel";
-import { HowItWorks, VisitStudio } from "@/components/redesign/studio-sections";
+import { HowItWorks, VisitStudio, Reviews } from "@/components/redesign/studio-sections";
 import type { BusinessHour } from "@shared/schema";
 
 // Same dialog the mobile estimate bar opens; loaded on first tap.
@@ -583,6 +583,8 @@ export default function Home() {
           Four plain steps, from the redesign canvas. No price or fee is quoted here: the booking
           flow owns those figures (see the "Why P91" block below). */}
       <HowItWorks />
+
+      <Reviews />
 
       {/* ---------- 04 why p91 + brands ----------
           The former trust strip (four facts) and the brands strip, merged into one compact

@@ -1,5 +1,6 @@
 import { useEffect, lazy, Suspense } from "react";
 import { Switch, Route, Redirect, useLocation } from "wouter";
+import { isDarkRoute } from "@/lib/dark-route";
 import { queryClient } from "./lib/queryClient";
 import { applyClarityRouteGuard } from "@/lib/clarity";
 import { captureAttribution } from "@/lib/attribution";
@@ -63,9 +64,18 @@ function RouteFallback() {
   return <div className="min-h-screen bg-deep-black" aria-busy="true" />;
 }
 
+function ThemeByRoute() {
+  const [location] = useLocation();
+  useEffect(() => {
+    document.documentElement.classList.toggle("sd", isDarkRoute(location));
+  }, [location]);
+  return null;
+}
+
 function Router() {
   return (
     <Suspense fallback={<RouteFallback />}>
+      <ThemeByRoute />
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/admin">

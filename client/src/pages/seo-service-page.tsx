@@ -9,7 +9,8 @@ import { ImageWithFallback } from "@/components/image-with-fallback";
 import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canonical-services";
-import { GUIDE_IMAGES, GUIDE_LAYOUT } from "@/lib/real-service-images";
+import { GUIDE_IMAGES, GUIDE_VIDEOS } from "@/lib/real-service-images";
+import LazyVideo from "@/components/redesign/lazy-video";
 import ParallaxFrame from "@/components/redesign/parallax-frame";
 import { useCinematic } from "@/hooks/use-cinematic";
 import { getSeoPage, guideLandingLink } from "@/lib/seo-pages";
@@ -99,7 +100,7 @@ export default function SeoServicePage() {
   // Sharp pictures chosen per guide (lib/real-service-images.ts), falling back to the linked
   // service's own image only for a guide that has none listed.
   const guideImages = GUIDE_IMAGES[page.slug];
-  const layout = GUIDE_LAYOUT[page.slug];
+  const heroVideo = GUIDE_VIDEOS[page.slug];
   const heroImage = (guideImages ? guideImages.hero : resolveServiceImage(primary)) || undefined;
   const heroAlt = guideImages?.illustrative
     ? `${page.crumb} (illustrative image)`
@@ -202,64 +203,39 @@ export default function SeoServicePage() {
 
   return (
     <div className="p91x min-h-screen">
-      <SiteHeader overHero={!layout} onBookNow={openBooking} />
+      <SiteHeader onBookNow={openBooking} />
       <main id="main">
 
-      {/* Hero: XPEL guide-page layout by request — full-bleed photo, header floating
-          over it, a breadcrumb pill, one bold uppercase title. The lede moves to its
-          own plain section right below (next), same as XPEL's guide pages putting the
-          headline photo and the supporting paragraph in two visually separate bands
-          rather than stacking both onto the photo. Distinct classes from blog-post.tsx's
-          .article-h1/.article-lede/.article-hero — those stay exactly as they are, this
-          hero only applies to the four /services/:seoSlug guides. */}
-      {layout ? (
-        // Framed hero (see GUIDE_LAYOUT): the title block and, where there is one, a framed picture.
-        <section className={`seo-alt seo-alt--${layout}`} data-testid="section-seo-hero">
-          <div className="wrap seo-alt-grid">
-            <div className="seo-alt-copy" data-cine="rise">
-              <span className="seo-crumb" data-testid="crumb-seo-hero">
-                Services <ChevronRight className="i" aria-hidden="true" /> {page.crumb}
-              </span>
-              <h1 className="seo-hero-h1" data-testid="text-seo-h1">{page.h1}</h1>
+      {/* One hero for all four service guides (the same photo-plus-dark-panel pattern as /service/:slug
+          and /ppf): breadcrumb, H1, the lede and the primary action sit in the panel, the photo beside it.
+          The per-guide layout variants (GUIDE_LAYOUT in lib/real-service-images.ts) are no longer used. */}
+      <section className="svc-hero" data-testid="section-seo-hero">
+        <div className="wrap svc-hero-grid">
+          {heroImage && (
+            <ParallaxFrame className="svc-hero-photo" strength={0.06} cine="frame">
+              <ImageWithFallback
+                src={heroImage}
+                alt={heroAlt}
+                sizes="(min-width: 861px) 52vw, 92vw"
+                priority
+                data-testid="img-seo-hero"
+              />
+              {heroVideo && heroImage && (
+                <LazyVideo className="svc-hero-video" src={heroVideo} poster={heroImage} testId="video-seo-hero" />
+              )}
+            </ParallaxFrame>
+          )}
+          <div className="svc-hero-panel" data-cine="rise">
+            <span className="seo-crumb" data-testid="crumb-seo-hero">
+              Services <ChevronRight className="i" aria-hidden="true" /> {page.crumb}
+            </span>
+            <h1 className="seo-hero-h1" data-testid="text-seo-h1">{page.h1}</h1>
+            <p className="article-lede svc-hero-lede">{page.lede}</p>
+            <div className="svc-hero-cta">
+              <button type="button" className="cta-lg" onClick={openBooking} data-testid="button-seo-hero-book">Book now</button>
+              <a href="#explore" className="cta-ghost" data-testid="link-seo-hero-explore">See the options</a>
             </div>
-            {heroImage && (
-              <ParallaxFrame className="seo-alt-figure" strength={0.08} cine="frame">
-                <ImageWithFallback
-                  src={heroImage}
-                  alt={heroAlt}
-                  sizes="(min-width: 861px) 46vw, 92vw"
-                  priority
-                  data-testid="img-seo-hero"
-                />
-              </ParallaxFrame>
-            )}
           </div>
-        </section>
-      ) : (
-      <ParallaxFrame as="section" className="seo-hero" strength={0.1} cine="zoom">
-        {heroImage && (
-          <ImageWithFallback
-            className="shot"
-            src={heroImage}
-            alt={heroAlt}
-            sizes="100vw"
-            priority
-            data-testid="img-seo-hero"
-          />
-        )}
-        <div className="seo-hero-scrim" aria-hidden="true" />
-        <div className="wrap seo-hero-copy">
-          <span className="seo-crumb" data-testid="crumb-seo-hero">
-            Services <ChevronRight className="i" aria-hidden="true" /> {page.crumb}
-          </span>
-          <h1 className="seo-hero-h1" data-testid="text-seo-h1">{page.h1}</h1>
-        </div>
-      </ParallaxFrame>
-      )}
-
-      <section className="section" style={{ paddingBottom: 0 }}>
-        <div className="wrap narrow">
-          <p className="article-lede" style={{ marginBottom: 0 }}>{page.lede}</p>
         </div>
       </section>
 
@@ -363,7 +339,7 @@ export default function SeoServicePage() {
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 12 }}>
               {optionLinks.map((o) => (
                 <li key={o.href}>
-                  <Link href={o.href} style={{ color: "#15803d" }} data-testid={`link-option-${o.slug}`}>
+                  <Link href={o.href} style={{ color: "var(--accent-ink)" }} data-testid={`link-option-${o.slug}`}>
                     {o.label}
                   </Link>
                 </li>
@@ -372,7 +348,7 @@ export default function SeoServicePage() {
             {landingLink && !optionLinks.some((o) => o.href === landingLink.href && o.label === landingLink.label) && (
               <p style={{ marginTop: 16 }}>
                 {/* #15803d, not the #4ade80 of the option links above: that green is 1.74:1 on this white section. */}
-                <Link href={landingLink.href} style={{ color: "#15803d" }} data-testid="link-seo-landing">
+                <Link href={landingLink.href} style={{ color: "var(--accent-ink)" }} data-testid="link-seo-landing">
                   {landingLink.label}
                 </Link>
               </p>
@@ -409,7 +385,7 @@ export default function SeoServicePage() {
 
       <section className="section seo-collage-section" data-testid="section-seo-collage">
         <div className="wrap">
-          <div className={"guide-collage" + (collageImages.length === 0 ? " is-text-only" : "") + (layout === "split-dark" ? " is-flipped" : "")}>
+          <div className={"guide-collage" + (collageImages.length === 0 ? " is-text-only" : "")}>
             {collageImages.length > 0 && (
               <div className="guide-collage-grid">
                 {collageImages.slice(0, 2).map((src) => (

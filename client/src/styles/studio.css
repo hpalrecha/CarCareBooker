@@ -375,3 +375,121 @@
   .p91x .hero-facts a, .p91x .tier-tab, .p91x .tier-tab a { min-height: 44px !important; display: inline-flex; align-items: center; box-sizing: border-box; }
   .p91x .crumb a, .p91x nav[aria-label="Breadcrumb"] a, .p91x .pdp-crumb { min-width: 44px !important; justify-content: center; }
 }
+
+/* =====================================================================================
+   DESIGN SYSTEM FROM THE PULSE CANVAS (2026-11-18)
+   The senior's "P91 design system": one family (Plus Jakarta Sans), Action green #2E7D32 for
+   buttons and links, brand green #4DB848 for the logo and accents, ink #12211B for text and dark
+   banners, 12 / 14 / 16px radii, 52px primary buttons, 48px search fields, ink-filled active chips.
+   White text on brand green fails contrast, so on light surfaces buttons are Action green with white
+   text; on the dark bands they stay brand green with ink text, which is 7.6:1.
+   This block comes last on purpose: it overrides the earlier squarer shapes in this file.
+   ===================================================================================== */
+:root {
+  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: var(--font-display);
+  --txt: #12211B;
+  --txt-2: #33443C;
+  --txt-3: #5E6E66;
+  --dark-gray: #F5F7F6;
+  --medium-gray: #E4E9E6;
+  --surface-dark: #12211B;
+  --brand-accent: #4DB848;
+  --accent-ink: #2E7D32;
+  --action: #2E7D32;
+  --action-dark: #1B5E20;
+  --green-tint: #EAF7EA;
+}
+body, .p91x, .p91-brand { font-family: var(--font-body); }
+.p91x h1, .p91x h2, .p91x h3, .p91x h4, .p91-brand h1, .p91-brand h2, .p91-brand h3, .p91-brand h4 { font-family: var(--font-display); }
+.p91x .hero-bg h1.hero-solid, .p91x .pd-title, .p91x .pd-name, .p91x .sv-title, .p91x .ed-title { letter-spacing: -.03em; }
+
+/* Primary and secondary buttons */
+.p91x .cta-lg, .p91x .btn-book {
+  background: var(--action); color: #fff; border-radius: 12px; font-weight: 700; letter-spacing: 0;
+  min-height: 52px; padding-inline: 24px;
+}
+.p91x .btn-book { min-height: 44px; padding-inline: 20px; }
+.p91x .cta-lg:hover, .p91x .btn-book:hover { background: var(--action-dark); color: #fff; }
+.p91x .cta-ghost { border: 1.5px solid #D5DDD9; background: #fff; color: var(--txt); border-radius: 12px; font-weight: 600; min-height: 52px; }
+.p91x .cta-ghost:hover { border-color: var(--action); }
+/* On photos and dark bands the buttons keep the brand green with ink text. */
+.p91x .ed-care .cta-lg, .p91x .ed-cta .cta-lg, .p91x .br-cta .cta-lg, .p91x .pd-choose .cta-lg,
+.p91x .ed-visit-btn.is-solid { background: var(--brand-accent); color: var(--surface-dark); }
+.p91x .ed-care .cta-lg:hover, .p91x .ed-cta .cta-lg:hover, .p91x .br-cta .cta-lg:hover, .p91x .pd-choose .cta-lg:hover,
+.p91x .ed-visit-btn.is-solid:hover { background: #fff; color: var(--surface-dark); }
+.p91x .ed-visit-btn { border-radius: 12px; min-height: 52px; }
+.p91x .hero-bg .cta-lg { background: var(--action); color: #fff; }
+.p91x .hero-bg .cta-lg:hover { background: #fff; color: var(--surface-dark); }
+
+/* Cards, photos, chips, tags */
+.p91x .sv-start-tile { border-radius: 14px; background: #fff; border: 1px solid var(--medium-gray); }
+.p91x .sv-start-tile:hover { background: var(--green-tint); }
+.p91x main figure img, .p91x .pd-media, .p91x .pd-media img, .p91x .ed-brand-photo, .p91x .ed-brand-photo img { border-radius: 14px; }
+.p91x .sv-chip { border: 1.5px solid #D5DDD9; font-weight: 600; }
+.p91x .sv-chip.is-active { background: var(--surface-dark); border-color: var(--surface-dark); color: #fff; }
+.p91x .lp-tier-warranty, .p91x .pdp-pill { border-radius: 8px; background: #D8F0D6; border-color: transparent; color: var(--action-dark); font-weight: 700; font-size: 12px; }
+.p91x .sv-search { height: 48px; border-radius: 14px; background: #EEF2F0; border: 1.5px solid #D5DDD9; padding-inline: 14px; }
+.p91x .pd-choose, .p91x .ed-visit, .p91x .ed-care { background: var(--surface-dark); }
+.p91x .ed-link { text-decoration-color: var(--brand-accent); }
+/* Plus Jakarta Sans draws "fi" as a dotless ligature that reads as "ft": keep letters separate. */
+body, .p91x, .p91-brand { font-variant-ligatures: none; font-feature-settings: "liga" 0, "clig" 0; }
+
+/* =====================================================================================
+   ONE HERO FOR EVERY SERVICE PAGE: photo beside a dark ink panel.
+   Used by the four service guides (.svc-hero); /service/:slug already has this shape (.pdp-hero-grid)
+   and /ppf and /ceramic-coating/* are brought to it below (.lp-hero-grid).
+   ===================================================================================== */
+.p91x .svc-hero { padding: clamp(104px, 14vh, 148px) 0 clamp(28px, 5vh, 56px); }
+.p91x .svc-hero-grid { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); gap: clamp(16px, 2.4vw, 32px); align-items: stretch; }
+.p91x .svc-hero-photo { position: relative; margin: 0; min-height: 440px; border-radius: 16px; overflow: hidden; background: var(--dark-gray); }
+.p91x .svc-hero-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; max-width: none; }
+.p91x .svc-hero-panel { background: var(--surface-dark); color: #fff; border-radius: 16px; padding: clamp(24px, 3.4vw, 44px); display: flex; flex-direction: column; justify-content: center; gap: 18px; }
+.p91x .svc-hero-panel .seo-crumb { align-self: flex-start; background: rgba(255, 255, 255, .12); color: #fff; }
+.p91x .svc-hero-panel .seo-crumb * { color: inherit; }
+.p91x .svc-hero-panel .seo-hero-h1 { margin: 0; color: #fff; font-size: clamp(30px, 3.4vw, 50px); font-weight: 800; line-height: 1.06; letter-spacing: -.03em; text-transform: none; text-wrap: balance; }
+.p91x .svc-hero-panel .svc-hero-lede { margin: 0; color: rgba(255, 255, 255, .84); font-size: clamp(16px, 1.4vw, 19px); line-height: 1.6; max-width: 52ch; }
+.p91x .svc-hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
+.p91x .svc-hero-panel .cta-lg { background: var(--brand-accent); color: var(--surface-dark); }
+.p91x .svc-hero-panel .cta-lg:hover { background: #fff; }
+.p91x .svc-hero-panel .cta-ghost { background: transparent; border-color: rgba(255, 255, 255, .55); color: #fff; }
+.p91x .svc-hero-panel .cta-ghost:hover { border-color: #fff; background: rgba(255, 255, 255, .1); }
+@media (max-width: 860px) {
+  .p91x .svc-hero { padding-top: 92px; }
+  .p91x .svc-hero-grid { grid-template-columns: minmax(0, 1fr); }
+  .p91x .svc-hero-photo { min-height: 0; aspect-ratio: 16 / 11; }
+  .p91x .svc-hero-cta .cta-lg, .p91x .svc-hero-cta .cta-ghost { flex: 1 1 100%; justify-content: center; display: inline-flex; align-items: center; text-align: center; }
+}
+
+/* ---- /ppf and /ceramic-coating/*: same shape as the other service pages (photo left, ink panel right) ---- */
+@media (min-width: 861px) {
+  .p91x .lp-hero-grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(16px, 2.4vw, 32px); align-items: stretch; }
+  .p91x .lp-hero-media { order: -1; }
+}
+.p91x .lp-hero-copy { background: var(--surface-dark); color: #fff; border-radius: 16px; padding: clamp(24px, 3.2vw, 40px); }
+.p91x .lp-hero-copy h1 { color: #fff; font-size: clamp(30px, 3.4vw, 50px); font-weight: 800; line-height: 1.06; letter-spacing: -.03em; }
+.p91x .lp-hero-copy .eyebrow { color: #fff; }
+.p91x .lp-hero-copy .lp-lede { color: rgba(255, 255, 255, .84); }
+.p91x .lp-hero-copy .lp-meta, .p91x .lp-hero-copy .hero-facts { color: rgba(255, 255, 255, .78); }
+.p91x .lp-hero-copy .hero-facts a { color: #fff; }
+.p91x .lp-hero-copy .cta-lg { background: var(--brand-accent); color: var(--surface-dark); }
+.p91x .lp-hero-copy .cta-lg:hover { background: #fff; }
+.p91x .lp-hero-copy .vsel, .p91x .lp-hero-copy .vsel * { color: var(--txt); }
+.p91x .lp-hero-copy .vsel-q { color: var(--txt); font-weight: 700; }
+.p91x .lp-hero-copy .cta-ghost { background: transparent; border-color: rgba(255, 255, 255, .55); color: #fff; }
+.p91x .lp-hero-copy .cta-ghost svg, .p91x .lp-hero-copy .cta-ghost * { color: #fff; }
+.p91x .lp-hero-copy > p:not(.eyebrow):not(.lp-lede) { color: rgba(255, 255, 255, .78); }
+.p91x .lp-hero-copy .lp-hero-cta a, .p91x .lp-hero-copy .lp-hero-cta a * { color: #fff !important; }
+.p91x .lp-hero-copy .lp-hero-cta a.cta-lg, .p91x .lp-hero-copy .lp-hero-cta a.cta-lg * { color: var(--surface-dark) !important; }
+
+/* ---------- hero video on the service guides (lazy: poster first, plays once visible) ---------- */
+.p91x .svc-hero-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; max-width: none; }
+
+/* ---------- verified reviews (home): renders only when lib/reviews.ts has entries ---------- */
+.p91x .ed-reviews { padding-block: clamp(72px, 11vh, 128px); border-top: 1px solid var(--medium-gray); }
+.p91x .ed-reviews-list { list-style: none; margin: clamp(28px, 5vh, 48px) 0 28px; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.p91x .ed-reviews-list blockquote { margin: 0; height: 100%; box-sizing: border-box; padding: 28px; border: 1px solid var(--medium-gray); border-radius: 14px; background: var(--dark-gray); display: flex; flex-direction: column; gap: 20px; }
+.p91x .ed-reviews-list p { margin: 0; font-size: 18px; line-height: 1.6; }
+.p91x .ed-reviews-list footer { display: flex; flex-direction: column; gap: 2px; font-size: 15px; color: var(--txt-3); }
+.p91x .ed-reviews-list footer strong { color: var(--txt); }
+@media (max-width: 860px) { .p91x .ed-reviews-list { grid-template-columns: minmax(0, 1fr); } }

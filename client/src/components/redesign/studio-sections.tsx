@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { WARRANTY_HANDOVER_LINE } from "@/lib/warranty-wording";
+import { VERIFIED_REVIEWS, GOOGLE_REVIEWS_URL, HOME_REVIEW_COUNT } from "@/lib/reviews";
 
 /**
  * Two sections shared by every page that should read like the home page: the four-step "How it
@@ -63,6 +64,37 @@ export function VisitStudio({ id = "visit" }: { id?: string }) {
           <a className="ed-visit-btn" href="https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Adugodi+Bengaluru">Get directions</a>
           <Link href="/contact" className="ed-visit-link">See opening hours →</Link>
         </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Verified Google reviews, copied word for word into lib/reviews.ts. Renders nothing while that list is
+ * empty, so no placeholder or invented review can ever reach the page. No star rating, count or
+ * Review/AggregateRating markup is drawn here (see the note in lib/reviews.ts).
+ */
+export function Reviews() {
+  if (VERIFIED_REVIEWS.length === 0) return null;
+  return (
+    <section className="ed-reviews" id="reviews" data-testid="section-reviews">
+      <div className="wrap">
+        <p className="ed-label" data-reveal>Reviews</p>
+        <h2 className="ed-title ed-title-wide" data-reveal>What owners say after pickup.</h2>
+        <ul className="ed-reviews-list" data-reveal>
+          {VERIFIED_REVIEWS.slice(0, HOME_REVIEW_COUNT).map((r) => (
+            <li key={r.name + r.text.slice(0, 24)}>
+              <blockquote>
+                <p>{"\u201C"}{r.text}{"\u201D"}</p>
+                <footer>
+                  <strong>{r.name}</strong>
+                  {(r.vehicle || r.service) && <span>{[r.vehicle, r.service].filter(Boolean).join(" · ")}</span>}
+                </footer>
+              </blockquote>
+            </li>
+          ))}
+        </ul>
+        <a className="ed-link" href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">Read reviews on Google →</a>
       </div>
     </section>
   );

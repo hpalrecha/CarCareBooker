@@ -167,6 +167,18 @@ export const GUIDE_LAYOUT: Record<string, GuideLayout> = {
   "interior-detailing-bangalore": "text",
 };
 
+/**
+ * Short loops for the hero of three service guides: the studio's own phone reels in attached_assets/reels/.
+ * Played by <LazyVideo> over the hero photo: the photo is the first paint and the LCP element, the clip only
+ * downloads once the hero is on screen and is skipped under reduced-motion or Save-Data.
+ * Not listed on purpose: interior-detailing-service-hero.mp4. real-service-images.ts calls it the studio's own
+ * reel but an older note says an interior film has unconfirmed ownership; confirm which file before using it.
+ */
+export const GUIDE_VIDEOS: Record<string, string> = {
+  "paint-protection-film-bangalore": "/attached_assets/reels/ppf-car-hero.mp4",
+  "ceramic-coating-bangalore": "/attached_assets/reels/1-year-ceramic-coating-hero.mp4",
+  "glass-sun-control-film-bangalore": "/attached_assets/reels/stek-suncontrol-films-hero.mp4",
+};
 export const GUIDE_IMAGES: Record<string, { hero: string; collage: string[]; illustrative?: boolean }> = {
   "ceramic-coating-bangalore": { hero: LUX.mercedes, collage: [LUX.rangeRover, LUX.innova] },
   "paint-protection-film-bangalore": { hero: LUX.xuv, collage: [LUX.gtr, LUX.vellfire] },

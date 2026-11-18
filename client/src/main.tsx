@@ -4,6 +4,7 @@ import "./styles/fonts.css";
 import "./index.css";
 import "./styles/redesign.css";
 import "./styles/studio.css";
+import "./styles/studio-dark.css";
 // editorial.css, landing.css and landing-pages.css moved into the lazy route chunks that
 // actually use them (blog-index.tsx, campaign-landing.tsx, ppf-ceramic-landing.tsx). All
 // three used to be imported here unconditionally, so Vite folded them into the ONE

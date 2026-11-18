@@ -64,7 +64,7 @@
   margin-bottom: 6px;
 }
 .p91x .lp-price-now {
-  font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: clamp(30px, 6vw, 42px);
   font-weight: 800;
   color: var(--accent-ink);
@@ -182,7 +182,7 @@
 }
 .p91x .vsel-q {
   margin: 0 0 14px;
-  font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 700;
 }
@@ -222,7 +222,7 @@
 .p91x .vsel-pkg-name { margin: 0 0 6px; font-weight: 700; font-size: 16px; }
 .p91x .vsel-pkg-price { margin: 0 0 10px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .p91x .vsel-pkg-now {
-  font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: clamp(24px, 5vw, 32px);
   font-weight: 800;
   color: var(--accent-ink);

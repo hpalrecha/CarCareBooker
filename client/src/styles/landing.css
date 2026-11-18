@@ -113,7 +113,7 @@
 }
 
 .p91x .cd-num {
-  font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: clamp(26px, 7vw, 38px);
   font-weight: 800;
   line-height: 1;

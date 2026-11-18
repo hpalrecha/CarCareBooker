@@ -6,6 +6,10 @@
          WCAG 1.4.4 failure and a Lighthouse accessibility penalty. Nothing in the layout
          depends on zoom being disabled. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Inner pages use the dark studio theme (src/styles/studio-dark.css). The class is set here, before first paint,
+         so a dark page never flashes white; App.tsx keeps it in step on client-side navigation. The home page,
+         the policy pages and the admin stay light. Keep this pattern in step with DARK_ROUTE in src/lib/dark-route.ts. -->
+    <script>(function(){try{var s=location.pathname.split("/")[1];if(["services","service","ppf","ceramic-coating","products","blog","contact","gallery"].indexOf(s)>-1)document.documentElement.classList.add("sd")}catch(e){}})()</script>
     <!-- Default document title and description. Routes override these via
          usePageTitle/useSeoMeta. Without this the document had no <title> at all, so the
          browser tab and any shared link fell back to the bare URL. -->
@@ -35,8 +39,7 @@
       crossorigin is REQUIRED even though these are same-origin: fonts are always fetched
       in CORS mode, and a preload without it is fetched twice.
     -->
-    <link rel="preload" href="/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/ibm-plex-sans.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin />
 
     <!-- Square tab icon: the P91 mark alone (the full logo's "CAR CARE" line makes it look stretched at 16-32px). -->
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />

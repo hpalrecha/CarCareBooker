@@ -38,6 +38,8 @@ const UA =
 const FAMILIES = [
   { name: "Archivo", weights: [500, 600, 700, 800] },
   { name: "IBM Plex Sans", weights: [400, 500, 600] },
+  // 2026-11-18: the design system from the senior's Pulse canvas (Plus Jakarta Sans, 400-800) is the site type.
+  { name: "Plus Jakarta Sans", weights: [400, 500, 600, 700, 800] },
   { name: "Merriweather", weights: [400, 700] },
   { name: "Inter", weights: [400, 500, 600] },
   // Small technical labels only (section numbers, "01 / ABOUT"); never body text.
