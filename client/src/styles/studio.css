@@ -494,5 +494,7 @@ body, .p91x, .p91-brand { font-variant-ligatures: none; font-feature-settings: "
 .p91x .ed-reviews-list footer strong { color: var(--txt); }
 @media (max-width: 860px) { .p91x .ed-reviews-list { grid-template-columns: minmax(0, 1fr); } }
 
-/* White and deep green only: the footer, the dark strip and the product panel were near-black hex values. */
-.p91x footer.site.site, .p91x .strip.strip-dark, .p91x .pdp-panel { background: var(--surface-dark); }
+/* White and deep green: the dark strip and the product panel were near-black hex values. The footer stays black
+   on purpose (owner's choice); only the bands above it are green. */
+.p91x .strip.strip-dark, .p91x .pdp-panel { background: var(--surface-dark); }
+.p91x footer.site.site { background: #0B0F0D; border-top: 1px solid rgba(255,255,255,.1); }
