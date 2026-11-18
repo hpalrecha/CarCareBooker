@@ -29,15 +29,17 @@ export function bikeLandingFaq(): Array<{ question: string; answer: string }> {
   return [
     {
       question: "Which parts of my motorcycle are coated?",
+      // Conditional wording on purpose (owner's instruction, 2026-11-18): "ask us" is a request, not a promise about what
+      // the studio can or cannot coat. Replace with the confirmed rule once the studio states it.
       answer:
-        "The fuel tank, the fairings and the painted body panels. If you want anything else coated, such as alloy " +
-        `wheels or plastics, call us on ${PHONE} before you book so we can tell you what is possible.`,
+        "The fuel tank, the fairings and the painted body panels. For anything else, such as alloy wheels or plastics, " +
+        `please ask us before you book: call ${PHONE}.`,
     },
     {
       question: "Can any motorcycle be coated?",
       answer:
-        "Painted bikes of any colour can. Matte or satin paint, wrapped bikes and bikes that have been repainted need a " +
-        `conversation first, so call or WhatsApp us on ${PHONE} with a few photos before you book.`,
+        "This service is for painted bikes. If your bike has matte or satin paint, a wrap or a repaint, please ask us " +
+        `before you book, because the answer can depend on the finish: call or WhatsApp ${PHONE}.`,
     },
     {
       question: CERAMIC_TIMING_QUESTION,
@@ -47,8 +49,7 @@ export function bikeLandingFaq(): Array<{ question: string; answer: string }> {
       question: "How do I wash a coated bike?",
       answer:
         "Use a pH-neutral bike shampoo and a clean microfibre towel, and avoid automatic washes with harsh brushes. " +
-        "Wipe off petrol splashes and chain lube when you see them instead of leaving them on the paint. We provide a " +
-        "care guide and a care kit with the coating.",
+        "Wipe off petrol splashes and chain lube when you see them instead of leaving them on the paint.",
     },
     {
       question: "Will the coating stop scratches and chips?",

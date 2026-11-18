@@ -90,6 +90,12 @@ describe('/ceramic-coating/bike: its own FAQ', () => {
     assert.ok(faq.every((f) => f.question.trim() && f.answer.trim()));
   });
 
+  test('unconfirmed studio promises are not published: no care guide, care kit, "require" or "we can"', () => {
+    const all = bikeCopy.bikeLandingFaq().map((f) => f.answer).join(' ');
+    assert.ok(!/care (guide|kit)|\brequire|we can |we provide|included/i.test(all), all);
+    assert.match(all, /please ask us before you book/);
+  });
+
   test('withBikeLandingCopy applies to the bike record only, and leaves the original untouched', () => {
     const out = bikeCopy.withBikeLandingCopy(bike);
     assert.notStrictEqual(out, bike);

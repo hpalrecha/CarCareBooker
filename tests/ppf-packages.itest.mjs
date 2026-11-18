@@ -130,14 +130,18 @@ describe('/ppf served HTML', { skip: !built ? 'run `npm run build` first' : fals
     const { html } = await get('/ppf');
     assert.ok(!/self[-\s]?heal/i.test(html), 'no self-healing anywhere in the first response');
     assert.ok(!/manufactur|film or coating maker/i.test(html.replace(/<script[^>]*src=[^>]*><\/script>/g, '')), 'nothing says the manufacturer issues the warranty');
-    assert.match(html, /What warranty comes with it\?[\s\S]{0,200}This package lists a 5-year warranty\. Written warranty terms provided at handover\./, 'FAQ answer keeps the period and uses the approved line');
-    assert.match(html, /"text":"This package lists a 5-year warranty\. Written warranty terms provided at handover\."/, 'and so does the FAQPage JSON-LD');
+    // /ppf shows only the FAQs true of every package (indexing fix, 2026-11-18): the default hatchback row's own
+    // package FAQs are not on the general page. The withheld-claim and manufacturer rules still hold for what remains.
+    const bare = html.replace(/<script[^>]*src=[^>]*><\/script>/g, '');
+    assert.ok(!/This package lists|catalogue lists|What does P91 PPF Basic - Hatchback cover/i.test(bare), 'no package-specific FAQ text on the general page');
+    assert.match(mainText(html), /Written warranty terms provided at handover\./, 'the approved warranty line is in the package section');
     const ld = [...html.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1]));
     const faq = ld.find((b) => b['@type'] === 'FAQPage');
     assert.ok(faq, 'FAQPage JSON-LD is still present');
-    assert.equal(faq.mainEntity.length, six[0].faq.length, 'every question is kept');
-    assert.match(JSON.stringify(faq), /This package lists: Full body PPF coverage; 5-year warranty/);
-    assert.match(mainText(html), /What's included Full body PPF coverage 5-year warranty/);
+    const general = six[0].faq.filter((q) => !/\bP91 PPF (Basic|Premium)\b|\bthis package\b/i.test(q.question + ' ' + q.answer)).map((q) => q.question);
+    assert.ok(general.length > 0);
+    assert.deepEqual(faq.mainEntity.map((q) => q.name), general, 'the JSON-LD carries exactly the general questions');
+    assert.ok(!/Why P91 PPF Basic/.test(mainText(html)), 'no hatchback package section on the general page');
   });
 
   test('one missing row removes one price and nothing else', async () => {
