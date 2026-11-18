@@ -30,6 +30,8 @@ import { useQuery } from "@tanstack/react-query";
 import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canonical-services";
 import { formatServiceTime } from "@/lib/service-time";
 import { withCeramicTiming } from "@/lib/ceramic-timing";
+import { generalPackageFaqs } from "@/lib/withheld-claims";
+import { withBikeLandingCopy } from "@/lib/bike-landing-copy";
 import {
   getLandingPage,
   relevantPosts,
@@ -170,7 +172,8 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
     ? bySlug.get(selectedCategory?.serviceSlug ?? "")
     : bySlug.get(page.primaryServiceSlug ?? "");
   // Confirmed ceramic studio time over the row's stale FAQ answer (lib/ceramic-timing.ts); other rows pass through.
-  const service: ServiceRecord | undefined = withCeramicTiming(catalogueRow) ?? undefined;
+  // The bike page then gets its own FAQ instead of the car-worded one in the row (lib/bike-landing-copy.ts).
+  const service: ServiceRecord | undefined = withBikeLandingCopy(withCeramicTiming(catalogueRow)) ?? undefined;
 
   // The row the booking modal opens with: the package card that was clicked, else the hero selector's service.
   const bookingService: ServiceRecord | undefined = (pkgBooking ? bySlug.get(pkgBooking.slug) : undefined) ?? service;
@@ -260,7 +263,9 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
    */
   // The same filter as the includes list: a catalogue FAQ answer that restates a withheld claim is cleaned or dropped,
   // so the FAQ the page shows, the server HTML and the FAQPage schema agree (lib/withheld-claims.ts).
-  const faqs = displayableFaqs(Array.isArray(service?.faq) ? service!.faq! : []);
+  // /ppf (several packages): only the FAQs true of every package, not the ones written for the selected body type's package.
+  const rowFaqs = Array.isArray(service?.faq) ? service!.faq! : [];
+  const faqs = displayableFaqs(page.packageComparison ? generalPackageFaqs(rowFaqs) : rowFaqs);
   if (faqs.length > 0) {
     schemas.push({
       "@context": "https://schema.org",

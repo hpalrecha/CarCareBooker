@@ -22,7 +22,8 @@ import {
   escapeHtml,
 } from "../client/src/lib/crawlable-content";
 import { summariseHours } from "../client/src/lib/hours-summary";
-import { displayableFaqs } from "../client/src/lib/withheld-claims";
+import { displayableFaqs, generalPackageFaqs } from "../client/src/lib/withheld-claims";
+import { withBikeLandingCopy } from "../client/src/lib/bike-landing-copy";
 import { withCeramicTiming } from "../client/src/lib/ceramic-timing";
 import { SERVICES_SEO } from "../client/src/lib/static-seo";
 import { isSpamProductPath } from "./lib/spam-paths";
@@ -238,7 +239,12 @@ export function serveStatic(app: Express, distPathOverride?: string) {
             landing.categories?.[0]?.serviceSlug;
           const { storage } = await import("./storage");
           const service = slug ? await storage.getServiceBySlug(slug) : undefined;
-          const catalogueExtras = service?.isActive ? landingServiceExtras(service as CrawlableService) : "";
+          // /ppf sells Basic and Premium in three body types: its default row is a single (hatchback) package, so only
+          // the FAQs true of every package are added there (generalPackageFaqs); the packages come from packages below.
+          const general = landing.packageComparison === true;
+          // The bike page has its own FAQ in place of the car-worded one in its row (lib/bike-landing-copy.ts).
+          const landingService = service ? withBikeLandingCopy(service as CrawlableService) : service;
+          const catalogueExtras = service?.isActive ? landingServiceExtras(landingService as CrawlableService, { general }) : "";
           // /ppf: the Basic and Premium packages and all six prices, in the first response (not only after a click).
           // Read from the same catalogue rows as the page; any failure falls through to the unchanged behaviour.
           const packages = landing.packageComparison
@@ -247,7 +253,8 @@ export function serveStatic(app: Express, distPathOverride?: string) {
           const extras = packages + catalogueExtras;
           if (!extras) return res.sendFile(candidate);
           // The FAQPage JSON-LD uses the same filtered FAQ as the HTML above and the page (lib/withheld-claims.ts).
-          const faqSchema = catalogueExtras ? faqPageSchema(displayableFaqs(withCeramicTiming(service as CrawlableService).faq)) : null;
+          const rowFaqs = catalogueExtras ? withCeramicTiming(landingService as CrawlableService).faq : null;
+          const faqSchema = catalogueExtras ? faqPageSchema(displayableFaqs(general ? generalPackageFaqs(rowFaqs) : rowFaqs)) : null;
           let html = fs.readFileSync(candidate, "utf8").replace(/<\/main>/, `${extras}</main>`);
           if (faqSchema) {
             html = html.replace(

@@ -47,7 +47,11 @@ const exteriorDetailingAfter = "/attached_assets/about/p91-studio-nasiol-floor-o
  * suppressed, on this one service. Remove the slug from this set once genuine
  * bike-specific testimonials are supplied. No other service is affected.
  */
-const TESTIMONIALS_SUPPRESSED = new Set<string>(['1-year-bike-ceramic-coating']);
+// The car ceramic-coating record is hidden too (2026-11-18). Its three testimonials ("Arjun Mehta", "Priya Sharma",
+// "Vikram Reddy") are the same ones the bike record carries, and nothing shows they come from real customers: no date,
+// no booking, no link to a review. They stay in the database untouched; only the section is not shown, until the studio
+// confirms them or supplies verified ones (the Google reviews on the home page are verified).
+const TESTIMONIALS_SUPPRESSED = new Set<string>(['1-year-bike-ceramic-coating', '1-year-ceramic-coating']);
 
 /**
  * Section ids the sticky sub-nav below the hero can link to. Looked up with

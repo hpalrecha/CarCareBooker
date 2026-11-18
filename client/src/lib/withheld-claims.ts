@@ -59,6 +59,24 @@ export function displayableIncludes(items: unknown): string[] {
   });
 }
 
+/** A catalogue FAQ that is about one package: it names the package, or its answer says "this package". */
+const PACKAGE_SPECIFIC_FAQ = /\bP91 PPF (?:Basic|Premium)\b|\bthis package\b/i;
+
+/**
+ * For a page that sells several packages (/ppf: Basic and Premium, three body types each), only the FAQs that
+ * are true of every package. The catalogue row behind the page's default body type carries FAQs written for that
+ * one package ("What does P91 PPF Basic - Hatchback cover?", "This package lists..."); showing those on the general
+ * page tells the customer, and Google, that the page is about a hatchback. The package and its figures are already
+ * shown, from the live rows, in the package comparison and the selector.
+ */
+export function generalPackageFaqs<T extends { question?: string | null; answer?: string | null }>(
+  faqs: ReadonlyArray<T> | null | undefined,
+): T[] {
+  return (Array.isArray(faqs) ? faqs : []).filter(
+    (f) => !PACKAGE_SPECIFIC_FAQ.test(`${f?.question ?? ""} ${f?.answer ?? ""}`),
+  );
+}
+
 /** The generated sentence the PPF rows use to restate their includes list. */
 const LIST_SENTENCE = /(This package lists:\s*)([^.]*)(\.)/;
 

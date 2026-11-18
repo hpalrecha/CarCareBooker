@@ -520,9 +520,9 @@ describe('bike ceramic coating content', () => {
     assert.match(landing, /P91 Car Care/);
   });
 
-  test('car testimonials are hidden on the bike page only, and not deleted', () => {
+  test('the unverified ceramic testimonials are hidden on the bike and car ceramic pages only, and not deleted', () => {
     const landing = read('client/src/pages/service-landing.tsx');
-    assert.match(landing, /TESTIMONIALS_SUPPRESSED = new Set<string>\(\['1-year-bike-ceramic-coating'\]\)/);
+    assert.match(landing, /TESTIMONIALS_SUPPRESSED = new Set<string>\(\['1-year-bike-ceramic-coating', '1-year-ceramic-coating'\]\)/);
     assert.match(landing, /\{showTestimonials && service\.testimonials/);
     // The suppression must be presentation-only — no script may clear the column.
     for (const f of ['scripts/fix-service-content.mjs', 'scripts/set-service-card-images.mjs']) {

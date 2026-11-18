@@ -16,7 +16,7 @@ import { relatedLinksFor, type RelatedLink } from "./service-related-links";
 import { formatServiceTime } from "./service-time";
 import { withCeramicTiming } from "./ceramic-timing";
 import { buildPpfPackages, studioTimeLine, type PpfCatalogueRow } from "./ppf-packages";
-import { displayableIncludes, displayableFaqs, isWithheldClaim } from "./withheld-claims";
+import { displayableIncludes, displayableFaqs, generalPackageFaqs, isWithheldClaim } from "./withheld-claims";
 import { WARRANTY_BATCH_LINE, WARRANTY_HANDOVER_LINE, neutraliseWarrantyIssuer } from "./warranty-wording";
 
 /**
@@ -483,16 +483,20 @@ export function servicePageContent(rawService: CrawlableService): string {
  * the server adds them per request. Same record, same text as the rendered page — nothing invented,
  * and no price (it loads live). Returns "" when the record has nothing to add.
  */
-export function landingServiceExtras(rawService: CrawlableService): string {
+export function landingServiceExtras(rawService: CrawlableService, opts: { general?: boolean } = {}): string {
   const service = withCeramicTiming(rawService);
   const title = String(service.title || "").trim();
+  // general: the page sells several packages (/ppf). Its default row is one package (the hatchback), so that row's
+  // "Why <package>", includes list and process are left out, and only the FAQs true of every package are kept.
+  // The page itself never rendered those three sections, so this also brings the server HTML back in line with it.
+  const general = opts.general === true;
   // Landing pages withhold unconfirmed claims (lib/withheld-claims.ts): the includes list, the FAQ and the text below
   // are filtered by the same rule the visible page uses, so the server HTML cannot say more than the page does.
-  const included = Array.from(new Set(displayableIncludes(service.whatIncluded || []).map(cleanItem).filter(Boolean)));
-  const whyRaw = String(service.whyChoose || "").trim();
+  const included = general ? [] : Array.from(new Set(displayableIncludes(service.whatIncluded || []).map(cleanItem).filter(Boolean)));
+  const whyRaw = general ? "" : String(service.whyChoose || "").trim();
   const why = isWithheldClaim(whyRaw) ? "" : whyRaw;
-  const steps = (service.process || []).filter((s) => s?.title?.trim());
-  const faqs = faqList(displayableFaqs(service.faq || []));
+  const steps = general ? [] : (service.process || []).filter((s) => s?.title?.trim());
+  const faqs = faqList(displayableFaqs(general ? generalPackageFaqs(service.faq || []) : service.faq || []));
   return (
     (why ? h2(`Why ${title}`) + p(why) : "") +
     (included.length ? h2("What's included") + ul(included) : "") +
