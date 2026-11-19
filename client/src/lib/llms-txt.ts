@@ -132,10 +132,10 @@ export function buildLlmsTxt(input: {
       "Premium package uses a higher-grade film and carries a longer warranty than Basic. " +
       "STEK film is also available, in gloss and matte finishes, with partial and full-body coverage.",
     "",
-    "Current prices, warranty terms and studio time for each package are on " +
+    "Warranty terms and studio time for each package are on " +
       `${origin}/ppf` +
-      ". They are not stated in this file because they change; do not treat the prices listed " +
-      "above for P91 packages as prices for STEK or any other film.",
+      ". Prices change, so confirm the current price there. A listed P91 package price is not a " +
+      "price for STEK or any other film.",
     "",
     "## Installation and warranty",
     "",
