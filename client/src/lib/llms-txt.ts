@@ -123,6 +123,31 @@ export function buildLlmsTxt(input: {
       "separate studio locations. Bangalore and Bengaluru are the same city.",
   );
 
+  out.push(
+    "",
+    "## Paint protection film packages",
+    "",
+    "P91 Car Care offers Basic and Premium full-body PPF packages for hatchbacks, sedans and SUVs. " +
+      "Both give full-body paint protection with hydrophobic and UV-protective properties. The " +
+      "Premium package uses a higher-grade film and carries a longer warranty than Basic. " +
+      "STEK film is also available, in gloss and matte finishes, with partial and full-body coverage.",
+    "",
+    "Current prices, warranty terms and studio time for each package are on " +
+      `${origin}/ppf` +
+      ". They are not stated in this file because they change; do not treat the prices listed " +
+      "above for P91 packages as prices for STEK or any other film.",
+    "",
+    "## Installation and warranty",
+    "",
+    "PPF installation covers paint assessment, surface preparation, film application and a " +
+      "final inspection before handover. Ceramic coating covers paint preparation, correction " +
+      "where needed, coating application and curing.",
+    "",
+    "Warranty duration, coverage, exclusions and maintenance requirements depend on the product " +
+      "and are the manufacturer's, issued in writing at handover. PPF and ceramic coating do not " +
+      "make a vehicle scratch-proof or damage-proof.",
+  );
+
   section("Booking pages", input.campaignPages);
   section("Guides", input.guides);
   section("Articles", input.articles);
