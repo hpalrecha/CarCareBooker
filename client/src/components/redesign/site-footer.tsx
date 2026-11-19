@@ -134,6 +134,7 @@ export default function SiteFooter() {
               <li><Link href="/contact">Contact</Link></li>
               <li><Link href="/gallery">Gallery</Link></li>
               <li><Link href="/blog">Guides</Link></li>
+              <li><Link href="/faq">FAQs</Link></li>
               {/* The studio's Instagram, where its work videos are posted. */}
               <li className="foot-li-ig">
                 <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer" data-testid="link-footer-instagram">

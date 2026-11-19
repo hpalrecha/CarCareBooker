@@ -11,6 +11,9 @@ import { HOME_PACKAGE_LINKS } from "./home-package-links";
 import { SERVICE_GUIDE_LINKS, SERVICE_PRICE_LINKS, type HubLink } from "./service-hub-links";
 import { hubOptionLinks } from "./hub-option-links";
 import { STUDIO_PHOTOS } from "./gallery-photos";
+import {
+  FAQ_GROUPS, FAQ_INTRO, FAQ_SERVICE_CARDS, FAQ_COMPARISON, FAQ_COMPARISON_AFTER, FAQ_LAST_UPDATED_LABEL,
+} from "./faq-page";
 import { HOME_FAQS, HOME_FAQ_HEADING, HOME_ABOUT_H2 } from "./home-faq";
 import { relatedLinksFor, type RelatedLink } from "./service-related-links";
 import { formatServiceTime } from "./service-time";
@@ -208,6 +211,26 @@ export function contactPageContent(page: StaticSeoPage): string {
       h2("Find us") +
       `<ul><li>${link("https://www.google.com/maps/dir/?api=1&destination=P91+Car+Care+Adugodi+Bengaluru", "Get directions", ' rel="noopener noreferrer"')}</li>` +
       `<li>${link("https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Adugodi+Bengaluru", "Open in Google Maps", ' rel="noopener noreferrer"')}</li></ul>`,
+  );
+}
+
+/** /faq — intro, service links, every question and the PPF vs ceramic table, as faq.tsx renders them. */
+export function faqPageContent(page: StaticSeoPage): string {
+  const link = (href: string, label: string) => `<a href="${e(href)}" style="color:#4ade80">${e(label)}</a>`;
+  const table =
+    "<table><thead><tr>" + FAQ_COMPARISON.columns.map((c) => `<th>${e(c)}</th>`).join("") + "</tr></thead><tbody>" +
+    FAQ_COMPARISON.rows.map((r) => "<tr>" + r.map((c) => `<td>${e(c)}</td>`).join("") + "</tr>").join("") +
+    "</tbody></table>";
+  return shell(
+    h1(page.h1) +
+      p(`Last updated ${FAQ_LAST_UPDATED_LABEL}`) +
+      FAQ_INTRO.map(p).join("") +
+      h2("Automotive protection solutions at P91 Car Care") +
+      `<ul>${FAQ_SERVICE_CARDS.map((c) => `<li>${link(c.href, c.title)}: ${e(c.body)}</li>`).join("")}</ul>` +
+      FAQ_GROUPS.map(
+        (g) =>
+          h2(g.heading) + faqList(g.items) + (g.id === FAQ_COMPARISON_AFTER ? h2(FAQ_COMPARISON.heading) + table : ""),
+      ).join(""),
   );
 }
 

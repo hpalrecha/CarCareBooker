@@ -259,7 +259,9 @@ async function main() {
           ? content.contactPageContent(page)
           : page.path === "/gallery"
             ? content.galleryPageContent(page)
-            : content.staticPageContent(page),
+            : page.path === "/faq"
+              ? content.faqPageContent(page)
+              : content.staticPageContent(page),
     // Legal pages stay reachable for people but are kept out of search (and out of the sitemap).
     noindex: NOINDEX_STATIC_PATHS.has(page.path),
     image: page.image,
@@ -526,6 +528,9 @@ async function main() {
 
 /** Schema for the hand-written pages other than the homepage and /contact: the live offer, and breadcrumbs. */
 function extraJsonLd(pagePath, content) {
+  if (pagePath === "/faq") {
+    return [content.faqHubSchema(), breadcrumbs([["Home", "/"], ["FAQs", pagePath]])];
+  }
   if (pagePath === "/gallery" || pagePath === "/products") {
     return [breadcrumbs([["Home", "/"], [pagePath === "/gallery" ? "Gallery" : "Products", pagePath]])];
   }
