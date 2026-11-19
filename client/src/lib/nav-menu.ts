@@ -123,5 +123,6 @@ export function resourcesGuideLinks(): NavLink[] {
 }
 
 export const RESOURCES_CONTACT_LINKS: NavLink[] = [
+  { label: "FAQs", href: "/faq" },
   { label: "Contact us", href: "/contact" },
 ];

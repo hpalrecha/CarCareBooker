@@ -75,6 +75,14 @@ export function buildLlmsTxt(input: {
       "protection film (PPF), interior and exterior detailing, glass coating and sun-control " +
       "film, and headlight restoration. Services are booked online and carried out at the studio.",
     "",
+    "## Business overview",
+    "",
+    "P91 Car Care provides paint protection, vehicle appearance restoration and detailing " +
+      "for new and pre-owned cars and motorcycles, depending on the service. It fits STEK " +
+      "paint protection film, P91 Premium PPF and Nasiol ceramic coatings. Warranty on PPF and " +
+      "ceramic coating jobs is the film or coating manufacturer's, issued in writing at handover. " +
+      "Pickup and drop is available across Bangalore at cost.",
+    "",
     "## Studio",
     "",
     `- Address: ${address}`,
@@ -100,14 +108,42 @@ export function buildLlmsTxt(input: {
     out.push("", `## ${heading}`, "");
     for (const l of links) out.push(link(l.title, l.path, l.note));
   };
+  out.push(
+    "",
+    "## Product brands",
+    "",
+    link("STEK", "/products/stek", "paint protection film and sun-control film, gloss and matte finishes"),
+    link("P91 Premium PPF", "/products/p91-premium-ppf", "P91's own paint protection film line"),
+    link("Nasiol", "/products/nasiol", "nano-ceramic coating for cars and motorcycles"),
+    "",
+    "## Service area",
+    "",
+    "The studio is in Adugodi, Bengaluru. It serves owners from areas including Koramangala, " +
+      "HSR Layout and Shanti Nagar, and from across Bengaluru. These are areas served, not " +
+      "separate studio locations. Bangalore and Bengaluru are the same city.",
+  );
+
   section("Booking pages", input.campaignPages);
   section("Guides", input.guides);
   section("Articles", input.articles);
 
   out.push(
     "",
+    "## Source accuracy",
+    "",
+    "This website is the primary source for P91 Car Care's services, prices and booking details. " +
+      "Prices, durations and warranty terms vary by service and product and are shown on each " +
+      "service page, not in this file. P91 Car Care is an automotive detailing and paint " +
+      "protection studio in Adugodi, Bengaluru; it is not a ranked or independently rated " +
+      '"best" studio.',
+    "",
     "## Optional",
     "",
+    link(
+      "Car detailing, PPF and ceramic coating FAQs",
+      "/faq",
+      "answers on PPF, ceramic coating, STEK films, detailing, sun-control film, warranty and maintenance",
+    ),
     link("All services", "/services"),
     link("Gallery: our work, reels and current offers", "/gallery"),
     link("Contact and directions", "/contact"),

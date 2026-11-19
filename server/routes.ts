@@ -471,6 +471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // offered to crawlers as its own page; see server/routes.ts's
         // "Legacy/duplicate URL redirects" block.
         { loc: "/gallery", priority: "0.6", changefreq: "monthly" },
+        { loc: "/faq", lastmod: "2026-11-19", priority: "0.7", changefreq: "monthly" },
         { loc: "/contact", priority: "0.6", changefreq: "yearly" },
         { loc: "/terms-conditions", priority: "0.3", changefreq: "yearly" },
         { loc: "/privacy-policy", priority: "0.3", changefreq: "yearly" },

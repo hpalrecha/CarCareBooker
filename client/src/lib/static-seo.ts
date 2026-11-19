@@ -84,6 +84,15 @@ export const CONTACT_SEO: StaticSeoPage = {
     "what it needs.",
 };
 
+export const FAQ_SEO: StaticSeoPage = {
+  path: "/faq",
+  title: "Car Detailing, PPF & Ceramic Coating FAQs in Bangalore | P91",
+  description:
+    "Answers on PPF, ceramic coating, STEK films, car detailing, sun-control film and warranties " +
+    "from P91 Car Care in Adugodi, Bangalore.",
+  h1: "Car Detailing, Paint Protection Film & Ceramic Coating in Bangalore: Complete Guide & FAQs",
+};
+
 export const GALLERY_SEO: StaticSeoPage = {
   path: "/gallery",
   title: "Our Work on Instagram | P91 Car Care Gallery",
@@ -161,6 +170,7 @@ export const STATIC_SEO_PAGES: StaticSeoPage[] = [
   TERMS_SEO,
   REFUND_SEO,
   CONTACT_SEO,
+  FAQ_SEO,
   GALLERY_SEO,
   OFFER_SEO,
 ];

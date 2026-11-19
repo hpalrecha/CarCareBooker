@@ -620,6 +620,10 @@ export default function Home() {
               </div>
             ))}
           </dl>
+          <p className="ed-fine" data-reveal>
+            More answers on PPF, ceramic coating, detailing and warranties are in our{" "}
+            <Link href="/faq" className="ed-link" data-testid="link-home-faq-hub">full FAQ</Link>.
+          </p>
         </div>
       </section>
 

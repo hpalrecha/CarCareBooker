@@ -41,6 +41,7 @@ const PrivacyPolicy = lazy(() => import("@/pages/privacy-policy"));
 const TermsConditions = lazy(() => import("@/pages/terms-conditions"));
 const RefundPolicy = lazy(() => import("@/pages/refund-policy"));
 const Contact = lazy(() => import("@/pages/contact"));
+const Faq = lazy(() => import("@/pages/faq"));
 const Services = lazy(() => import("@/pages/services"));
 const Products = lazy(() => import("@/pages/products"));
 const BrandPage = lazy(() => import("@/pages/brand-page"));
@@ -89,6 +90,7 @@ function Router() {
         <Route path="/service/:slug" component={ServiceLanding} />
         <Route path="/booking-confirmation/:id" component={BookingConfirmation} />
         <Route path="/contact" component={Contact} />
+        <Route path="/faq" component={Faq} />
         {/* Campaign landing pages — the URLs that go into the advertisements. Each passes
             its own path so the template can look up its content.
             /ppf-ceramic-coating (the old combined PPF+ceramic page) used to be registered

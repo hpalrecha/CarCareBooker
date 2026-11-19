@@ -40,9 +40,11 @@ export {
   blogListContent,
   landingPageContent,
   brandPageContent,
+  faqPageContent,
   injectRootContent,
 } from "@/lib/crawlable-content";
 export { homeFaqSchema } from "@/lib/home-faq";
+export { faqHubSchema } from "@/lib/faq-page";
 export { localBusinessSchema } from "@/lib/local-business";
 export { festivalOfferSchema } from "@/lib/offer-schema";
 export { canonicalPathFor } from "@/lib/canonical-overrides";

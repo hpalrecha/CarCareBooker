@@ -88,6 +88,8 @@ describe('titles and descriptions', () => {
       '/products': 'client/src/pages/products.tsx',
       '/contact': 'client/src/pages/contact.tsx',
       '/gallery': 'client/src/pages/gallery.tsx',
+      // faq.tsx renders FAQ_SEO.h1 straight from static-seo.ts (no lede), so the source of the h1 is that file.
+      '/faq': 'client/src/lib/static-seo.ts',
       '/offer/de-dhana-dhan': 'client/src/pages/offer.tsx',
       '/ppf-ceramic-coating': 'client/src/pages/ppf-ceramic-landing.tsx',
       '/privacy-policy': 'client/src/pages/privacy-policy.tsx',

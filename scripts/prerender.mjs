@@ -176,7 +176,9 @@ async function main() {
         ? content.homePageContent(page)
         : page.path === "/contact"
           ? content.contactPageContent(page)
-          : content.staticPageContent(page),
+          : page.path === "/faq"
+            ? content.faqPageContent(page)
+            : content.staticPageContent(page),
     image: page.image,
     // The homepage and /contact set the business schema at runtime; the raw HTML carried
     // none, so a crawler without JavaScript never saw the address, phone or hours. Emitted
@@ -445,6 +447,9 @@ async function main() {
 function extraJsonLd(pagePath, content) {
   if (pagePath === "/offer/de-dhana-dhan") {
     return [content.festivalOfferSchema(ORIGIN), breadcrumbs([["Home", "/"], ["De Dhana Dhan offer", pagePath]])];
+  }
+  if (pagePath === "/faq") {
+    return [content.faqHubSchema(), breadcrumbs([["Home", "/"], ["FAQs", pagePath]])];
   }
   if (pagePath === "/gallery" || pagePath === "/products") {
     return [breadcrumbs([["Home", "/"], [pagePath === "/gallery" ? "Gallery" : "Products", pagePath]])];
