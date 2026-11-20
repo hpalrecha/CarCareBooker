@@ -7,6 +7,7 @@ import { PRODUCT_BRANDS, PRODUCT_FINE_PRINT } from "@/lib/nav-menu";
 import { getBrandPage } from "@/lib/brand-pages";
 import { PRODUCTS_SEO } from "@/lib/static-seo";
 import { VisitStudio } from "@/components/redesign/studio-sections";
+import { PRODUCTS_HERO, PRODUCT_KIND, PRODUCT_CHOOSE, PRODUCTS_CHOOSE_HEADING, PRODUCTS_HELP_BEFORE, PRODUCTS_HELP_LINK, PRODUCTS_HELP_AFTER, PRODUCTS_HELP_HREF } from "@/lib/products-page-data";
 
 /**
  * /products: the three brands P91 fits, one large row each.
@@ -17,19 +18,8 @@ import { VisitStudio } from "@/components/redesign/studio-sections";
  * files already state, and no price, count or warranty term is added.
  */
 
-/** What each brand is, in the words a customer would use. Keyed by brand page slug. */
-const KIND: Record<string, string> = {
-  stek: "Paint protection film and sun-control film",
-  nasiol: "Ceramic coating",
-  "p91-premium-ppf": "Our own paint protection film",
-};
-
-/** Which job each choice answers. Links go to pages that already exist. */
-const CHOOSE = [
-  { need: "Stone chips and scratches", answer: "Paint protection film. STEK or our own P91 Premium PPF.", href: "/services/paint-protection-film-bangalore", label: "How PPF works" },
-  { need: "Easier washing and water beading", answer: "Ceramic coating from Nasiol.", href: "/services/ceramic-coating-bangalore", label: "How ceramic coating works" },
-  { need: "A cooler cabin and less glare", answer: "Sun-control film from STEK.", href: "/services/glass-sun-control-film-bangalore", label: "About sun-control film" },
-];
+const KIND = PRODUCT_KIND;
+const CHOOSE = PRODUCT_CHOOSE;
 
 export default function Products() {
   useSeoMeta({
@@ -45,9 +35,9 @@ export default function Products() {
 
       <section className="pd-hero">
         <div className="wrap">
-          <p className="ed-label">Brands we fit</p>
+          <p className="ed-label">{PRODUCTS_HERO.label}</p>
           <h1 className="pd-title">Products</h1>
-          <p className="pd-lede">The film and coating brands we fit, and what each one is for.</p>
+          <p className="pd-lede">{PRODUCTS_HERO.lede}</p>
         </div>
       </section>
 
@@ -88,7 +78,7 @@ export default function Products() {
 
       <section className="pd-choose" data-tone="dark" aria-labelledby="pd-choose-h">
         <div className="wrap">
-          <h2 id="pd-choose-h" className="ed-title">Which one do you need?</h2>
+          <h2 id="pd-choose-h" className="ed-title">{PRODUCTS_CHOOSE_HEADING}</h2>
           <ul className="pd-choose-list">
             {CHOOSE.map((c) => (
               <li key={c.need}>
@@ -99,7 +89,7 @@ export default function Products() {
             ))}
           </ul>
           <p className="pd-help">
-            Not sure? Send a photo of your car on <a href="https://wa.me/917406619191">WhatsApp</a> and we will tell you what it needs.
+            {PRODUCTS_HELP_BEFORE}<a href={PRODUCTS_HELP_HREF}>{PRODUCTS_HELP_LINK}</a>{PRODUCTS_HELP_AFTER}
           </p>
           <p className="mega-fineprint pd-fine">{PRODUCT_FINE_PRINT}</p>
         </div>

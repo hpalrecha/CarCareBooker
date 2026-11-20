@@ -261,7 +261,9 @@ async function main() {
             ? content.galleryPageContent(page)
             : page.path === "/faq"
               ? content.faqPageContent(page)
-              : content.staticPageContent(page),
+              : page.path === "/products"
+                ? content.productsPageContent(page)
+                : content.staticPageContent(page),
     // Legal pages stay reachable for people but are kept out of search (and out of the sitemap).
     noindex: NOINDEX_STATIC_PATHS.has(page.path),
     image: page.image,

@@ -101,7 +101,9 @@ describe('titles and descriptions', () => {
     };
     for (const page of m.STATIC_SEO_PAGES) {
       // Render-ish text of the component: tags and {" "} removed, entities decoded.
-      const rendered = read(files[page.path])
+      // /products keeps its wording in lib/products-page-data.ts so the page and the first HTML share one source.
+      const extra = page.path === '/products' ? read('client/src/lib/products-page-data.ts') : '';
+      const rendered = (read(files[page.path]) + ' ' + extra)
         .replace(/\{"\s"\}/g, ' ')
         .replace(/<[^>]+>/g, ' ')
         .replace(/&amp;/g, '&')
