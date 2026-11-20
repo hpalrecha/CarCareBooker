@@ -1,0 +1,197 @@
+from,to,proposed_anchor_text,status,placement,reason
+/,/ppf,car PPF price in Bangalore,exists (check anchor),"inside body text, not the footer","hub: pass authority to the three revenue pages, guides and proof"
+/,/ceramic-coating/car,car ceramic coating price,exists (check anchor),"inside body text, not the footer","hub: pass authority to the three revenue pages, guides and proof"
+/,/ceramic-coating/bike,bike ceramic coating in Bangalore,exists (check anchor),"inside body text, not the footer","hub: pass authority to the three revenue pages, guides and proof"
+/,/services,all services,exists (check anchor),"inside body text, not the footer","hub: pass authority to the three revenue pages, guides and proof"
+/,/gallery,see our finished work,exists (check anchor),"inside body text, not the footer","hub: pass authority to the three revenue pages, guides and proof"
+/,/blog,car care guides,add,"inside body text, not the footer","hub: pass authority to the three revenue pages, guides and proof"
+/,/contact,visit the studio in Adugodi,exists (check anchor),"inside body text, not the footer","hub: pass authority to the three revenue pages, guides and proof"
+/,/faq,PPF and ceramic coating FAQs,add,"inside body text, not the footer","hub: pass authority to the three revenue pages, guides and proof"
+/,/services/paint-protection-film-bangalore,PPF in Bangalore: the full guide,exists (check anchor),"inside body text, not the footer","hub: pass authority to the three revenue pages, guides and proof"
+/,/services/ceramic-coating-bangalore,ceramic coating in Bangalore: the full guide,exists (check anchor),"inside body text, not the footer","hub: pass authority to the three revenue pages, guides and proof"
+/services,/ppf,car PPF price in Bangalore,exists (check anchor),"inside body text, not the footer",service hub: every service and guide from one crawlable page
+/services,/ceramic-coating/car,car ceramic coating price,exists (check anchor),"inside body text, not the footer",service hub: every service and guide from one crawlable page
+/services,/ceramic-coating/bike,bike ceramic coating in Bangalore,exists (check anchor),"inside body text, not the footer",service hub: every service and guide from one crawlable page
+/services,/services/paint-protection-film-bangalore,PPF in Bangalore: the full guide,exists (check anchor),"inside body text, not the footer",service hub: every service and guide from one crawlable page
+/services,/services/ceramic-coating-bangalore,ceramic coating in Bangalore: the full guide,exists (check anchor),"inside body text, not the footer",service hub: every service and guide from one crawlable page
+/services,/services/interior-detailing-bangalore,car interior detailing guide,exists (check anchor),"inside body text, not the footer",service hub: every service and guide from one crawlable page
+/services,/services/glass-sun-control-film-bangalore,sun control film and glass coating guide,exists (check anchor),"inside body text, not the footer",service hub: every service and guide from one crawlable page
+/services,/service/interior-detailing-service,interior rejuvenation service,exists (check anchor),"inside body text, not the footer",service hub: every service and guide from one crawlable page
+/services,/service/exterior-detailing-hard-water-new,exterior detailing with hard water spot removal,exists (check anchor),"inside body text, not the footer",service hub: every service and guide from one crawlable page
+/services,/service/premium-car-wash-special,premium car wash,exists (check anchor),"inside body text, not the footer",service hub: every service and guide from one crawlable page
+/services,/service/headlight-restoration-both,headlight restoration,exists (check anchor),"inside body text, not the footer",service hub: every service and guide from one crawlable page
+/services,/service/windshield-glass-coating-new,windshield glass coating,exists (check anchor),"inside body text, not the footer",service hub: every service and guide from one crawlable page
+/services,/service/windshield-glass-polishing,windshield glass polishing,exists (check anchor),"inside body text, not the footer",service hub: every service and guide from one crawlable page
+/services,/service/annual-maintenance-package,annual maintenance package,exists (check anchor),"inside body text, not the footer",service hub: every service and guide from one crawlable page
+/services,/gallery,see our finished work,add,"inside body text, not the footer",service hub: every service and guide from one crawlable page
+/ppf,/services/paint-protection-film-bangalore,PPF in Bangalore: the full guide,exists (check anchor),"inside body text, not the footer","money page: guide, brand pages, proof, two best articles, contact"
+/ppf,/products/stek,STEK paint protection and sun control film,add,"inside body text, not the footer","money page: guide, brand pages, proof, two best articles, contact"
+/ppf,/products/p91-premium-ppf,P91 Premium PPF,add,"inside body text, not the footer","money page: guide, brand pages, proof, two best articles, contact"
+/ppf,/blog/how-much-ppf-does-your-car-need,how much PPF your car needs,add,"inside body text, not the footer","money page: guide, brand pages, proof, two best articles, contact"
+/ppf,/blog/ppf-vs-ceramic-coating-bangalore,PPF vs ceramic coating for Bangalore roads,exists (check anchor),"inside body text, not the footer","money page: guide, brand pages, proof, two best articles, contact"
+/ppf,/ceramic-coating/car,car ceramic coating price,exists (check anchor),"inside body text, not the footer","money page: guide, brand pages, proof, two best articles, contact"
+/ppf,/gallery,see our finished work,add,"inside body text, not the footer","money page: guide, brand pages, proof, two best articles, contact"
+/ppf,/contact,visit the studio in Adugodi,add,"inside body text, not the footer","money page: guide, brand pages, proof, two best articles, contact"
+/ppf,/faq,PPF and ceramic coating FAQs,add,"inside body text, not the footer","money page: guide, brand pages, proof, two best articles, contact"
+/services/paint-protection-film-bangalore,/ppf,car PPF price in Bangalore,exists (check anchor),"inside body text, not the footer","guide to its money page first, then proof and the local article"
+/services/paint-protection-film-bangalore,/products/stek,STEK paint protection and sun control film,add,"inside body text, not the footer","guide to its money page first, then proof and the local article"
+/services/paint-protection-film-bangalore,/products/p91-premium-ppf,P91 Premium PPF,add,"inside body text, not the footer","guide to its money page first, then proof and the local article"
+/services/paint-protection-film-bangalore,/blog/how-much-ppf-does-your-car-need,how much PPF your car needs,add,"inside body text, not the footer","guide to its money page first, then proof and the local article"
+/services/paint-protection-film-bangalore,/blog/is-your-ppf-really-made-in-usa,is your PPF really made in the USA,add,"inside body text, not the footer","guide to its money page first, then proof and the local article"
+/services/paint-protection-film-bangalore,/blog/ppf-koramangala-hsr-layout-shanti-nagar-adugodi,"PPF near Koramangala, HSR Layout and Shanti Nagar",add,"inside body text, not the footer","guide to its money page first, then proof and the local article"
+/services/paint-protection-film-bangalore,/services/ceramic-coating-bangalore,ceramic coating in Bangalore: the full guide,add,"inside body text, not the footer","guide to its money page first, then proof and the local article"
+/services/paint-protection-film-bangalore,/gallery,see our finished work,add,"inside body text, not the footer","guide to its money page first, then proof and the local article"
+/ceramic-coating/car,/services/ceramic-coating-bangalore,ceramic coating in Bangalore: the full guide,exists (check anchor),"inside body text, not the footer","money page: guide, bike sibling, brand, water-damage articles"
+/ceramic-coating/car,/ceramic-coating/bike,bike ceramic coating in Bangalore,exists (check anchor),"inside body text, not the footer","money page: guide, bike sibling, brand, water-damage articles"
+/ceramic-coating/car,/products/nasiol,Nasiol nano-ceramic coating,add,"inside body text, not the footer","money page: guide, bike sibling, brand, water-damage articles"
+/ceramic-coating/car,/blog/hard-water-spot-removal-bangalore,protecting paint from hard water spots,add,"inside body text, not the footer","money page: guide, bike sibling, brand, water-damage articles"
+/ceramic-coating/car,/blog/ppf-vs-ceramic-coating-bangalore,PPF vs ceramic coating for Bangalore roads,add,"inside body text, not the footer","money page: guide, bike sibling, brand, water-damage articles"
+/ceramic-coating/car,/ppf,car PPF price in Bangalore,exists (check anchor),"inside body text, not the footer","money page: guide, bike sibling, brand, water-damage articles"
+/ceramic-coating/car,/gallery,see our finished work,add,"inside body text, not the footer","money page: guide, bike sibling, brand, water-damage articles"
+/ceramic-coating/car,/contact,visit the studio in Adugodi,add,"inside body text, not the footer","money page: guide, bike sibling, brand, water-damage articles"
+/ceramic-coating/bike,/ceramic-coating/car,car ceramic coating price,exists (check anchor),"inside body text, not the footer","money page: car sibling, guide, brand, proof"
+/ceramic-coating/bike,/services/ceramic-coating-bangalore,ceramic coating in Bangalore: the full guide,exists (check anchor),"inside body text, not the footer","money page: car sibling, guide, brand, proof"
+/ceramic-coating/bike,/products/nasiol,Nasiol nano-ceramic coating,add,"inside body text, not the footer","money page: car sibling, guide, brand, proof"
+/ceramic-coating/bike,/gallery,see our finished work,add,"inside body text, not the footer","money page: car sibling, guide, brand, proof"
+/ceramic-coating/bike,/contact,visit the studio in Adugodi,add,"inside body text, not the footer","money page: car sibling, guide, brand, proof"
+/ceramic-coating/bike,/faq,PPF and ceramic coating FAQs,add,"inside body text, not the footer","money page: car sibling, guide, brand, proof"
+/services/ceramic-coating-bangalore,/ceramic-coating/car,car ceramic coating price,exists (check anchor),"inside body text, not the footer","guide: price pages above the fold, then education links"
+/services/ceramic-coating-bangalore,/ceramic-coating/bike,bike ceramic coating in Bangalore,exists (check anchor),"inside body text, not the footer","guide: price pages above the fold, then education links"
+/services/ceramic-coating-bangalore,/products/nasiol,Nasiol nano-ceramic coating,add,"inside body text, not the footer","guide: price pages above the fold, then education links"
+/services/ceramic-coating-bangalore,/blog/hard-water-spot-removal-bangalore,protecting paint from hard water spots,add,"inside body text, not the footer","guide: price pages above the fold, then education links"
+/services/ceramic-coating-bangalore,/blog/monsoon-damage-car-bangalore,what the monsoon does to your paint,add,"inside body text, not the footer","guide: price pages above the fold, then education links"
+/services/ceramic-coating-bangalore,/blog/ppf-vs-ceramic-coating-bangalore,PPF vs ceramic coating for Bangalore roads,add,"inside body text, not the footer","guide: price pages above the fold, then education links"
+/services/ceramic-coating-bangalore,/service/exterior-detailing-hard-water-new,exterior detailing with hard water spot removal,add,"inside body text, not the footer","guide: price pages above the fold, then education links"
+/services/ceramic-coating-bangalore,/gallery,see our finished work,add,"inside body text, not the footer","guide: price pages above the fold, then education links"
+/services/interior-detailing-bangalore,/service/interior-detailing-service,interior rejuvenation service,exists (check anchor),"inside body text, not the footer",guide to the interior service and the maintenance plan
+/services/interior-detailing-bangalore,/service/annual-maintenance-package,annual maintenance package,add,"inside body text, not the footer",guide to the interior service and the maintenance plan
+/services/interior-detailing-bangalore,/service/premium-car-wash-special,premium car wash,add,"inside body text, not the footer",guide to the interior service and the maintenance plan
+/services/interior-detailing-bangalore,/blog/best-car-detailing-in-bangalore,how to choose a car detailing studio in Bangalore,add,"inside body text, not the footer",guide to the interior service and the maintenance plan
+/services/interior-detailing-bangalore,/blog/monsoon-damage-car-bangalore,what the monsoon does to your paint,add,"inside body text, not the footer",guide to the interior service and the maintenance plan
+/services/interior-detailing-bangalore,/contact,visit the studio in Adugodi,add,"inside body text, not the footer",guide to the interior service and the maintenance plan
+/services/glass-sun-control-film-bangalore,/service/windshield-glass-coating-new,windshield glass coating,exists (check anchor),"inside body text, not the footer",guide to glass services and the film brand
+/services/glass-sun-control-film-bangalore,/service/windshield-glass-polishing,windshield glass polishing,exists (check anchor),"inside body text, not the footer",guide to glass services and the film brand
+/services/glass-sun-control-film-bangalore,/service/headlight-restoration-both,headlight restoration,add,"inside body text, not the footer",guide to glass services and the film brand
+/services/glass-sun-control-film-bangalore,/products/stek,STEK paint protection and sun control film,add,"inside body text, not the footer",guide to glass services and the film brand
+/services/glass-sun-control-film-bangalore,/blog/windshield-heat-rejection-film-summer,what heat rejection film numbers mean,add,"inside body text, not the footer",guide to glass services and the film brand
+/services/glass-sun-control-film-bangalore,/contact,visit the studio in Adugodi,add,"inside body text, not the footer",guide to glass services and the film brand
+/service/interior-detailing-service,/services/interior-detailing-bangalore,car interior detailing guide,exists (check anchor),"inside body text, not the footer","service item up to guide, across to siblings"
+/service/interior-detailing-service,/service/annual-maintenance-package,annual maintenance package,add,"inside body text, not the footer","service item up to guide, across to siblings"
+/service/interior-detailing-service,/service/premium-car-wash-special,premium car wash,add,"inside body text, not the footer","service item up to guide, across to siblings"
+/service/interior-detailing-service,/blog/monsoon-damage-car-bangalore,what the monsoon does to your paint,exists (check anchor),"inside body text, not the footer","service item up to guide, across to siblings"
+/service/interior-detailing-service,/gallery,see our finished work,add,"inside body text, not the footer","service item up to guide, across to siblings"
+/service/interior-detailing-service,/contact,visit the studio in Adugodi,add,"inside body text, not the footer","service item up to guide, across to siblings"
+/service/exterior-detailing-hard-water-new,/blog/hard-water-spot-removal-bangalore,protecting paint from hard water spots,exists (check anchor),"inside body text, not the footer",service item up to guide and the ceramic option
+/service/exterior-detailing-hard-water-new,/services/ceramic-coating-bangalore,ceramic coating in Bangalore: the full guide,exists (check anchor),"inside body text, not the footer",service item up to guide and the ceramic option
+/service/exterior-detailing-hard-water-new,/ceramic-coating/car,car ceramic coating price,add,"inside body text, not the footer",service item up to guide and the ceramic option
+/service/exterior-detailing-hard-water-new,/service/premium-car-wash-special,premium car wash,add,"inside body text, not the footer",service item up to guide and the ceramic option
+/service/exterior-detailing-hard-water-new,/gallery,see our finished work,add,"inside body text, not the footer",service item up to guide and the ceramic option
+/service/exterior-detailing-hard-water-new,/contact,visit the studio in Adugodi,add,"inside body text, not the footer",service item up to guide and the ceramic option
+/service/premium-car-wash-special,/service/exterior-detailing-hard-water-new,exterior detailing with hard water spot removal,add,"inside body text, not the footer",entry service: lead into detailing and maintenance
+/service/premium-car-wash-special,/service/interior-detailing-service,interior rejuvenation service,add,"inside body text, not the footer",entry service: lead into detailing and maintenance
+/service/premium-car-wash-special,/service/annual-maintenance-package,annual maintenance package,add,"inside body text, not the footer",entry service: lead into detailing and maintenance
+/service/premium-car-wash-special,/blog/hard-water-spot-removal-bangalore,protecting paint from hard water spots,exists (check anchor),"inside body text, not the footer",entry service: lead into detailing and maintenance
+/service/premium-car-wash-special,/contact,visit the studio in Adugodi,add,"inside body text, not the footer",entry service: lead into detailing and maintenance
+/service/headlight-restoration-both,/services/glass-sun-control-film-bangalore,sun control film and glass coating guide,add,"inside body text, not the footer",service item across to glass and exterior work
+/service/headlight-restoration-both,/service/windshield-glass-polishing,windshield glass polishing,add,"inside body text, not the footer",service item across to glass and exterior work
+/service/headlight-restoration-both,/service/exterior-detailing-hard-water-new,exterior detailing with hard water spot removal,add,"inside body text, not the footer",service item across to glass and exterior work
+/service/headlight-restoration-both,/blog/best-car-detailing-in-bangalore,how to choose a car detailing studio in Bangalore,exists (check anchor),"inside body text, not the footer",service item across to glass and exterior work
+/service/headlight-restoration-both,/contact,visit the studio in Adugodi,add,"inside body text, not the footer",service item across to glass and exterior work
+/service/windshield-glass-coating-new,/services/glass-sun-control-film-bangalore,sun control film and glass coating guide,exists (check anchor),"inside body text, not the footer","service item up to glass guide, to polishing and film article"
+/service/windshield-glass-coating-new,/service/windshield-glass-polishing,windshield glass polishing,add,"inside body text, not the footer","service item up to glass guide, to polishing and film article"
+/service/windshield-glass-coating-new,/blog/windshield-heat-rejection-film-summer,what heat rejection film numbers mean,exists (check anchor),"inside body text, not the footer","service item up to glass guide, to polishing and film article"
+/service/windshield-glass-coating-new,/products/stek,STEK paint protection and sun control film,add,"inside body text, not the footer","service item up to glass guide, to polishing and film article"
+/service/windshield-glass-coating-new,/contact,visit the studio in Adugodi,add,"inside body text, not the footer","service item up to glass guide, to polishing and film article"
+/service/windshield-glass-polishing,/services/glass-sun-control-film-bangalore,sun control film and glass coating guide,exists (check anchor),"inside body text, not the footer",service item: coating is the usual next step
+/service/windshield-glass-polishing,/service/windshield-glass-coating-new,windshield glass coating,add,"inside body text, not the footer",service item: coating is the usual next step
+/service/windshield-glass-polishing,/service/headlight-restoration-both,headlight restoration,add,"inside body text, not the footer",service item: coating is the usual next step
+/service/windshield-glass-polishing,/contact,visit the studio in Adugodi,add,"inside body text, not the footer",service item: coating is the usual next step
+/service/annual-maintenance-package,/service/interior-detailing-service,interior rejuvenation service,add,"inside body text, not the footer",package page links to what it contains
+/service/annual-maintenance-package,/service/exterior-detailing-hard-water-new,exterior detailing with hard water spot removal,add,"inside body text, not the footer",package page links to what it contains
+/service/annual-maintenance-package,/service/premium-car-wash-special,premium car wash,add,"inside body text, not the footer",package page links to what it contains
+/service/annual-maintenance-package,/services/interior-detailing-bangalore,car interior detailing guide,exists (check anchor),"inside body text, not the footer",package page links to what it contains
+/service/annual-maintenance-package,/contact,visit the studio in Adugodi,add,"inside body text, not the footer",package page links to what it contains
+/products,/products/stek,STEK paint protection and sun control film,add,"inside body text, not the footer",brand hub: one line per brand with a link
+/products,/products/nasiol,Nasiol nano-ceramic coating,add,"inside body text, not the footer",brand hub: one line per brand with a link
+/products,/products/p91-premium-ppf,P91 Premium PPF,add,"inside body text, not the footer",brand hub: one line per brand with a link
+/products,/ppf,car PPF price in Bangalore,add,"inside body text, not the footer",brand hub: one line per brand with a link
+/products,/ceramic-coating/car,car ceramic coating price,add,"inside body text, not the footer",brand hub: one line per brand with a link
+/products,/services/glass-sun-control-film-bangalore,sun control film and glass coating guide,add,"inside body text, not the footer",brand hub: one line per brand with a link
+/products/stek,/ppf,car PPF price in Bangalore,add,"inside body text, not the footer",brand page to what is fitted with it
+/products/stek,/services/paint-protection-film-bangalore,PPF in Bangalore: the full guide,exists (check anchor),"inside body text, not the footer",brand page to what is fitted with it
+/products/stek,/services/glass-sun-control-film-bangalore,sun control film and glass coating guide,exists (check anchor),"inside body text, not the footer",brand page to what is fitted with it
+/products/stek,/blog/is-your-ppf-really-made-in-usa,is your PPF really made in the USA,add,"inside body text, not the footer",brand page to what is fitted with it
+/products/stek,/gallery,see our finished work,add,"inside body text, not the footer",brand page to what is fitted with it
+/products/nasiol,/ceramic-coating/car,car ceramic coating price,add,"inside body text, not the footer",brand page to the coating it supplies
+/products/nasiol,/ceramic-coating/bike,bike ceramic coating in Bangalore,add,"inside body text, not the footer",brand page to the coating it supplies
+/products/nasiol,/services/ceramic-coating-bangalore,ceramic coating in Bangalore: the full guide,exists (check anchor),"inside body text, not the footer",brand page to the coating it supplies
+/products/nasiol,/gallery,see our finished work,add,"inside body text, not the footer",brand page to the coating it supplies
+/products/p91-premium-ppf,/ppf,car PPF price in Bangalore,add,"inside body text, not the footer",brand page to the packages that use it
+/products/p91-premium-ppf,/services/paint-protection-film-bangalore,PPF in Bangalore: the full guide,exists (check anchor),"inside body text, not the footer",brand page to the packages that use it
+/products/p91-premium-ppf,/blog/how-much-ppf-does-your-car-need,how much PPF your car needs,add,"inside body text, not the footer",brand page to the packages that use it
+/products/p91-premium-ppf,/gallery,see our finished work,add,"inside body text, not the footer",brand page to the packages that use it
+/blog,/blog/best-car-detailing-in-bangalore,how to choose a car detailing studio in Bangalore,exists (check anchor),"inside body text, not the footer",guides index: every article plus the two main services
+/blog,/blog/ppf-vs-ceramic-coating-bangalore,PPF vs ceramic coating for Bangalore roads,exists (check anchor),"inside body text, not the footer",guides index: every article plus the two main services
+/blog,/blog/how-much-ppf-does-your-car-need,how much PPF your car needs,exists (check anchor),"inside body text, not the footer",guides index: every article plus the two main services
+/blog,/blog/is-your-ppf-really-made-in-usa,is your PPF really made in the USA,exists (check anchor),"inside body text, not the footer",guides index: every article plus the two main services
+/blog,/blog/ppf-koramangala-hsr-layout-shanti-nagar-adugodi,"PPF near Koramangala, HSR Layout and Shanti Nagar",exists (check anchor),"inside body text, not the footer",guides index: every article plus the two main services
+/blog,/blog/hard-water-spot-removal-bangalore,protecting paint from hard water spots,exists (check anchor),"inside body text, not the footer",guides index: every article plus the two main services
+/blog,/blog/monsoon-damage-car-bangalore,what the monsoon does to your paint,exists (check anchor),"inside body text, not the footer",guides index: every article plus the two main services
+/blog,/blog/windshield-heat-rejection-film-summer,what heat rejection film numbers mean,exists (check anchor),"inside body text, not the footer",guides index: every article plus the two main services
+/blog,/ppf,car PPF price in Bangalore,add,"inside body text, not the footer",guides index: every article plus the two main services
+/blog,/ceramic-coating/car,car ceramic coating price,add,"inside body text, not the footer",guides index: every article plus the two main services
+/blog/best-car-detailing-in-bangalore,/services,all services,exists (check anchor),"inside body text, not the footer",pillar article: every service cluster entry
+/blog/best-car-detailing-in-bangalore,/ppf,car PPF price in Bangalore,exists (check anchor),"inside body text, not the footer",pillar article: every service cluster entry
+/blog/best-car-detailing-in-bangalore,/ceramic-coating/car,car ceramic coating price,exists (check anchor),"inside body text, not the footer",pillar article: every service cluster entry
+/blog/best-car-detailing-in-bangalore,/services/interior-detailing-bangalore,car interior detailing guide,exists (check anchor),"inside body text, not the footer",pillar article: every service cluster entry
+/blog/best-car-detailing-in-bangalore,/blog/ppf-vs-ceramic-coating-bangalore,PPF vs ceramic coating for Bangalore roads,add,"inside body text, not the footer",pillar article: every service cluster entry
+/blog/best-car-detailing-in-bangalore,/contact,visit the studio in Adugodi,add,"inside body text, not the footer",pillar article: every service cluster entry
+/blog/ppf-vs-ceramic-coating-bangalore,/ppf,car PPF price in Bangalore,add,"inside body text, not the footer",decision article to both money pages
+/blog/ppf-vs-ceramic-coating-bangalore,/ceramic-coating/car,car ceramic coating price,add,"inside body text, not the footer",decision article to both money pages
+/blog/ppf-vs-ceramic-coating-bangalore,/services/paint-protection-film-bangalore,PPF in Bangalore: the full guide,exists (check anchor),"inside body text, not the footer",decision article to both money pages
+/blog/ppf-vs-ceramic-coating-bangalore,/services/ceramic-coating-bangalore,ceramic coating in Bangalore: the full guide,exists (check anchor),"inside body text, not the footer",decision article to both money pages
+/blog/ppf-vs-ceramic-coating-bangalore,/blog/how-much-ppf-does-your-car-need,how much PPF your car needs,add,"inside body text, not the footer",decision article to both money pages
+/blog/how-much-ppf-does-your-car-need,/ppf,car PPF price in Bangalore,exists (check anchor),"inside body text, not the footer",sizing article to PPF price page
+/blog/how-much-ppf-does-your-car-need,/services/paint-protection-film-bangalore,PPF in Bangalore: the full guide,add,"inside body text, not the footer",sizing article to PPF price page
+/blog/how-much-ppf-does-your-car-need,/blog/ppf-vs-ceramic-coating-bangalore,PPF vs ceramic coating for Bangalore roads,exists (check anchor),"inside body text, not the footer",sizing article to PPF price page
+/blog/how-much-ppf-does-your-car-need,/products/p91-premium-ppf,P91 Premium PPF,exists (check anchor),"inside body text, not the footer",sizing article to PPF price page
+/blog/is-your-ppf-really-made-in-usa,/ppf,car PPF price in Bangalore,add,"inside body text, not the footer",trust article to PPF page and brand
+/blog/is-your-ppf-really-made-in-usa,/products/stek,STEK paint protection and sun control film,exists (check anchor),"inside body text, not the footer",trust article to PPF page and brand
+/blog/is-your-ppf-really-made-in-usa,/services/paint-protection-film-bangalore,PPF in Bangalore: the full guide,exists (check anchor),"inside body text, not the footer",trust article to PPF page and brand
+/blog/is-your-ppf-really-made-in-usa,/blog/how-much-ppf-does-your-car-need,how much PPF your car needs,exists (check anchor),"inside body text, not the footer",trust article to PPF page and brand
+/blog/ppf-koramangala-hsr-layout-shanti-nagar-adugodi,/ppf,car PPF price in Bangalore,add,"inside body text, not the footer","local article to contact, PPF page and guide"
+/blog/ppf-koramangala-hsr-layout-shanti-nagar-adugodi,/services/paint-protection-film-bangalore,PPF in Bangalore: the full guide,exists (check anchor),"inside body text, not the footer","local article to contact, PPF page and guide"
+/blog/ppf-koramangala-hsr-layout-shanti-nagar-adugodi,/contact,visit the studio in Adugodi,add,"inside body text, not the footer","local article to contact, PPF page and guide"
+/blog/ppf-koramangala-hsr-layout-shanti-nagar-adugodi,/gallery,see our finished work,exists (check anchor),"inside body text, not the footer","local article to contact, PPF page and guide"
+/blog/ppf-koramangala-hsr-layout-shanti-nagar-adugodi,/blog/best-car-detailing-in-bangalore,how to choose a car detailing studio in Bangalore,add,"inside body text, not the footer","local article to contact, PPF page and guide"
+/blog/hard-water-spot-removal-bangalore,/service/exterior-detailing-hard-water-new,exterior detailing with hard water spot removal,exists (check anchor),"inside body text, not the footer",problem article to detailing and ceramic
+/blog/hard-water-spot-removal-bangalore,/ceramic-coating/car,car ceramic coating price,add,"inside body text, not the footer",problem article to detailing and ceramic
+/blog/hard-water-spot-removal-bangalore,/services/ceramic-coating-bangalore,ceramic coating in Bangalore: the full guide,exists (check anchor),"inside body text, not the footer",problem article to detailing and ceramic
+/blog/hard-water-spot-removal-bangalore,/blog/monsoon-damage-car-bangalore,what the monsoon does to your paint,add,"inside body text, not the footer",problem article to detailing and ceramic
+/blog/monsoon-damage-car-bangalore,/ceramic-coating/car,car ceramic coating price,exists (check anchor),"inside body text, not the footer",seasonal article to protection services
+/blog/monsoon-damage-car-bangalore,/ppf,car PPF price in Bangalore,add,"inside body text, not the footer",seasonal article to protection services
+/blog/monsoon-damage-car-bangalore,/service/interior-detailing-service,interior rejuvenation service,add,"inside body text, not the footer",seasonal article to protection services
+/blog/monsoon-damage-car-bangalore,/blog/hard-water-spot-removal-bangalore,protecting paint from hard water spots,exists (check anchor),"inside body text, not the footer",seasonal article to protection services
+/blog/windshield-heat-rejection-film-summer,/services/glass-sun-control-film-bangalore,sun control film and glass coating guide,exists (check anchor),"inside body text, not the footer",film article to glass services
+/blog/windshield-heat-rejection-film-summer,/service/windshield-glass-coating-new,windshield glass coating,exists (check anchor),"inside body text, not the footer",film article to glass services
+/blog/windshield-heat-rejection-film-summer,/products/stek,STEK paint protection and sun control film,exists (check anchor),"inside body text, not the footer",film article to glass services
+/blog/windshield-heat-rejection-film-summer,/blog/monsoon-damage-car-bangalore,what the monsoon does to your paint,add,"inside body text, not the footer",film article to glass services
+/gallery,/ppf,car PPF price in Bangalore,exists (check anchor),"inside body text, not the footer",proof page: link each photo group to its service
+/gallery,/ceramic-coating/car,car ceramic coating price,exists (check anchor),"inside body text, not the footer",proof page: link each photo group to its service
+/gallery,/ceramic-coating/bike,bike ceramic coating in Bangalore,exists (check anchor),"inside body text, not the footer",proof page: link each photo group to its service
+/gallery,/services/interior-detailing-bangalore,car interior detailing guide,exists (check anchor),"inside body text, not the footer",proof page: link each photo group to its service
+/gallery,/services/glass-sun-control-film-bangalore,sun control film and glass coating guide,exists (check anchor),"inside body text, not the footer",proof page: link each photo group to its service
+/gallery,/products/stek,STEK paint protection and sun control film,add,"inside body text, not the footer",proof page: link each photo group to its service
+/gallery,/contact,visit the studio in Adugodi,add,"inside body text, not the footer",proof page: link each photo group to its service
+/contact,/services,all services,add,"inside body text, not the footer",local page: services and the local article
+/contact,/ppf,car PPF price in Bangalore,add,"inside body text, not the footer",local page: services and the local article
+/contact,/ceramic-coating/car,car ceramic coating price,add,"inside body text, not the footer",local page: services and the local article
+/contact,/blog/ppf-koramangala-hsr-layout-shanti-nagar-adugodi,"PPF near Koramangala, HSR Layout and Shanti Nagar",add,"inside body text, not the footer",local page: services and the local article
+/contact,/gallery,see our finished work,add,"inside body text, not the footer",local page: services and the local article
+/contact,/faq,PPF and ceramic coating FAQs,add,"inside body text, not the footer",local page: services and the local article
+/faq,/ppf,car PPF price in Bangalore,exists (check anchor),"inside body text, not the footer",FAQ answers link to the page that covers each topic
+/faq,/ceramic-coating/car,car ceramic coating price,exists (check anchor),"inside body text, not the footer",FAQ answers link to the page that covers each topic
+/faq,/ceramic-coating/bike,bike ceramic coating in Bangalore,add,"inside body text, not the footer",FAQ answers link to the page that covers each topic
+/faq,/services/interior-detailing-bangalore,car interior detailing guide,add,"inside body text, not the footer",FAQ answers link to the page that covers each topic
+/faq,/services/glass-sun-control-film-bangalore,sun control film and glass coating guide,exists (check anchor),"inside body text, not the footer",FAQ answers link to the page that covers each topic
+/faq,/contact,visit the studio in Adugodi,add,"inside body text, not the footer",FAQ answers link to the page that covers each topic

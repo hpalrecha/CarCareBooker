@@ -1,0 +1,23 @@
+source_url,current_behaviour,proposed_behaviour,change_needed,evidence,risk_if_changed
+http://p91carcare.com/*,301 to https (Cloudflare),keep,no,Search Console "Page with redirect" lists http://p91carcare.com/ (referrer: Linktree link). Expected and correct.,none
+https://www.p91carcare.com/*,301 to apex,keep,no,server/middleware/canonical-host.ts,none
+https://booking.p91carcare.com/*,301 to apex (same path),keep the 301; change the Google Business Profile booking link to the apex URL,GBP edit by owner,206 impressions on booking./services/paint-protection-film-bangalore plus ~50 rwg_token variants (Search Console 19 Aug to 17 Nov) while the apex guide has none,"If the 301 were removed, booking links break"
+/index.html,301 to /,keep,no,live check 20 Nov,none
+/<path>/ (trailing slash),301 to no-slash,keep,no,server/middleware/trailing-slash.ts,none
+/ppf-ceramic-coating,301 to /services,keep as is,no,"Old combined PPF+ceramic page; zero internal links; not in Search Console data (routes.ts comment). No evidence supports a better target.",Redirecting to /ppf or /ceramic-coating/car would be a guess
+/service/glass-polishing,301 to /service/windshield-glass-polishing,keep,no,near-duplicate consolidated earlier (routes.ts),none
+/service/ppf-hatchback | /service/ppf-sedan | /service/ppf-suv,200 + canonical to /ppf,keep 200 + canonical. Do NOT redirect. Keep out of sitemap.,no,"These are live booking records. Redirecting would break package booking links. Canonical already consolidates (verified in HTML, 20 Nov). Google reports them 'unknown'.",High: breaks booking if redirected
+/service/ppf-premium-hatchback | /service/ppf-premium-sedan | /service/ppf-premium-suv,200 + canonical to /ppf,keep 200 + canonical. Do NOT redirect.,no,same as above,High
+/service/1-year-ceramic-coating,200 + canonical to /ceramic-coating/car,keep 200 + canonical. Do NOT redirect.,no,Live booking record; overlap 67-85% with the car page is handled by canonical,High
+/service/1-year-bike-ceramic-coating,200 + canonical to /ceramic-coating/bike,keep 200 + canonical. Do NOT redirect.,no,same,High
+/offer/de-dhana-dhan,410 noindex,keep 410,no,Offer ended 8 Nov 2026 and page was removed on purpose,none
+/le48,410 noindex,keep 410,no,Legacy path; Googlebot still requests it,none
+"16 Search Console Soft 404 URLs (foreign store-listing slugs, see 01 report section 1)",410 noindex,keep 410. Do not redirect.,no,"URL Inspection 20 Nov: last crawled Feb to Apr 2026, before 410 handling. No relevant replacement exists.",Redirects would create real soft-404 signals
+Any one-segment slug ending in a 5-7 digit id (pattern),410 noindex,keep,no,server/lib/spam-paths.ts; tests/spam-paths.test.mjs and tests/spam-soft404-urls.test.mjs,none
+/this-does-not-exist and other unknown paths,404 + noindex follow,keep,no,live check,none
+/blog/category/glass-film | /blog/category/paint-care | /blog/category/protection,200 noindex follow; not in sitemap,keep,no,"Thin category pages, intentional",none
+/privacy-policy | /terms-conditions | /refund-policy,200 noindex follow; not in sitemap,keep noindex. Fix: main content is empty in the first HTML response (2 to 4 words),code check needed,"Audit 20 Nov: <main> holds 2 to 4 words in the raw HTML; the legal text is added by JavaScript. Fine for users and for noindex, but crawlers see no text.",low
+(new) /detailing,does not exist,do NOT create,decision,Detailing is already covered by /services/interior-detailing-bangalore and /service/* pages. A new URL would compete with them and add an unindexed page.,Cannibalisation
+(new) /guides,does not exist,do NOT create. Use /blog as the guides hub (rename the visible label only).,decision,"/blog is already in the sitemap and linked sitewide; a second hub would split signals",Cannibalisation
+(new) /about,does not exist,create only when the studio supplies real facts (story, team, equipment),owner input,No verifiable content in the repository; a placeholder page would be thin,Thin page
+Summary,"0 new 301 redirects are recommended in this plan. 3 'do not create' decisions. All existing 301 and 410 behaviour is retained.",,,,
