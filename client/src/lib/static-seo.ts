@@ -46,7 +46,7 @@ export const HOME_SEO: StaticSeoPage = {
   // the H1 before — it only said "Car Detailing" — so the page's most-weighted on-page
   // signal never matched its own brand/service term. Same facts, brand name restored.
   // 68 characters: the audit's limit is 70 (the previous 75 added "Studio"). Same words otherwise.
-  h1: "P91 Car Care: Detailing, PPF & Ceramic Coating in Adugodi, Bangalore",
+  h1: "P91 Car Care | Best Car Detailing, PPF & Ceramic Coating in Bangalore",
   lede:
     "Ceramic coating, paint protection film and full interior work, done properly. " +
     "Written warranty terms come with every job, and you can book online in under a minute.",

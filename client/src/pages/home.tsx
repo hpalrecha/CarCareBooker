@@ -363,7 +363,7 @@ export default function Home() {
         <div className="wrap copy">
           <span className="eyebrow">Detailing Studio · Adugodi</span>
           <h1 className="hero-solid">
-            P91 Car Care: Detailing, PPF &amp; Ceramic Coating in Adugodi, Bangalore
+            P91 Car Care | Best Car Detailing, PPF &amp; Ceramic Coating in Bangalore
           </h1>
           <p className="lede">
             Ceramic coating, paint protection film and full interior work, done properly.
