@@ -1,0 +1,33 @@
+url,decision,role,canonical_ok,google_status_20nov,recommended_lastmod,lastmod_evidence,reason
+https://p91carcare.com/,keep,home,self,indexed,2026-11-20,home.tsx and homepage title/H1/FAQ changed 20 Nov (commit 6aa74de),Brand and local entry page. Only indexed URL
+https://p91carcare.com/services,keep,hub,self,unknown (never crawled),omit,only 4 lines changed on 18 Nov; not a significant content change,Crawl hub linking every service and guide
+https://p91carcare.com/products,keep,hub,self,crawled not indexed,omit,only 3 lines changed on 18 Nov; not a significant content change,Brand hub; keep until the three brand pages are indexed
+https://p91carcare.com/products/stek,keep,brand,self,crawled not indexed,omit,only 2 lines changed on 17 Nov,Own product intent ("STEK PPF Bangalore")
+https://p91carcare.com/products/nasiol,keep,brand,self,crawled not indexed,2026-09-24,brand-pages.ts Nasiol entry last changed 24 Sep,Own product intent
+https://p91carcare.com/products/p91-premium-ppf,keep,brand,self,crawled not indexed,omit,only 3 lines changed on 17 Nov,Own product line
+https://p91carcare.com/services/ceramic-coating-bangalore,keep,guide,self,unknown (never crawled),2026-11-17,seo-pages.ts entry rewritten 17 Nov,Informational intent. Text overlap with /ceramic-coating/car is 3 to 10 percent
+https://p91carcare.com/services/paint-protection-film-bangalore,keep,guide,self,unknown (never crawled),2026-11-17,seo-pages.ts entry rewritten 17 Nov,Informational intent. Text overlap with /ppf is 1 percent. 320 impressions sit on the old booking host
+https://p91carcare.com/services/interior-detailing-bangalore,keep,guide,self,unknown (never crawled),2026-11-17,seo-pages.ts entry rewritten 17 Nov,Guide; different role from the bookable item. Review after both are crawled
+https://p91carcare.com/services/glass-sun-control-film-bangalore,keep,guide,self,unknown (never crawled),2026-11-17,seo-pages.ts entry rewritten 17 Nov,Film overview. H1 overlaps the windshield coating item (see report)
+https://p91carcare.com/blog,keep,hub,self,crawled not indexed,2026-11-17,blog-posts.ts bodies changed 17 Nov; no newer post,Guides index; links all 8 articles
+https://p91carcare.com/blog/ppf-koramangala-hsr-layout-shanti-nagar-adugodi,keep,article,self,crawled not indexed,2026-11-17,5 lines changed 17 Nov (published 5 Oct),Local intent article
+https://p91carcare.com/blog/ppf-vs-ceramic-coating-bangalore,keep,article,self,crawled not indexed,2026-11-17,11 lines changed 17 Nov (updated field 10 Sep),Decision article
+https://p91carcare.com/blog/hard-water-spot-removal-bangalore,keep,article,self,crawled not indexed,2026-11-17,6 lines changed 17 Nov (published 12 Aug),Problem article
+https://p91carcare.com/blog/windshield-heat-rejection-film-summer,keep,article,self,crawled not indexed,2026-11-17,4 lines changed 17 Nov (published 30 Jul),Film article
+https://p91carcare.com/blog/is-your-ppf-really-made-in-usa,keep,article,self,crawled not indexed,2026-11-17,10 lines changed 17 Nov (published 8 Sep),Trust article
+https://p91carcare.com/blog/how-much-ppf-does-your-car-need,keep,article,self,crawled not indexed,2026-11-17,10 lines changed 17 Nov (published 5 Sep),Sizing article
+https://p91carcare.com/blog/monsoon-damage-car-bangalore,keep,article,self,crawled not indexed,2026-11-17,10 lines changed 17 Nov (published 2 Sep),Seasonal article
+https://p91carcare.com/blog/best-car-detailing-in-bangalore,keep,article,self,crawled not indexed,2026-11-17,9 lines changed 17 Nov (published 7 Oct),Pillar article; longest text on the site
+https://p91carcare.com/ceramic-coating/car,keep,money,self,crawled not indexed,2026-11-17,landing-pages.ts entry changed 17 Nov; DB row 26 Sep,Price and booking page; ad destination; stores landing_page in bookings
+https://p91carcare.com/ceramic-coating/bike,keep,money,self,crawled not indexed,2026-11-17,landing-pages.ts entry changed 17 Nov; DB row 21 Sep,Price and booking page for bikes
+https://p91carcare.com/ppf,keep,money,self,crawled not indexed,2026-11-17,landing-pages.ts entry changed 17 Nov; DB rows 13 Oct,Price and booking page; ad destination
+https://p91carcare.com/gallery,keep,proof,self,crawled not indexed,omit,only 2 lines changed on 17 Nov,Proof page; low text. Keep: it is the only photo and reel page
+https://p91carcare.com/faq,keep,support,self,crawled not indexed (crawled 19 Nov),2026-11-20,faq-page.ts changed 20 Nov (6 FAQs added); sitemap says 19 Nov,Support hub. Current lastmod is one day stale
+https://p91carcare.com/contact,keep,utility,self,crawled not indexed,omit,only 2 lines changed on 17 Nov,Local entity page: address, phone, hours
+https://p91carcare.com/service/annual-maintenance-package,keep,service item (booking record),self,unknown (never crawled),2026-09-24,DB updatedAt 24 Sep,Bookable package; no other page sells it
+https://p91carcare.com/service/exterior-detailing-hard-water-new,keep,service item (booking record),self,unknown (never crawled),2026-09-26,DB updatedAt 26 Sep,Bookable service
+https://p91carcare.com/service/headlight-restoration-both,keep,service item (booking record),self,unknown (never crawled),2026-09-18,DB updatedAt 18 Sep,Bookable service
+https://p91carcare.com/service/interior-detailing-service,keep,service item (booking record),self,unknown (never crawled),2026-10-07,DB updatedAt 7 Oct,Bookable interior service. Targets "car interior cleaning" (54 impressions)
+https://p91carcare.com/service/premium-car-wash-special,keep,service item (booking record),self,unknown (never crawled),2026-09-18,DB updatedAt 18 Sep,Bookable wash. Targets "car wash near me" (277 impressions)
+https://p91carcare.com/service/windshield-glass-coating-new,keep,service item (booking record),self,unknown (never crawled),2026-09-26,DB updatedAt 26 Sep,Protect intent; separate from polishing (repair intent)
+https://p91carcare.com/service/windshield-glass-polishing,keep,service item (booking record),self,unknown (never crawled),2026-09-26,DB updatedAt 26 Sep,Repair intent; the 301 from /service/glass-polishing already consolidated the duplicate
