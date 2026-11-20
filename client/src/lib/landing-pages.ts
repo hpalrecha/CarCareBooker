@@ -223,6 +223,11 @@ export const LANDING_PAGES: LandingPage[] = [
       { label: "Ceramic coating: the full guide", href: "/services/ceramic-coating-bangalore" },
       { label: "Ceramic coating for bikes", href: "/ceramic-coating/bike" },
       { label: "Paint protection film", href: "/ppf" },
+      { label: "Nasiol nano-ceramic coating", href: "/products/nasiol" },
+      { label: "How to protect your car paint from hard water spots in Bangalore", href: "/blog/hard-water-spot-removal-bangalore" },
+      { label: "PPF vs ceramic coating", href: "/blog/ppf-vs-ceramic-coating-bangalore" },
+      { label: "See our work", href: "/gallery" },
+      { label: "Visit the studio in Adugodi", href: "/contact" },
     ],
   },
 
@@ -297,6 +302,10 @@ export const LANDING_PAGES: LandingPage[] = [
     related: [
       { label: "Ceramic coating for cars", href: "/ceramic-coating/car" },
       { label: "Ceramic coating: the full guide", href: "/services/ceramic-coating-bangalore" },
+      { label: "Nasiol nano-ceramic coating", href: "/products/nasiol" },
+      { label: "See our work", href: "/gallery" },
+      { label: "Visit the studio in Adugodi", href: "/contact" },
+      { label: "PPF and ceramic coating FAQs", href: "/faq" },
     ],
   },
 
@@ -396,9 +405,22 @@ export const LANDING_PAGES: LandingPage[] = [
       { label: "PPF: the full guide", href: "/services/paint-protection-film-bangalore" },
       { label: "PPF vs ceramic coating", href: "/blog/ppf-vs-ceramic-coating-bangalore" },
       { label: "Ceramic coating for cars", href: "/ceramic-coating/car" },
+      { label: "STEK paint protection film", href: "/products/stek" },
+      { label: "P91 Premium PPF", href: "/products/p91-premium-ppf" },
+      { label: "How much PPF your car needs, from front-end to full body", href: "/blog/how-much-ppf-does-your-car-need" },
+      { label: "See our work", href: "/gallery" },
+      { label: "Visit the studio in Adugodi", href: "/contact" },
+      { label: "PPF and ceramic coating FAQs", href: "/faq" },
     ],
   },
 ];
+
+/** The statement band and photo heading on /ppf, shared by the page and its first-HTML snapshot (lib/crawlable-content.ts). */
+export const PPF_STATEMENT = {
+  heading: "Catch damage before it costs you",
+  body: "A clear film absorbs stone chips, kerb scrapes and swirl marks before they reach your clearcoat, so the paint underneath stays as it left the factory.",
+} as const;
+export const LANDING_PHOTOS_HEADING = "Real photos from the studio";
 
 /** The landing page for a path, or undefined. */
 export function getLandingPage(path: string): LandingPage | undefined {

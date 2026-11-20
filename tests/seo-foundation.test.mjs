@@ -497,7 +497,10 @@ describe('related guides, brands and articles on the /service/* pages', () => {
       const r = m.SERVICE_RELATED[slug];
       for (const l of r.posts) assert.ok(posts.has(l.href), slug + ' -> ' + l.href);
       for (const l of r.products) assert.ok(l.href === '/products' || brands.has(l.href), slug + ' -> ' + l.href);
-      for (const l of r.guides) assert.ok(l.href === '/services' || guides.has(l.href), slug + ' -> ' + l.href);
+      // 2026-11-20 (owner-approved link plan): service pages may also link their sibling service pages and the car
+      // ceramic price page, so a visitor can move between related services.
+      const sibling = (h) => SEVEN.some((x) => h === '/service/' + x) || h === '/ceramic-coating/car';
+      for (const l of r.guides) assert.ok(l.href === '/services' || guides.has(l.href) || sibling(l.href), slug + ' -> ' + l.href);
     }
   });
 
@@ -538,10 +541,10 @@ describe('related guides, brands and articles on the /service/* pages', () => {
     }
   });
 
-  test('the car-wash page has no ceramic-coating guide link; it keeps the hub, two articles and all-services', () => {
+  test('the car-wash page has no ceramic-coating guide link; it links its sibling services, two articles and all-services', () => {
     const r = m.SERVICE_RELATED['premium-car-wash-special'];
     assert.ok(!r.guides.some((l) => l.href === '/services/ceramic-coating-bangalore'));
-    assert.deepEqual(r.guides.map((l) => l.href), ['/services']);
+    assert.deepEqual(r.guides.map((l) => l.href), ['/service/exterior-detailing-hard-water-new', '/service/interior-detailing-service', '/service/annual-maintenance-package', '/services']);
     assert.deepEqual(r.posts.map((l) => l.href), ['/blog/hard-water-spot-removal-bangalore', '/blog/best-car-detailing-in-bangalore']);
   });
 

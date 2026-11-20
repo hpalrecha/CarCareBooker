@@ -49,41 +49,49 @@ const GUIDE_CERAMIC: RelatedLink = { href: "/services/ceramic-coating-bangalore"
 const GUIDE_INTERIOR: RelatedLink = { href: "/services/interior-detailing-bangalore", label: "Car interior detailing in Bangalore: the full guide" };
 const GUIDE_GLASS: RelatedLink = { href: "/services/glass-sun-control-film-bangalore", label: "Sun control film and glass coating in Bangalore" };
 const GUIDE_PPF: RelatedLink = { href: "/services/paint-protection-film-bangalore", label: "Paint protection film in Bangalore: the full guide" };
+const CAR_CERAMIC: RelatedLink = { href: "/ceramic-coating/car", label: "Ceramic coating for cars: price and booking" };
+const WASH: RelatedLink = { href: "/service/premium-car-wash-special", label: "Premium car wash" };
+const EXTERIOR: RelatedLink = { href: "/service/exterior-detailing-hard-water-new", label: "Exterior detailing with hard water spot removal" };
+const INTERIOR_SVC: RelatedLink = { href: "/service/interior-detailing-service", label: "Interior rejuvenation service" };
+const ANNUAL: RelatedLink = { href: "/service/annual-maintenance-package", label: "Annual maintenance package" };
+const POLISH: RelatedLink = { href: "/service/windshield-glass-polishing", label: "Windshield glass polishing" };
+const GLASS_COATING: RelatedLink = { href: "/service/windshield-glass-coating-new", label: "Windshield glass coating" };
+const HEADLIGHT: RelatedLink = { href: "/service/headlight-restoration-both", label: "Headlight restoration" };
 const ALL_SERVICES: RelatedLink = { href: "/services", label: "All P91 Car Care services in Bangalore" };
 
 export const SERVICE_RELATED: Record<string, ServiceRelated> = {
   "exterior-detailing-hard-water-new": {
-    guides: [GUIDE_CERAMIC, ALL_SERVICES],
+    guides: [GUIDE_CERAMIC, CAR_CERAMIC, WASH, ALL_SERVICES],
     products: [PRODUCTS_HUB],
     posts: [HARD_WATER, MONSOON],
   },
   "headlight-restoration-both": {
-    guides: [GUIDE_PPF, ALL_SERVICES],
+    guides: [GUIDE_GLASS, GUIDE_PPF, POLISH, EXTERIOR, ALL_SERVICES],
     products: [PRODUCTS_HUB],
     posts: [PPF_COVERAGE, CHOOSE_STUDIO],
   },
   "interior-detailing-service": {
-    guides: [GUIDE_INTERIOR, ALL_SERVICES],
+    guides: [GUIDE_INTERIOR, ANNUAL, WASH, ALL_SERVICES],
     products: [PRODUCTS_HUB],
     posts: [CHOOSE_STUDIO, MONSOON],
   },
   "premium-car-wash-special": {
-    guides: [ALL_SERVICES],
+    guides: [EXTERIOR, INTERIOR_SVC, ANNUAL, ALL_SERVICES],
     products: [PRODUCTS_HUB],
     posts: [HARD_WATER, CHOOSE_STUDIO],
   },
   "windshield-glass-coating-new": {
-    guides: [GUIDE_GLASS, ALL_SERVICES],
+    guides: [GUIDE_GLASS, POLISH, ALL_SERVICES],
     products: [PRODUCTS_HUB],
     posts: [WINDSHIELD_FILM, CHOOSE_STUDIO],
   },
   "windshield-glass-polishing": {
-    guides: [GUIDE_GLASS, ALL_SERVICES],
+    guides: [GUIDE_GLASS, GLASS_COATING, HEADLIGHT, ALL_SERVICES],
     products: [PRODUCTS_HUB],
     posts: [WINDSHIELD_FILM, CHOOSE_STUDIO],
   },
   "annual-maintenance-package": {
-    guides: [GUIDE_INTERIOR, ALL_SERVICES],
+    guides: [GUIDE_INTERIOR, INTERIOR_SVC, EXTERIOR, WASH, ALL_SERVICES],
     products: [PRODUCTS_HUB],
     posts: [CHOOSE_STUDIO, MONSOON],
   },

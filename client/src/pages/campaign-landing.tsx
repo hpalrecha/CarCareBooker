@@ -38,6 +38,8 @@ import {
   displayableIncludes,
   displayableFaqs,
   type CategoryOption,
+  PPF_STATEMENT,
+  LANDING_PHOTOS_HEADING,
 } from "@/lib/landing-pages";
 
 /**
@@ -551,12 +553,8 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
                   </div>
                 </div>
                 <div className="guide-collage-copy">
-                  <h2>Catch damage before it costs you</h2>
-                  <p>
-                    A clear film absorbs stone chips, kerb scrapes and swirl marks before
-                    they reach your clearcoat, so the paint underneath stays as it
-                    left the factory.
-                  </p>
+                  <h2>{PPF_STATEMENT.heading}</h2>
+                  <p>{PPF_STATEMENT.body}</p>
                 </div>
               </div>
             </div>
@@ -628,7 +626,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
         <section className="section lp-tight">
           <div className="wrap">
             <div className="section-head" style={{ textAlign: "center" }}>
-              <h2>Real photos from the studio</h2>
+              <h2>{LANDING_PHOTOS_HEADING}</h2>
             </div>
             <div className="grid lp-gallery" style={{ gridTemplateColumns: `repeat(${Math.min(service.images.length, 3)}, minmax(0, 1fr))` }}>
               {service.images.slice(0, 3).map((src, i) => (

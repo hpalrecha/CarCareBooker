@@ -186,7 +186,7 @@ export const BLOG_POSTS: BlogPost[] = [
           "**Koramangala:** a short drive from the studio",
           "**Shanti Nagar:** a short drive from the studio",
           "**HSR Layout:** a short drive from the studio",
-          "**Adugodi:** right here, so you can drop in and see the studio.",
+          "**Adugodi:** right here, so you can drop in and [see the studio](/contact).",
         ],
       },
       {
@@ -1034,7 +1034,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         type: "p",
         text:
-          "If you're looking for car detailing, ceramic coating or paint protection film in Bangalore, visit P91 Car Care or book online in under a minute.",
+          "If you're looking for car detailing, ceramic coating or paint protection film in Bangalore, [visit P91 Car Care](/contact) or book online in under a minute.",
       },
       {
         type: "contact",

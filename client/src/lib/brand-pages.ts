@@ -58,7 +58,7 @@ export const BRAND_PAGES: BrandPage[] = [
       "Warranty on any STEK job is the manufacturer's, issued in writing at handover. Ask to see the batch details before work starts.",
     ],
     fits: [
-      { name: "Paint protection film", note: "Full and partial coverage for hatchbacks, sedans and SUVs.", href: "/services/paint-protection-film-bangalore" },
+      { name: "Paint protection film", note: "Full and partial coverage for hatchbacks, sedans and SUVs.", href: "/ppf" },
       { name: "Sun-control film, full car", note: "Front, side and rear glass.", href: "/services/glass-sun-control-film-bangalore" },
       { name: "Sun-control film, windshield", note: "The windshield only.", href: "/services/glass-sun-control-film-bangalore" },
     ],
@@ -89,8 +89,8 @@ export const BRAND_PAGES: BrandPage[] = [
       "P91 Car Care applies Nasiol ceramic coating to cars and motorcycles at the studio. Warranty on any Nasiol job is the manufacturer's, issued in writing at handover.",
     ],
     fits: [
-      { name: "Ceramic coating for cars", note: "Paint correction, then a ceramic layer.", href: "/services/ceramic-coating-bangalore" },
-      { name: "Ceramic coating for motorcycles", note: "Tank, fairings and painted panels.", href: "/services/ceramic-coating-bangalore" },
+      { name: "Ceramic coating for cars", note: "Paint correction, then a ceramic layer.", href: "/ceramic-coating/car" },
+      { name: "Ceramic coating for motorcycles", note: "Tank, fairings and painted panels.", href: "/ceramic-coating/bike" },
     ],
     benefits: [
       { title: "Water and stain repellent", body: "Water beads and rolls off, and dirt has less to hold on to." },
@@ -119,7 +119,7 @@ export const BRAND_PAGES: BrandPage[] = [
       "The packages are Basic, Premium and Partial, each priced for hatchbacks, sedans and SUVs. Current prices and what each one includes are on the PPF page, and the same figures apply when you book.",
     ],
     fits: [
-      { name: "Full-body PPF packages", note: "Basic and Premium, for hatchbacks, sedans and SUVs.", href: "/services/paint-protection-film-bangalore" },
+      { name: "Full-body PPF packages", note: "Basic and Premium, for hatchbacks, sedans and SUVs.", href: "/ppf" },
       { name: "Partial PPF packages", note: "The panels that take the most impacts.", href: "/services/paint-protection-film-bangalore" },
     ],
     benefits: [

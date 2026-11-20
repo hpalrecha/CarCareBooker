@@ -10,7 +10,7 @@ import { BLOG_POSTS } from "./blog-posts";
 import { HOME_PACKAGE_LINKS } from "./home-package-links";
 import { SERVICE_GUIDE_LINKS, SERVICE_PRICE_LINKS, type HubLink } from "./service-hub-links";
 import { hubOptionLinks } from "./hub-option-links";
-import { STUDIO_PHOTOS } from "./gallery-photos";
+import { STUDIO_PHOTOS, REEL_CAPTIONS } from "./gallery-photos";
 import {
   FAQ_GROUPS, FAQ_INTRO, FAQ_SERVICE_CARDS, FAQ_COMPARISON, FAQ_COMPARISON_AFTER, FAQ_LAST_UPDATED_LABEL,
 } from "./faq-page";
@@ -23,7 +23,7 @@ import { displayableIncludes, displayableFaqs, generalPackageFaqs, isWithheldCla
 import { WARRANTY_BATCH_LINE, WARRANTY_HANDOVER_LINE, neutraliseWarrantyIssuer } from "./warranty-wording";
 import { HOW_IT_WORKS, VISIT_STUDIO, REVIEWS_SECTION } from "./studio-sections-data";
 import { VERIFIED_REVIEWS, GOOGLE_REVIEWS_URL, HOME_REVIEW_COUNT } from "./reviews";
-import { relevantPosts } from "./landing-pages";
+import { relevantPosts, PPF_STATEMENT, LANDING_PHOTOS_HEADING } from "./landing-pages";
 import { getBrandPage } from "./brand-pages";
 import { PRODUCTS_HERO, PRODUCT_KIND, PRODUCT_CHOOSE, PRODUCTS_CHOOSE_HEADING, PRODUCTS_HELP_BEFORE, PRODUCTS_HELP_LINK, PRODUCTS_HELP_AFTER, PRODUCTS_HELP_HREF } from "./products-page-data";
 
@@ -489,7 +489,9 @@ export function landingPageContent(page: LandingPage): string {
     h1(page.h1) +
       p(page.lede) +
       (benefits ? h2(page.benefitsHeading) + benefits : "") +
+      (page.packageComparison ? h2(PPF_STATEMENT.heading) + p(PPF_STATEMENT.body) : "") +
       steps +
+      h2(LANDING_PHOTOS_HEADING) +
       p(`${WARRANTY_HANDOVER_LINE} ${WARRANTY_BATCH_LINE}`) +
       learn +
       related,
@@ -715,6 +717,7 @@ export function galleryPageContent(page: StaticSeoPage): string {
       figures +
       h2("Watch the work") +
       p("From our reels. Plays as you scroll, no sound.") +
+      `<ul>${REEL_CAPTIONS.map((r) => `<li>${e(r.label)}: ${e(r.note)}</li>`).join("")}</ul>` +
       h2("What we post") +
       p("The guides we publish on Instagram. Tap one to flip through every slide.") +
       hubLinkSection("The services behind this work", [...SERVICE_GUIDE_LINKS, ...SERVICE_PRICE_LINKS]) +

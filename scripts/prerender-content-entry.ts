@@ -38,6 +38,7 @@ export {
   landingServiceExtras,
   faqPageSchema,
   homePageContent,
+  productsPageContent,
   seoGuideContent,
   blogPostContent,
   blogListContent,
