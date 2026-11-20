@@ -81,7 +81,7 @@ export const SERVICE_RELATED: Record<string, ServiceRelated> = {
     posts: [HARD_WATER, CHOOSE_STUDIO],
   },
   "windshield-glass-coating-new": {
-    guides: [GUIDE_GLASS, POLISH, ALL_SERVICES],
+    guides: [GUIDE_GLASS, POLISH, HEADLIGHT, ALL_SERVICES],
     products: [PRODUCTS_HUB],
     posts: [WINDSHIELD_FILM, CHOOSE_STUDIO],
   },

@@ -228,6 +228,7 @@ export const LANDING_PAGES: LandingPage[] = [
       { label: "PPF vs ceramic coating", href: "/blog/ppf-vs-ceramic-coating-bangalore" },
       { label: "See our work", href: "/gallery" },
       { label: "Visit the studio in Adugodi", href: "/contact" },
+      { label: "All guides", href: "/blog" },
     ],
   },
 
@@ -306,6 +307,7 @@ export const LANDING_PAGES: LandingPage[] = [
       { label: "See our work", href: "/gallery" },
       { label: "Visit the studio in Adugodi", href: "/contact" },
       { label: "PPF and ceramic coating FAQs", href: "/faq" },
+      { label: "All guides", href: "/blog" },
     ],
   },
 
@@ -411,6 +413,7 @@ export const LANDING_PAGES: LandingPage[] = [
       { label: "See our work", href: "/gallery" },
       { label: "Visit the studio in Adugodi", href: "/contact" },
       { label: "PPF and ceramic coating FAQs", href: "/faq" },
+      { label: "All guides", href: "/blog" },
     ],
   },
 ];
