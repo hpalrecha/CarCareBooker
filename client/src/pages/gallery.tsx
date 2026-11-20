@@ -7,7 +7,7 @@ import SiteFooter from "@/components/redesign/site-footer";
 import LazyVideo from "@/components/redesign/lazy-video";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
-import { STUDIO_PHOTOS } from "@/lib/gallery-photos";
+import { STUDIO_PHOTOS, REEL_CAPTIONS } from "@/lib/gallery-photos";
 import { GALLERY_SEO } from "@/lib/static-seo";
 import { GALLERY_REELS, INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, reelEmbedUrl, reelUrl } from "@/lib/instagram-reels";
 import { MONSOON_DAMAGE, PPF_COVERAGE, PPF_ORIGIN, PPF_VS_CERAMIC, type Carousel } from "@/lib/carousels";
@@ -22,12 +22,7 @@ const G = "/attached_assets/gallery/";
  * artwork published on Instagram.
  */
 
-const REEL_VIDEOS = [
-  { file: "ppf-car", label: "Paint protection film", note: "Full-body PPF, fitted in the studio" },
-  { file: "1-year-ceramic-coating", label: "1-year ceramic coating", note: "Deep gloss that sheds water" },
-  { file: "car-polishing", label: "Machine polishing", note: "Swirls and scratches out, gloss back" },
-  { file: "stek-suncontrol-films", label: "Sun control film", note: "STEK film, cut and fitted to the glass" },
-];
+const REEL_VIDEOS = REEL_CAPTIONS;
 
 const POSTS: { title: string; carousel: Carousel }[] = [
   { title: "PPF vs ceramic coating", carousel: PPF_VS_CERAMIC },

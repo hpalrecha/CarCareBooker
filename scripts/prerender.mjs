@@ -261,7 +261,9 @@ async function main() {
             ? content.galleryPageContent(page)
             : page.path === "/faq"
               ? content.faqPageContent(page)
-              : content.staticPageContent(page),
+              : page.path === "/products"
+                ? content.productsPageContent(page)
+                : content.staticPageContent(page),
     // Legal pages stay reachable for people but are kept out of search (and out of the sitemap).
     noindex: NOINDEX_STATIC_PATHS.has(page.path),
     image: page.image,
@@ -311,7 +313,7 @@ async function main() {
       content: content.blogPostContent(p),
       jsonLd: [
         // Same builder as the page (client/src/lib/blog-schema.ts): publisher is an Organization with the logo.
-        content.blogPostingSchema(p, ORIGIN, content.BLOG_AUTHOR),
+        content.blogPostingSchema(p, ORIGIN, content.BLOG_AUTHOR, p.image?.src ? `${ORIGIN}${p.image.src.startsWith("/") ? "" : "/"}${p.image.src}` : undefined),
         breadcrumbs([
           ["Home", "/"],
           ["Blog", "/blog"],

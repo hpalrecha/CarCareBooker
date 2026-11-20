@@ -130,7 +130,8 @@ describe('the two emitters use the shared builder', () => {
     const page = read('client/src/pages/blog-post.tsx');
     const prerender = read('scripts/prerender.mjs');
     assert.match(page, /blogPostingSchema\(post, origin, BLOG_AUTHOR, absoluteImage\)/);
-    assert.match(prerender, /content\.blogPostingSchema\(p, ORIGIN, content\.BLOG_AUTHOR\)/);
+    // 2026-11-20: the first HTML now carries the same absolute image the page sets after load (all eight posts have one).
+    assert.match(prerender, /content\.blogPostingSchema\(p, ORIGIN, content\.BLOG_AUTHOR, p\.image\?\.src \?/);
     assert.ok(!/AutoRepair/.test(page), 'blog-post.tsx must not mention AutoRepair');
     const blogLoop = prerender.slice(prerender.indexOf('for (const p of BLOG_POSTS)'), prerender.indexOf('/products/stek, /products/nasiol'));
     assert.ok(!/AutoRepair/.test(blogLoop), 'the prerendered blog loop must not mention AutoRepair');

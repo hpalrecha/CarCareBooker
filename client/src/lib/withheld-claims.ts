@@ -37,8 +37,103 @@ import { neutraliseWarrantyIssuer } from "./warranty-wording";
 
 export const WITHHELD_CLAIM_PATTERNS: RegExp[] = [/self[-\s]?heal/i];
 
+/**
+ * Ceramic-coating claims the owner asked to hide on 2026-11-20 because nothing documents them: "100% safe",
+ * "permanent bond" and "certified technicians". "9H" is hidden too, because the owner said to keep it only if it is
+ * documented and no document exists in the repository or the catalogue. (The educational pages that explain what a "9H"
+ * rating does and does not mean are the studio's own guidance, not a product claim, and are not filtered.)
+ *
+ * Same rule as the self-healing filter above: this only DROPS. A list item goes, an FAQ entry goes whole, a sentence goes
+ * from a paragraph. Nothing is reworded and nothing is added. The database rows are not edited; the public service
+ * endpoints, the server-rendered HTML and the pages apply this on the way out (withholdUnverifiedClaims below).
+ *
+ * TO RESTORE A CLAIM: document it (certificate, test report, manufacturer sheet), then delete its pattern here.
+ */
+export const UNVERIFIED_CLAIM_PATTERNS: RegExp[] = [/100\s*%\s*safe/i, /permanent\s+bond/i, /certified\s+technicians?/i, /\b9H\b/];
+
+export function isUnverifiedClaim(text: string): boolean {
+  return UNVERIFIED_CLAIM_PATTERNS.some((pattern) => pattern.test(text));
+}
+
 export function isWithheldClaim(text: string): boolean {
-  return WITHHELD_CLAIM_PATTERNS.some((pattern) => pattern.test(text));
+  return WITHHELD_CLAIM_PATTERNS.some((pattern) => pattern.test(text)) || isUnverifiedClaim(text);
+}
+
+/** A paragraph without the sentences (and parentheses) that state an unverified claim. Other sentences are untouched. */
+export function withholdUnverifiedFromProse(text: string): string {
+  if (typeof text !== "string" || !isUnverifiedClaim(text)) return text;
+  const noParens = text.replace(/\s*\([^)]*\)/g, (m) => (isUnverifiedClaim(m) ? "" : m));
+  return noParens
+    .split(/(?<=[.!?])\s+/)
+    .filter((sentence) => !isUnverifiedClaim(sentence))
+    .join(" ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+interface ClaimFields {
+  description?: string | null;
+  whyChoose?: string | null;
+  heroSubtitle?: string | null;
+  metaDescription?: string | null;
+  whatIncluded?: unknown;
+  process?: unknown;
+  faq?: unknown;
+}
+
+/**
+ * A catalogue record with the unverified claims dropped from every customer-facing field. Returns the SAME object when
+ * nothing needed dropping. Pure: it never writes to the database; the admin endpoints are not routed through it.
+ */
+export function withholdUnverifiedClaims<T extends ClaimFields>(service: T): T;
+export function withholdUnverifiedClaims<T extends ClaimFields>(service: T | null | undefined): T | null | undefined;
+export function withholdUnverifiedClaims<T extends ClaimFields>(service: T | null | undefined): T | null | undefined {
+  if (!service || typeof service !== "object") return service;
+  const out = { ...(service as object) } as Record<string, unknown>;
+  let changed = false;
+  for (const key of ["description", "whyChoose", "metaDescription"] as const) {
+    const v = service[key];
+    if (typeof v === "string" && isUnverifiedClaim(v)) {
+      out[key] = withholdUnverifiedFromProse(v);
+      changed = true;
+    }
+  }
+  // A subtitle is one phrase, not sentences: a claim in it means the whole line goes.
+  if (typeof service.heroSubtitle === "string" && isUnverifiedClaim(service.heroSubtitle)) {
+    out.heroSubtitle = "";
+    changed = true;
+  }
+  if (Array.isArray(service.whatIncluded)) {
+    const kept = service.whatIncluded.filter((i) => typeof i !== "string" || !isUnverifiedClaim(i));
+    if (kept.length !== service.whatIncluded.length) {
+      out.whatIncluded = kept;
+      changed = true;
+    }
+  }
+  if (Array.isArray(service.process)) {
+    const all = service.process as Array<Record<string, unknown>>;
+    const steps = all.filter((st) => !(typeof st?.title === "string" && isUnverifiedClaim(st.title)));
+    const cleaned = steps.map((st) =>
+      typeof st?.description === "string" && isUnverifiedClaim(st.description)
+        ? { ...st, description: withholdUnverifiedFromProse(st.description) }
+        : st,
+    );
+    if (steps.length !== all.length || cleaned.some((st, i) => st !== steps[i])) {
+      out.process = cleaned;
+      changed = true;
+    }
+  }
+  if (Array.isArray(service.faq)) {
+    const all = service.faq as Array<Record<string, unknown>>;
+    const kept = all.filter(
+      (f) => !(typeof f?.question === "string" && isUnverifiedClaim(f.question)) && !(typeof f?.answer === "string" && isUnverifiedClaim(f.answer)),
+    );
+    if (kept.length !== all.length) {
+      out.faq = kept;
+      changed = true;
+    }
+  }
+  return changed ? (out as T) : service;
 }
 
 /**

@@ -1,4 +1,6 @@
 import type { Express } from "express";
+import { withholdUnverifiedClaims } from "../client/src/lib/withheld-claims";
+import { SITEMAP_LASTMOD, serviceItemLastmod } from "../client/src/lib/sitemap-dates";
 import { createServer, type Server } from "http";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -426,7 +428,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const origin = process.env.PUBLIC_SITE_ORIGIN || "https://p91carcare.com";
       const services = await storage.getAllServices();
 
-      const staticPaths: { loc: string; priority: string; changefreq: string; lastmod?: string }[] = [
+      const staticPaths: { loc: string; priority: string; changefreq: string }[] = [
         { loc: "/", priority: "1.0", changefreq: "weekly" },
         // The catalogue page. Ranks for the broad "services" queries that the homepage
         // and the 17 per-service pages were previously competing for on their own.
@@ -442,18 +444,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { loc: "/services/paint-protection-film-bangalore", priority: "0.8", changefreq: "monthly" },
         { loc: "/services/interior-detailing-bangalore", priority: "0.8", changefreq: "monthly" },
         { loc: "/services/glass-sun-control-film-bangalore", priority: "0.8", changefreq: "monthly" },
-        // Blog. Kept in step with client/src/lib/blog-posts.ts. lastmod is the post's updated date
-        // (else its date); a listing takes the newest post in it. Pages with no real edit date
-        // carry no lastmod — an invented one teaches crawlers to ignore the field.
-        { loc: "/blog", lastmod: "2026-10-07", priority: "0.7", changefreq: "weekly" },
-        { loc: "/blog/ppf-koramangala-hsr-layout-shanti-nagar-adugodi", lastmod: "2026-10-05", priority: "0.6", changefreq: "yearly" },
-        { loc: "/blog/ppf-vs-ceramic-coating-bangalore", lastmod: "2026-09-10", priority: "0.6", changefreq: "yearly" },
-        { loc: "/blog/hard-water-spot-removal-bangalore", lastmod: "2026-08-12", priority: "0.6", changefreq: "yearly" },
-        { loc: "/blog/windshield-heat-rejection-film-summer", lastmod: "2026-07-30", priority: "0.6", changefreq: "yearly" },
-        { loc: "/blog/is-your-ppf-really-made-in-usa", lastmod: "2026-09-08", priority: "0.6", changefreq: "yearly" },
-        { loc: "/blog/how-much-ppf-does-your-car-need", lastmod: "2026-09-05", priority: "0.6", changefreq: "yearly" },
-        { loc: "/blog/monsoon-damage-car-bangalore", lastmod: "2026-09-02", priority: "0.6", changefreq: "yearly" },
-        { loc: "/blog/best-car-detailing-in-bangalore", lastmod: "2026-10-07", priority: "0.6", changefreq: "yearly" },
+        // Blog. Kept in step with client/src/lib/blog-posts.ts. Every lastmod comes from client/src/lib/sitemap-dates.ts,
+        // which records the last MATERIAL change to each page's text with its commit. A page with no material change
+        // carries no lastmod: an invented one teaches crawlers to ignore the field.
+        { loc: "/blog", priority: "0.7", changefreq: "weekly" },
+        { loc: "/blog/ppf-koramangala-hsr-layout-shanti-nagar-adugodi", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/ppf-vs-ceramic-coating-bangalore", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/hard-water-spot-removal-bangalore", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/windshield-heat-rejection-film-summer", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/is-your-ppf-really-made-in-usa", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/how-much-ppf-does-your-car-need", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/monsoon-damage-car-bangalore", priority: "0.6", changefreq: "yearly" },
+        { loc: "/blog/best-car-detailing-in-bangalore", priority: "0.6", changefreq: "yearly" },
         // Blog category listings and the three legal pages are deliberately NOT listed: they are
         // noindex,follow (scripts/prerender.mjs: NOINDEX_STATIC_PATHS and the category routes), and
         // the sitemap carries only URLs that are meant to be indexed.
@@ -471,7 +473,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // offered to crawlers as its own page; see server/routes.ts's
         // "Legacy/duplicate URL redirects" block.
         { loc: "/gallery", priority: "0.6", changefreq: "monthly" },
-        { loc: "/faq", lastmod: "2026-11-19", priority: "0.7", changefreq: "monthly" },
+        { loc: "/faq", priority: "0.7", changefreq: "monthly" },
         { loc: "/contact", priority: "0.6", changefreq: "yearly" },
       ];
 
@@ -482,7 +484,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...staticPaths.map(
           (p) =>
             `  <url>\n    <loc>${escape(origin + p.loc)}</loc>\n` +
-            (p.lastmod ? `    <lastmod>${p.lastmod}</lastmod>\n` : "") +
+            (SITEMAP_LASTMOD[p.loc] ? `    <lastmod>${SITEMAP_LASTMOD[p.loc]}</lastmod>\n` : "") +
             `    <changefreq>${p.changefreq}</changefreq>\n    <priority>${p.priority}</priority>\n  </url>`,
         ),
         ...services
@@ -495,9 +497,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .map(
             (s: any) =>
               `  <url>\n    <loc>${escape(`${origin}/service/${s.slug}`)}</loc>\n` +
-              (s.updatedAt && !Number.isNaN(new Date(s.updatedAt).getTime())
-                ? `    <lastmod>${new Date(s.updatedAt).toISOString().slice(0, 10)}</lastmod>\n`
-                : "") +
+              `    <lastmod>${serviceItemLastmod(s.updatedAt)}</lastmod>\n` +
               `    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`,
           ),
       ];
@@ -518,7 +518,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Service Management Routes
   app.get("/api/services", async (req, res) => {
     try {
-      const services = await storage.getAllServices();
+      // Unverified ceramic claims (100% safe, permanent bond, certified technicians, 9H) are dropped on the way out. The
+      // database rows are untouched and the admin list below stays raw (client/src/lib/withheld-claims.ts).
+      const services = (await storage.getAllServices()).map((s) => withholdUnverifiedClaims(s));
       res.json(services);
     } catch (error) {
       console.error("Get services error:", error);
@@ -556,7 +558,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!service.isActive) {
         return res.status(404).json({ message: "This service is not currently available" });
       }
-      res.json(service);
+      res.json(withholdUnverifiedClaims(service));
     } catch (error) {
       console.error("Get service error:", error);
       res.status(500).json({ message: "Failed to fetch service" });

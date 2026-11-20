@@ -22,3 +22,11 @@ export const STUDIO_PHOTOS = [
   { src: "p91-ceramic-door-finish.webp", alt: "Ceramic coated door finish", tag: "Ceramic finish" },
 ].map((p) => ({ ...p, src: G + p.src }));
 
+
+/** The four reels on /gallery ("Watch the work"): label and note as the page prints them. One list for the page and its first HTML. */
+export const REEL_CAPTIONS = [
+  { file: "ppf-car", label: "Paint protection film", note: "Full-body PPF, fitted in the studio" },
+  { file: "1-year-ceramic-coating", label: "1-year ceramic coating", note: "Deep gloss that sheds water" },
+  { file: "car-polishing", label: "Machine polishing", note: "Swirls and scratches out, gloss back" },
+  { file: "stek-suncontrol-films", label: "Sun control film", note: "STEK film, cut and fitted to the glass" },
+] as const;

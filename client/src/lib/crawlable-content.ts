@@ -10,7 +10,7 @@ import { BLOG_POSTS } from "./blog-posts";
 import { HOME_PACKAGE_LINKS } from "./home-package-links";
 import { SERVICE_GUIDE_LINKS, SERVICE_PRICE_LINKS, type HubLink } from "./service-hub-links";
 import { hubOptionLinks } from "./hub-option-links";
-import { STUDIO_PHOTOS } from "./gallery-photos";
+import { STUDIO_PHOTOS, REEL_CAPTIONS } from "./gallery-photos";
 import {
   FAQ_GROUPS, FAQ_INTRO, FAQ_SERVICE_CARDS, FAQ_COMPARISON, FAQ_COMPARISON_AFTER, FAQ_LAST_UPDATED_LABEL,
 } from "./faq-page";
@@ -21,6 +21,11 @@ import { withCeramicTiming } from "./ceramic-timing";
 import { buildPpfPackages, studioTimeLine, type PpfCatalogueRow } from "./ppf-packages";
 import { displayableIncludes, displayableFaqs, generalPackageFaqs, isWithheldClaim } from "./withheld-claims";
 import { WARRANTY_BATCH_LINE, WARRANTY_HANDOVER_LINE, neutraliseWarrantyIssuer } from "./warranty-wording";
+import { HOW_IT_WORKS, VISIT_STUDIO, REVIEWS_SECTION } from "./studio-sections-data";
+import { VERIFIED_REVIEWS, GOOGLE_REVIEWS_URL, HOME_REVIEW_COUNT } from "./reviews";
+import { relevantPosts, PPF_STATEMENT, LANDING_PHOTOS_HEADING } from "./landing-pages";
+import { getBrandPage } from "./brand-pages";
+import { PRODUCTS_HERO, PRODUCT_KIND, PRODUCT_CHOOSE, PRODUCTS_CHOOSE_HEADING, PRODUCTS_HELP_BEFORE, PRODUCTS_HELP_LINK, PRODUCTS_HELP_AFTER, PRODUCTS_HELP_HREF } from "./products-page-data";
 
 /**
  * The page's real content as plain HTML, baked into the initial response inside
@@ -185,9 +190,73 @@ function faqList(faqs: { question?: string | null; answer?: string | null }[]): 
   return real.map((f) => `<h3>${e(String(f.question).trim())}</h3><p>${e(neutraliseWarrantyIssuer(String(f.answer).trim()))}</p>`).join("");
 }
 
+const GREEN_LINK = 'style="color:#4ade80"';
+
+/** "How it works", four steps. Same data the page renders (lib/studio-sections-data.ts). */
+export function howItWorksContent(): string {
+  return (
+    p(HOW_IT_WORKS.label) +
+    h2(HOW_IT_WORKS.title) +
+    `<ol>${HOW_IT_WORKS.steps.map((st) => `<li><span>${e(st.n)}</span> <h3>${e(st.title)}</h3>${p(st.body)}</li>`).join("")}</ol>`
+  );
+}
+
+/** "Visit the studio in Adugodi.": address and the four actions. Same data the page renders. */
+export function visitStudioContent(): string {
+  const v = VISIT_STUDIO;
+  return (
+    p(v.label) +
+    h2(v.title) +
+    `<address>${v.addressLines.map((l) => e(l)).join("<br>")}</address>` +
+    `<p><a href="${e(v.callHref)}" ${GREEN_LINK}>${e(v.callLabel)}</a> · <a href="${e(v.whatsappHref)}" ${GREEN_LINK}>${e(v.whatsappLabel)}</a> · <a href="${e(v.directionsHref)}" ${GREEN_LINK}>${e(v.directionsLabel)}</a> · <a href="${e(v.hoursHref)}" ${GREEN_LINK}>${e(v.hoursLabel)}</a></p>`
+  );
+}
+
+/** The verified Google reviews, word for word (lib/reviews.ts). Nothing is drawn while the list is empty. */
+export function reviewsContent(): string {
+  if (VERIFIED_REVIEWS.length === 0) return "";
+  const items = VERIFIED_REVIEWS.slice(0, HOME_REVIEW_COUNT)
+    .map((r) => `<li><blockquote><p>${e("\u201C" + r.text + "\u201D")}</p><footer><strong>${e(r.name)}</strong></footer></blockquote></li>`)
+    .join("");
+  return (
+    p(REVIEWS_SECTION.label) +
+    h2(REVIEWS_SECTION.title) +
+    `<ul>${items}</ul>` +
+    `<p><a href="${e(GOOGLE_REVIEWS_URL)}" ${GREEN_LINK}>${e(REVIEWS_SECTION.moreLabel)}</a></p>`
+  );
+}
+
 /** Hand-written pages: their h1 and lede, as the page renders them. */
 export function staticPageContent(page: StaticSeoPage): string {
   return shell(h1(page.h1) + (page.lede ? p(page.lede) : ""));
+}
+
+/** /products: the brand rows, the "Which one do you need?" list and the help line, as pages/products.tsx renders them. */
+export function productsPageContent(page: StaticSeoPage): string {
+  const rows = PRODUCT_BRANDS.map((b) => {
+    const slug = b.href.split("/").pop() ?? "";
+    return (
+      p(PRODUCT_KIND[slug] ?? b.tagline) +
+      `<h2><a href="${e(b.href)}" ${GREEN_LINK}>${e(b.name)}</a></h2>` +
+      p(b.line) +
+      ul(b.points) +
+      `<p><a href="${e(b.href)}" ${GREEN_LINK}>About ${e(b.name)} →</a></p>`
+    );
+  }).join("");
+  const choose = PRODUCT_CHOOSE.map(
+    (c) => `<li>${p(c.need)}${p(c.answer)}<a href="${e(c.href)}" ${GREEN_LINK}>${e(c.label)} →</a></li>`,
+  ).join("");
+  return shell(
+    p(PRODUCTS_HERO.label) +
+      h1(page.h1) +
+      p(PRODUCTS_HERO.lede) +
+      rows +
+      h2(PRODUCTS_CHOOSE_HEADING) +
+      `<ul>${choose}</ul>` +
+      `<p>${e(PRODUCTS_HELP_BEFORE)}<a href="${e(PRODUCTS_HELP_HREF)}" ${GREEN_LINK}>${e(PRODUCTS_HELP_LINK)}</a>${e(PRODUCTS_HELP_AFTER)}</p>` +
+      p(WARRANTY_HANDOVER_LINE) +
+      visitStudioContent(),
+  );
 }
 
 /**
@@ -207,7 +276,7 @@ export function contactPageContent(page: StaticSeoPage): string {
       h2("Get in touch") +
       `<ul><li>${link("https://wa.me/917406619191", "WhatsApp us")}</li>` +
       `<li>${link("tel:+917406619191", "Call 74066 19191")}</li>` +
-      `<li>${link("mailto:info@p91carcare.com", "info@p91carcare.com")}</li></ul>` +
+      `<li><!--email_off-->${link("mailto:info@p91carcare.com", "info@p91carcare.com")}<!--/email_off--></li></ul>` +
       h2("Find us") +
       `<ul><li>${link("https://www.google.com/maps/dir/?api=1&destination=P91+Car+Care+Adugodi+Bengaluru", "Get directions", ' rel="noopener noreferrer"')}</li>` +
       `<li>${link("https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Adugodi+Bengaluru", "Open in Google Maps", ' rel="noopener noreferrer"')}</li></ul>`,
@@ -254,6 +323,7 @@ export function homePageContent(page: StaticSeoPage): string {
   // Exact captions and hrefs from the "03 / Real work" gallery grid — every card links to
   // /gallery, same as the page.
   const realWork = [
+    "Range Rover Evoque · P91 Premium PPF",
     "PPF fitting",
     "Toyota Vellfire · STEK PPF",
     "Nissan GT-R · STEK PPF",
@@ -270,32 +340,42 @@ export function homePageContent(page: StaticSeoPage): string {
   return shell(
     h1(page.h1) +
       (page.lede ? p(page.lede) : "") +
+      ul(["Same-day slots", "Warranty on coatings", "Adugodi, Bangalore"]) +
+      p("Films and coatings we fit") +
+      ul(PRODUCT_BRANDS.map((b) => b.name)) +
+      p("01 / About P91") +
       h2(HOME_ABOUT_H2) +
       p(
         "P91 Car Care is a car detailing, ceramic coating and paint protection film studio " +
-          "in Adugodi, Bangalore. Every coating and PPF job is backed by a written warranty " +
-          "from the film or coating manufacturer, issued at handover.",
+          `in Adugodi, Bangalore. Every coating and PPF job comes with written warranty terms provided at handover.`,
       ) +
-      `<p><a href="/contact" style="color:#4ade80">Find the studio →</a></p>` +
+      `<p><a href="/contact" ${GREEN_LINK}>Find the studio →</a></p>` +
+      p("02 / What we do") +
       h2("Protection. Finish. Care.") +
-      `<ul>${whatWeDo.map((s) => `<li><a href="${e(s.href)}" style="color:#4ade80">${e(s.name)}</a></li>`).join("")}</ul>` +
-      h2("Popular packages") +
-      `<ul>${HOME_PACKAGE_LINKS.map((l) => `<li><a href="${e(l.href)}" style="color:#4ade80">${e(l.label)}</a></li>`).join("")}</ul>` +
-      `<p><a href="/services" style="color:#4ade80">Explore services →</a></p>` +
+      `<ul>${whatWeDo.map((s) => `<li><a href="${e(s.href)}" ${GREEN_LINK}>${e(s.name)}</a></li>`).join("")}</ul>` +
+      p("Film, coating and care, all done in-studio in Adugodi.") +
+      p("Popular packages") +
+      `<ul>${HOME_PACKAGE_LINKS.map((l) => `<li><a href="${e(l.href)}" ${GREEN_LINK}>${e(l.label)}</a></li>`).join("")}</ul>` +
+      `<p><a href="/services" ${GREEN_LINK}>Explore services →</a></p>` +
+      p("03 / Real work") +
       h2("Real work, from our studio.") +
-      `<ul>${realWork.map((caption) => `<li><a href="/gallery" style="color:#4ade80">${e(caption)}</a></li>`).join("")}</ul>` +
-      `<p><a href="/gallery" style="color:#4ade80">See all our work →</a></p>` +
-      h2("Why P91") +
-      ul([
-        "Written warranty: on every coating and PPF job",
-        "Same-day service: most detailing finished the day you book",
-        "Pickup & drop: available across Bangalore at cost",
-      ]) +
-      h2("The brands behind our work") +
+      `<ul>${realWork.map((caption) => `<li><a href="/gallery" ${GREEN_LINK}>${e(caption)}</a></li>`).join("")}</ul>` +
+      `<p><a href="/gallery" ${GREEN_LINK}>See all our work →</a></p>` +
+      howItWorksContent() +
+      reviewsContent() +
+      p("04 / Why P91") +
+      `<ul><li>Written warranty: on every coating and PPF job</li><li>Same-day service: most detailing finished the day you book</li><li>Pickup &amp; drop: available across Bangalore at cost</li></ul>` +
+      p("The brands behind our work") +
       brands +
       p(`${WARRANTY_HANDOVER_LINE} ${WARRANTY_BATCH_LINE}`) +
+      p("Questions") +
       h2(HOME_FAQ_HEADING) +
-      faqList(HOME_FAQS.map((f) => ({ question: f.question, answer: f.answer }))),
+      faqList(HOME_FAQS.map((f) => ({ question: f.question, answer: f.answer }))) +
+      `<p>More answers on PPF, ceramic coating, detailing and warranties are in our full <a href="/faq" ${GREEN_LINK}>FAQ</a>.</p>` +
+      h2("Guides from the studio") +
+      `<ul>${BLOG_POSTS.slice(0, 3).map((post) => `<li><a href="/blog/${e(post.slug)}" ${GREEN_LINK}>${e(post.title)}</a> ${e(post.excerpt ?? "")}</li>`).join("")}</ul>` +
+      p("Visit us") +
+      visitStudioContent(),
   );
 }
 
@@ -338,7 +418,9 @@ export function seoGuideContent(page: SeoPage): string {
       (ctx.paragraphs || []).map(p).join("") +
       ul(ctx.bullets || []) +
       (options ? h2(`All ${page.crumb} options`) + `<ul>${options}</ul>` : "") +
-      (page.faqs?.length ? h2("Frequently asked") + faqList(page.faqs) : ""),
+      (page.faqs?.length ? h2("Frequently asked") + faqList(page.faqs) : "") +
+      howItWorksContent() +
+      visitStudioContent(),
   );
 }
 
@@ -398,7 +480,22 @@ export function landingPageContent(page: LandingPage): string {
   const related = page.related?.length
     ? `<ul>${page.related.map((r) => `<li><a href="${e(r.href)}" style="color:#4ade80">${e(r.label)}</a></li>`).join("")}</ul>`
     : "";
-  return shell(h1(page.h1) + p(page.lede) + (benefits ? h2(page.benefitsHeading) + benefits : "") + steps + related);
+  const posts = relevantPosts(page, 3);
+  const learn = posts.length
+    ? h2("Learn more about vehicle protection") +
+      `<ul>${posts.map((post) => `<li><a href="/blog/${e(post.slug)}" style="color:#4ade80">${e(post.title)}</a> ${e(post.excerpt ?? "")}</li>`).join("")}</ul>`
+    : "";
+  return shell(
+    h1(page.h1) +
+      p(page.lede) +
+      (benefits ? h2(page.benefitsHeading) + benefits : "") +
+      (page.packageComparison ? h2(PPF_STATEMENT.heading) + p(PPF_STATEMENT.body) : "") +
+      steps +
+      h2(LANDING_PHOTOS_HEADING) +
+      p(`${WARRANTY_HANDOVER_LINE} ${WARRANTY_BATCH_LINE}`) +
+      learn +
+      related,
+  );
 }
 
 /**
@@ -490,13 +587,14 @@ export function servicePageContent(rawService: CrawlableService): string {
       priceLine +
       timeLine +
       (included.length ? h2("What's Included") + ul(included) : "") +
-      (why ? h2(`Why ${title}`) + p(why) : "") +
+      (why ? h2(`Why ${title}`) + p(why) + h2("Why choose P91 in Adugodi?") + p((why.match(/^[sS]*?[.!?](?=s|$)/) || [why])[0].trim()) : "") +
       (steps.length
         ? h2("How we do it") +
           ul(steps.map((s) => (s.description?.trim() ? `${s.title!.trim()}: ${s.description.trim()}` : s.title!.trim())))
         : "") +
       (faqs ? h2(`${title} in Adugodi, Bangalore: FAQs`) + faqs : "") +
-      relatedHtml,
+      relatedHtml +
+      visitStudioContent(),
   );
 }
 
@@ -582,7 +680,8 @@ export function servicesListContent(page: StaticSeoPage, services: CrawlableServ
     .filter((s) => s.slug && String(s.title || "").trim())
     .map((s) => {
       const price = formatINR(s.price ?? undefined);
-      return `<li><a href="/service/${e(s.slug)}" style="color:#4ade80">${e(String(s.title).trim())}</a>${price ? `: ${e(price)}` : ""}</li>`;
+      const blurb = String(s.description || "").trim();
+      return `<li><a href="/service/${e(s.slug)}" style="color:#4ade80">${e(String(s.title).trim())}</a>${price ? `: ${e(price)}` : ""}${blurb ? `<p>${e(blurb)}</p>` : ""}</li>`;
     })
     .join("");
   return shell(
@@ -590,7 +689,9 @@ export function servicesListContent(page: StaticSeoPage, services: CrawlableServ
       (page.lede ? p(page.lede) : "") +
       (items ? `<ul>${items}</ul>` : "") +
       hubLinkSection("Service guides", SERVICE_GUIDE_LINKS) +
-      hubLinkSection("Prices and booking", SERVICE_PRICE_LINKS),
+      hubLinkSection("Prices and booking", SERVICE_PRICE_LINKS) +
+      howItWorksContent() +
+      visitStudioContent(),
   );
 }
 
@@ -610,10 +711,18 @@ export function galleryPageContent(page: StaticSeoPage): string {
   return shell(
     h1(page.h1) +
       (page.lede ? p(page.lede) : "") +
+      p("Real cars and footage from the studio floor in Adugodi. Follow @p91carcare for the next one.") +
       h2("Inside the studio") +
       p("Cars we have finished, and the work behind them.") +
       figures +
-      hubLinkSection("The services behind this work", [...SERVICE_GUIDE_LINKS, ...SERVICE_PRICE_LINKS]),
+      h2("Watch the work") +
+      p("From our reels. Plays as you scroll, no sound.") +
+      `<ul>${REEL_CAPTIONS.map((r) => `<li>${e(r.label)}: ${e(r.note)}</li>`).join("")}</ul>` +
+      h2("What we post") +
+      p("The guides we publish on Instagram. Tap one to flip through every slide.") +
+      hubLinkSection("The services behind this work", [...SERVICE_GUIDE_LINKS, ...SERVICE_PRICE_LINKS]) +
+      h2("Want your car in here next?") +
+      `<p><a href="/services" ${GREEN_LINK}>See services and book</a> · <a href="https://wa.me/917406619191" ${GREEN_LINK}>WhatsApp us</a></p>`,
   );
 }
 
