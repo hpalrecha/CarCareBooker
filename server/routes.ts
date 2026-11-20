@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import { withholdUnverifiedClaims } from "../client/src/lib/withheld-claims";
 import { createServer, type Server } from "http";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -518,7 +519,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Service Management Routes
   app.get("/api/services", async (req, res) => {
     try {
-      const services = await storage.getAllServices();
+      // Unverified ceramic claims (100% safe, permanent bond, certified technicians, 9H) are dropped on the way out. The
+      // database rows are untouched and the admin list below stays raw (client/src/lib/withheld-claims.ts).
+      const services = (await storage.getAllServices()).map((s) => withholdUnverifiedClaims(s));
       res.json(services);
     } catch (error) {
       console.error("Get services error:", error);
@@ -556,7 +559,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!service.isActive) {
         return res.status(404).json({ message: "This service is not currently available" });
       }
-      res.json(service);
+      res.json(withholdUnverifiedClaims(service));
     } catch (error) {
       console.error("Get service error:", error);
       res.status(500).json({ message: "Failed to fetch service" });

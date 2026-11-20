@@ -22,7 +22,7 @@ import {
   escapeHtml,
 } from "../client/src/lib/crawlable-content";
 import { summariseHours } from "../client/src/lib/hours-summary";
-import { displayableFaqs, generalPackageFaqs } from "../client/src/lib/withheld-claims";
+import { displayableFaqs, generalPackageFaqs, withholdUnverifiedClaims } from "../client/src/lib/withheld-claims";
 import { withBikeLandingCopy } from "../client/src/lib/bike-landing-copy";
 import { withCeramicTiming } from "../client/src/lib/ceramic-timing";
 import { SERVICES_SEO } from "../client/src/lib/static-seo";
@@ -184,7 +184,7 @@ export function serveStatic(app: Express, distPathOverride?: string) {
       return void (async () => {
         try {
           const { storage } = await import("./storage");
-          const services = (await storage.getAllServices()).filter((s: any) => s?.slug && s?.title);
+          const services = (await storage.getAllServices()).filter((s: any) => s?.slug && s?.title).map((s: any) => withholdUnverifiedClaims(s));
           if (!services.length) return res.sendFile(candidate);
           const origin = process.env.PUBLIC_SITE_ORIGIN || "https://p91carcare.com";
           const itemList = servicesItemListSchema(services as CrawlableService[], origin);
@@ -238,7 +238,7 @@ export function serveStatic(app: Express, distPathOverride?: string) {
             landing.categories?.find((c) => c.key === landing.defaultCategoryKey)?.serviceSlug ??
             landing.categories?.[0]?.serviceSlug;
           const { storage } = await import("./storage");
-          const service = slug ? await storage.getServiceBySlug(slug) : undefined;
+          const service = slug ? withholdUnverifiedClaims(await storage.getServiceBySlug(slug)) : undefined;
           // /ppf sells Basic and Premium in three body types: its default row is a single (hatchback) package, so only
           // the FAQs true of every package are added there (generalPackageFaqs); the packages come from packages below.
           const general = landing.packageComparison === true;
@@ -318,7 +318,7 @@ export function serveStatic(app: Express, distPathOverride?: string) {
 
     try {
       const { storage } = await import("./storage");
-      const service = await storage.getServiceBySlug(req.params.slug);
+      const service = withholdUnverifiedClaims(await storage.getServiceBySlug(req.params.slug));
 
       // Unknown or retired slug: NOT a valid route. Fall through to the noindex 404 —
       // making these indexable would be a far worse problem than the one being fixed.
