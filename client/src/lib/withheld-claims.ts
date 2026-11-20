@@ -89,7 +89,7 @@ export function withholdUnverifiedClaims<T extends ClaimFields>(service: T): T;
 export function withholdUnverifiedClaims<T extends ClaimFields>(service: T | null | undefined): T | null | undefined;
 export function withholdUnverifiedClaims<T extends ClaimFields>(service: T | null | undefined): T | null | undefined {
   if (!service || typeof service !== "object") return service;
-  const out: Record<string, unknown> = { ...service };
+  const out = { ...(service as object) } as Record<string, unknown>;
   let changed = false;
   for (const key of ["description", "whyChoose", "metaDescription"] as const) {
     const v = service[key];
