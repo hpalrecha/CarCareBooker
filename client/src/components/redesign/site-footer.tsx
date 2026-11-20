@@ -6,6 +6,25 @@ import logoPath from "@assets/Car Care (4)_1753951564515.png";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import { INSTAGRAM_PROFILE_URL, FACEBOOK_PROFILE_URL } from "@/lib/instagram-reels";
 
+/** Brand marks for the social links. Decorative: the link carries the accessible name. */
+function InstagramIcon() {
+  return (
+    <svg className="soc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.3" cy="6.7" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function FacebookIcon() {
+  return (
+    <svg className="soc-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+      <path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H8v3h2.5V21h3z" />
+    </svg>
+  );
+}
+
 /**
  * Site footer in the approved redesign.
  *
@@ -110,8 +129,8 @@ export default function SiteFooter() {
               <a className="foot-btn" href="tel:+917406619191" data-testid="link-footer-call">☎&nbsp; 74066 19191</a>
               <a className="foot-btn is-wa" href="https://wa.me/917406619191" data-testid="link-footer-whatsapp">WhatsApp</a>
               {/* Phones only (CSS): Instagram is a button beside Call and WhatsApp; its Company list entry is hidden there. */}
-              <a className="foot-btn foot-btn-ig" href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer" data-testid="link-footer-instagram-mobile">
-                Instagram
+              <a className="foot-btn foot-btn-ig" href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer" aria-label="P91 Car Care on Instagram" title="Instagram" data-testid="link-footer-instagram-mobile">
+                <InstagramIcon />
               </a>
             </div>
           </div>
@@ -137,13 +156,13 @@ export default function SiteFooter() {
               <li><Link href="/faq">FAQs</Link></li>
               {/* The studio's Instagram, where its work videos are posted. */}
               <li className="foot-li-ig">
-                <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer" data-testid="link-footer-instagram">
-                  Instagram
+                <a className="foot-soc" href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer" aria-label="P91 Car Care on Instagram" title="Instagram" data-testid="link-footer-instagram">
+                  <InstagramIcon />
                 </a>
               </li>
               <li>
-                <a href={FACEBOOK_PROFILE_URL} target="_blank" rel="noopener noreferrer" data-testid="link-footer-facebook">
-                  Facebook
+                <a className="foot-soc" href={FACEBOOK_PROFILE_URL} target="_blank" rel="noopener noreferrer" aria-label="P91 Car Care on Facebook" title="Facebook" data-testid="link-footer-facebook">
+                  <FacebookIcon />
                 </a>
               </li>
             </ul>

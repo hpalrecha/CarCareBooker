@@ -1501,6 +1501,9 @@
   white-space: nowrap; transition: border-color .15s, color .15s;
 }
 .p91x .foot-btn:hover { border-color: var(--neon-line); color: var(--neon-green); }
+/* Social links in the footer are the brand marks, not the network names. */
+.p91x .soc-ico { width: 22px; height: 22px; display: block; flex: none; }
+.p91x footer.site .foot-col a.foot-soc { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; padding-block: 0; }
 .p91x .foot-btn.is-wa { border-color: rgba(37,211,102,.4); color: #4BE083; }
 .p91x .foot-btn.is-wa:hover { border-color: #25D366; color: #25D366; }
 
