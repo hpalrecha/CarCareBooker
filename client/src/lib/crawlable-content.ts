@@ -276,7 +276,7 @@ export function contactPageContent(page: StaticSeoPage): string {
       h2("Get in touch") +
       `<ul><li>${link("https://wa.me/917406619191", "WhatsApp us")}</li>` +
       `<li>${link("tel:+917406619191", "Call 74066 19191")}</li>` +
-      `<li>${link("mailto:info@p91carcare.com", "info@p91carcare.com")}</li></ul>` +
+      `<li><!--email_off-->${link("mailto:info@p91carcare.com", "info@p91carcare.com")}<!--/email_off--></li></ul>` +
       h2("Find us") +
       `<ul><li>${link("https://www.google.com/maps/dir/?api=1&destination=P91+Car+Care+Adugodi+Bengaluru", "Get directions", ' rel="noopener noreferrer"')}</li>` +
       `<li>${link("https://www.google.com/maps/search/?api=1&query=P91+Car+Care+Adugodi+Bengaluru", "Open in Google Maps", ' rel="noopener noreferrer"')}</li></ul>`,

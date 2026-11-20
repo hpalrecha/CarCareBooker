@@ -113,6 +113,7 @@ export const BLOG_POSTS: BlogPost[] = [
       "Paint Protection Film in Bangalore: A Guide for Koramangala, HSR Layout and Shanti Nagar Car Owners",
     seoTitle: "PPF & Ceramic Coating near Koramangala & HSR | P91",
     date: "2026-10-05",
+    updated: "2026-11-17",
     readMinutes: 4,
     category: "Protection",
     // Also the meta description (blog-post.tsx and prerender.mjs both use the excerpt).
@@ -262,7 +263,7 @@ export const BLOG_POSTS: BlogPost[] = [
     title: "PPF vs Ceramic Coating: Which is Best for Bangalore Traffic & Weather?",
     seoTitle: "PPF vs Ceramic Coating in Bangalore | P91",
     date: "2026-08-21",
-    updated: "2026-09-10",
+    updated: "2026-11-17",
     readMinutes: 6,
     category: "Protection",
     excerpt:
@@ -383,6 +384,7 @@ export const BLOG_POSTS: BlogPost[] = [
     title: "How to Protect Your Car Paint from Hard Water Spots in Bangalore",
     seoTitle: "Hard Water Spots on Car Paint | P91 Car Care",
     date: "2026-08-12",
+    updated: "2026-11-17",
     readMinutes: 4,
     category: "Paint care",
     excerpt:
@@ -463,6 +465,7 @@ export const BLOG_POSTS: BlogPost[] = [
     title: "Windshield Heat Rejection Film: What the Numbers Actually Mean",
     seoTitle: "Windshield Heat Rejection Film | P91 Car Care",
     date: "2026-07-30",
+    updated: "2026-11-17",
     readMinutes: 5,
     category: "Glass & film",
     excerpt:
@@ -549,6 +552,7 @@ export const BLOG_POSTS: BlogPost[] = [
     title: "Don't Wrap the Whole Car: How Much PPF Your Car Actually Needs",
     seoTitle: "How Much PPF Does Your Car Need? | P91",
     date: "2026-09-05",
+    updated: "2026-11-17",
     readMinutes: 5,
     category: "Protection",
     excerpt:
@@ -644,6 +648,7 @@ export const BLOG_POSTS: BlogPost[] = [
     title: "Is Your PPF Really Made in the USA? What the Label Doesn't Tell You",
     seoTitle: "Is Your PPF Really Made in the USA? | P91",
     date: "2026-09-08",
+    updated: "2026-11-17",
     readMinutes: 5,
     category: "Protection",
     excerpt:
@@ -739,6 +744,7 @@ export const BLOG_POSTS: BlogPost[] = [
     title: "5 Things the Monsoon Did to Your Car That You Cannot See Yet",
     seoTitle: "Monsoon Car Damage in Bangalore | P91",
     date: "2026-09-02",
+    updated: "2026-11-17",
     readMinutes: 4,
     category: "Paint care",
     excerpt:
@@ -851,6 +857,7 @@ export const BLOG_POSTS: BlogPost[] = [
     // Supplied wording, over the usual 60 characters; search results may truncate it.
     seoTitle: "Best Car Detailing in Bangalore: Buyer's Guide | P91",
     date: "2026-10-07",
+    updated: "2026-11-17",
     readMinutes: 6,
     category: "Protection",
     // Also the meta description (blog-post.tsx and prerender.mjs both use the excerpt).

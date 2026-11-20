@@ -20,7 +20,7 @@ export const INSTAGRAM_HANDLE = "p91carcare";
 export const INSTAGRAM_PROFILE_URL = "https://www.instagram.com/p91carcare/";
 
 /** The studio's Facebook page. Linked from the footer and listed in the business schema (sameAs). */
-export const FACEBOOK_PROFILE_URL = "https://www.facebook.com/profile.php?id=61563060751882";
+export const FACEBOOK_PROFILE_URL = "https://www.facebook.com/people/P91-Car-Care/61563060751882/";
 
 export interface InstagramReel {
   id: string;

@@ -61,7 +61,7 @@ const ALL_SERVICES: RelatedLink = { href: "/services", label: "All P91 Car Care 
 
 export const SERVICE_RELATED: Record<string, ServiceRelated> = {
   "exterior-detailing-hard-water-new": {
-    guides: [GUIDE_CERAMIC, CAR_CERAMIC, WASH, ALL_SERVICES],
+    guides: [GUIDE_CERAMIC, CAR_CERAMIC, WASH, HEADLIGHT, ALL_SERVICES],
     products: [PRODUCTS_HUB],
     posts: [HARD_WATER, MONSOON],
   },

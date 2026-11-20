@@ -313,7 +313,7 @@ async function main() {
       content: content.blogPostContent(p),
       jsonLd: [
         // Same builder as the page (client/src/lib/blog-schema.ts): publisher is an Organization with the logo.
-        content.blogPostingSchema(p, ORIGIN, content.BLOG_AUTHOR),
+        content.blogPostingSchema(p, ORIGIN, content.BLOG_AUTHOR, p.image?.src ? `${ORIGIN}${p.image.src.startsWith("/") ? "" : "/"}${p.image.src}` : undefined),
         breadcrumbs([
           ["Home", "/"],
           ["Blog", "/blog"],
