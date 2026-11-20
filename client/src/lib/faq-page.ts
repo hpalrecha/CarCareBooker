@@ -115,6 +115,17 @@ export const FAQ_GROUPS: FaqGroup[] = [
           "Yes. P91 Car Care works from its Adugodi studio and serves owners from Koramangala, HSR Layout, Shanti Nagar and other parts of Bengaluru. " +
           "Pickup and drop is available across Bangalore at cost, subject to booking confirmation.",
       },
+      {
+        question: "Where can I find the best car detailing studio near Koramangala?",
+        answer:
+          "P91 Car Care is a premium car detailing studio in Adugodi, near Koramangala, Bengaluru. We offer professional PPF installation, ceramic coating, paint correction, polishing and interior and exterior detailing. " +
+          "Pickup and drop is available across Bengaluru at an additional cost, subject to booking confirmation.",
+      },
+      {
+        question: "Does P91 Car Care offer pickup and drop in Koramangala?",
+        answer:
+          "Yes. P91 Car Care offers pickup and drop in Koramangala and other parts of Bengaluru at an additional cost, subject to availability and booking confirmation.",
+      },
     ],
   },
   {
@@ -190,6 +201,18 @@ export const FAQ_GROUPS: FaqGroup[] = [
           "Yes, compatible ceramic coatings can be applied over certain paint protection films to improve slickness, water repellency and ease of cleaning. " +
           "Confirm compatibility with the film and coating manufacturers before application.",
       },
+      {
+        question: "Which is the best place for PPF installation near Koramangala?",
+        answer:
+          "P91 Car Care in Adugodi offers professional Paint Protection Film installation with STEK and P91 Premium PPF options. " +
+          "You can choose full-body or partial PPF packages based on your vehicle, your protection needs and your budget. Manufacturer warranty documentation is provided as applicable to the selected film.",
+      },
+      {
+        question: "Can I get STEK PPF installed for my new car in Bengaluru?",
+        answer:
+          "Yes. P91 Car Care offers STEK PPF installation at its Adugodi studio in Bengaluru. " +
+          "You can ask about the available gloss and matte films, coverage options, the installation procedure and the applicable manufacturer warranty.",
+      },
     ],
   },
   {
@@ -231,6 +254,12 @@ export const FAQ_GROUPS: FaqGroup[] = [
         answer:
           "Yes. P91 Car Care offers ceramic coating for motorcycles. Depending on the bike and the package, painted surfaces such as the fuel tank, fairings and body panels can be treated.",
       },
+      {
+        question: "What is the starting price of ceramic coating at P91 Car Care?",
+        answer:
+          "The final price depends on the vehicle size, the paint condition, the preparation needed and the coating you choose. " +
+          "The current starting price for each ceramic coating package is shown on the ceramic coating page, so it is always up to date.",
+      },
     ],
   },
   {
@@ -254,6 +283,12 @@ export const FAQ_GROUPS: FaqGroup[] = [
         answer:
           "Yes. Detailing can improve how the car looks: a clean interior, fewer paint imperfections and a restored surface. " +
           "It makes the car more presentable to buyers without guaranteeing a particular selling price.",
+      },
+      {
+        question: "Where can I get professional paint correction in Bengaluru?",
+        answer:
+          "P91 Car Care provides professional paint correction and polishing at its Adugodi detailing studio. " +
+          "The treatment is chosen according to the paint condition and can help reduce swirl marks, light scratches and surface imperfections.",
       },
     ],
   },

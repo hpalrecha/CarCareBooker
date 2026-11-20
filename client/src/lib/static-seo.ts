@@ -40,8 +40,8 @@ export const HOME_SEO: StaticSeoPage = {
   // homepage's search terms. "Car Detailing" dropped to stay under 60 characters.
   title: "Paint Protection Film & Ceramic Coating in Adugodi | P91",
   description:
-    "Ceramic coating, paint protection film and full interior detailing in Adugodi, " +
-    "Bangalore. Written warranty terms come with every job.",
+    "Premium car detailing in Bangalore. Expert STEK PPF installation, ceramic coating, " +
+    "paint correction and interior detailing in Adugodi near Koramangala. Pickup and drop available.",
   // "Car Care" (the brand name and the audit's target keyword) did not appear verbatim in
   // the H1 before — it only said "Car Detailing" — so the page's most-weighted on-page
   // signal never matched its own brand/service term. Same facts, brand name restored.
@@ -89,10 +89,10 @@ export const CONTACT_SEO: StaticSeoPage = {
 
 export const FAQ_SEO: StaticSeoPage = {
   path: "/faq",
-  title: "Car Detailing, PPF & Ceramic Coating FAQs in Bangalore | P91",
+  title: "PPF, Ceramic Coating & Car Detailing FAQs in Bangalore | P91",
   description:
-    "Answers on PPF, ceramic coating, STEK films, car detailing, sun-control film and warranties " +
-    "from P91 Car Care in Adugodi, Bangalore.",
+    "Find answers about PPF installation, STEK PPF, ceramic coating and car detailing in Bangalore. " +
+    "Explore P91 Car Care services, pricing and warranty information.",
   h1: "Car Detailing, Paint Protection Film & Ceramic Coating in Bangalore: Complete Guide & FAQs",
 };
 
