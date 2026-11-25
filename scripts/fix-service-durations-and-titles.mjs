@@ -2,7 +2,7 @@
  * Fixes the service-catalogue data problems raised in review:
  *
  *   1. PPF packages advertise completion times of 2, 3 and 4 MINUTES. The card renderer
- *      (client/src/components/service-card.tsx) is correct — it prints minutes whenever
+ *      (apps/admin/src/components/service-card.tsx) is correct — it prints minutes whenever
  *      `duration` is under 60 — so the wrong values are in the `services.duration`
  *      column, not in the code. PPF installation is a 24-48 hour job; a minutes figure
  *      destroys credibility on the highest-value service on the site.

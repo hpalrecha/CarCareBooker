@@ -181,7 +181,7 @@ describe("checks 1-4 — Meta ad to attributed booking", () => {
     };
     globalThis.document = { referrer: "" }; // in-app browser: referrer stripped
 
-    const { captureAttribution, attributionPayload } = await import("../client/src/lib/attribution.ts");
+    const { captureAttribution, attributionPayload } = await import("../apps/admin/src/lib/attribution.ts");
 
     const captured = captureAttribution();
     assert.equal(captured.utmSource, "meta");
@@ -257,7 +257,7 @@ describe("check 5 — Meta conversion fires exactly once", () => {
     globalThis.window = { location: { pathname: "/ppf", search: "", host: "p91carcare.com" }, localStorage: { getItem: () => null, setItem() {}, removeItem() {} } };
     globalThis.document = { referrer: "", createElement: () => ({}), getElementsByTagName: () => [{ parentNode: { insertBefore() {} } }] };
 
-    const pixel = await import("../client/src/lib/meta-pixel.ts");
+    const pixel = await import("../apps/admin/src/lib/meta-pixel.ts");
     pixel.__resetMetaPixelForTests();
     pixel.__setPixelIdForTests("1234567890");
 
@@ -283,7 +283,7 @@ describe("check 5 — Meta conversion fires exactly once", () => {
   });
 
   test("Lead is deduplicated on the same key", async () => {
-    const pixel = await import("../client/src/lib/meta-pixel.ts");
+    const pixel = await import("../apps/admin/src/lib/meta-pixel.ts");
     pixel.__resetMetaPixelForTests();
     pixel.__setPixelIdForTests("1234567890");
     const fired = [];
@@ -297,7 +297,7 @@ describe("check 5 — Meta conversion fires exactly once", () => {
 
   test("the pixel is never initialised on an admin route", async () => {
     globalThis.window = { location: { pathname: "/admin/dashboard", search: "", host: "p91carcare.com" }, localStorage: { getItem: () => null, setItem() {}, removeItem() {} } };
-    const pixel = await import("../client/src/lib/meta-pixel.ts");
+    const pixel = await import("../apps/admin/src/lib/meta-pixel.ts");
     pixel.__resetMetaPixelForTests();
     await pixel.initMetaPixel();
     assert.equal(pixel.trackLead({ eventId: "lead-admin" }), false, "no tracking under /admin");

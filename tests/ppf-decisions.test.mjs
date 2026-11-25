@@ -28,7 +28,7 @@ before(async () => {
   const bundle = async (entry, name) => {
     const out = path.join(repoRoot, 'node_modules', '.cache', name);
     fs.mkdirSync(path.dirname(out), { recursive: true });
-    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') } });
+    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'apps/admin', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') } });
     return import(pathToFileURL(out).href + '?t=' + Date.now());
   };
   ww = await bundle('packages/content/src/warranty-wording.ts', 'ppf-decisions-ww.mjs');
@@ -62,7 +62,7 @@ describe('1. warranty presentation', () => {
       assert.ok(!/manufacturer/i.test(JSON.stringify(content.faqPageSchema(row.faq))), `${row.slug}: FAQPage JSON-LD`);
       assert.ok(!/manufacturer/i.test(content.servicePageContent ? content.servicePageContent(row) : ''), `${row.slug}: service page HTML`);
     }
-    assert.match(code('client/src/pages/service-landing.tsx'), /neutraliseWarrantyIssuer\(item\.answer\.trim\(\)\)/);
+    assert.match(code('apps/admin/src/pages/service-landing.tsx'), /neutraliseWarrantyIssuer\(item\.answer\.trim\(\)\)/);
     assert.match(code('packages/content/src/service-seo.ts'), /neutraliseWarrantyIssuer\(String\(f\.answer\)\.trim\(\)\)/);
   });
 
@@ -75,8 +75,8 @@ describe('1. warranty presentation', () => {
 
   test('PPF-related customer-facing sources make no manufacturer-issuer statement', () => {
     for (const f of [
-      'client/src/pages/campaign-landing.tsx', 'client/src/components/ppf-packages.tsx', 'packages/content/src/ppf-packages.ts',
-      'client/src/pages/home.tsx', 'packages/content/src/crawlable-content.ts', 'packages/content/src/nav-menu.ts',
+      'apps/admin/src/pages/campaign-landing.tsx', 'apps/admin/src/components/ppf-packages.tsx', 'packages/content/src/ppf-packages.ts',
+      'apps/admin/src/pages/home.tsx', 'packages/content/src/crawlable-content.ts', 'packages/content/src/nav-menu.ts',
       'packages/content/src/static-seo.ts', 'packages/content/src/seo-pages.ts', 'packages/content/src/landing-pages.ts',
     ]) {
       const src = code(f);
@@ -86,7 +86,7 @@ describe('1. warranty presentation', () => {
   });
 
   test('the strips and the paragraph on the campaign pages use the approved line', () => {
-    const src = code('client/src/pages/campaign-landing.tsx');
+    const src = code('apps/admin/src/pages/campaign-landing.tsx');
     assert.ok((src.match(/\{WARRANTY_HANDOVER_LINE\}/g) || []).length >= 3);
     assert.ok(!/Manufacturer-backed warranty|film or coating maker/.test(src));
   });
@@ -114,7 +114,7 @@ describe('2. the shared Products menu', () => {
     for (const b of nav.PRODUCT_BRANDS) assert.ok(!/self[-\s]?heal/i.test(JSON.stringify(b)), b.name);
   });
   test('every consumer reads the same data, so each follows: header, home grid, /products, home snapshot, chatbot', () => {
-    for (const f of ['client/src/components/redesign/site-header.tsx', 'client/src/pages/home.tsx', 'client/src/pages/products.tsx', 'packages/content/src/crawlable-content.ts', 'apps/api/src/lib/chatbot-knowledge.ts']) {
+    for (const f of ['apps/admin/src/components/redesign/site-header.tsx', 'apps/admin/src/pages/home.tsx', 'apps/admin/src/pages/products.tsx', 'packages/content/src/crawlable-content.ts', 'apps/api/src/lib/chatbot-knowledge.ts']) {
       assert.match(read(f), /PRODUCT_BRANDS/, f);
     }
     const snapshot = content.homePageContent({ path: '/', title: 't', description: 'd', h1: 'h', lede: 'l' });
@@ -127,10 +127,10 @@ describe('2. the shared Products menu', () => {
 });
 
 describe('3. hero pricing and the database-unavailable state', () => {
-  const page = () => code('client/src/pages/campaign-landing.tsx');
+  const page = () => code('apps/admin/src/pages/campaign-landing.tsx');
 
   test('the selector hides the struck-through price for the PPF rows', () => {
-    assert.match(code('client/src/components/vehicle-selector.tsx'), /wasPrice > price && showPreviousPrice\(service\)/);
+    assert.match(code('apps/admin/src/components/vehicle-selector.tsx'), /wasPrice > price && showPreviousPrice\(service\)/);
   });
 
   test('unavailable catalogue: the exact message, a working phone link, and no price anywhere in the component', () => {

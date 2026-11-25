@@ -24,7 +24,7 @@ import {
   instantToIstLocal,
   formatIst,
   IST_OFFSET,
-} from "../client/src/lib/ist-time.ts";
+} from "../apps/admin/src/lib/ist-time.ts";
 import { campaignState } from "../packages/domain/src/campaign.ts";
 
 // ===========================================================================
@@ -520,7 +520,7 @@ describe("the Campaigns UI carries no pricing logic", () => {
     const { fileURLToPath } = await import("node:url");
     const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
     const src = fs
-      .readFileSync(path.join(root, "client/src/components/admin-campaigns.tsx"), "utf8")
+      .readFileSync(path.join(root, "apps/admin/src/components/admin-campaigns.tsx"), "utf8")
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/^\s*\/\/.*$/gm, "");
 
@@ -534,7 +534,7 @@ describe("the Campaigns UI carries no pricing logic", () => {
     const path = await import("node:path");
     const { fileURLToPath } = await import("node:url");
     const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-    const ui = fs.readFileSync(path.join(root, "client/src/components/admin-campaigns.tsx"), "utf8");
+    const ui = fs.readFileSync(path.join(root, "apps/admin/src/components/admin-campaigns.tsx"), "utf8");
     const server = fs.readFileSync(path.join(root, "apps/api/src/lib/campaign.ts"), "utf8");
     for (const p of ["/ceramic-coating/car", "/ceramic-coating/bike", "/ppf"]) {
       assert.ok(ui.includes(`"${p}"`), `UI offers ${p}`);

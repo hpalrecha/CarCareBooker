@@ -29,13 +29,13 @@ const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 const BROKEN_CLASSES = /text-neon-green|text-deep-black|border-medium-gray|border-neon-green/;
 
 const FIXED_PAGES = [
-  'client/src/pages/admin-dashboard.tsx',
-  'client/src/pages/admin-whatsapp.tsx',
-  'client/src/pages/booking-confirmation.tsx',
-  'client/src/pages/privacy-policy.tsx',
-  'client/src/pages/refund-policy.tsx',
-  'client/src/pages/terms-conditions.tsx',
-  'client/src/pages/service-detail.tsx', // dead/unrouted, but counted and fixed for completeness
+  'apps/admin/src/pages/admin-dashboard.tsx',
+  'apps/admin/src/pages/admin-whatsapp.tsx',
+  'apps/admin/src/pages/booking-confirmation.tsx',
+  'apps/admin/src/pages/privacy-policy.tsx',
+  'apps/admin/src/pages/refund-policy.tsx',
+  'apps/admin/src/pages/terms-conditions.tsx',
+  'apps/admin/src/pages/service-detail.tsx', // dead/unrouted, but counted and fixed for completeness
 ];
 
 describe('item 9 (Phase 2 priority 1) — no-CSS colour classes removed from live pages', () => {
@@ -46,14 +46,14 @@ describe('item 9 (Phase 2 priority 1) — no-CSS colour classes removed from liv
   }
 
   test("admin-login.tsx's warning comment about this exact bug is untouched", () => {
-    const src = read('client/src/pages/admin-login.tsx');
+    const src = read('apps/admin/src/pages/admin-login.tsx');
     assert.match(src, /`text-deep-black` generates no CSS in this project/);
     assert.match(src, /Same story for `text-neon-green` and `border-medium-gray`/);
   });
 });
 
 describe('item 10 (Phase 2 priority 2) — booking-confirmation shares the site chrome', () => {
-  const src = read('client/src/pages/booking-confirmation.tsx');
+  const src = read('apps/admin/src/pages/booking-confirmation.tsx');
 
   test('the old fixed-position Navbar (no footer, no .p91x scope) is gone', () => {
     assert.doesNotMatch(src, /Navbar/);

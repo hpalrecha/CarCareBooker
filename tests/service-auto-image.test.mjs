@@ -5,7 +5,7 @@
  *
  * Deliberately conservative: an unresolved or ambiguous match must return null, never a
  * wrong guess — the existing UI already shows a clean branded placeholder for a service
- * with no image (client/src/components/image-with-fallback.tsx), so "no photo yet" is a
+ * with no image (apps/admin/src/components/image-with-fallback.tsx), so "no photo yet" is a
  * perfectly fine outcome and always safer than a mismatched one.
  */
 import { test, describe } from 'node:test';

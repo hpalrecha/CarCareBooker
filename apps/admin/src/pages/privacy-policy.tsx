@@ -84,7 +84,7 @@ export default function PrivacyPolicy() {
                   Google Analytics 4 (_ga, _ga_QXEEJ4EK4J). The wording below describes
                   what the site actually does. If the intention is genuinely not to run
                   advertising cookies, the fix is to remove the Google Ads tag from
-                  client/index.html rather than to restate the old claim. */}
+                  apps/admin/index.html rather than to restate the old claim. */}
               <h2 className="text-2xl font-semibold text-[var(--neon-green)] mb-4">7. Cookies and Tracking</h2>
               <p>Our website uses essential cookies for functionality and session management.</p>
               <p>We also use the following third-party services, which set cookies and collect usage data:</p>

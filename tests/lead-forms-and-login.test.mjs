@@ -25,8 +25,8 @@ const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 /** Comments stripped, so "must not contain X" matches code and not the prose explaining X. */
 const code = (p) => read(p).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
-const login = code('client/src/pages/admin-login.tsx');
-const quote = code('client/src/components/quote-form.tsx');
+const login = code('apps/admin/src/pages/admin-login.tsx');
+const quote = code('apps/admin/src/components/quote-form.tsx');
 const schema = read('packages/db/src/schema.ts');
 
 /** Classes Tailwind is not configured to generate here. Naming one is a silent no-op. */
@@ -126,7 +126,7 @@ describe('the free-booking offer never reads as a free service', () => {
    * job is. The sticky bar used to read "Free this week — no payment" directly under
    * "Book Your Service", which is exactly that failure.
    */
-  const pages = ['client/src/pages/service-landing.tsx', 'client/src/pages/home.tsx'];
+  const pages = ['apps/admin/src/pages/service-landing.tsx', 'apps/admin/src/pages/home.tsx'];
 
   for (const page of pages) {
     test(`${page.split('/').pop()} qualifies every "free"`, () => {

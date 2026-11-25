@@ -7,10 +7,10 @@
  * an existing pixel, and the audit that established that is recorded in the commit.
  *
  * It sits alongside three tags that already exist and it touches none of them:
- *   Google Ads gtag  AW-11467752288   (client/index.html)
+ *   Google Ads gtag  AW-11467752288   (apps/admin/index.html)
  *   GA4              G-D3QRLWNCY5 (P91 Car Care) and G-QXEEJ4EK4J (the Just Signs property, deliberately shared),
  *                    both loaded by that gtag
- *   Microsoft Clarity yezkqr1rwm      (client/index.html)
+ *   Microsoft Clarity yezkqr1rwm      (apps/admin/index.html)
  *
  * ─────────────────────────────────────────────────────────────────────────────────────
  * WHY THE ID COMES FROM THE SERVER, not from import.meta.env.

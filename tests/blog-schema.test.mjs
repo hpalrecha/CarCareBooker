@@ -50,7 +50,7 @@ before(async () => {
   await esbuild.build({
     entryPoints: [path.join(repoRoot, 'scripts', 'prerender-content-entry.ts')],
     bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent',
-    alias: { '@': path.join(repoRoot, 'client', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') },
+    alias: { '@': path.join(repoRoot, 'apps/admin', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') },
   });
   content = await import(pathToFileURL(out).href + '?t=' + Date.now());
 });
@@ -121,13 +121,13 @@ describe('the verified business entity is preserved', () => {
   test('its image URL is percent-encoded and points at the same file', () => {
     const b = content.localBusinessSchema(ORIGIN);
     assert.equal(b.image, `${ORIGIN}/Car%20Care%20(4)_1753951564515.png`);
-    assert.ok(fs.existsSync(path.join(repoRoot, 'client', 'public', 'Car Care (4)_1753951564515.png')), 'the logo file exists');
+    assert.ok(fs.existsSync(path.join(repoRoot, 'apps/admin', 'public', 'Car Care (4)_1753951564515.png')), 'the logo file exists');
   });
 });
 
 describe('the two emitters use the shared builder', () => {
   test('blog-post.tsx and prerender.mjs no longer build their own publisher', () => {
-    const page = read('client/src/pages/blog-post.tsx');
+    const page = read('apps/admin/src/pages/blog-post.tsx');
     const prerender = read('scripts/prerender.mjs');
     assert.match(page, /blogPostingSchema\(post, origin, BLOG_AUTHOR, absoluteImage\)/);
     // 2026-11-20: the first HTML now carries the same absolute image the page sets after load (all eight posts have one).

@@ -21,7 +21,7 @@ before(async () => {
   fs.mkdirSync(dir, { recursive: true });
   const bundle = async (entry, name) => {
     const out = path.join(dir, name);
-    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: "esm", platform: "node", outfile: out, logLevel: "silent", alias: { "@": path.join(repoRoot, "client", "src"), "@p91/content": path.join(repoRoot, "packages", "content", "src"), "@p91/db": path.join(repoRoot, "packages", "db", "src"), "@p91/domain": path.join(repoRoot, "packages", "domain", "src") } });
+    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: "esm", platform: "node", outfile: out, logLevel: "silent", alias: { "@": path.join(repoRoot, "apps/admin", "src"), "@p91/content": path.join(repoRoot, "packages", "content", "src"), "@p91/db": path.join(repoRoot, "packages", "db", "src"), "@p91/domain": path.join(repoRoot, "packages", "domain", "src") } });
     return import(pathToFileURL(out).href + "?t=" + Date.now());
   };
   dates = await bundle("packages/content/src/sitemap-dates.ts", "mgr-dates.mjs");

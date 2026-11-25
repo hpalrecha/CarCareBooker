@@ -37,7 +37,7 @@ import { PRODUCTS_HERO, PRODUCT_KIND, PRODUCT_CHOOSE, PRODUCTS_CHOOSE_HEADING, P
  * JavaScript ran. Google executes JavaScript; most AI answer engines' crawlers (and many
  * other bots) do not, so to them every page on the site was blank apart from its <title>.
  *
- * WHY THIS IS SAFE FOR THE APP. client/src/main.tsx mounts with createRoot(), not
+ * WHY THIS IS SAFE FOR THE APP. apps/admin/src/main.tsx mounts with createRoot(), not
  * hydrateRoot(). createRoot() replaces whatever is inside #root, so this markup is simply
  * discarded when React starts: there is no hydration step that could mismatch, and no
  * component, route, price or booking flow reads it.

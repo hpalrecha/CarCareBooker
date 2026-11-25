@@ -25,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const src = fs
-  .readFileSync(path.join(repoRoot, 'client/src/lib/analytics.ts'), 'utf8')
+  .readFileSync(path.join(repoRoot, 'apps/admin/src/lib/analytics.ts'), 'utf8')
   .replace(/declare global \{[\s\S]*?\n\}/, '')
   .replace(/const reportedPurchases = new Set<string>\(\);/, 'const reportedPurchases = new Set();')
   .replace(/function track\([^)]*\)[^{]*\{/, 'function track(event, params) {')
@@ -143,7 +143,7 @@ describe('failed and cancelled payments fire no purchase', () => {
 
 describe('source guard — the conversion stays on the verified path', () => {
   test('trackPurchase is only called after a successful confirm response', () => {
-    const modal = fs.readFileSync(path.join(repoRoot, 'client/src/components/booking-modal.tsx'), 'utf8');
+    const modal = fs.readFileSync(path.join(repoRoot, 'apps/admin/src/components/booking-modal.tsx'), 'utf8');
     const okIdx = modal.indexOf('if (confirmResponse.ok)');
     const purchaseIdx = modal.indexOf('trackPurchase({');
     assert.ok(okIdx > -1, 'the ok-response branch must exist');
@@ -151,7 +151,7 @@ describe('source guard — the conversion stays on the verified path', () => {
   });
 
   test('the existing tags are untouched in index.html', () => {
-    const html = fs.readFileSync(path.join(repoRoot, 'client/index.html'), 'utf8');
+    const html = fs.readFileSync(path.join(repoRoot, 'apps/admin/index.html'), 'utf8');
     assert.ok(html.includes('AW-11467752288'), 'Google Ads tag must remain');
     assert.ok(html.includes('clarity.ms/tag/'), 'Clarity tag must remain');
     assert.ok(html.includes("indexOf('/admin')"), 'Clarity admin guard must remain');

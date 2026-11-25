@@ -38,7 +38,7 @@ before(async () => {
   fs.mkdirSync(dir, { recursive: true });
   const bundle = async (entry, name) => {
     const out = path.join(dir, name);
-    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') } });
+    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'apps/admin', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') } });
     return import(pathToFileURL(out).href + '?t=' + Date.now());
   };
   withheld = await bundle('packages/content/src/withheld-claims.ts', 'indexing-phase-withheld.mjs');
@@ -75,7 +75,7 @@ describe('/ppf: only what is true of every package', () => {
   test('server, page and schema all use the same filter', () => {
     assert.match(read('apps/api/src/vite.ts'), /landingServiceExtras\(landingService as CrawlableService, \{ general \}\)/);
     assert.match(read('apps/api/src/vite.ts'), /general \? generalPackageFaqs\(rowFaqs\) : rowFaqs/);
-    assert.match(read('client/src/pages/campaign-landing.tsx'), /page\.packageComparison \? generalPackageFaqs\(rowFaqs\) : rowFaqs/);
+    assert.match(read('apps/admin/src/pages/campaign-landing.tsx'), /page\.packageComparison \? generalPackageFaqs\(rowFaqs\) : rowFaqs/);
   });
 });
 
@@ -114,21 +114,21 @@ describe('/ceramic-coating/bike: its own FAQ', () => {
   });
 
   test('the page and the server both go through withBikeLandingCopy', () => {
-    assert.match(read('client/src/pages/campaign-landing.tsx'), /withBikeLandingCopy\(withCeramicTiming\(catalogueRow\)\)/);
+    assert.match(read('apps/admin/src/pages/campaign-landing.tsx'), /withBikeLandingCopy\(withCeramicTiming\(catalogueRow\)\)/);
     assert.match(read('apps/api/src/vite.ts'), /withBikeLandingCopy\(service as CrawlableService\)/);
   });
 });
 
 describe('testimonials and the old booking host', () => {
   test('both ceramic records have their testimonials hidden in the page, not deleted from the data', () => {
-    const landing = read('client/src/pages/service-landing.tsx');
+    const landing = read('apps/admin/src/pages/service-landing.tsx');
     assert.match(landing, /TESTIMONIALS_SUPPRESSED = new Set<string>\(\['1-year-bike-ceramic-coating', '1-year-ceramic-coating'\]\)/);
     assert.match(landing, /\{showTestimonials && service\.testimonials/);
   });
 
   test('no page, component or library links to booking.p91carcare.com (only the host redirect mentions it)', () => {
     const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
-    const hits = walk(path.join(repoRoot, 'client', 'src')).filter((f) => /\.(tsx?|css|json)$/.test(f) && /booking\.p91carcare\.com/.test(fs.readFileSync(f, 'utf8')));
+    const hits = walk(path.join(repoRoot, 'apps/admin', 'src')).filter((f) => /\.(tsx?|css|json)$/.test(f) && /booking\.p91carcare\.com/.test(fs.readFileSync(f, 'utf8')));
     assert.deepEqual(hits, []);
   });
 });

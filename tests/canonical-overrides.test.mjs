@@ -100,13 +100,13 @@ describe('every emitter uses the shared module', () => {
   });
 
   test('client (ServiceSeo) sets the override, so hydration does not restore a self-canonical', () => {
-    const page = read('client/src/pages/service-landing.tsx');
+    const page = read('apps/admin/src/pages/service-landing.tsx');
     assert.match(page, /canonicalPath: serviceCanonicalPath\(service\.slug\)/);
     assert.doesNotMatch(page, /canonicalPath: `\/service\/\$\{service\.slug\}`/);
   });
 
   test('client og:url follows the canonical rather than location.href', () => {
-    const hook = read('client/src/hooks/use-seo-meta.ts');
+    const hook = read('apps/admin/src/hooks/use-seo-meta.ts');
     assert.match(hook, /setMeta\("property", "og:url", canonicalHref \?\? window\.location\.href\)/);
   });
 

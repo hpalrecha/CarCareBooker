@@ -96,7 +96,8 @@ export async function setupVite(app: Express, server: Server) {
     try {
       const clientTemplate = path.resolve(
         repoRoot(import.meta.dirname),
-        "client",
+        "apps",
+        "admin",
         "index.html",
       );
 
@@ -294,7 +295,7 @@ export function serveStatic(app: Express, distPathOverride?: string) {
    * an active service gets indexable HTML with its real metadata, and anything else falls
    * through to the genuine 404. Valid and invalid routes keep opposite behaviour.
    *
-   * Metadata is derived exactly as ServiceSeo does in client/src/pages/service-landing.tsx,
+   * Metadata is derived exactly as ServiceSeo does in apps/admin/src/pages/service-landing.tsx,
    * so the prerendered head and the hydrated head agree rather than flickering between two
    * different titles.
    * ─────────────────────────────────────────────────────────────────────────────────────
@@ -407,7 +408,7 @@ export function serveStatic(app: Express, distPathOverride?: string) {
     // Status: routes that exist only client-side (no prerendered file, but App.tsx renders
     // a real page) stay 200. Everything else is a genuine miss and gets 404, so crawlers
     // stop treating every typo URL as a soft-404 page. Keep SPA_ONLY_ROUTE in step with
-    // the non-prerendered <Route>s in client/src/App.tsx.
+    // the non-prerendered <Route>s in apps/admin/src/App.tsx.
     const pathname = req.originalUrl.split("?")[0];
     // Known spam slugs from other sites are permanently gone (410), not merely missing.
     const status = SPA_ONLY_ROUTE.test(pathname) ? 200 : isSpamProductPath(pathname) ? 410 : 404;

@@ -4,7 +4,7 @@
  *
  *     node scripts/make-og-images.mjs
  *
- * Output goes to client/public/og/ and is committed, so the build never depends on this script.
+ * Output goes to apps/admin/public/og/ and is committed, so the build never depends on this script.
  *
  * Why not reuse the logo PNG or the raw poster: the logo alone tells a shared link nothing, and the
  * 4:5 poster is cropped to a sliver when a platform forces 1.91:1. These are composed for that shape,
@@ -16,7 +16,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const OUT = path.join(ROOT, "client", "public", "og");
+const OUT = path.join(ROOT, "apps/admin", "public", "og");
 const W = 1200;
 const H = 630;
 const at = (...p) => path.join(ROOT, ...p);
@@ -49,7 +49,7 @@ const text = (lines) =>
   const photo = await sharp(at("attached_assets", "gallery", "p91-lux-mercedes-gle.webp"))
     .resize(W, H, { fit: "cover", position: "centre" })
     .toBuffer();
-  const logo = await sharp(at("client", "public", "Car Care (4)_1753951564515.png"))
+  const logo = await sharp(at("apps/admin", "public", "Car Care (4)_1753951564515.png"))
     .resize({ height: 150 })
     .toBuffer();
   await sharp(photo)

@@ -36,7 +36,7 @@ before(async () => {
     fs.mkdirSync(path.dirname(out), { recursive: true });
     await esbuild.build({
       entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node',
-      outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') },
+      outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'apps/admin', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') },
     });
     return import(pathToFileURL(out).href + '?t=' + Date.now());
   };
@@ -276,7 +276,7 @@ describe('withheld claims (self-healing) on every surface the /ppf page draws fr
 
   test('apps/api/src/vite.ts and campaign-landing.tsx both use the filter for the FAQ', () => {
     assert.match(read('apps/api/src/vite.ts'), /faqPageSchema\(displayableFaqs\(/);
-    assert.match(read('client/src/pages/campaign-landing.tsx'), /const faqs = displayableFaqs\(/);
+    assert.match(read('apps/admin/src/pages/campaign-landing.tsx'), /const faqs = displayableFaqs\(/);
   });
 
   test('displayableIncludes keeps its behaviour and is still exported from landing-pages', () => {
@@ -287,7 +287,7 @@ describe('withheld claims (self-healing) on every surface the /ppf page draws fr
 
 describe('nothing is written in code', () => {
   const src = read('packages/content/src/ppf-packages.ts');
-  const component = read('client/src/components/ppf-packages.tsx');
+  const component = read('apps/admin/src/components/ppf-packages.tsx');
   test('ppf-packages.ts holds no price and no discount or promise text', () => {
     const code = src.replace(/\/\*[\s\S]*?\*\//g, '');
     assert.ok(!/\b\d{2},?\d{3}\b/.test(code), 'a five-digit amount appears in code');

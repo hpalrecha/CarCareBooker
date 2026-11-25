@@ -9,7 +9,7 @@
  *   apps/api/src/lib/attribution.ts   what gets stored, and what `source` a booking is filed under
  *   apps/api/src/lib/rate-limit.ts    whether the public endpoints can be hammered
  *
- * The client-side capture rule lives in client/src/lib/attribution.ts and is exercised in
+ * The client-side capture rule lives in apps/admin/src/lib/attribution.ts and is exercised in
  * tests/attribution-client.itest.mjs against a DOM shim. The overwrite rule is the single
  * most consequential decision in this work, so it is asserted against the real module
  * rather than against a description of it.

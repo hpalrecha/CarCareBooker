@@ -7,7 +7,7 @@
    used instead. Type, radii, button sizes and the 44px tap targets stay as in the design system
    (studio.css): this file only changes colour.
 
-   Scoped to html.sd, which client/index.html sets before first paint and App.tsx keeps in step.
+   Scoped to html.sd, which apps/admin/index.html sets before first paint and App.tsx keeps in step.
    It works by re-pointing the colour tokens that redesign.css and studio.css already read, then fixing
    the few places that hard-code a light colour. Remove the import in main.tsx to switch it off.
    Colour pairs used: off-white #F3F1EC on #0F1011 = 17:1; muted #A9ADB2 on #0F1011 = 8.4:1;

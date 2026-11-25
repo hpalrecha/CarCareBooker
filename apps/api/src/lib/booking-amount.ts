@@ -31,7 +31,7 @@ export const DEFAULT_BOOKING_FEE = 299;
  * Booking fee for a PPF service whose catalogue price is MORE than HIGH_VALUE_PRICE_THRESHOLD (all six PPF
  * services today, ₹50,000-₹90,000). BOTH conditions are required: a non-PPF service over ₹10,000 keeps the
  * normal fee. Server constants, like the default fee: not read from the request and not from
- * site_settings.booking_amount. The client mirrors both numbers in client/src/lib/booking-fee.ts for display only.
+ * site_settings.booking_amount. The client mirrors both numbers in apps/admin/src/lib/booking-fee.ts for display only.
  */
 export const HIGH_VALUE_PRICE_THRESHOLD = 10000;
 export const HIGH_VALUE_BOOKING_FEE = 499;
@@ -40,7 +40,7 @@ export const HIGH_VALUE_BOOKING_FEE = 499;
  * Slot fee for every service that is neither the full-price package nor a high-value PPF service, WHILE the
  * Dussehra & Diwali offer is running (the caller passes `diwaliSlotOffer`; the end date lives in
  * server/lib/diwali-offer.ts). Server constant, like the other fees: never read from the request.
- * The client mirrors it in client/src/hooks/use-booking-offer.ts, which reads it from /api/booking-offer.
+ * The client mirrors it in apps/admin/src/hooks/use-booking-offer.ts, which reads it from /api/booking-offer.
  */
 export const DIWALI_SLOT_FEE = 99;
 

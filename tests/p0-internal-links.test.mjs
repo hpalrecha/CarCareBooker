@@ -26,7 +26,7 @@ before(async () => {
   fs.mkdirSync(dir, { recursive: true });
   const bundle = async (entry, name) => {
     const out = path.join(dir, name);
-    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') } });
+    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'apps/admin', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') } });
     return import(pathToFileURL(out).href + '?t=' + Date.now());
   };
   hub = await bundle('packages/content/src/hub-option-links.ts', 'p0-hub.mjs');
@@ -97,7 +97,7 @@ describe('4. PPF hub (/services/paint-protection-film-bangalore): crawlable HTML
 });
 
 describe('the hub page component uses the same helper', () => {
-  const src = () => read('client/src/pages/seo-service-page.tsx');
+  const src = () => read('apps/admin/src/pages/seo-service-page.tsx');
   test('the options list is built from hubOptionLinks, not a hand-written /service/ href', () => {
     assert.match(src(), /hubOptionLinks\(/);
     assert.ok(!/href=\{`\/service\/\$\{s\.slug\}`\}\s+style=\{\{ color: "#4ade80" \}\} data-testid=\{`link-option/.test(src()), 'the old per-row /service/ link is gone');
@@ -122,7 +122,7 @@ describe('1 and 2. footer', () => {
     assert.match(html, /<a href="\/services\/interior-detailing-bangalore"[^>]*>Interior detailing overview<\/a>/);
   });
   test('the visible footer links both, and its other links are unchanged', () => {
-    const src = read('client/src/components/redesign/site-footer.tsx');
+    const src = read('apps/admin/src/components/redesign/site-footer.tsx');
     assert.match(src, /<li><Link href="\/ceramic-coating\/car">Car ceramic coating<\/Link><\/li>\s*<li><Link href="\/ceramic-coating\/bike">Bike ceramic coating<\/Link><\/li>/, 'car then bike, side by side');
     assert.match(src, /<Link href="\/services\/interior-detailing-bangalore">Interior detailing<\/Link>/);
     for (const keep of ['/services/paint-protection-film-bangalore', '/services/ceramic-coating-bangalore', '/service/exterior-detailing-hard-water-new', '/services">All services']) assert.ok(src.includes(keep), keep);

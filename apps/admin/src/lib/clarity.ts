@@ -1,7 +1,7 @@
 /**
  * Microsoft Clarity route guard.
  *
- * The tag itself is loaded by the official snippet in client/index.html (project
+ * The tag itself is loaded by the official snippet in apps/admin/index.html (project
  * yezkqr1rwm). That snippet refuses to inject at all when the FIRST page load is under
  * /admin. This module handles the other direction: this is a single-page app, so an admin
  * can land on the public site, have Clarity recording, and then navigate to

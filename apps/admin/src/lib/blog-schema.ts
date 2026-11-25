@@ -16,7 +16,7 @@
  * Relative imports only: scripts/prerender.mjs bundles this through scripts/prerender-content-entry.ts.
  */
 
-/** The studio logo, URL-encoded. The file is client/public/Car Care (4)_1753951564515.png. */
+/** The studio logo, URL-encoded. The file is apps/admin/public/Car Care (4)_1753951564515.png. */
 export const SITE_LOGO_PATH = "/Car%20Care%20(4)_1753951564515.png";
 
 export interface BlogPostingInput {

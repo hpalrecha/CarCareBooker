@@ -177,8 +177,8 @@ if "$DEPLOY_SH" deploy "$TARGET" --execute --repo "$REPO_DIR" --public-url "$PUB
     local key changed urls body code
     [[ -n "$RUNNING" ]] || return 0
     changed="$(g diff --name-only "$RUNNING" "$TARGET" 2>/dev/null || true)"
-    grep -Eq '^(client/src/|client/public/|scripts/prerender|server/routes\.ts)' <<<"$changed" || { note "indexnow: no page changes, skipping"; return 0; }
-    key="$(g ls-tree --name-only "$TARGET" client/public/ 2>/dev/null | sed -n 's#^client/public/\([0-9a-f]\{32\}\)\.txt$#\1#p' | head -1)"
+    grep -Eq '^(apps/admin/src/|apps/admin/public/|packages/content/src/|scripts/prerender|apps/api/src/routes\.ts)' <<<"$changed" || { note "indexnow: no page changes, skipping"; return 0; }
+    key="$(g ls-tree --name-only "$TARGET" apps/admin/public/ 2>/dev/null | sed -n 's#^apps/admin/public/\([0-9a-f]\{32\}\)\.txt$#\1#p' | head -1)"
     [[ -n "$key" ]] || { note "indexnow: no key file in the commit, skipping"; return 0; }
     urls="$(curl -fsS --max-time 20 "$PUBLIC_URL/sitemap.xml" | sed -n 's#.*<loc>\([^<]*\)</loc>.*#"\1"#p' | paste -sd, -)" || true
     [[ -n "$urls" ]] || { note "indexnow: could not read the sitemap, skipping"; return 0; }

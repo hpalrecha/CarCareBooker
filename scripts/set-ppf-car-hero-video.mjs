@@ -15,7 +15,7 @@
  * never in frame — verified frame-by-frame at both cut points, not just at the exact
  * boundary seconds.
  *
- * client/src/pages/service-landing.tsx renders this as a real <video> (autoplay, muted,
+ * apps/admin/src/pages/service-landing.tsx renders this as a real <video> (autoplay, muted,
  * loop, playsInline) in the hero, the Overview section, and the closing section — all
  * three read the same heroVideo field, same as every other service.
  *

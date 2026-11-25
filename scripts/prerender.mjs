@@ -42,13 +42,13 @@ const ORIGIN = "https://p91carcare.com";
 // 1200x630, built by scripts/make-og-images.mjs. The old default was the logo PNG, whose file name has spaces
 // and parentheses (some crawlers refuse such URLs) and which says nothing about the studio in a link preview.
 const OG_IMAGE = "/og/og-default.jpg";
-const IMAGE_MANIFEST = JSON.parse(readFileSync(path.join(ROOT, "client", "src", "lib", "image-manifest.json"), "utf8"));
+const IMAGE_MANIFEST = JSON.parse(readFileSync(path.join(ROOT, "apps/admin", "src", "lib", "image-manifest.json"), "utf8"));
 
 /**
  * The homepage hero/LCP photo, preloaded ONLY on "/" — this same set of widths is what
- * ImageWithFallback (client/src/components/image-with-fallback.tsx) generates into the
+ * ImageWithFallback (apps/admin/src/components/image-with-fallback.tsx) generates into the
  * <picture>'s AVIF <source> for "exterior-hero-poster" (a colour-matched frame of the hero video),
- * the fallback client/src/pages/home.tsx renders before /api/services answers. Kept in
+ * the fallback apps/admin/src/pages/home.tsx renders before /api/services answers. Kept in
  * sync by hand (no shared module — this is a Node build script, the other is browser
  * code) rather than duplicated blindly: if the hero photo or its widths ever change,
  * update both, or the browser preloads a variant the <picture> does not end up using.
@@ -92,7 +92,7 @@ function bootHeroHtml() {
 const NOINDEX_STATIC_PATHS = new Set(["/terms-conditions", "/privacy-policy", "/refund-policy"]);
 
 /**
- * Preload for a landing page's first carousel slide (client/src/components/redesign/slide-carousel.tsx renders
+ * Preload for a landing page's first carousel slide (apps/admin/src/components/redesign/slide-carousel.tsx renders
  * the same <picture>: AVIF source, widths from the image manifest, sizes below). Returns undefined, so no tag is
  * emitted, when the manifest has no entry for the image.
  */
@@ -170,7 +170,7 @@ async function loadContent() {
       outfile: tmp,
       logLevel: "silent",
       alias: {
-        "@": path.join(ROOT, "client", "src"),
+        "@": path.join(ROOT, "apps/admin", "src"),
         "@p91/content": path.join(ROOT, "packages", "content", "src"),
         "@p91/db": path.join(ROOT, "packages", "db", "src"),
         "@p91/domain": path.join(ROOT, "packages", "domain", "src"),
@@ -317,7 +317,7 @@ async function main() {
       ogType: "article",
       content: content.blogPostContent(p),
       jsonLd: [
-        // Same builder as the page (client/src/lib/blog-schema.ts): publisher is an Organization with the logo.
+        // Same builder as the page (apps/admin/src/lib/blog-schema.ts): publisher is an Organization with the logo.
         content.blogPostingSchema(p, ORIGIN, content.BLOG_AUTHOR, p.image?.src ? `${ORIGIN}${p.image.src.startsWith("/") ? "" : "/"}${p.image.src}` : undefined),
         breadcrumbs([
           ["Home", "/"],

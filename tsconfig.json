@@ -1,5 +1,5 @@
 {
-  "include": ["client/src/**/*", "apps/api/src/**/*", "packages/*/src/**/*"],
+  "include": ["apps/admin/src/**/*", "apps/api/src/**/*", "packages/*/src/**/*"],
   "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
   "compilerOptions": {
     "incremental": true,
@@ -28,7 +28,7 @@
     "baseUrl": ".",
     "types": ["node", "vite/client"],
     "paths": {
-      "@/*": ["./client/src/*"],
+      "@/*": ["./apps/admin/src/*"],
       "@p91/content/*": ["./packages/content/src/*"],
       "@p91/db/*": ["./packages/db/src/*"],
       "@p91/domain/*": ["./packages/domain/src/*"]

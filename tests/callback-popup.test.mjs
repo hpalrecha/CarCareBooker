@@ -21,7 +21,7 @@ before(async () => {
   const out = path.join(repoRoot, 'node_modules', '.cache', 'callback-popup-state.mjs');
   fs.mkdirSync(path.dirname(out), { recursive: true });
   await esbuild.build({
-    entryPoints: [path.join(repoRoot, 'client/src/lib/callback-popup-state.ts')],
+    entryPoints: [path.join(repoRoot, 'apps/admin/src/lib/callback-popup-state.ts')],
     bundle: true, format: 'esm', platform: 'neutral', outfile: out, logLevel: 'silent',
   });
   state = await import(pathToFileURL(out).href + '?t=' + Date.now());
@@ -81,7 +81,7 @@ describe('when "Prefer a call?" may pop up', () => {
 });
 
 describe('the popup component', () => {
-  const popup = read('client/src/components/callback-popup.tsx');
+  const popup = read('apps/admin/src/components/callback-popup.tsx');
 
   test('marks the visit only when it actually opens, and clears its timer', () => {
     assert.match(popup, /markCallbackPopupShown\(\);\s*setOpen\(true\)/);
@@ -89,7 +89,7 @@ describe('the popup component', () => {
     // The delay is a prop that defaults to CALLBACK_DELAY_MS.
     assert.match(popup, /delayMs = CALLBACK_DELAY_MS/);
     assert.match(popup, /setTimeout\(attempt, delayMs\)/);
-    assert.ok(!/CallbackPopup/.test(read('client/src/components/site-popups.tsx')), 'SitePopups no longer mounts the popup');
+    assert.ok(!/CallbackPopup/.test(read('apps/admin/src/components/site-popups.tsx')), 'SitePopups no longer mounts the popup');
     assert.match(popup, /waited >= CALLBACK_MAX_WAIT_MS/);
   });
 
@@ -98,7 +98,7 @@ describe('the popup component', () => {
   });
 
   test('the form reports a successful request back, so the popup stops offering itself', () => {
-    const form = read('client/src/components/quote-form.tsx');
+    const form = read('apps/admin/src/components/quote-form.tsx');
     assert.match(form, /setSubmitted\(true\);\s*onSubmitted\?\.\(\);/);
   });
 });

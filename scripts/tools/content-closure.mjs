@@ -12,7 +12,7 @@ const EXTS = ["", ".ts", ".tsx", ".json", "/index.ts"];
 
 function resolveSpec(fromAbs, spec) {
   let base;
-  if (spec.startsWith("@/")) base = path.join(ROOT, "client/src", spec.slice(2));
+  if (spec.startsWith("@/")) base = path.join(ROOT, "apps/admin/src", spec.slice(2));
   else if (spec.startsWith(".")) base = path.resolve(path.dirname(fromAbs), spec);
   else return null;
   for (const e of EXTS) if (fs.existsSync(base + e) && fs.statSync(base + e).isFile()) return base + e;
@@ -28,7 +28,7 @@ const seeds = [];
   }
 })(path.join(ROOT, "apps/api/src"));
 
-const clientRoot = path.join(ROOT, "client") + path.sep;
+const clientRoot = path.join(ROOT, "apps/admin") + path.sep;
 const closure = new Set();
 const queue = [];
 for (const f of seeds) {

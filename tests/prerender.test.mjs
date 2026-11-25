@@ -37,11 +37,11 @@ const script = read('scripts/prerender.mjs');
  */
 describe('prerendered metadata matches the page it represents', () => {
   const PAIRS = [
-    ['HOME_SEO', 'client/src/pages/home.tsx'],
-    ['CONTACT_SEO', 'client/src/pages/contact.tsx'],
-    ['GALLERY_SEO', 'client/src/pages/gallery.tsx'],
-    ['SERVICES_SEO', 'client/src/pages/services.tsx'],
-    ['PPF_CERAMIC_SEO', 'client/src/pages/ppf-ceramic-landing.tsx'],
+    ['HOME_SEO', 'apps/admin/src/pages/home.tsx'],
+    ['CONTACT_SEO', 'apps/admin/src/pages/contact.tsx'],
+    ['GALLERY_SEO', 'apps/admin/src/pages/gallery.tsx'],
+    ['SERVICES_SEO', 'apps/admin/src/pages/services.tsx'],
+    ['PPF_CERAMIC_SEO', 'apps/admin/src/pages/ppf-ceramic-landing.tsx'],
   ];
 
   for (const [constant, file] of PAIRS) {
@@ -67,7 +67,7 @@ describe('prerendered metadata matches the page it represents', () => {
     // so there is nothing left to drift.
     assert.ok(!/path:\s*"\/blog",\s*\n\s*title:\s*"/.test(script), '/blog title must not be a literal copy');
     assert.match(script, /title: BLOG_INDEX_TITLE/);
-    assert.match(read('client/src/pages/blog-index.tsx'), /BLOG_INDEX_TITLE/);
+    assert.match(read('apps/admin/src/pages/blog-index.tsx'), /BLOG_INDEX_TITLE/);
   });
 
   test('category listings are prerendered, one per category', () => {
@@ -190,7 +190,7 @@ describe('home first-paint poster', () => {
   test('the prerender bakes #boot-hero into "/" only, and Home removes it', () => {
     assert.match(script, /id="boot-hero"/, 'prerender must emit the poster');
     assert.match(script, /route\.path === "\/"\)\s*html = html\.replace\('<div id="root">'/, 'poster is injected for "/" only');
-    assert.match(read('client/src/pages/home.tsx'), /getElementById\("boot-hero"\)/, 'Home must remove the poster');
+    assert.match(read('apps/admin/src/pages/home.tsx'), /getElementById\("boot-hero"\)/, 'Home must remove the poster');
   });
 
   test('the poster uses the same AVIF set as the preload, so there is one download', () => {
@@ -211,7 +211,7 @@ describe('landing-page LCP: first carousel slide', () => {
   });
 
   test('hero carousels mount only nearby slides and load the first one eagerly', () => {
-    const src = read('client/src/components/redesign/slide-carousel.tsx');
+    const src = read('apps/admin/src/components/redesign/slide-carousel.tsx');
     assert.match(src, /const lazyMount = variant === "hero"/);
     assert.match(src, /priority=\{lazyMount && i === 0\}/);
     assert.match(src, /slide-car-ph/);

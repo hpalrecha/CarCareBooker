@@ -2,7 +2,7 @@
  * P91 PPF Premium (hatchback/sedan/suv): "7-year warranty" was appended to the END of
  * what_included in 2026-09-23-pricing-catalog-updates.mjs. service-landing.tsx's "What's
  * Included" overview list caps at the first 4 deduped items (overviewFeatureItems,
- * client/src/pages/service-landing.tsx:535), and each row has 6 items — so the warranty
+ * apps/admin/src/pages/service-landing.tsx:535), and each row has 6 items — so the warranty
  * line never rendered. Same defect as the car wash package fix.
  *
  * Moves "7-year warranty" to the FRONT of what_included so it's inside the visible cap.

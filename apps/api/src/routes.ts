@@ -304,7 +304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // robots.txt — served from here, not client/public, so it can react to the deploy
+  // robots.txt — served from here, not apps/admin/public, so it can react to the deploy
   // environment. A checked-in static file would ship the production Allow rules and the
   // production sitemap URL to every staging and preview host, inviting Google to index
   // p91-cc-audit.web.app and similar as duplicates of the real site.
@@ -421,7 +421,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // redeploy. getAllServices() returns active rows only, which is exactly the set that
   // should be indexable: an inactive slug renders "Service Not Found".
   //
-  // Registered here rather than in client/public because the SPA catch-all in vite.ts
+  // Registered here rather than in apps/admin/public because the SPA catch-all in vite.ts
   // would otherwise answer /sitemap.xml with index.html.
   app.get("/sitemap.xml", async (_req, res) => {
     try {

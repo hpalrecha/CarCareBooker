@@ -20,10 +20,10 @@ const code = (p) => read(p).replace(/\{\/\*[\s\S]*?\*\/\}/g, '').replace(/\/\*[\
 
 /** Routed pages built with Tailwind that now take the shared chrome. */
 const UNIFIED = [
-  'client/src/pages/privacy-policy.tsx',
-  'client/src/pages/refund-policy.tsx',
-  'client/src/pages/terms-conditions.tsx',
-  'client/src/pages/not-found.tsx',
+  'apps/admin/src/pages/privacy-policy.tsx',
+  'apps/admin/src/pages/refund-policy.tsx',
+  'apps/admin/src/pages/terms-conditions.tsx',
+  'apps/admin/src/pages/not-found.tsx',
 ];
 
 /**
@@ -40,9 +40,9 @@ const UNIFIED = [
  * chrome the other full-`.p91x` pages use rather than the typography-only shim.
  */
 const FULL_P91X = [
-  'client/src/pages/service-landing.tsx',
-  'client/src/pages/ppf-ceramic-landing.tsx',
-  'client/src/pages/services.tsx',
+  'apps/admin/src/pages/service-landing.tsx',
+  'apps/admin/src/pages/ppf-ceramic-landing.tsx',
+  'apps/admin/src/pages/services.tsx',
 ];
 
 describe('shared header, footer and type', () => {
@@ -67,8 +67,8 @@ describe('shared header, footer and type', () => {
   }
 
   test('no routed page still imports the old header or footer', () => {
-    const app = read('client/src/App.tsx');
-    const pagesDir = path.join(repoRoot, 'client/src/pages');
+    const app = read('apps/admin/src/App.tsx');
+    const pagesDir = path.join(repoRoot, 'apps/admin/src/pages');
     for (const f of fs.readdirSync(pagesDir)) {
       const src = fs.readFileSync(path.join(pagesDir, f), 'utf8');
       if (!/from "@\/components\/(header|footer)"/.test(src)) continue;
@@ -79,12 +79,12 @@ describe('shared header, footer and type', () => {
   });
 
   test('each piece of chrome gets its own .p91x scope, without breaking sticky', () => {
-    const chrome = read('client/src/components/redesign/brand-chrome.tsx');
+    const chrome = read('apps/admin/src/components/redesign/brand-chrome.tsx');
     assert.equal((chrome.match(/<div className="p91x" style=\{\{ display: "contents" \}\}>/g) || []).length, 2);
   });
 
   test('.p91-brand carries typography only — never layout', () => {
-    const css = read('client/src/styles/redesign.css');
+    const css = read('apps/admin/src/styles/redesign.css');
     const block = css.slice(css.indexOf('.p91-brand {'));
     assert.match(block, /font-family: "IBM Plex Sans"/);
     assert.match(block, /\.p91-brand h1, \.p91-brand h2, \.p91-brand h3, \.p91-brand h4 \{\s*font-family: Archivo/);
@@ -92,19 +92,19 @@ describe('shared header, footer and type', () => {
   });
 
   test('on pages with their own booking flow, header Book Now starts it in place', () => {
-    const header = read('client/src/components/redesign/site-header.tsx');
+    const header = read('apps/admin/src/components/redesign/site-header.tsx');
     assert.match(header, /onBookNow \? \(\s*<button type="button" className="btn-book" onClick=\{onBookNow\}/);
     // Both pages render SiteHeader directly now (full .p91x), not through the BrandHeader
     // shim — same onBookNow contract, one fewer layer.
-    assert.match(read('client/src/pages/service-landing.tsx'), /<SiteHeader onBookNow=\{\(\) => setBookingModalOpen\(true\)\} \/>/);
-    assert.match(read('client/src/pages/ppf-ceramic-landing.tsx'), /<SiteHeader onBookNow=\{scrollToForm\} \/>/);
+    assert.match(read('apps/admin/src/pages/service-landing.tsx'), /<SiteHeader onBookNow=\{\(\) => setBookingModalOpen\(true\)\} \/>/);
+    assert.match(read('apps/admin/src/pages/ppf-ceramic-landing.tsx'), /<SiteHeader onBookNow=\{scrollToForm\} \/>/);
   });
 });
 
 describe('brand green and one booking phrase', () => {
   test('primary buttons use the brand green, not three different greens', () => {
     // quote-form.tsx is unmigrated: its CTAs are still literal Tailwind, coloured directly.
-    for (const f of ['client/src/components/quote-form.tsx']) {
+    for (const f of ['apps/admin/src/components/quote-form.tsx']) {
       const src = code(f);
       assert.doesNotMatch(src, /hover:bg-green-600|hover:bg-\[#0ea371\]|bg-\[#10B981\]/, f);
       assert.match(src, /bg-\[var\(--neon-green\)\]/, f);
@@ -120,24 +120,24 @@ describe('brand green and one booking phrase', () => {
     // filter page with no such button — its cards get their green from .go/.card-cat/
     // .card-save instead (still shared classes, just not this one), so it is not held to
     // this narrower check.
-    for (const f of ['client/src/pages/service-landing.tsx', 'client/src/pages/ppf-ceramic-landing.tsx']) {
+    for (const f of ['apps/admin/src/pages/service-landing.tsx', 'apps/admin/src/pages/ppf-ceramic-landing.tsx']) {
       assert.match(code(f), /className="cta-lg"/, f);
     }
   });
 
   test('"Book Now" everywhere, never "Book Free Appointment"', () => {
-    for (const f of ['client/src/pages/campaign-landing.tsx', 'client/src/components/campaign-offer.tsx', 'client/src/pages/service-landing.tsx']) {
+    for (const f of ['apps/admin/src/pages/campaign-landing.tsx', 'apps/admin/src/components/campaign-offer.tsx', 'apps/admin/src/pages/service-landing.tsx']) {
       assert.doesNotMatch(code(f), /Book Free Appointment|service\.ctaText \|\|/, f);
     }
   });
 
   test('the off-brand fixed blue "Call Now" tab is gone from /ppf-ceramic-coating', () => {
-    assert.doesNotMatch(read('client/src/pages/ppf-ceramic-landing.tsx'), /floating-call-btn/);
+    assert.doesNotMatch(read('apps/admin/src/pages/ppf-ceramic-landing.tsx'), /floating-call-btn/);
   });
 });
 
 describe('/services cards', () => {
-  const card = code('client/src/components/service-card.tsx');
+  const card = code('apps/admin/src/components/service-card.tsx');
 
   test('no "Limited Time" / "MEGA SAVINGS" badge — only the computed % off', () => {
     assert.doesNotMatch(card, /service\.discountText/);

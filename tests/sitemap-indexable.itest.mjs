@@ -149,7 +149,7 @@ describe("route pipeline: nothing in the sitemap may be left without a handler",
     assert.ok(!sitemapStaticPaths.includes("/ppf-ceramic-coating"), "must not be in the sitemap");
     assert.ok(!prerenderedStatic.includes("/ppf-ceramic-coating"), "must not have a prerendered file");
     assert.doesNotMatch(
-      read("client/src/App.tsx"),
+      read("apps/admin/src/App.tsx"),
       /path="\/ppf-ceramic-coating"/,
       "must not have a client route — the server redirect is the only handler now",
     );

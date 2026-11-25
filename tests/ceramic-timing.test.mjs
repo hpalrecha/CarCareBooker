@@ -38,7 +38,7 @@ before(async () => {
   fs.mkdirSync(dir, { recursive: true });
   const bundle = async (entry, name) => {
     const out = path.join(dir, name);
-    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') } });
+    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'apps/admin', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') } });
     return import(pathToFileURL(out).href + '?t=' + Date.now());
   };
   timing = await bundle('packages/content/src/ceramic-timing.ts', 'ceramic-timing-t.mjs');
@@ -122,13 +122,13 @@ describe('FAQPage JSON-LD agrees with the page and the HTML', () => {
 
 describe('every surface is wired to the shared module (source guards)', () => {
   test('page, server and schema builders all apply withCeramicTiming', () => {
-    for (const f of ['client/src/pages/service-landing.tsx', 'client/src/pages/campaign-landing.tsx', 'packages/content/src/crawlable-content.ts', 'packages/content/src/service-seo.ts', 'apps/api/src/vite.ts']) {
+    for (const f of ['apps/admin/src/pages/service-landing.tsx', 'apps/admin/src/pages/campaign-landing.tsx', 'packages/content/src/crawlable-content.ts', 'packages/content/src/service-seo.ts', 'apps/api/src/vite.ts']) {
       assert.match(read(f), /withCeramicTiming/, f);
     }
   });
   test('no application source states a 6-8 hour duration', () => {
     const walk = (d) => fs.readdirSync(path.join(repoRoot, d), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
-    const files = ['client/src', 'apps/api/src', 'packages'].flatMap(walk).filter((f) => /\.(tsx?|json|html)$/.test(f));
+    const files = ['apps/admin/src', 'apps/api/src', 'packages'].flatMap(walk).filter((f) => /\.(tsx?|json|html)$/.test(f));
     assert.deepEqual(files.filter((f) => OLD_CLAIM.test(read(f))), []);
   });
 });

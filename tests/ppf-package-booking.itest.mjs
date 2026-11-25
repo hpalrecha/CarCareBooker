@@ -199,7 +199,7 @@ describe('the Meta Ads campaign snapshot is still written for a /ppf booking', (
 // ===========================================================================
 // FREE BOOKING IS PER ROW: what the page says must equal what the server charges, for all six rows
 // ===========================================================================
-import { bookingIsFreeForRow, freeBookingSource, showPreviousPrice } from '../client/src/lib/offer-scope.ts';
+import { bookingIsFreeForRow, freeBookingSource, showPreviousPrice } from '../apps/admin/src/lib/offer-scope.ts';
 
 describe('free-booking scope: the page and the server agree for every row and every scenario', () => {
   const NOW = Date.now();

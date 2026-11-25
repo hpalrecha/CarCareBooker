@@ -12,7 +12,7 @@
  * black "Premium" title card and closing phone-number card — neither belongs on a
  * looping background video.
  *
- * client/src/pages/service-landing.tsx's Overview section renders this as a real <video>
+ * apps/admin/src/pages/service-landing.tsx's Overview section renders this as a real <video>
  * (autoplay, muted, loop, playsInline) rather than the <iframe> embed it uses for a
  * YouTube/Vimeo heroVideo, because this is a direct .mp4 file, not an embeddable URL.
  *

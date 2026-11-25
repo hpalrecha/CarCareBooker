@@ -19,7 +19,7 @@ before(async () => {
   const bundle = async (entry, name) => {
     const out = path.join(repoRoot, 'node_modules', '.cache', name);
     fs.mkdirSync(path.dirname(out), { recursive: true });
-    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') } });
+    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'apps/admin', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') } });
     return import(pathToFileURL(out).href + '?t=' + Date.now());
   };
   seo = await bundle('packages/content/src/static-seo.ts', 'offer-expiry-seo.mjs');
@@ -31,7 +31,7 @@ describe('the end date', () => {
     const iso = '2026-11-08T23:59:59+05:30';
     assert.equal(win.FESTIVAL_OFFER_ENDS_AT.getTime(), new Date(iso).getTime());
     assert.match(read('apps/api/src/lib/diwali-offer.ts'), /endsAt: new Date\("2026-11-08T23:59:59\+05:30"\)/);
-    assert.match(read('client/src/components/festival-offer.tsx'), /endsAt: new Date\("2026-11-08T23:59:59\+05:30"\)/);
+    assert.match(read('apps/admin/src/components/festival-offer.tsx'), /endsAt: new Date\("2026-11-08T23:59:59\+05:30"\)/);
   });
   test('the last second of 8 November is inside the offer; the next moment is not', () => {
     assert.equal(win.festivalOfferHasEnded(new Date('2026-11-08T23:59:59+05:30')), false);
@@ -61,8 +61,8 @@ describe('currentOfferSeo', () => {
 
 describe('the page was removed (410 Gone), not just marked ended', () => {
   test('no client route and no page component remain', () => {
-    assert.ok(!fs.existsSync(path.join(repoRoot, 'client/src/pages/offer.tsx')));
-    assert.ok(!/de-dhana-dhan|pages\/offer"/.test(read('client/src/App.tsx')), 'App.tsx no longer routes it');
+    assert.ok(!fs.existsSync(path.join(repoRoot, 'apps/admin/src/pages/offer.tsx')));
+    assert.ok(!/de-dhana-dhan|pages\/offer"/.test(read('apps/admin/src/App.tsx')), 'App.tsx no longer routes it');
   });
 
   test('it is no longer in the static SEO list, so it is not prerendered', () => {

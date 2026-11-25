@@ -23,7 +23,7 @@ const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 
 // The module is TypeScript with no runtime dependencies, so the type annotations are
 // stripped rather than pulling a compiler into the test run.
-const src = read('client/src/lib/ppf-ceramic-pricing.ts')
+const src = read('apps/admin/src/lib/ppf-ceramic-pricing.ts')
   .replace(/export interface \w+ \{[\s\S]*?\n\}/g, '')
   .replace(/\(services: unknown, slug: string\): CataloguePrice \| null \{/, '(services, slug) {')
   .replace(/\(prices: \(CataloguePrice \| null\)\[\]\): number \{/, '(prices) {')
@@ -33,7 +33,7 @@ const { PPF_CERAMIC_PRICE_SLUGS, resolveCataloguePrice, maxDiscountPercent } = n
 )();
 
 /** Page source with comments removed, so assertions match code and not the explanations. */
-const page = read('client/src/pages/ppf-ceramic-landing.tsx')
+const page = read('apps/admin/src/pages/ppf-ceramic-landing.tsx')
   .replace(/\/\*[\s\S]*?\*\//g, '')
   .replace(/^\s*\/\/.*$/gm, '')
   .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, '');

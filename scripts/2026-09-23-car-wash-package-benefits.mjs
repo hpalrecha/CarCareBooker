@@ -6,7 +6,7 @@
  * Washes across the year", "2 Interior Rejuvenation sessions" and "1 Exterior Restoration
  * session" to the END of what_included. But service-landing.tsx's "What's Included"
  * overview list caps at the first 4 deduped items (see overviewFeatureItems,
- * client/src/pages/service-landing.tsx:535) — so those 3 items never actually render; the
+ * apps/admin/src/pages/service-landing.tsx:535) — so those 3 items never actually render; the
  * page still shows only the 4 generic wash-process bullets that were already there.
  *
  * This replaces what_included with just the 3 package-coverage items (fits the 4-item cap,

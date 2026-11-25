@@ -29,7 +29,7 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
-const raw =fs.readFileSync(path.join(repoRoot, 'client/src/pages/service-landing.tsx'), 'utf8');
+const raw =fs.readFileSync(path.join(repoRoot, 'apps/admin/src/pages/service-landing.tsx'), 'utf8');
 /** Comments stripped, so assertions match code rather than the prose describing it. */
 const src = raw.replace(/\{\/\*[\s\S]*?\*\/\}/g, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
@@ -54,7 +54,7 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
     assert.match(top, /<SiteHeader onBookNow=\{\(\) => setBookingModalOpen\(true\)\} \/>/);
     assert.match(src, /<SiteFooter \/>/);
     // The phone number lives in the shared header.
-    assert.match(read('client/src/components/redesign/site-header.tsx'), /href="tel:\+917406619191"/);
+    assert.match(read('apps/admin/src/components/redesign/site-header.tsx'), /href="tel:\+917406619191"/);
   });
 
   test('product-page hero: boxed photo slideshow on one side, dark info panel on the other', () => {
@@ -130,7 +130,7 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
     assert.doesNotMatch(h1, /bg-clip-text|text-transparent/);
     // Sizing comes from .pdp-panel h1 in redesign.css now, not a Tailwind class on the
     // element itself.
-    assert.match(read('client/src/styles/redesign.css'), /\.pdp-panel h1 \{/);
+    assert.match(read('apps/admin/src/styles/redesign.css'), /\.pdp-panel h1 \{/);
   });
 
   test('trust pills are facts from the record, and claim nothing unmeasured', () => {
@@ -191,14 +191,14 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
 
   test('the two booking routes are named so they cannot be confused', () => {
     assert.ok(hero.includes('`Reserve your slot for ₹${slotFee}`'));
-    assert.ok(read('client/src/components/callback-popup.tsx').includes('No payment now'));
+    assert.ok(read('apps/admin/src/components/callback-popup.tsx').includes('No payment now'));
   });
 
   test('the slot fee is 499 for PPF over ₹10,000, 99 during the Diwali offer and 299 otherwise, from one helper', () => {
     assert.ok(
       src.includes('const slotFee = slotFeeFor(service.slug, service.price, offer.slotOffer ? offer.slotFee : 299);'),
     );
-    const lib = read('client/src/lib/booking-fee.ts');
+    const lib = read('apps/admin/src/lib/booking-fee.ts');
     assert.match(lib, /HIGH_VALUE_PRICE_THRESHOLD = 10000/);
     assert.match(lib, /HIGH_VALUE_BOOKING_FEE = 499/);
     assert.match(lib, /fallback = 299/);

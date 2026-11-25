@@ -21,7 +21,7 @@ const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 // The module is TypeScript with no runtime dependencies, so the type annotations are
 // stripped rather than pulling a compiler into the test run (same approach as
 // tests/ppf-ceramic-pricing.test.mjs).
-const src = read('client/src/lib/duration-input.ts')
+const src = read('apps/admin/src/lib/duration-input.ts')
   .replace(/^export type DurationUnit[\s\S]*?;$/m, '')
   .replace(/: Record<DurationUnit, number>/, '')
   .replace(/export function minutesToDurationInput\(\s*minutes: number \| string \| undefined \| null,\s*\): \{ value: string; unit: DurationUnit \} \{/, 'function minutesToDurationInput(minutes) {')

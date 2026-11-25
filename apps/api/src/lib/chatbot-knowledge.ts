@@ -8,7 +8,7 @@
 //   - buildLlmsTxt()        (packages/content/src/llms-txt.ts)   — services, prices, hours, address, phone
 //   - PRODUCT_BRANDS / PRODUCT_FINE_PRINT (packages/content/src/nav-menu.ts) — brand blurbs
 //   - PHONE                 (packages/content/src/local-business.ts) — the one confirmed phone number
-// server/routes.ts already imports from client/src the same way (buildLlmsTxt, for /llms.txt),
+// server/routes.ts already imports from apps/admin/src the same way (buildLlmsTxt, for /llms.txt),
 // so this is an established pattern here, not a new one.
 
 import type { Service, BusinessHour, BlackoutDate, ChatbotKnowledgeEntry } from "@p91/db/schema";
@@ -37,10 +37,10 @@ export const DIRECTIONS_HREF =
 export const WHATSAPP_URL = `https://wa.me/${PHONE.replace(/^\+/, "")}`;
 
 /**
- * Cancellation/refund figures, sourced from client/src/pages/refund-policy.tsx (the page
+ * Cancellation/refund figures, sourced from apps/admin/src/pages/refund-policy.tsx (the page
  * with the actual ₹ amounts tied to the real ₹299 booking fee).
  *
- * NOTE FOR WHOEVER EDITS THIS: client/src/pages/cancellation-policy.tsx currently states a
+ * NOTE FOR WHOEVER EDITS THIS: apps/admin/src/pages/cancellation-policy.tsx currently states a
  * DIFFERENT window ("4+ hours before service = free cancellation") for the same booking fee.
  * The two site pages disagree with each other today. This constant follows refund-policy.tsx
  * because it is the page with concrete rupee amounts matching the booking fee logic

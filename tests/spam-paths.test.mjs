@@ -54,7 +54,7 @@ test("no real page of this site matches", () => {
 });
 
 test("no client route and no static sitemap path matches", () => {
-  const app = fs.readFileSync(new URL("../client/src/App.tsx", import.meta.url), "utf8");
+  const app = fs.readFileSync(new URL("../apps/admin/src/App.tsx", import.meta.url), "utf8");
   const routes = fs.readFileSync(new URL("../apps/api/src/routes.ts", import.meta.url), "utf8");
   const paths = [
     ...[...app.matchAll(/path="([^"]+)"/g)].map((m) => m[1].replace(/:[A-Za-z]+/g, "sample-slug-12345")),

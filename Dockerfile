@@ -10,7 +10,7 @@
 # fresh build used to redo all of it. This stage's inputs are only the lockfile,
 # the optimiser script and attached_assets/, so Docker's layer cache keys it on
 # exactly those: a deploy that changes code but no image reuses it and skips the
-# encoding entirely. OPTIMIZE_ALL=1 because this stage cannot see client/src to
+# encoding entirely. OPTIMIZE_ALL=1 because this stage cannot see apps/admin/src to
 # work out which images the site references (see scripts/optimize-images.mjs).
 ###############################################################################
 FROM node:20-bookworm-slim AS images
@@ -37,9 +37,9 @@ COPY . .
 # The generated variants and their manifest come from the images stage above, laid over the
 # copy of the source (the manifest in Git is overwritten, as `npm run build` would have done).
 COPY --from=images /app/attached_assets/_opt ./attached_assets/_opt
-COPY --from=images /app/client/src/lib/image-manifest.json ./client/src/lib/image-manifest.json
+COPY --from=images /app/apps/admin/src/lib/image-manifest.json ./apps/admin/src/lib/image-manifest.json
 
-# vite    -> dist/public    (client bundle + everything in client/public)
+# vite    -> dist/public    (client bundle + everything in apps/admin/public)
 # esbuild -> dist/index.js  (server bundle, --packages=external)
 # `build:app` is `npm run build` without its first step, the image optimiser, which the
 # images stage already ran (tests/regression.test.mjs keeps the two in step).
@@ -92,7 +92,7 @@ COPY --from=build /app/dist ./dist
 # all 9 attached_assets-backed services showed broken images on production.
 #
 # This is ~167 MB and cannot be trimmed: the two large MP4s are referenced by
-# client/src/pages/service-landing.tsx.
+# apps/admin/src/pages/service-landing.tsx.
 #
 # COPIED FROM THE BUILD STAGE, not from the build context. `npm run build` runs
 # scripts/optimize-images.mjs, which writes the responsive AVIF/WebP ladder to

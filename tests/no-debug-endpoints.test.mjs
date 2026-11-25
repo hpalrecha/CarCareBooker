@@ -54,7 +54,7 @@ test('the guard itself matches the routes it was written for (so it cannot pass 
 
 test('no client, script or workflow in the repository calls the removed endpoints', () => {
   const needles = ['test-payment-confirmation', 'api/test-whatsapp', 'api/test-payment'];
-  const roots = ['client/src', 'scripts', 'apps/api/src', '.github'].map((p) => path.join(repoRoot, p)).filter((p) => fs.existsSync(p));
+  const roots = ['apps/admin/src', 'scripts', 'apps/api/src', '.github'].map((p) => path.join(repoRoot, p)).filter((p) => fs.existsSync(p));
   const hits = [];
   const walk = (dir) => {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {

@@ -37,7 +37,7 @@ describe("the three ad destinations exist and are distinct", () => {
   });
 
   test("each is registered as a route", () => {
-    const app = read("client/src/App.tsx");
+    const app = read("apps/admin/src/App.tsx");
     for (const p of LANDING_PAGES) {
       assert.ok(app.includes(`path="${p.path}"`), `${p.path} must be routed`);
     }
@@ -77,8 +77,8 @@ describe("the three ad destinations exist and are distinct", () => {
 describe("NO pricing may live in the frontend", () => {
   const files = [
     "packages/content/src/landing-pages.ts",
-    "client/src/pages/campaign-landing.tsx",
-    "client/src/components/vehicle-selector.tsx",
+    "apps/admin/src/pages/campaign-landing.tsx",
+    "apps/admin/src/components/vehicle-selector.tsx",
   ];
 
   test("no rupee figures are hardcoded", () => {
@@ -128,9 +128,9 @@ describe("NO pricing may live in the frontend", () => {
 describe("no invented or withheld claims", () => {
   const sources = [
     "packages/content/src/landing-pages.ts",
-    "client/src/pages/campaign-landing.tsx",
-    "client/src/components/vehicle-selector.tsx",
-    "client/src/components/blog-carousel.tsx",
+    "apps/admin/src/pages/campaign-landing.tsx",
+    "apps/admin/src/components/vehicle-selector.tsx",
+    "apps/admin/src/components/blog-carousel.tsx",
   ];
 
   test("none of the Phase 1 claims return in any wording", () => {

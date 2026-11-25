@@ -176,7 +176,7 @@ export const bookings = pgTable("bookings", {
   // --- Campaign attribution (all nullable; added 2026-09 for paid-ads reporting) ---
   //
   // Captured first-touch in the browser and held across navigation, so a booking made
-  // three pages after an ad click still names the ad. See client/src/lib/attribution.ts
+  // three pages after an ad click still names the ad. See apps/admin/src/lib/attribution.ts
   // for the capture rule and server/lib/attribution.ts for validation.
   //
   // `source` is DERIVED server-side from the fields below, never accepted from the

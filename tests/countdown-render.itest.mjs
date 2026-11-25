@@ -23,9 +23,9 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import CampaignCountdown from "../client/src/components/campaign-countdown.tsx";
-import CampaignOffer from "../client/src/components/campaign-offer.tsx";
-import HeroOfferStrip from "../client/src/components/hero-offer-strip.tsx";
+import CampaignCountdown from "../apps/admin/src/components/campaign-countdown.tsx";
+import CampaignOffer from "../apps/admin/src/components/campaign-offer.tsx";
+import HeroOfferStrip from "../apps/admin/src/components/hero-offer-strip.tsx";
 
 const HOUR = 3_600_000, DAY = 86_400_000;
 
