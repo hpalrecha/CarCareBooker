@@ -26,7 +26,7 @@ import { slotFeeFor } from "@/lib/booking-fee";
 import { ILLUSTRATIVE_SLUGS } from "@/lib/real-service-images";
 import ParallaxFrame from "@/components/redesign/parallax-frame";
 import { useCinematic } from "@/hooks/use-cinematic";
-import type { BusinessHour } from "@p91/db/schema";
+import type { BusinessHour } from "@shared/schema";
 import { VisitStudio } from "@/components/redesign/studio-sections";
 
 // The one before/after pair that is verifiably P91's own: the studio's photographs of a customer's

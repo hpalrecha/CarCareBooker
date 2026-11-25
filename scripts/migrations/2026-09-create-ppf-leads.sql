@@ -1,6 +1,6 @@
 -- Create the ppf_leads table.
 --
--- WHY THIS EXISTS: the table is defined in packages/db/src/schema.ts and the application has always
+-- WHY THIS EXISTS: the table is defined in shared/schema.ts and the application has always
 -- written to it, but it was never created in the production database. Every submission from
 -- the PPF/ceramic landing page — the destination the Meta ads point at — therefore failed
 -- with `42P01 relation "ppf_leads" does not exist`, was converted to an HTTP 400 by the
