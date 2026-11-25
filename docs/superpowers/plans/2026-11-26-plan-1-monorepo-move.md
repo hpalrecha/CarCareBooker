@@ -14,6 +14,14 @@ This is plan 1 of 4 for `docs/superpowers/specs/2026-11-25-site-restructure-rede
 3. Analytics (GTM, Pixel + CAPI, first-touch attribution) and nginx cutover.
 4. Phase 2 internals: split `routes.ts` and `storage.ts` by feature, dead code and dependency removal, giant-file splits.
 
+## Execution notes (added while executing, 26 Nov)
+
+- The verification block lives in the session scratchpad as `verify.sh`; it prints tsc errors per file, unit and integration counts, and the fingerprint comparison.
+- Real baseline after a fresh build: unit 678/678 (684 after new tests), integration 213 pass + 258 cancelled (pre-existing), tsc 35 errors in 10 files. Compare per-file tsc counts, not the total.
+- The codemod also had to learn: extensionless specifiers of moved single files, `new URL("../x", import.meta.url)` and repo-relative path strings in `tests/` and `scripts/` (`read('server/routes.ts')`, `path.join(root, 'client', ...)`). Source-guard tests that match import text by regex were made path-agnostic or updated.
+- Never bulk-edit with `sed -i` in Git Bash on this repo: it rewrote CRLF files to LF (a 2,768-line diff on `service-landing.tsx`). Use Node read/replace/write, which keeps line endings.
+- Running `scripts/optimize-images.mjs` locally rewrites `image-manifest.json` with a different image set; restore the committed file afterwards.
+
 ## Global Constraints
 
 - No behaviour change: same routes, same responses, same prerendered HTML (asset hashes aside), same Docker runtime command.
@@ -737,6 +745,8 @@ for u in / /ppf /services /api/services /api/business-hours /sitemap.xml /robots
 docker stop ccb-test
 ```
 Expected: every URL 200. (This reads the production database read-only through public GET endpoints; nothing writes.)
+
+**Timing rule:** the container starts the WhatsApp reminder cron (`0 20 * * *`, Asia/Kolkata). Never run it with the real `.env` across 20:00 IST, or customers get a duplicate reminder. Start it only between 20:02 and 19:55 IST and stop it within a minute.
 
 ---
 
