@@ -26,7 +26,7 @@ import { slotFeeFor } from "@/lib/booking-fee";
 import { ILLUSTRATIVE_SLUGS } from "@/lib/real-service-images";
 import ParallaxFrame from "@/components/redesign/parallax-frame";
 import { useCinematic } from "@/hooks/use-cinematic";
-import type { BusinessHour } from "@shared/schema";
+import type { BusinessHour } from "@p91/db/schema";
 import { VisitStudio } from "@/components/redesign/studio-sections";
 
 // The one before/after pair that is verifiably P91's own: the studio's photographs of a customer's
@@ -90,7 +90,7 @@ interface Service {
 }
 
 /**
- * `service.heroVideo` (shared/schema.ts) is "YouTube/Vimeo URL or video file URL" — two
+ * `service.heroVideo` (packages/db/src/schema.ts) is "YouTube/Vimeo URL or video file URL" — two
  * different embed mechanisms. A direct file (the studio's own reel, saved under
  * attached_assets/) plays as a real <video>, autoplaying and muted like the homepage hero's
  * footage; a YouTube/Vimeo URL has no direct file to point a <video> element at and stays

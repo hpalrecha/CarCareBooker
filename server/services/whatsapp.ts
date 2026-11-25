@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { whatsappConfig, whatsappTemplates, type WhatsappConfig, type WhatsappTemplate } from "@shared/schema";
+import { whatsappConfig, whatsappTemplates, type WhatsappConfig, type WhatsappTemplate } from "@p91/db/schema";
 import { eq } from "drizzle-orm";
 import { normalizeIndianMobile, maskPhoneDigits } from "../lib/phone";
 

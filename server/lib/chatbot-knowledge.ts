@@ -11,7 +11,7 @@
 // server/routes.ts already imports from client/src the same way (buildLlmsTxt, for /llms.txt),
 // so this is an established pattern here, not a new one.
 
-import type { Service, BusinessHour, BlackoutDate, ChatbotKnowledgeEntry } from "@shared/schema";
+import type { Service, BusinessHour, BlackoutDate, ChatbotKnowledgeEntry } from "@p91/db/schema";
 import { buildLlmsTxt } from "../../client/src/lib/llms-txt";
 import { PRODUCT_BRANDS, PRODUCT_FINE_PRINT } from "../../client/src/lib/nav-menu";
 import { PHONE } from "../../client/src/lib/local-business";
@@ -22,7 +22,7 @@ export interface ChatbotKnowledgeDeps {
   getAllBusinessHours(): Promise<BusinessHour[]>;
   getAllBlackoutDates(): Promise<BlackoutDate[]>;
   /**
-   * Staff-curated facts from the admin "Knowledge Hub" tab (shared/schema.ts:
+   * Staff-curated facts from the admin "Knowledge Hub" tab (packages/db/src/schema.ts:
    * chatbotKnowledge). This is the "let it store knowledge" mechanism: when the bot gets a
    * question wrong (like the bike-PPF one below, before it was fixed), staff add an entry
    * here instead of waiting on a code change. Only ACTIVE entries — `getActiveChatbotKnowledge`

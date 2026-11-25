@@ -1,4 +1,4 @@
-import type { BusinessHour } from "@shared/schema";
+import type { BusinessHour } from "@p91/db/schema";
 import { formatINR } from "./canonical-services";
 import { ADDRESS_CONFIRMED, STREET_ADDRESS, POSTAL_CODE, PHONE } from "./local-business";
 
@@ -38,7 +38,7 @@ const hhmm = (t: string | null | undefined) => String(t || "").slice(0, 5);
 
 /**
  * The business_hours table stores an opening time and a CUTOFF — the last bookable slot,
- * per shared/schema.ts — not a closing time. Stating "open 10:30–16:30" would assert a
+ * per packages/db/src/schema.ts — not a closing time. Stating "open 10:30–16:30" would assert a
  * closing time nobody has confirmed, so the line says what the data actually is.
  */
 function hoursLines(hours: BusinessHour[] | undefined): string[] {

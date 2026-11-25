@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { adminLoginSchema } from "@shared/schema";
+import { adminLoginSchema } from "@p91/db/schema";
 
 /**
  * Staff sign-in.

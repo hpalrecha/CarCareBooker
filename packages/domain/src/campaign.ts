@@ -2,7 +2,7 @@
  * Campaign window resolution — pure, dependency-free, and the single authority on which
  * campaign (if any) is running at a given instant.
  *
- * Lives in shared/ because the client needs the TYPES and the expiry check for the
+ * Lives in packages/domain because the client needs the TYPES and the expiry check for the
  * countdown, while the server needs the RESOLUTION for pricing. Both must agree, and the
  * only reliable way to make two runtimes agree is to give them one implementation.
  *

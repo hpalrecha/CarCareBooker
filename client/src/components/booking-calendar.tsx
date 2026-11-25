@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { BlackoutDate, BusinessHour } from "@shared/schema";
+import type { BlackoutDate, BusinessHour } from "@p91/db/schema";
 
 /**
  * Month calendar for picking an appointment date.

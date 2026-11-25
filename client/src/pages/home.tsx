@@ -17,7 +17,7 @@ import { HOME_PACKAGE_LINKS } from "@/lib/home-package-links";
 import { postsNewestFirst } from "@/lib/blog-posts";
 import BlogCarousel from "@/components/blog-carousel";
 import { HowItWorks, VisitStudio, Reviews } from "@/components/redesign/studio-sections";
-import type { BusinessHour } from "@shared/schema";
+import type { BusinessHour } from "@p91/db/schema";
 
 // Same dialog the mobile estimate bar opens; loaded on first tap.
 const EstimateDialog = lazy(() => import("@/components/mobile-estimate-dialog"));

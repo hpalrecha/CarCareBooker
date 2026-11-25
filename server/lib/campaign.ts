@@ -1,7 +1,7 @@
 /**
  * Server-side campaign validation and offer resolution.
  *
- * The pure window arithmetic lives in shared/campaign.ts so the client and server cannot
+ * The pure window arithmetic lives in packages/domain/src/campaign.ts so the client and server cannot
  * disagree about whether an offer is running. This module is the SERVER's half: it
  * validates what an admin submits, and it decides what the offer state means for pricing.
  *
@@ -41,7 +41,7 @@ import {
   campaignState,
   type CampaignRecord,
   type ResolvedCampaign,
-} from "@shared/campaign";
+} from "@p91/domain/campaign";
 
 /** Landing pages a campaign may target. A closed set: an unknown route renders nothing,
  *  so a campaign pointed at one would be invisible and look like a bug in the offer. */

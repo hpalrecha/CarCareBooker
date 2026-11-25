@@ -277,7 +277,7 @@ export const businessHours = pgTable("business_hours", {
  * ─────────────────────────────────────────────────────────────────────────────────────
  *
  * Windows are stored as absolute instants (timestamptz), half-open [startsAt, endsAt).
- * See shared/campaign.ts for the resolution rules and why the interval is half-open.
+ * See packages/domain/src/campaign.ts for the resolution rules and why the interval is half-open.
  */
 export const campaigns = pgTable(
   "campaigns",

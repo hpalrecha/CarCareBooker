@@ -128,7 +128,7 @@ describe('every surface is wired to the shared module (source guards)', () => {
   });
   test('no application source states a 6-8 hour duration', () => {
     const walk = (d) => fs.readdirSync(path.join(repoRoot, d), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
-    const files = ['client/src', 'server', 'shared'].flatMap(walk).filter((f) => /\.(tsx?|json|html)$/.test(f));
+    const files = ['client/src', 'server', 'packages'].flatMap(walk).filter((f) => /\.(tsx?|json|html)$/.test(f));
     assert.deepEqual(files.filter((f) => OLD_CLAIM.test(read(f))), []);
   });
 });

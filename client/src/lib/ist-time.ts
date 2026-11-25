@@ -18,7 +18,7 @@
  *   form -> API    istLocalToInstant()  appends +05:30 and produces a real ISO instant
  *   API  -> form   instantToIstLocal()  renders the instant AS IST wall-clock
  *
- * Everything in between — the database column, shared/campaign.ts, the countdown — deals
+ * Everything in between — the database column, packages/domain/src/campaign.ts, the countdown — deals
  * only in absolute instants and never needs to know about a timezone.
  *
  * WHY A FIXED +05:30 AND NOT Intl / a timezone library.

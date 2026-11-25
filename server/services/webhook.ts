@@ -1,4 +1,4 @@
-import type { Booking, Service } from '@shared/schema';
+import type { Booking, Service } from '@p91/db/schema';
 
 /**
  * Booking -> n8n integration ("Appointmnet Booking P91 CC", workflow UvrwB78oldxJotbH).

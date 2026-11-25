@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { whatsappConfigSchema } from "@shared/schema";
+import { whatsappConfigSchema } from "@p91/db/schema";
 import { z } from "zod";
 
 export default function AdminWhatsApp() {

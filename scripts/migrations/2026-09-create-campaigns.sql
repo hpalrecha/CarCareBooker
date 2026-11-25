@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
   updated_at         timestamp NOT NULL DEFAULT now(),
 
   -- A window that ends before it starts is not a window. Rejected at the storage layer
-  -- so no application bug can persist one, and so shared/campaign.ts never has to treat
+  -- so no application bug can persist one, and so packages/domain/src/campaign.ts never has to treat
   -- an inverted range as a live possibility on rows that came from here.
   CONSTRAINT campaigns_window_valid CHECK (ends_at > starts_at),
 
@@ -70,7 +70,7 @@ CREATE INDEX IF NOT EXISTS "IDX_campaigns_active_window"
 --
 -- Wrapped in an exception handler ON PURPOSE. If the extension is unavailable on this
 -- host, the migration must still succeed: overlap is ALSO prevented at the API (writes
--- are refused) and resolved deterministically at read time (shared/campaign.ts picks the
+-- are refused) and resolved deterministically at read time (packages/domain/src/campaign.ts picks the
 -- most recently started and reports the conflict). The database constraint is the
 -- strongest of the three guards, not the only one, so its absence degrades the guarantee
 -- rather than removing it — and the NOTICE says so out loud instead of failing silently.

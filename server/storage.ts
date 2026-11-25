@@ -33,7 +33,7 @@ import {
   type BusinessHour,
   type Campaign,
   type InsertCampaign,
-} from "@shared/schema";
+} from "@p91/db/schema";
 import { db } from "./db";
 import { eq, and, gte, desc, asc, sql, or, isNull, ne, inArray } from "drizzle-orm";
 import { deriveAutoImage } from "./lib/service-auto-image";
@@ -470,7 +470,7 @@ export class DatabaseStorage implements IStorage {
   // PPF leads operations
   // ---------------------------------------------------------------- campaigns
   //
-  // Reads return EVERY campaign and let shared/campaign.ts decide which is effective.
+  // Reads return EVERY campaign and let packages/domain/src/campaign.ts decide which is effective.
   // Filtering "active and in-window" in SQL was the obvious alternative and is worse:
   // the window rules (half-open interval, paused-is-a-draft, invalid-fails-closed) would
   // then exist in two languages, and the deterministic tiebreak could not be expressed in

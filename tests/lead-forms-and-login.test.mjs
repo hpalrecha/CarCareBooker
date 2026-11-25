@@ -27,7 +27,7 @@ const code = (p) => read(p).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*
 
 const login = code('client/src/pages/admin-login.tsx');
 const quote = code('client/src/components/quote-form.tsx');
-const schema = read('shared/schema.ts');
+const schema = read('packages/db/src/schema.ts');
 
 /** Classes Tailwind is not configured to generate here. Naming one is a silent no-op. */
 const DEAD_CLASSES = ['text-deep-black', 'text-neon-green', 'border-neon-green', 'border-medium-gray', 'hover:border-neon-green'];
@@ -112,7 +112,7 @@ describe('the staff login screen', () => {
 
   test('client and server reject the same input with the same words', () => {
     // One schema, imported by the page and parsed by the route.
-    assert.match(login, /import \{ adminLoginSchema \} from "@shared\/schema"/);
+    assert.match(login, /import \{ adminLoginSchema \} from "@p91\/db\/schema"/);
     assert.match(schema, /email: z\.string\(\)\.email\("Enter a valid email address"\)/);
     assert.match(schema, /password: z\.string\(\)\.min\(6, "Password must be at least 6 characters"\)/);
   });

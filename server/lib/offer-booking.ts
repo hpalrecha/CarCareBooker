@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import type { Booking, PpfLead } from "@shared/schema";
+import type { Booking, PpfLead } from "@p91/db/schema";
 import { DIWALI_OFFER } from "./diwali-offer";
 
 /**

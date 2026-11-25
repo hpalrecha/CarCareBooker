@@ -14,7 +14,7 @@ export const DIWALI_OFFER = {
   source: "diwali_offer",
   /**
    * Default slot booking amount in rupees (every service except PPF). The amount actually charged
-   * depends on the chosen service: see shared/offer-pricing.ts. Not read from the request or settings.
+   * depends on the chosen service: see packages/domain/src/offer-pricing.ts. Not read from the request or settings.
    */
   amountRupees: 99,
   /** End of 8 Nov 2026, India time: the date printed on the poster. */

@@ -51,7 +51,7 @@ before(async () => {
     platform: 'node',
     outfile: out,
     logLevel: 'silent',
-    alias: { '@': path.join(repoRoot, 'client', 'src'), '@shared': path.join(repoRoot, 'shared') },
+    alias: { '@': path.join(repoRoot, 'client', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') },
     external: ['drizzle-orm', 'drizzle-zod', 'zod', 'drizzle-orm/*'],
   });
   m = await import(pathToFileURL(out).href + '?t=' + Date.now());

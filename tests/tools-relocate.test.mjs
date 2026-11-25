@@ -39,6 +39,11 @@ test("alias import is rewritten through aliasRewrites", () => {
   assert.equal(out, "@p91/db/schema");
 });
 
+test("extensionless import of a moved single file is rewritten", () => {
+  const out = rewriteSpecifier({ fromFile: "scripts/verify.ts", spec: "../shared/schema", moves, aliasRewrites });
+  assert.equal(out, "../packages/db/src/schema");
+});
+
 test("bare package import is never touched", () => {
   const out = rewriteSpecifier({ fromFile: "server/db.ts", spec: "drizzle-orm", moves, aliasRewrites });
   assert.equal(out, null);

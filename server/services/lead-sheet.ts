@@ -1,4 +1,4 @@
-import type { PpfLead } from '@shared/schema';
+import type { PpfLead } from '@p91/db/schema';
 
 /**
  * Lead -> Google Sheet, through an Apps Script web app the studio owns.

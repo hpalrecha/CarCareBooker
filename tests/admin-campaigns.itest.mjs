@@ -25,7 +25,7 @@ import {
   formatIst,
   IST_OFFSET,
 } from "../client/src/lib/ist-time.ts";
-import { campaignState } from "../shared/campaign.ts";
+import { campaignState } from "../packages/domain/src/campaign.ts";
 
 // ===========================================================================
 // The timezone boundary

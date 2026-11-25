@@ -17,6 +17,8 @@ import { execFileSync } from "node:child_process";
 
 const SRC_EXT = /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/;
 const SKIP_DIRS = new Set(["node_modules", "dist", ".git", "attached_assets", "uploads", "graphify-out", ".cache"]);
+// The codemod and its own test carry example specifiers as data; never rewrite them.
+const SKIP_FILES = new Set(["scripts/tools/relocate.mjs", "tests/tools-relocate.test.mjs"]);
 const SPEC_RE = /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+|\brequire\s*\(\s*|\bmock\.module\s*\(\s*)(["'])([^"'\n]+)\2/g;
 
 const posix = (p) => p.split(path.sep).join("/");
@@ -26,6 +28,9 @@ export function mapPath(p, moves) {
   for (const [from, to] of moves) {
     if (p === from) return to;
     if (p.startsWith(from + "/")) return to + p.slice(from.length);
+    // An extensionless specifier ("../shared/schema") naming a moved file ("shared/schema.ts").
+    const ext = path.posix.extname(from);
+    if (ext && p === from.slice(0, -ext.length)) return to.slice(0, -path.posix.extname(to).length);
   }
   return p;
 }
@@ -58,7 +63,7 @@ function walk(root, dir = "", out = []) {
     if (SKIP_DIRS.has(ent.name)) continue;
     const rel = dir ? `${dir}/${ent.name}` : ent.name;
     if (ent.isDirectory()) walk(root, rel, out);
-    else if (SRC_EXT.test(ent.name)) out.push(rel);
+    else if (SRC_EXT.test(ent.name) && !SKIP_FILES.has(rel)) out.push(rel);
   }
   return out;
 }

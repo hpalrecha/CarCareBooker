@@ -1,0 +1,12 @@
+{
+  "moves": [
+    ["shared/schema.ts", "packages/db/src/schema.ts"],
+    ["shared/campaign.ts", "packages/domain/src/campaign.ts"],
+    ["shared/offer-pricing.ts", "packages/domain/src/offer-pricing.ts"]
+  ],
+  "aliasRewrites": {
+    "@shared/schema": "@p91/db/schema",
+    "@shared/campaign": "@p91/domain/campaign",
+    "@shared/offer-pricing": "@p91/domain/offer-pricing"
+  }
+}

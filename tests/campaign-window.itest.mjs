@@ -24,7 +24,7 @@ import {
   pickDeterministic,
   campaignsOverlap,
   millisRemaining,
-} from "../shared/campaign.ts";
+} from "../packages/domain/src/campaign.ts";
 import {
   validateCampaignInput,
   findOverlaps,

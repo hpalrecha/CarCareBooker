@@ -1,4 +1,4 @@
-import type { BusinessHour } from "@shared/schema";
+import type { BusinessHour } from "@p91/db/schema";
 import { localBusinessSchema } from "./local-business";
 import { neutraliseWarrantyIssuer } from "./warranty-wording";
 

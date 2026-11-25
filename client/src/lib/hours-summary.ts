@@ -1,4 +1,4 @@
-import type { BusinessHour } from "@shared/schema";
+import type { BusinessHour } from "@p91/db/schema";
 
 /**
  * Opening-hours rows ("Monday – Saturday: 10:00 am – 7:00 pm"), shared by pages/contact.tsx and the

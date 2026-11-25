@@ -31,14 +31,14 @@ import { parseAttribution, deriveSource } from "./lib/attribution";
 import { normalizeIndianMobile } from "./lib/phone";
 import { rateLimit } from "./lib/rate-limit";
 import { DIWALI_OFFER, DIWALI_LEAD_MESSAGE, isDiwaliOfferOpen } from "./lib/diwali-offer";
-import { offerPriceFor } from "@shared/offer-pricing";
+import { offerPriceFor } from "@p91/domain/offer-pricing";
 import {
   validateCampaignInput,
   findOverlaps,
   effectiveCampaignForLandingPage,
   campaignFreeBookingForService,
 } from "./lib/campaign";
-import { campaignState, type CampaignRecord } from "@shared/campaign";
+import { campaignState, type CampaignRecord } from "@p91/domain/campaign";
 import { z } from "zod";
 
 /**
@@ -202,7 +202,7 @@ import {
   insertPpfLeadSchema,
   whatsappConfigSchema,
   insertChatbotKnowledgeSchema,
-} from "@shared/schema";
+} from "@p91/db/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const isProd = process.env.NODE_ENV === "production";
@@ -1162,7 +1162,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
    * WHAT THIS USED TO BE. `const { name, email, ... } = req.body`, a truthiness check on
    * five fields, and straight into the database. No format validation, no length limits,
    * no rate limit, no bot protection. `insertPpfLeadSchema` was written for this route in
-   * shared/schema.ts and never imported.
+   * packages/db/src/schema.ts and never imported.
    *
    * That is the endpoint about to be pointed at from paid advertising. "test"/"a@b"/"1"
    * was a valid lead, a 10 MB string was a valid name, and a trivial script could fill

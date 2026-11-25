@@ -1,4 +1,4 @@
-import type { BusinessHour } from "@shared/schema";
+import type { BusinessHour } from "@p91/db/schema";
 import { INSTAGRAM_PROFILE_URL, FACEBOOK_PROFILE_URL } from "./instagram-reels";
 
 /**

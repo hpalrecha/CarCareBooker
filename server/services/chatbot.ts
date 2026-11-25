@@ -17,7 +17,7 @@
 // OpenAI-side conversation retention anywhere.
 import OpenAI from "openai";
 import type { ResponseInputItem } from "openai/resources/responses/responses";
-import type { BlackoutDate } from "@shared/schema";
+import type { BlackoutDate } from "@p91/db/schema";
 import { storage } from "../storage";
 import { validateAppointmentSlot, type SlotValidationDeps } from "../lib/booking-validation";
 import { computeAvailability, generateHourlySlots, istNow } from "../lib/slots";

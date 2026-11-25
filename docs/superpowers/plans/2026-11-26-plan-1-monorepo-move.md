@@ -169,6 +169,8 @@ import { execFileSync } from "node:child_process";
 
 const SRC_EXT = /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/;
 const SKIP_DIRS = new Set(["node_modules", "dist", ".git", "attached_assets", "uploads", "graphify-out", ".cache"]);
+// The codemod and its own test carry example specifiers as data; never rewrite them.
+const SKIP_FILES = new Set(["scripts/tools/relocate.mjs", "tests/tools-relocate.test.mjs"]);
 const SPEC_RE = /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+|\brequire\s*\(\s*|\bmock\.module\s*\(\s*)(["'])([^"'\n]+)\2/g;
 
 const posix = (p) => p.split(path.sep).join("/");
@@ -210,7 +212,7 @@ function walk(root, dir = "", out = []) {
     if (SKIP_DIRS.has(ent.name)) continue;
     const rel = dir ? `${dir}/${ent.name}` : ent.name;
     if (ent.isDirectory()) walk(root, rel, out);
-    else if (SRC_EXT.test(ent.name)) out.push(rel);
+    else if (SRC_EXT.test(ent.name) && !SKIP_FILES.has(rel)) out.push(rel);
   }
   return out;
 }
@@ -396,7 +398,7 @@ In `drizzle.config.ts` line 9: `schema: "./packages/db/src/schema.ts",`
 - [ ] **Step 5: Check nothing still says `@shared` or `shared/`**
 
 Run: `git grep -nE "@shared/|[\"'/]shared/" -- ':!docs' ':!graphify-out' ':!*.md'`
-Expected: no output. Fix any hit by hand (same rewrite rule).
+Expected: no output. Fix any hit by hand (same rewrite rule). Also run `git grep -nE "['\"]shared['\"]" tests scripts` for path segments built with `path.join` (found in practice: `tests/ceramic-timing.test.mjs:131`, `tests/seo-foundation.test.mjs:54` esbuild alias, `tests/lead-forms-and-login.test.mjs:30,115`, `scripts/verify-webhook-integration.ts:11`) and update them.
 
 - [ ] **Step 6: Verify**
 

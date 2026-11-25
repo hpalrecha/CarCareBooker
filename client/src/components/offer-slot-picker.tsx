@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { BlackoutDate, BusinessHour, Service } from "@shared/schema";
-import { isPpfService, offerPriceFor } from "@shared/offer-pricing";
+import type { BlackoutDate, BusinessHour, Service } from "@p91/db/schema";
+import { isPpfService, offerPriceFor } from "@p91/domain/offer-pricing";
 import BookingCalendar from "@/components/booking-calendar";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

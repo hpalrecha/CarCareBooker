@@ -11,7 +11,7 @@ import SiteHeader from "@/components/redesign/site-header";
 import { CONTACT_SEO } from "@/lib/static-seo";
 import SiteFooter from "@/components/redesign/site-footer";
 import { localBusinessSchema } from "@/lib/local-business";
-import type { BusinessHour } from "@shared/schema";
+import type { BusinessHour } from "@p91/db/schema";
 import { summariseHours } from "@/lib/hours-summary";
 
 /**
