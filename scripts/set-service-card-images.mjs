@@ -13,7 +13,7 @@
  * outside this list are untouched. Extra entries already in `images` are preserved.
  *
  * Assets live in the git-tracked `attached_assets/` tree, served by
- * `express.static('/attached_assets')` in server/index.ts — not in `uploads/`, whose
+ * `express.static('/attached_assets')` in apps/api/src/index.ts — not in `uploads/`, whose
  * container-local disk is wiped on every redeploy, and not in `/objects/`, which needs
  * object storage that is not configured.
  *

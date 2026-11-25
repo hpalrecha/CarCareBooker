@@ -70,9 +70,9 @@ const services = SERVICE_SLUGS.map((slug, i) => ({
 // ===========================================================================
 describe("route pipeline: nothing in the sitemap may be left without a handler", () => {
   const read = (p) => fs.readFileSync(path.join(repoRoot, p), "utf8");
-  const routesSrc = read("server/routes.ts");
+  const routesSrc = read("apps/api/src/routes.ts");
   const prerenderSrc = read("scripts/prerender.mjs");
-  const viteSrc = read("server/vite.ts");
+  const viteSrc = read("apps/api/src/vite.ts");
 
   /** The literal `loc:` paths the sitemap handler emits. */
   const sitemapStaticPaths = [...routesSrc.matchAll(/\{\s*loc:\s*"([^"]+)"/g)].map((m) => m[1]);
@@ -143,7 +143,7 @@ describe("route pipeline: nothing in the sitemap may be left without a handler",
 
   test("/ppf-ceramic-coating is a redirect, not a prerendered page", () => {
     // SEO audit (2026-09-22): zero internal links, zero external search visibility.
-    // server/routes.ts now 301s it to /services instead of rendering it, so it must NOT
+    // apps/api/src/routes.ts now 301s it to /services instead of rendering it, so it must NOT
     // be in the sitemap, must NOT have a prerendered file, and the route must not exist
     // in the client router either — three ways the old page could accidentally come back.
     assert.ok(!sitemapStaticPaths.includes("/ppf-ceramic-coating"), "must not be in the sitemap");
@@ -205,16 +205,16 @@ describe("served HTML: every sitemap URL is indexable, and only those", { skip: 
       getAdmin: async () => undefined,
     };
     class SlotFullError extends Error {}
-    mock.module("../server/storage.ts", { exports: { storage, SlotFullError } });
-    mock.module("../server/services/scheduler.ts", { exports: { schedulerService: { startReminderScheduler() {} } } });
+    mock.module("../apps/api/src/storage.ts", { exports: { storage, SlotFullError } });
+    mock.module("../apps/api/src/services/scheduler.ts", { exports: { schedulerService: { startReminderScheduler() {} } } });
 
     process.env.DATABASE_URL = "postgresql://u:p@127.0.0.1:5432/none";
     process.env.SESSION_SECRET = "sitemap-test-secret";
     process.env.NODE_ENV = "test";
     process.env.PUBLIC_SITE_ORIGIN = "https://p91carcare.com";
 
-    const { registerRoutes } = await import("../server/routes.ts");
-    const { serveStatic } = await import("../server/vite.ts");
+    const { registerRoutes } = await import("../apps/api/src/routes.ts");
+    const { serveStatic } = await import("../apps/api/src/vite.ts");
     const app = express();
     app.use(express.json());
     server = await registerRoutes(app);

@@ -7,7 +7,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ensureOfferBooking, OFFER_SERVICE_SLUG, OFFER_TIME_SLOT_ID } from "../server/lib/offer-booking.ts";
+import { ensureOfferBooking, OFFER_SERVICE_SLUG, OFFER_TIME_SLOT_ID } from "../apps/api/src/lib/offer-booking.ts";
 
 function fakeStorage() {
   const services = [];

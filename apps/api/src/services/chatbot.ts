@@ -23,7 +23,7 @@ import { validateAppointmentSlot, type SlotValidationDeps } from "../lib/booking
 import { computeAvailability, generateHourlySlots, istNow } from "../lib/slots";
 import { buildChatbotInstructions, DIRECTIONS_HREF, WHATSAPP_URL } from "../lib/chatbot-knowledge";
 import { CHAT_LIMITS, type ChatMessage } from "../lib/chat-guards";
-import { PHONE } from "../../client/src/lib/local-business";
+import { PHONE } from "../../../../client/src/lib/local-business";
 
 const DEFAULT_MODEL = "gpt-4o-mini";
 

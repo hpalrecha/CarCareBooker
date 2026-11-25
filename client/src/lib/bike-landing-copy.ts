@@ -17,7 +17,7 @@
  * for cases the site does not promise (matte paint, wraps, repaints, other parts). Nothing claims a result the studio
  * has not stated. Where the studio should confirm a sentence, it is listed in the implementation notes.
  *
- * Relative imports only: server/vite.ts is bundled by esbuild and imports this directly.
+ * Relative imports only: apps/api/src/vite.ts is bundled by esbuild and imports this directly.
  */
 import { CERAMIC_TIMING, CERAMIC_TIMING_QUESTION } from "./ceramic-timing";
 

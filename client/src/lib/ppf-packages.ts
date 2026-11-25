@@ -16,7 +16,7 @@ import { formatServiceTime } from "./service-time";
  * row removes its card instead of leaving a stale figure behind.
  *
  * ONE BUILDER, TWO CALLERS, like service-seo.ts. The server writes it into the HTML that
- * crawlers fetch (server/vite.ts via crawlable-content.ts) and the page renders it again
+ * crawlers fetch (apps/api/src/vite.ts via crawlable-content.ts) and the page renders it again
  * (components/ppf-packages.tsx), so the two cannot disagree.
  *
  * CLAIMS ALREADY WITHHELD STAY WITHHELD. The includes list goes through displayableIncludes,
@@ -27,7 +27,7 @@ import { formatServiceTime } from "./service-time";
  * "50% OFF" label that does not match the stored prices. Neither is shown here.
  * ─────────────────────────────────────────────────
  *
- * Relative imports only: server/vite.ts is bundled by esbuild and imports this through
+ * Relative imports only: apps/api/src/vite.ts is bundled by esbuild and imports this through
  * crawlable-content.ts.
  */
 

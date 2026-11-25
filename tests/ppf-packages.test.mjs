@@ -274,8 +274,8 @@ describe('withheld claims (self-healing) on every surface the /ppf page draws fr
     assert.match(json, /5-year warranty/);
   });
 
-  test('server/vite.ts and campaign-landing.tsx both use the filter for the FAQ', () => {
-    assert.match(read('server/vite.ts'), /faqPageSchema\(displayableFaqs\(/);
+  test('apps/api/src/vite.ts and campaign-landing.tsx both use the filter for the FAQ', () => {
+    assert.match(read('apps/api/src/vite.ts'), /faqPageSchema\(displayableFaqs\(/);
     assert.match(read('client/src/pages/campaign-landing.tsx'), /const faqs = displayableFaqs\(/);
   });
 

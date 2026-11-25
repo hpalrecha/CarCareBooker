@@ -1,6 +1,6 @@
 /**
  * The integration tests fake storage, so they cannot prove the real UPDATE statements are conditional.
- * These read server/storage.ts and the migration and assert the guards are in the SQL itself.
+ * These read apps/api/src/storage.ts and the migration and assert the guards are in the SQL itself.
  */
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,8 +10,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8').replace(/\r\n/g, '\n');
-const storage = read('server/storage.ts');
-const routes = read('server/routes.ts');
+const storage = read('apps/api/src/storage.ts');
+const routes = read('apps/api/src/routes.ts');
 const method = (name) => {
   const i = storage.indexOf('async ' + name + '(');
   assert.ok(i > -1, name + ' must exist in DatabaseStorage');

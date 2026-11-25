@@ -44,7 +44,7 @@ describe("the three ad destinations exist and are distinct", () => {
   });
 
   test("each is in the sitemap", () => {
-    const routes = read("server/routes.ts");
+    const routes = read("apps/api/src/routes.ts");
     for (const p of LANDING_PAGES) {
       assert.ok(routes.includes(`loc: "${p.path}"`), `${p.path} must be in the sitemap`);
     }

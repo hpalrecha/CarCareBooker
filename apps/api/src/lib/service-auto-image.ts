@@ -1,4 +1,4 @@
-import { deriveCategory, deriveVehicle, fitsVehicle } from "../../client/src/lib/service-taxonomy";
+import { deriveCategory, deriveVehicle, fitsVehicle } from "../../../../client/src/lib/service-taxonomy";
 
 /**
  * Best-guess photo for a brand-new service that was created with no image of its own —

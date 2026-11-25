@@ -112,7 +112,7 @@ export function useSeoMeta({ title, description, image, structuredData, canonica
         ? structuredData
         : [structuredData]
       : [];
-    // Schema baked into the initial HTML (scripts/prerender.mjs, server/vite.ts) is marked
+    // Schema baked into the initial HTML (scripts/prerender.mjs, apps/api/src/vite.ts) is marked
     // data-seo="prerender". It used to be left in place while this hook appended its own,
     // so blocks appeared twice once the page loaded (BlogPosting, Service, AutoRepair...).
     //

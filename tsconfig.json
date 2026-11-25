@@ -1,5 +1,5 @@
 {
-  "include": ["client/src/**/*", "server/**/*", "packages/*/src/**/*"],
+  "include": ["client/src/**/*", "apps/api/src/**/*", "packages/*/src/**/*"],
   "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
   "compilerOptions": {
     "incremental": true,

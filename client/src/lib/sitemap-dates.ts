@@ -1,7 +1,7 @@
 /**
  * sitemap.xml <lastmod> values, in ONE place, each backed by the last MATERIAL change to the text a reader sees.
  *
- * Why this exists. The dates used to be typed into server/routes.ts. The eight articles carried their publish dates
+ * Why this exists. The dates used to be typed into apps/api/src/routes.ts. The eight articles carried their publish dates
  * (30 Jul to 10 Sep) although every one was edited on 2026-11-17, and /faq said 2026-11-19 although six FAQs were added
  * on 2026-11-20. Google only trusts lastmod if it is accurate across the site, so a date here must be a real change
  * date, never "today" and never copied across pages.
@@ -25,7 +25,7 @@
  * WHEN YOU DEPLOY A CHANGE THAT ALTERS PAGE TEXT, update the date of exactly the pages it altered, with its commit in the
  * comment above. Do not touch the others.
  *
- * Relative imports only: server/routes.ts bundles this through esbuild.
+ * Relative imports only: apps/api/src/routes.ts bundles this through esbuild.
  */
 export const SITEMAP_LASTMOD: Readonly<Record<string, string>> = Object.freeze({
   "/": "2026-11-20",

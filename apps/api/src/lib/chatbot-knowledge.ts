@@ -12,9 +12,9 @@
 // so this is an established pattern here, not a new one.
 
 import type { Service, BusinessHour, BlackoutDate, ChatbotKnowledgeEntry } from "@p91/db/schema";
-import { buildLlmsTxt } from "../../client/src/lib/llms-txt";
-import { PRODUCT_BRANDS, PRODUCT_FINE_PRINT } from "../../client/src/lib/nav-menu";
-import { PHONE } from "../../client/src/lib/local-business";
+import { buildLlmsTxt } from "../../../../client/src/lib/llms-txt";
+import { PRODUCT_BRANDS, PRODUCT_FINE_PRINT } from "../../../../client/src/lib/nav-menu";
+import { PHONE } from "../../../../client/src/lib/local-business";
 import { istNow } from "./slots";
 
 export interface ChatbotKnowledgeDeps {

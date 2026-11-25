@@ -73,8 +73,8 @@ describe('/ppf: only what is true of every package', () => {
   });
 
   test('server, page and schema all use the same filter', () => {
-    assert.match(read('server/vite.ts'), /landingServiceExtras\(landingService as CrawlableService, \{ general \}\)/);
-    assert.match(read('server/vite.ts'), /general \? generalPackageFaqs\(rowFaqs\) : rowFaqs/);
+    assert.match(read('apps/api/src/vite.ts'), /landingServiceExtras\(landingService as CrawlableService, \{ general \}\)/);
+    assert.match(read('apps/api/src/vite.ts'), /general \? generalPackageFaqs\(rowFaqs\) : rowFaqs/);
     assert.match(read('client/src/pages/campaign-landing.tsx'), /page\.packageComparison \? generalPackageFaqs\(rowFaqs\) : rowFaqs/);
   });
 });
@@ -115,7 +115,7 @@ describe('/ceramic-coating/bike: its own FAQ', () => {
 
   test('the page and the server both go through withBikeLandingCopy', () => {
     assert.match(read('client/src/pages/campaign-landing.tsx'), /withBikeLandingCopy\(withCeramicTiming\(catalogueRow\)\)/);
-    assert.match(read('server/vite.ts'), /withBikeLandingCopy\(service as CrawlableService\)/);
+    assert.match(read('apps/api/src/vite.ts'), /withBikeLandingCopy\(service as CrawlableService\)/);
   });
 });
 

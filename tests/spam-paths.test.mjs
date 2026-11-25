@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { isSpamProductPath } from "../server/lib/spam-paths.ts";
+import { isSpamProductPath } from "../apps/api/src/lib/spam-paths.ts";
 
 test("foreign product spam slugs are recognised", () => {
   for (const p of [
@@ -55,7 +55,7 @@ test("no real page of this site matches", () => {
 
 test("no client route and no static sitemap path matches", () => {
   const app = fs.readFileSync(new URL("../client/src/App.tsx", import.meta.url), "utf8");
-  const routes = fs.readFileSync(new URL("../server/routes.ts", import.meta.url), "utf8");
+  const routes = fs.readFileSync(new URL("../apps/api/src/routes.ts", import.meta.url), "utf8");
   const paths = [
     ...[...app.matchAll(/path="([^"]+)"/g)].map((m) => m[1].replace(/:[A-Za-z]+/g, "sample-slug-12345")),
     ...[...routes.matchAll(/\{\s*loc:\s*"([^"]+)"/g)].map((m) => m[1]),

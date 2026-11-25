@@ -30,7 +30,7 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const routeCode = fs
-  .readFileSync(path.join(repoRoot, 'server/routes.ts'), 'utf8')
+  .readFileSync(path.join(repoRoot, 'apps/api/src/routes.ts'), 'utf8')
   .replace(/\/\*[\s\S]*?\*\//g, '')
   .replace(/^\s*\/\/.*$/gm, '');
 
@@ -119,7 +119,7 @@ function makeSystem() {
   return { bookings, events, create, confirmPayment, webhook, findByOrderId };
 }
 
-/** Mirrors server/services/payment.ts verifyPaymentSignature (order_id|payment_id HMAC). */
+/** Mirrors apps/api/src/services/payment.ts verifyPaymentSignature (order_id|payment_id HMAC). */
 function signPayment(orderId, paymentId) {
   return crypto.createHmac('sha256', TEST_KEY_SECRET).update(`${orderId}|${paymentId}`).digest('hex');
 }

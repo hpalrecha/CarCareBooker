@@ -59,14 +59,14 @@ describe('/ppf served HTML', { skip: !built ? 'run `npm run build` first' : fals
       getAdmin: async () => undefined,
     };
     class SlotFullError extends Error {}
-    mock.module('../server/storage.ts', { exports: { storage, SlotFullError } });
-    mock.module('../server/services/scheduler.ts', { exports: { schedulerService: { startReminderScheduler() {} } } });
+    mock.module('../apps/api/src/storage.ts', { exports: { storage, SlotFullError } });
+    mock.module('../apps/api/src/services/scheduler.ts', { exports: { schedulerService: { startReminderScheduler() {} } } });
     process.env.DATABASE_URL = 'postgresql://u:p@127.0.0.1:5432/none';
     process.env.SESSION_SECRET = 'ppf-packages-test-secret';
     process.env.NODE_ENV = 'test';
     process.env.PUBLIC_SITE_ORIGIN = 'https://p91carcare.com';
-    const { registerRoutes } = await import('../server/routes.ts');
-    const { serveStatic } = await import('../server/vite.ts');
+    const { registerRoutes } = await import('../apps/api/src/routes.ts');
+    const { serveStatic } = await import('../apps/api/src/vite.ts');
     const app = express();
     app.use(express.json());
     server = await registerRoutes(app);

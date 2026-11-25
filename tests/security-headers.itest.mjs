@@ -2,7 +2,7 @@
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import express from 'express';
-import { securityHeaders } from '../server/middleware/security-headers.ts';
+import { securityHeaders } from '../apps/api/src/middleware/security-headers.ts';
 
 const build = (isProd) => {
   const app = express();

@@ -135,7 +135,7 @@ export interface LandingPage {
 
   /**
    * Show the Basic and Premium package comparison (components/ppf-packages.tsx) and bake the same block
-   * into the server HTML (server/vite.ts). /ppf only: it reads the six PPF catalogue rows.
+   * into the server HTML (apps/api/src/vite.ts). /ppf only: it reads the six PPF catalogue rows.
    */
   packageComparison?: boolean;
 

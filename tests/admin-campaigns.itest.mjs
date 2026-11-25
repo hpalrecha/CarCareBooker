@@ -18,7 +18,7 @@ import { test, describe, before, after, beforeEach, mock } from "node:test";
 import assert from "node:assert/strict";
 import express from "express";
 
-import { __resetRateLimitsForTests } from "../server/lib/rate-limit.ts";
+import { __resetRateLimitsForTests } from "../apps/api/src/lib/rate-limit.ts";
 import {
   istLocalToInstant,
   instantToIstLocal,
@@ -73,7 +73,7 @@ describe("IST conversion — what the admin types becomes the right instant", ()
   });
 
   test("only ONE timezone convention exists in the codebase", () => {
-    // server/lib/booking-amount.ts already hardcodes +05:30 for the legacy window. A
+    // apps/api/src/lib/booking-amount.ts already hardcodes +05:30 for the legacy window. A
     // second convention (an Intl-based conversion, say) is the likeliest source of a
     // future off-by-one-day bug.
     assert.equal(IST_OFFSET, "+05:30");
@@ -157,17 +157,17 @@ const storage = {
 };
 
 class SlotFullError extends Error {}
-mock.module("../server/storage.ts", { exports: { storage, SlotFullError } });
+mock.module("../apps/api/src/storage.ts", { exports: { storage, SlotFullError } });
 // These tests assert the ordinary booking fee. The Diwali ₹99 slot offer is open until 8 Nov 2026 and would change
 // every ordinary amount, so it is pinned closed here; the offer itself is covered in diwali-slot-offer.itest.mjs.
-mock.module('../server/lib/diwali-offer.ts', { exports: { ...(await import('../server/lib/diwali-offer.ts')), isDiwaliOfferOpen: () => false } });
-mock.module("../server/services/payment.ts", {
+mock.module('../apps/api/src/lib/diwali-offer.ts', { exports: { ...(await import('../apps/api/src/lib/diwali-offer.ts')), isDiwaliOfferOpen: () => false } });
+mock.module("../apps/api/src/services/payment.ts", {
   exports: { createPaymentOrder: async (a) => ({ id: "order_" + ++seq, amount: a * 100, currency: "INR" }), verifyPaymentSignature: async () => true },
 });
-mock.module("../server/services/whatsapp.ts", { exports: { whatsappService: { sendBookingConfirmation: async () => ({ success: true, messageId: "w" }) } } });
-mock.module("../server/services/scheduler.ts", { exports: { schedulerService: { startReminderScheduler() {} } } });
-mock.module("../server/services/email.ts", { exports: { sendBookingConfirmationEmail: async () => ({ success: true }) } });
-mock.module("../server/services/webhook.ts", { exports: { sendBookingWebhook: async () => ({ ok: true }) } });
+mock.module("../apps/api/src/services/whatsapp.ts", { exports: { whatsappService: { sendBookingConfirmation: async () => ({ success: true, messageId: "w" }) } } });
+mock.module("../apps/api/src/services/scheduler.ts", { exports: { schedulerService: { startReminderScheduler() {} } } });
+mock.module("../apps/api/src/services/email.ts", { exports: { sendBookingConfirmationEmail: async () => ({ success: true }) } });
+mock.module("../apps/api/src/services/webhook.ts", { exports: { sendBookingWebhook: async () => ({ ok: true }) } });
 
 let server, base;
 
@@ -179,7 +179,7 @@ before(async () => {
   process.env.RAZORPAY_WEBHOOK_SECRET = "fake";
   process.env.NODE_ENV = "test";
 
-  const { registerRoutes } = await import("../server/routes.ts");
+  const { registerRoutes } = await import("../apps/api/src/routes.ts");
   const app = express();
   app.use(express.json({ verify: (req, _res, buf) => { req.rawBody = Buffer.from(buf); } }));
   app.use((req, _res, next) => {
@@ -535,7 +535,7 @@ describe("the Campaigns UI carries no pricing logic", () => {
     const { fileURLToPath } = await import("node:url");
     const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
     const ui = fs.readFileSync(path.join(root, "client/src/components/admin-campaigns.tsx"), "utf8");
-    const server = fs.readFileSync(path.join(root, "server/lib/campaign.ts"), "utf8");
+    const server = fs.readFileSync(path.join(root, "apps/api/src/lib/campaign.ts"), "utf8");
     for (const p of ["/ceramic-coating/car", "/ceramic-coating/bike", "/ppf"]) {
       assert.ok(ui.includes(`"${p}"`), `UI offers ${p}`);
       assert.ok(server.includes(`"${p}"`), `server accepts ${p}`);

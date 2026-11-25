@@ -135,7 +135,7 @@ describe('prerendering fails the build rather than degrading', () => {
 });
 
 describe('the server prefers prerendered HTML', () => {
-  const vite = read('server/vite.ts');
+  const vite = read('apps/api/src/vite.ts');
 
   test('a directory index is served without a trailing-slash redirect', () => {
     // express.static's default redirect would 301 /blog -> /blog/, contradicting the

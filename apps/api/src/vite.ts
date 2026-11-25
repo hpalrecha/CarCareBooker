@@ -3,14 +3,14 @@ import fs from "fs";
 import path from "path";
 import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
-import viteConfig from "../vite.config";
+import viteConfig from "../../../vite.config";
 import { nanoid } from "nanoid";
 import {
   serviceSeoTitle,
   serviceSeoDescription,
   serviceStructuredData,
   servicesItemListSchema,
-} from "../client/src/lib/service-seo";
+} from "../../../client/src/lib/service-seo";
 import {
   injectRootContent,
   servicePageContent,
@@ -20,16 +20,17 @@ import {
   ppfPackagesContent,
   faqPageSchema,
   escapeHtml,
-} from "../client/src/lib/crawlable-content";
-import { summariseHours } from "../client/src/lib/hours-summary";
-import { displayableFaqs, generalPackageFaqs, withholdUnverifiedClaims } from "../client/src/lib/withheld-claims";
-import { withBikeLandingCopy } from "../client/src/lib/bike-landing-copy";
-import { withCeramicTiming } from "../client/src/lib/ceramic-timing";
-import { SERVICES_SEO } from "../client/src/lib/static-seo";
+} from "../../../client/src/lib/crawlable-content";
+import { summariseHours } from "../../../client/src/lib/hours-summary";
+import { displayableFaqs, generalPackageFaqs, withholdUnverifiedClaims } from "../../../client/src/lib/withheld-claims";
+import { withBikeLandingCopy } from "../../../client/src/lib/bike-landing-copy";
+import { withCeramicTiming } from "../../../client/src/lib/ceramic-timing";
+import { SERVICES_SEO } from "../../../client/src/lib/static-seo";
 import { isSpamProductPath } from "./lib/spam-paths";
-import { BRAND_PAGES } from "../client/src/lib/brand-pages";
-import { LANDING_PAGES } from "../client/src/lib/landing-pages";
-import { serviceCanonicalPath } from "../client/src/lib/canonical-overrides";
+import { BRAND_PAGES } from "../../../client/src/lib/brand-pages";
+import { LANDING_PAGES } from "../../../client/src/lib/landing-pages";
+import { serviceCanonicalPath } from "../../../client/src/lib/canonical-overrides";
+import { repoRoot } from "./lib/repo-root";
 
 const viteLogger = createLogger();
 
@@ -94,8 +95,7 @@ export async function setupVite(app: Express, server: Server) {
 
     try {
       const clientTemplate = path.resolve(
-        import.meta.dirname,
-        "..",
+        repoRoot(import.meta.dirname),
         "client",
         "index.html",
       );

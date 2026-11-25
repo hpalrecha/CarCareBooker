@@ -19,7 +19,7 @@ const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 
 const posts = read('client/src/lib/blog-posts.ts');
 const index = read('client/src/pages/blog-index.tsx');
-const routes = read('server/routes.ts');
+const routes = read('apps/api/src/routes.ts');
 const editorial = read('client/src/styles/editorial.css');
 
 /** Categories declared on posts, via the same slug rule the app uses. */

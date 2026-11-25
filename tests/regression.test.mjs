@@ -408,8 +408,8 @@ describe('footer', () => {
 });
 
 describe('static asset serving', () => {
-  const vite = read('server/vite.ts');
-  const index = read('server/index.ts');
+  const vite = read('apps/api/src/vite.ts');
+  const index = read('apps/api/src/index.ts');
   test('a missing asset 404s in both dev and production paths', () => {
     assert.equal((vite.match(/status\(404\)\.type\("text\/plain"\)/g) || []).length, 2);
   });
@@ -505,7 +505,7 @@ describe('bike ceramic coating content', () => {
     assert.match(seo, /localBusinessSchema\(/, 'business with confirmed address and live hours');
     assert.match(seo, /provider: \{ "@id": business\["@id"\] \}/);
     assert.match(landing, /serviceStructuredData\(service/);
-    assert.match(read('server/vite.ts'), /serviceStructuredData\(/);
+    assert.match(read('apps/api/src/vite.ts'), /serviceStructuredData\(/);
     // The old inline <title>/<meta> JSX is inert in React 18 and must be gone.
     assert.ok(!landing.includes('<title>{service.metaTitle'));
   });

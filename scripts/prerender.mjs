@@ -182,7 +182,7 @@ async function loadContent() {
 }
 
 function headFor(route, canonicalPathFor) {
-  // Through client/src/lib/canonical-overrides.ts, the same map server/vite.ts and the
+  // Through client/src/lib/canonical-overrides.ts, the same map apps/api/src/vite.ts and the
   // client use, so a consolidated /service/ variant can never be baked self-canonical.
   // Today no /service/ route is prerendered (they need the database), so this is a guard.
   const canonical = ORIGIN + canonicalPathFor(route.path);

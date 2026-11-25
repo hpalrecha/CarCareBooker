@@ -100,10 +100,10 @@ describe('Premium Sedan and SUV (the reported pages)', () => {
 });
 
 describe('the server HTML and the browser use the same function', () => {
-  test('server/vite.ts and service-landing.tsx both call serviceSeoDescription from lib/service-seo', () => {
-    assert.match(read('server/vite.ts'), /serviceSeoDescription[\s\S]{0,200}service-seo|service-seo[\s\S]{0,400}serviceSeoDescription/);
+  test('apps/api/src/vite.ts and service-landing.tsx both call serviceSeoDescription from lib/service-seo', () => {
+    assert.match(read('apps/api/src/vite.ts'), /serviceSeoDescription[\s\S]{0,200}service-seo|service-seo[\s\S]{0,400}serviceSeoDescription/);
     assert.match(read('client/src/pages/service-landing.tsx'), /import \{[^}]*serviceSeoDescription[^}]*\} from "@\/lib\/service-seo"/);
-    assert.match(read('server/vite.ts'), /serviceSeoDescription\(service\)/);
+    assert.match(read('apps/api/src/vite.ts'), /serviceSeoDescription\(service\)/);
     assert.match(read('client/src/pages/service-landing.tsx'), /description: serviceSeoDescription\(service\)/);
   });
 });

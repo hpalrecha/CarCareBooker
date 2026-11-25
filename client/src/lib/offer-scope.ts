@@ -7,7 +7,7 @@ import { isPpfService } from "./booking-fee";
  * ─────────────────────────────────────────────────
  * FREE BOOKING IS PER ROW, NOT PER PAGE.
  *
- * The server (server/lib/booking-amount.ts resolveBookingAmount, server/lib/campaign.ts campaignFreeBookingForService)
+ * The server (apps/api/src/lib/booking-amount.ts resolveBookingAmount, apps/api/src/lib/campaign.ts campaignFreeBookingForService)
  * waives the booking fee in exactly two cases:
  *
  *   1. the LEGACY `free_booking_until` window, which applies to EVERY row; or

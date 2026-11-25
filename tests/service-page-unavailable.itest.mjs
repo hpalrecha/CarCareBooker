@@ -36,7 +36,7 @@ const storage = {
 };
 // `namedExports`, not `exports`: Node 24.13 ignores an `exports` key here and mocks the module
 // with no exports at all, so `storage` would be undefined inside the handler.
-mock.module("../server/storage.ts", { namedExports: { storage } });
+mock.module("../apps/api/src/storage.ts", { namedExports: { storage } });
 
 const SHELL =
   '<!doctype html><html><head><meta charset="utf-8" /></head><body><div id="root"></div></body></html>';
@@ -58,7 +58,7 @@ const realConsoleError = console.error;
 const logged = [];
 
 async function serve(dist) {
-  const { serveStatic } = await import("../server/vite.ts");
+  const { serveStatic } = await import("../apps/api/src/vite.ts");
   const app = express();
   serveStatic(app, dist);
   const server = await new Promise((r) => { const s = app.listen(0, "127.0.0.1", () => r(s)); });

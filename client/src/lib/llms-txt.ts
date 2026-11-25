@@ -8,7 +8,7 @@ import { ADDRESS_CONFIRMED, STREET_ADDRESS, POSTAL_CODE, PHONE } from "./local-b
  *
  * ─────────────────────────────────────────────────────────────────────────────────────
  * Production answered /llms.txt with 404. It is served at request time by
- * server/routes.ts so services and hours are live, the same as sitemap.xml.
+ * apps/api/src/routes.ts so services and hours are live, the same as sitemap.xml.
  *
  * CONTENT RULE: only facts the site already publishes. The address and phone come from
  * lib/local-business.ts (the confirmed Google Business Profile values), services and

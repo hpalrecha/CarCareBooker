@@ -7,7 +7,7 @@ import { neutraliseWarrantyIssuer } from "./warranty-wording";
  *
  * ─────────────────────────────────────────────────────────────────────────────────────
  * ONE BUILDER, TWO CALLERS. The server writes this into the HTML that crawlers fetch
- * (server/vite.ts), and the page sets it again after hydrating (ServiceSeo in
+ * (apps/api/src/vite.ts), and the page sets it again after hydrating (ServiceSeo in
  * service-landing.tsx). They used to be two hand-kept copies, and they had drifted: the
  * server omitted FAQPage entirely — so a crawler that does not run JavaScript never saw
  * the FAQ markup — and both described the business with no street address or hours.
@@ -18,7 +18,7 @@ import { neutraliseWarrantyIssuer } from "./warranty-wording";
  * businesses.
  * ─────────────────────────────────────────────────────────────────────────────────────
  *
- * Relative imports only: server/vite.ts is bundled by esbuild and imports this directly.
+ * Relative imports only: apps/api/src/vite.ts is bundled by esbuild and imports this directly.
  */
 
 import { withCeramicTiming } from "./ceramic-timing";

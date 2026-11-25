@@ -6,7 +6,7 @@
  * untouched. Any extra entries already in `images` are preserved in place.
  *
  * The assets live in the git-tracked `attached_assets/` tree (served by
- * `express.static('/attached_assets')` in server/index.ts), NOT in `uploads/` —
+ * `express.static('/attached_assets')` in apps/api/src/index.ts), NOT in `uploads/` —
  * the local uploads directory is ephemeral on the deployed container, which is what
  * broke these two cards in the first place.
  *

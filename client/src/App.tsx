@@ -104,7 +104,7 @@ function Router() {
             /ppf-ceramic-coating (the old combined PPF+ceramic page) used to be registered
             here too. SEO audit (2026-09-22) found it had zero internal links and zero
             external search visibility, so it now 301s to /services — see the redirect in
-            server/routes.ts, registered ahead of this SPA router entirely, so no client
+            apps/api/src/routes.ts, registered ahead of this SPA router entirely, so no client
             route for that path is needed any more. */}
         <Route path="/ceramic-coating/car">
           <CampaignLanding path="/ceramic-coating/car" />

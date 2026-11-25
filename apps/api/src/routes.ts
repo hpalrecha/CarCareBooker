@@ -1,6 +1,6 @@
 import type { Express } from "express";
-import { withholdUnverifiedClaims } from "../client/src/lib/withheld-claims";
-import { SITEMAP_LASTMOD, serviceItemLastmod } from "../client/src/lib/sitemap-dates";
+import { withholdUnverifiedClaims } from "../../../client/src/lib/withheld-claims";
+import { SITEMAP_LASTMOD, serviceItemLastmod } from "../../../client/src/lib/sitemap-dates";
 import { createServer, type Server } from "http";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -10,8 +10,8 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import { storage } from "./storage";
-import { buildLlmsTxt } from "../client/src/lib/llms-txt";
-import { isConsolidatedServiceSlug } from "../client/src/lib/canonical-overrides";
+import { buildLlmsTxt } from "../../../client/src/lib/llms-txt";
+import { isConsolidatedServiceSlug } from "../../../client/src/lib/canonical-overrides";
 import { SlotFullError } from "./storage";
 import { authenticateAdmin, hashPassword, comparePassword } from "./middleware/auth";
 import { createPaymentOrder, verifyPaymentSignature } from "./services/payment";
@@ -363,9 +363,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.getAllServices(),
         storage.getAllBusinessHours().catch(() => undefined),
       ]);
-      const { SEO_PAGES } = await import("../client/src/lib/seo-pages");
-      const { BLOG_POSTS } = await import("../client/src/lib/blog-posts");
-      const { LANDING_PAGES } = await import("../client/src/lib/landing-pages");
+      const { SEO_PAGES } = await import("../../../client/src/lib/seo-pages");
+      const { BLOG_POSTS } = await import("../../../client/src/lib/blog-posts");
+      const { LANDING_PAGES } = await import("../../../client/src/lib/landing-pages");
       const body = buildLlmsTxt({
         origin,
         services: services as any,

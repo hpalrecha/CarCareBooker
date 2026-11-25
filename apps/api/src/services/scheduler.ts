@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import { storage } from '../storage';
-import { whatsappService } from '../services/whatsapp';
+import { whatsappService } from './whatsapp';
 
 export class SchedulerService {
   private static instance: SchedulerService;

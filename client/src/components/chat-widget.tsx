@@ -6,7 +6,7 @@ import { PHONE } from "@/lib/local-business";
 
 /**
  * Floating AI chat widget — replaces the WhatsApp-only floating button as the default
- * contact action (server/services/chatbot.ts has the backend).
+ * contact action (apps/api/src/services/chatbot.ts has the backend).
  *
  * Position/visibility rules are copied from the FAB it replaces (contact-fab.tsx): a 54px
  * circle bottom-right, hidden on /admin, lifted above the service page's own sticky booking

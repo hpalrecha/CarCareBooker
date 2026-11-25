@@ -35,7 +35,7 @@ const ROUTE_RE = /\b(?:app|router)\s*\.\s*(?:get|post|put|patch|delete|all|use)\
 
 test('no server file registers a /api/test*, /api/debug* or similar route', () => {
   const found = [];
-  for (const file of listTs(path.join(repoRoot, 'server'))) {
+  for (const file of listTs(path.join(repoRoot, 'apps', 'api', 'src'))) {
     const src = fs.readFileSync(file, 'utf8');
     for (const m of src.matchAll(ROUTE_RE)) found.push(`${path.relative(repoRoot, file)}: ${m[2]}`);
   }
@@ -54,7 +54,7 @@ test('the guard itself matches the routes it was written for (so it cannot pass 
 
 test('no client, script or workflow in the repository calls the removed endpoints', () => {
   const needles = ['test-payment-confirmation', 'api/test-whatsapp', 'api/test-payment'];
-  const roots = ['client/src', 'scripts', 'server', '.github'].map((p) => path.join(repoRoot, p)).filter((p) => fs.existsSync(p));
+  const roots = ['client/src', 'scripts', 'apps/api/src', '.github'].map((p) => path.join(repoRoot, p)).filter((p) => fs.existsSync(p));
   const hits = [];
   const walk = (dir) => {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -62,7 +62,7 @@ test('no client, script or workflow in the repository calls the removed endpoint
       if (e.isDirectory()) { if (e.name !== 'node_modules') walk(p); continue; }
       if (!/\.(ts|tsx|js|mjs|json|yml|yaml|sh)$/.test(e.name)) continue;
       const src = fs.readFileSync(p, 'utf8');
-      // The explanatory comments in server/routes.ts are allowed; a call or a route is not.
+      // The explanatory comments in apps/api/src/routes.ts are allowed; a call or a route is not.
       for (const n of needles) {
         if (!src.includes(n)) continue;
         const code = src.split('\n').filter((l) => l.includes(n) && !/^\s*(\/\/|\*)/.test(l));

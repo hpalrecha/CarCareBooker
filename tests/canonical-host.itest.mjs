@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
 import express from "express";
-import { canonicalHost, canonicalHostRedirect } from "../server/middleware/canonical-host.ts";
+import { canonicalHost, canonicalHostRedirect } from "../apps/api/src/middleware/canonical-host.ts";
 
 function start() {
   const app = express();

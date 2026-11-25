@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { rewriteSpecifier, applyMoves } from "../scripts/tools/relocate.mjs";
+import { rewriteSpecifier, rewriteSource, applyMoves } from "../scripts/tools/relocate.mjs";
 
 const moves = [
   ["server", "apps/api/src"],
@@ -42,6 +42,21 @@ test("alias import is rewritten through aliasRewrites", () => {
 test("extensionless import of a moved single file is rewritten", () => {
   const out = rewriteSpecifier({ fromFile: "scripts/verify.ts", spec: "../shared/schema", moves, aliasRewrites });
   assert.equal(out, "../packages/db/src/schema");
+});
+
+test("new URL(relative, import.meta.url) is rewritten like an import", () => {
+  const { next } = rewriteSource('const s = readFileSync(new URL("../server/routes.ts", import.meta.url));', "tests/a.test.mjs", { moves, aliasRewrites });
+  assert.equal(next, 'const s = readFileSync(new URL("../apps/api/src/routes.ts", import.meta.url));');
+});
+
+test("repo-relative path strings in tests and scripts follow the move", () => {
+  const { next } = rewriteSource("const r = read('server/routes.ts'); const d = 'server';", "tests/a.test.mjs", { moves, aliasRewrites, repoPathStrings: true });
+  assert.equal(next, "const r = read('apps/api/src/routes.ts'); const d = 'apps/api/src';");
+});
+
+test("repo-relative path strings are left alone unless asked", () => {
+  const { next } = rewriteSource("const r = read('server/routes.ts');", "apps/x.ts", { moves, aliasRewrites });
+  assert.equal(next, "const r = read('server/routes.ts');");
 });
 
 test("bare package import is never touched", () => {

@@ -1,5 +1,5 @@
 /**
- * Covers server/lib/service-auto-image.ts — the best-guess photo picker for a brand-new
+ * Covers apps/api/src/lib/service-auto-image.ts — the best-guess photo picker for a brand-new
  * service created with no image of its own (e.g. via the simplified admin form, which
  * has no upload step).
  *
@@ -34,7 +34,7 @@ const taxonomySrc = fs
   .replace(/^export /gm, '');
 
 const autoImageSrc = fs
-  .readFileSync(path.join(repoRoot, 'server/lib/service-auto-image.ts'), 'utf8')
+  .readFileSync(path.join(repoRoot, 'apps/api/src/lib/service-auto-image.ts'), 'utf8')
   .split('\n')
   .filter((line) => !line.trim().startsWith('import '))
   .join('\n')
@@ -97,7 +97,7 @@ describe('deriveAutoImage — refuses to guess', () => {
 });
 
 describe('storage.ts — auto-image only runs on create, never on update', () => {
-  const src = fs.readFileSync(path.join(repoRoot, 'server/storage.ts'), 'utf8');
+  const src = fs.readFileSync(path.join(repoRoot, 'apps/api/src/storage.ts'), 'utf8');
 
   const createBody = src.slice(src.indexOf('async createService'), src.indexOf('async updateService'));
   const updateBody = src.slice(src.indexOf('async updateService'), src.indexOf('async setServiceActiveStatus'));

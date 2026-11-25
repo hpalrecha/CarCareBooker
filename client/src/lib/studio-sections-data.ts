@@ -8,7 +8,7 @@
  * blocks missing from the home page's first response). One source means the two can no longer drift.
  *
  * Wording is exactly what the live page showed on 2026-11-20. No price or fee appears here: the booking flow owns those.
- * No imports from React; relative imports only, because server/vite.ts bundles this through esbuild.
+ * No imports from React; relative imports only, because apps/api/src/vite.ts bundles this through esbuild.
  */
 import { WARRANTY_HANDOVER_LINE } from "./warranty-wording";
 

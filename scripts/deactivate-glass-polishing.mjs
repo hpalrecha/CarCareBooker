@@ -8,7 +8,7 @@
  * getAllServices() (active rows only) — which is what feeds the sitemap, /api/services,
  * the /services catalogue grid, and the /service/:slug indexable-metadata handler.
  *
- * The URL itself is additionally hard-redirected: server/routes.ts registers a real HTTP
+ * The URL itself is additionally hard-redirected: apps/api/src/routes.ts registers a real HTTP
  * 301 for /service/glass-polishing -> /service/windshield-glass-polishing, ahead of the
  * metadata handler and the SPA catch-all, so this is not the only thing keeping the old
  * URL out of the index — it's belt-and-braces with the redirect.

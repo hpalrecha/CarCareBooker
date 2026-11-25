@@ -6,8 +6,8 @@
  * Runs under tsx, so the TypeScript modules are imported directly rather than
  * regex-stripped. These are the units the ad campaign's reporting depends on:
  *
- *   server/lib/attribution.ts   what gets stored, and what `source` a booking is filed under
- *   server/lib/rate-limit.ts    whether the public endpoints can be hammered
+ *   apps/api/src/lib/attribution.ts   what gets stored, and what `source` a booking is filed under
+ *   apps/api/src/lib/rate-limit.ts    whether the public endpoints can be hammered
  *
  * The client-side capture rule lives in client/src/lib/attribution.ts and is exercised in
  * tests/attribution-client.itest.mjs against a DOM shim. The overwrite rule is the single
@@ -17,8 +17,8 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 
-import { parseAttribution, deriveSource, MAX_ATTRIBUTION_LENGTH } from "../server/lib/attribution.ts";
-import { consume, __resetRateLimitsForTests } from "../server/lib/rate-limit.ts";
+import { parseAttribution, deriveSource, MAX_ATTRIBUTION_LENGTH } from "../apps/api/src/lib/attribution.ts";
+import { consume, __resetRateLimitsForTests } from "../apps/api/src/lib/rate-limit.ts";
 
 describe("attribution: what reaches the database", () => {
   test("captures every field the brief requires", () => {
@@ -207,7 +207,7 @@ describe("rate limiting", () => {
 
   test("the configured production quotas admit a normal customer", () => {
     // A limit is only correct if it never fires for real use. These mirror the values in
-    // server/routes.ts; if either is tightened, this test should fail first.
+    // apps/api/src/routes.ts; if either is tightened, this test should fail first.
     const now = 2_000_000;
 
     const leads = { bucket: "ppf-leads", windowMs: 10 * 60_000, max: 5 };

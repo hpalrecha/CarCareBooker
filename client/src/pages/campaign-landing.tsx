@@ -107,9 +107,9 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
   // Set when a package card (Basic or Premium, any body type) opened the modal; null for every other opener
   // (header Book Now, the offer block), which keep booking the hero selector's service exactly as before.
   //
-  // WHAT EACH SIX ROWS ARE CHARGED TO BOOK (decided on the server, server/lib/booking-amount.ts; never by this page):
+  // WHAT EACH SIX ROWS ARE CHARGED TO BOOK (decided on the server, apps/api/src/lib/booking-amount.ts; never by this page):
   //   - a RUNNING free_booking campaign waives the fee for ONE catalogue row only: the campaign's `serviceSlug`
-  //     (server/lib/campaign.ts campaignFreeBookingForService). The page-level offer block is keyed to the landing
+  //     (apps/api/src/lib/campaign.ts campaignFreeBookingForService). The page-level offer block is keyed to the landing
   //     page, not to a row, so it can read "free" while another row's package is booked at the normal deposit.
   //   - the legacy `free_booking_until` window waives it for EVERY row, Basic and Premium.
   //   - otherwise each of the six PPF rows (all priced over ₹10,000) takes the ₹499 slot deposit.

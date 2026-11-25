@@ -11,7 +11,7 @@
  * Records that are not consolidated (e.g. windshield glass coating) keep their own /service/:slug link and title.
  *
  * Used by the hub page (pages/seo-service-page.tsx) and its crawlable HTML (lib/crawlable-content.ts), so both list the same links.
- * Relative imports only: server/vite.ts and the prerender bundle import this.
+ * Relative imports only: apps/api/src/vite.ts and the prerender bundle import this.
  */
 import { serviceCanonicalPath } from "./canonical-overrides";
 

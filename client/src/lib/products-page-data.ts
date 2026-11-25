@@ -2,7 +2,7 @@
  * Wording of /products that the page and the first HTML response both use (pages/products.tsx and
  * lib/crawlable-content.ts#productsPageContent). Moved here from products.tsx so the crawler snapshot can carry the brand
  * rows, the "Which one do you need?" list and the help line. Wording is unchanged from the live page on 2026-11-20.
- * Relative imports only: scripts/prerender.mjs and server/vite.ts bundle this through esbuild.
+ * Relative imports only: scripts/prerender.mjs and apps/api/src/vite.ts bundle this through esbuild.
  */
 export const PRODUCTS_HERO = {
   label: "Brands we fit",

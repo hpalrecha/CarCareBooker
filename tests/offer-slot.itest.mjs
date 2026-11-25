@@ -5,7 +5,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { checkOfferSlot } from "../server/lib/offer-slot.ts";
+import { checkOfferSlot } from "../apps/api/src/lib/offer-slot.ts";
 
 const open = { isOpen: true, openTime: "10:00", cutoffTime: "18:00", dayName: "Monday" };
 const now = new Date("2026-10-20T06:00:00Z"); // 11:30 IST on 2026-10-20

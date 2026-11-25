@@ -200,7 +200,7 @@ interface ChatbotKnowledgeEntry {
 
 /**
  * "Knowledge Hub" — staff-editable facts fed into the AI chat widget's system prompt
- * (server/lib/chatbot-knowledge.ts). This is how a wrong or missing answer (like the bot
+ * (apps/api/src/lib/chatbot-knowledge.ts). This is how a wrong or missing answer (like the bot
  * once saying P91 doesn't do bike PPF) gets fixed by a non-technical staff member here,
  * instead of needing a code change. Inactive entries are kept, not deleted, so a fact can
  * be retired and restored without retyping it — same convention as service.isActive.

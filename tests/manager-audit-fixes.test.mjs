@@ -46,8 +46,8 @@ test("a post's JSON-LD dateModified equals its sitemap lastmod", () => {
   for (const post of blog.BLOG_POSTS) assert.equal(post.updated || post.date, dates.SITEMAP_LASTMOD["/blog/" + post.slug], post.slug);
 });
 
-test("server/routes.ts has no typed-in lastmod left", () => {
-  const routes = read("server/routes.ts");
+test("apps/api/src/routes.ts has no typed-in lastmod left", () => {
+  const routes = read("apps/api/src/routes.ts");
   const sitemap = routes.slice(routes.indexOf('app.get("/sitemap.xml"'), routes.indexOf("// Service Management Routes"));
   assert.ok(!/lastmod: "\d{4}/.test(sitemap), "dates must come from sitemap-dates.ts");
   assert.match(sitemap, /SITEMAP_LASTMOD\[p\.loc\]/);

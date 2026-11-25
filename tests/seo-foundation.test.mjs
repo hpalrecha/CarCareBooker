@@ -265,7 +265,7 @@ describe('schema', () => {
 
   test('prerendered and server-injected schema is marked, and the hook removes it (no duplicates)', () => {
     assert.match(read('scripts/prerender.mjs'), /application\/ld\+json" data-seo="prerender"/);
-    const vite = read('server/vite.ts');
+    const vite = read('apps/api/src/vite.ts');
     assert.equal((vite.match(/data-seo="prerender"/g) || []).length >= 2, true, '/service/:slug and /services');
     const hook = read('client/src/hooks/use-seo-meta.ts');
     assert.match(hook, /\[data-seo="prerender"\]'\)/);
@@ -312,7 +312,7 @@ describe('schema', () => {
 
 describe('prerender and server wiring', () => {
   const script = read('scripts/prerender.mjs');
-  const vite = read('server/vite.ts');
+  const vite = read('apps/api/src/vite.ts');
 
   test('every prerendered route must ship content and exactly one h1, or the build fails', () => {
     assert.match(script, /no crawlable content built/);
@@ -376,7 +376,7 @@ describe('prerender and server wiring', () => {
 
 describe('llms.txt', () => {
   test('is served by the server, not left to 404', () => {
-    const routes = read('server/routes.ts');
+    const routes = read('apps/api/src/routes.ts');
     assert.match(routes, /app\.get\("\/llms\.txt"/);
     // Booking-page descriptions carry the live offer ("book your appointment free"), so
     // they are not republished here.
@@ -424,11 +424,11 @@ describe('technical SEO brief: robots meta, hub links, gallery images', () => {
   test('every prerendered route states index,follow, except the noindex,follow ones', () => {
     assert.match(prerenderSrc, /route\.noindex \? "noindex,follow" : "index,follow"/);
     assert.match(prerenderSrc, /NOINDEX_STATIC_PATHS = new Set\(\["\/terms-conditions", "\/privacy-policy", "\/refund-policy"\]\)/);
-    assert.match(read('server/vite.ts'), /content="index,follow"/, 'server-rendered /service/:slug must state index,follow too');
+    assert.match(read('apps/api/src/vite.ts'), /content="index,follow"/, 'server-rendered /service/:slug must state index,follow too');
   });
 
   test('noindex pages are not in the sitemap', () => {
-    const routesSrc = read('server/routes.ts');
+    const routesSrc = read('apps/api/src/routes.ts');
     for (const p of ['/terms-conditions', '/privacy-policy', '/refund-policy', '/blog/category/']) {
       assert.ok(!routesSrc.includes(`loc: "${p}`), `${p} is noindex and must not be listed`);
     }
@@ -463,7 +463,7 @@ describe('guide pages bake FAQPage schema into the HTML', () => {
 
 describe('duplicate homepage URL', () => {
   test('/index.html is a permanent redirect to "/", not a second 200 page', () => {
-    const src = read('server/routes.ts');
+    const src = read('apps/api/src/routes.ts');
     const needle = 'index\\.html$/i'; // the regex source as written in routes.ts: index\.html$/i
     assert.ok(src.includes(needle), 'route missing');
     const at = src.indexOf(needle);

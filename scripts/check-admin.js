@@ -1,5 +1,5 @@
 // Simple script to check if admin exists in database
-import { storage } from '../server/storage.js';
+import { storage } from '../apps/api/src/storage.js';
 
 async function checkAdmin() {
   try {

@@ -122,13 +122,13 @@ describe('FAQPage JSON-LD agrees with the page and the HTML', () => {
 
 describe('every surface is wired to the shared module (source guards)', () => {
   test('page, server and schema builders all apply withCeramicTiming', () => {
-    for (const f of ['client/src/pages/service-landing.tsx', 'client/src/pages/campaign-landing.tsx', 'client/src/lib/crawlable-content.ts', 'client/src/lib/service-seo.ts', 'server/vite.ts']) {
+    for (const f of ['client/src/pages/service-landing.tsx', 'client/src/pages/campaign-landing.tsx', 'client/src/lib/crawlable-content.ts', 'client/src/lib/service-seo.ts', 'apps/api/src/vite.ts']) {
       assert.match(read(f), /withCeramicTiming/, f);
     }
   });
   test('no application source states a 6-8 hour duration', () => {
     const walk = (d) => fs.readdirSync(path.join(repoRoot, d), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
-    const files = ['client/src', 'server', 'packages'].flatMap(walk).filter((f) => /\.(tsx?|json|html)$/.test(f));
+    const files = ['client/src', 'apps/api/src', 'packages'].flatMap(walk).filter((f) => /\.(tsx?|json|html)$/.test(f));
     assert.deepEqual(files.filter((f) => OLD_CLAIM.test(read(f))), []);
   });
 });

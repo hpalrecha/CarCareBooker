@@ -24,7 +24,7 @@
  * WHY A FIXED +05:30 AND NOT Intl / a timezone library.
  *
  * India has not observed daylight saving since 1945 and IST is a fixed UTC+05:30. The
- * existing code already relies on exactly this — server/lib/booking-amount.ts hardcodes
+ * existing code already relies on exactly this — apps/api/src/lib/booking-amount.ts hardcodes
  * "T23:59:59.999+05:30" for the legacy offer window, and use-booking-offer.ts formats
  * with "+05:30". Introducing an Intl-based conversion here would be a SECOND timezone
  * convention in the same codebase, which is the thing most likely to produce an

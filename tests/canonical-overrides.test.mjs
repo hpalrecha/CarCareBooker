@@ -82,9 +82,10 @@ describe('the mapping', () => {
 });
 
 describe('every emitter uses the shared module', () => {
-  test('server-rendered /service/:slug head (server/vite.ts)', () => {
-    const vite = read('server/vite.ts');
-    assert.match(vite, /from "\.\.\/client\/src\/lib\/canonical-overrides"/);
+  test('server-rendered /service/:slug head (apps/api/src/vite.ts)', () => {
+    const vite = read('apps/api/src/vite.ts');
+    // Path-agnostic: the module moves between folders, the import must still be the shared one.
+    assert.match(vite, /from "(\.\.\/)+[\w/-]*\/canonical-overrides"/);
     assert.match(vite, /const canonical = `\$\{origin\}\$\{serviceCanonicalPath\(service\.slug\)\}`/);
     assert.doesNotMatch(vite, /const canonical = `\$\{origin\}\/service\/\$\{service\.slug\}`/, 'the old self-canonical is gone');
     // og:url is emitted from the same variable, so it follows the canonical.
@@ -110,7 +111,7 @@ describe('every emitter uses the shared module', () => {
   });
 
   test('sitemap filters the consolidated slugs out', () => {
-    const routes = read('server/routes.ts');
+    const routes = read('apps/api/src/routes.ts');
     assert.match(routes, /\.filter\(\(s: any\) => !isConsolidatedServiceSlug\(s\.slug\)\)/);
   });
 });

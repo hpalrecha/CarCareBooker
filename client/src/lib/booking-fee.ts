@@ -1,6 +1,6 @@
 /**
  * Slot-booking fee shown for a service. DISPLAY ONLY: the amount that is charged is decided on the
- * server (server/lib/booking-amount.ts resolveBookingAmount), which holds the same numbers and the same
+ * server (apps/api/src/lib/booking-amount.ts resolveBookingAmount), which holds the same numbers and the same
  * PPF test. If one changes there, change it here, or the label and the Razorpay amount will disagree.
  *
  * A PPF service priced MORE than ₹10,000 (all six today) takes a ₹499 slot deposit. Both conditions are

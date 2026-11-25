@@ -11,7 +11,7 @@ try {
   const [{ current_database: db }] = (await pool.query('select current_database()')).rows;
   console.log(`database: ${db}\n`);
 
-  // Exactly what server/storage.ts getAllBookings() issues: no WHERE, no LIMIT, no OFFSET.
+  // Exactly what apps/api/src/storage.ts getAllBookings() issues: no WHERE, no LIMIT, no OFFSET.
   const rows = (await pool.query(`
     SELECT b.*, s.title AS service_title, t.start_time AS slot_start
       FROM bookings b

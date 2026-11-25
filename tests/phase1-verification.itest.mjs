@@ -4,7 +4,7 @@
  *   npm run test:integration
  *
  * This is the evidence run for the thirteen checks Phase 1 was required to pass. It is
- * deliberately not a unit test: it boots the REAL server/routes.ts on a REAL socket and
+ * deliberately not a unit test: it boots the REAL apps/api/src/routes.ts on a REAL socket and
  * drives it with REAL HTTP requests, and it uses the REAL client-side attribution and
  * Meta Pixel modules rather than descriptions of them.
  *
@@ -34,7 +34,7 @@ import { test, describe, before, after, beforeEach, mock } from "node:test";
 import assert from "node:assert/strict";
 import express from "express";
 
-import { __resetRateLimitsForTests } from "../server/lib/rate-limit.ts";
+import { __resetRateLimitsForTests } from "../apps/api/src/lib/rate-limit.ts";
 
 const evidence = [];
 const proof = (n, claim, detail) => {
@@ -81,19 +81,19 @@ const storage = {
 };
 
 class SlotFullError extends Error {}
-mock.module("../server/storage.ts", { exports: { storage, SlotFullError } });
-mock.module("../server/services/payment.ts", {
+mock.module("../apps/api/src/storage.ts", { exports: { storage, SlotFullError } });
+mock.module("../apps/api/src/services/payment.ts", {
   exports: {
     createPaymentOrder: async (amount) => ({ id: "order_" + ++seq, amount: amount * 100, currency: "INR" }),
     verifyPaymentSignature: async () => true,
   },
 });
-mock.module("../server/services/whatsapp.ts", {
+mock.module("../apps/api/src/services/whatsapp.ts", {
   exports: { whatsappService: { sendBookingConfirmation: async () => ({ success: true, messageId: "wamid.T" }) } },
 });
-mock.module("../server/services/scheduler.ts", { exports: { schedulerService: { startReminderScheduler() {} } } });
-mock.module("../server/services/email.ts", { exports: { sendBookingConfirmationEmail: async () => ({ success: true }) } });
-mock.module("../server/services/webhook.ts", { exports: { sendBookingWebhook: async () => ({ ok: true }) } });
+mock.module("../apps/api/src/services/scheduler.ts", { exports: { schedulerService: { startReminderScheduler() {} } } });
+mock.module("../apps/api/src/services/email.ts", { exports: { sendBookingConfirmationEmail: async () => ({ success: true }) } });
+mock.module("../apps/api/src/services/webhook.ts", { exports: { sendBookingWebhook: async () => ({ ok: true }) } });
 
 let server;
 let base;
@@ -107,7 +107,7 @@ before(async () => {
   process.env.META_PIXEL_ID = "1234567890";
   process.env.NODE_ENV = "test";
 
-  const { registerRoutes } = await import("../server/routes.ts");
+  const { registerRoutes } = await import("../apps/api/src/routes.ts");
   const app = express();
   app.use(express.json({ verify: (req, _res, buf) => { req.rawBody = Buffer.from(buf); } }));
   app.use(express.urlencoded({ extended: false }));

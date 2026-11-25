@@ -74,13 +74,13 @@ test("the landing-page filters drop the same claims", () => {
 });
 
 test("the public service endpoints and the server HTML go through the filter; the admin endpoint does not", () => {
-  const routes = fs.readFileSync(new URL("../server/routes.ts", import.meta.url), "utf8");
+  const routes = fs.readFileSync(new URL("../apps/api/src/routes.ts", import.meta.url), "utf8");
   const pub = routes.slice(routes.indexOf('app.get("/api/services", async'), routes.indexOf('app.get("/api/admin/services"'));
   assert.match(pub, /withholdUnverifiedClaims/);
   const one = routes.slice(routes.indexOf('app.get("/api/services/:id"'), routes.indexOf('app.post("/api/services", authenticateAdmin'));
   assert.match(one, /withholdUnverifiedClaims/);
   const admin = routes.slice(routes.indexOf('app.get("/api/admin/services"'), routes.indexOf('app.get("/api/services/:id"'));
   assert.doesNotMatch(admin, /withholdUnverifiedClaims/, "the admin list must stay raw so editing never saves a filtered copy");
-  const vite = fs.readFileSync(new URL("../server/vite.ts", import.meta.url), "utf8");
+  const vite = fs.readFileSync(new URL("../apps/api/src/vite.ts", import.meta.url), "utf8");
   assert.match(vite, /withholdUnverifiedClaims/);
 });

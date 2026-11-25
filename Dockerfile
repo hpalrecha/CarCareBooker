@@ -54,7 +54,7 @@ WORKDIR /app
 
 # Deliberately a FULL install, including devDependencies.
 #
-# esbuild bundles server/vite.ts into dist/index.js, and that file carries
+# esbuild bundles apps/api/src/vite.ts into dist/index.js, and that file carries
 # top-level ESM imports of `vite`, `@vitejs/plugin-react` and
 # `@replit/vite-plugin-runtime-error-modal` — all devDependencies. Static
 # imports resolve at module load, long before the development/production branch
@@ -72,7 +72,7 @@ RUN test -f node_modules/vite/package.json \
     && test -f node_modules/@vitejs/plugin-react/package.json \
     || (echo "FATAL: devDependencies missing — dist/index.js imports vite at load time"; exit 1)
 
-# server/index.ts branches on app.get("env"), which reads NODE_ENV. Anything
+# apps/api/src/index.ts branches on app.get("env"), which reads NODE_ENV. Anything
 # other than "production" takes the Vite dev-middleware path instead of
 # serveStatic(), so this must be set — but only once the install is done.
 ENV NODE_ENV=production
@@ -83,7 +83,7 @@ COPY --from=build /app/dist ./dist
 # ---------------------------------------------------------------------------
 # THE FIX for the broken service images.
 #
-# server/index.ts serves /attached_assets from
+# apps/api/src/index.ts serves /attached_assets from
 #   path.resolve(import.meta.dirname, '..', 'attached_assets')  ->  /app/attached_assets
 # express.static() on a directory that does not exist silently calls next(), so
 # the request falls through to the SPA catch-all and every service image comes
@@ -103,7 +103,7 @@ COPY --from=build /app/dist ./dist
 # ---------------------------------------------------------------------------
 COPY --from=build /app/attached_assets ./attached_assets
 
-# multer writes admin uploads to process.cwd()/uploads (server/routes.ts creates
+# multer writes admin uploads to process.cwd()/uploads (apps/api/src/routes.ts creates
 # the directory on boot). Bind-mount a host directory over this at run time —
 # anything written into the image layer dies with the container, which is how
 # the original /uploads service images were lost in the first place.
@@ -125,7 +125,7 @@ CMD ["node", "dist/index.js"]
 # Slimming this image (optional follow-up, NOT required for this deploy)
 #
 # Make the Vite import lazy so it leaves the production module graph:
-#   - in server/index.ts, replace the static `import { setupVite } from "./vite"`
+#   - in apps/api/src/index.ts, replace the static `import { setupVite } from "./vite"`
 #     with `const { setupVite } = await import("./vite")` inside the
 #     development-only branch;
 #   - then the runtime stage can use `npm ci --omit=dev`, dropping roughly

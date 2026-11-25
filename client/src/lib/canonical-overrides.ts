@@ -16,10 +16,10 @@
  * URLs only).
  *
  * ONE module, imported by every emitter so they cannot disagree:
- *   - server/vite.ts         /service/:slug HTML served per request
+ *   - apps/api/src/vite.ts         /service/:slug HTML served per request
  *   - scripts/prerender.mjs  build-time HTML (via scripts/prerender-content-entry.ts)
  *   - service-landing.tsx    useSeoMeta after hydration
- *   - server/routes.ts       /sitemap.xml exclusion
+ *   - apps/api/src/routes.ts       /sitemap.xml exclusion
  *
  * Every slug not listed here keeps its self-canonical. Deliberately NOT listed:
  * premium-car-wash-special (kept as its own page on purpose).

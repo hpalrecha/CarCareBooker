@@ -3,7 +3,7 @@
  *
  *   npm run test:integration
  *
- * These import server/routes.ts itself and mount it on a real Express app, with only the
+ * These import apps/api/src/routes.ts itself and mount it on a real Express app, with only the
  * outermost edges replaced: the database (storage), the Razorpay SDK wrapper, and the
  * notification services. Everything in between — request validation, blackout and
  * business-hours checks, capacity, the amount-authority logic, the confirm-payment lookup,
@@ -29,7 +29,7 @@ import { test, describe, before, after, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import express from 'express';
-import { __resetRateLimitsForTests } from '../server/lib/rate-limit.ts';
+import { __resetRateLimitsForTests } from '../apps/api/src/lib/rate-limit.ts';
 
 const WEBHOOK_SECRET = 'integration-test-webhook-secret';
 const KEY_SECRET = 'integration-test-key-secret';
@@ -82,12 +82,12 @@ const storage = {
 
 class SlotFullError extends Error {}
 
-mock.module('../server/storage.ts', { exports: { storage, SlotFullError } });
+mock.module('../apps/api/src/storage.ts', { exports: { storage, SlotFullError } });
 // These tests assert the ordinary booking fee. The Diwali ₹99 slot offer is open until 8 Nov 2026 and would change
 // every ordinary amount, so it is pinned closed here; the offer itself is covered in diwali-slot-offer.itest.mjs.
-mock.module('../server/lib/diwali-offer.ts', { exports: { ...(await import('../server/lib/diwali-offer.ts')), isDiwaliOfferOpen: () => false } });
+mock.module('../apps/api/src/lib/diwali-offer.ts', { exports: { ...(await import('../apps/api/src/lib/diwali-offer.ts')), isDiwaliOfferOpen: () => false } });
 
-mock.module('../server/services/payment.ts', {
+mock.module('../apps/api/src/services/payment.ts', {
   exports: {
     createPaymentOrder: async (amount, receipt) => {
       chargedAmounts.push(amount);
@@ -98,7 +98,7 @@ mock.module('../server/services/payment.ts', {
   },
 });
 
-mock.module('../server/services/whatsapp.ts', {
+mock.module('../apps/api/src/services/whatsapp.ts', {
   exports: {
     whatsappService: {
       sendBookingConfirmation: async () => { notifications.whatsapp++; return { success: true, messageId: 'wamid.TEST' }; },
@@ -106,9 +106,9 @@ mock.module('../server/services/whatsapp.ts', {
     },
   },
 });
-mock.module('../server/services/scheduler.ts', { exports: { schedulerService: { startReminderScheduler() {} } } });
-mock.module('../server/services/email.ts', { exports: { sendBookingConfirmationEmail: async () => ({ success: true }) } });
-mock.module('../server/services/webhook.ts', { exports: { sendBookingWebhook: async () => ({ ok: true, n8nExecutionId: 'exec_test' }) } });
+mock.module('../apps/api/src/services/scheduler.ts', { exports: { schedulerService: { startReminderScheduler() {} } } });
+mock.module('../apps/api/src/services/email.ts', { exports: { sendBookingConfirmationEmail: async () => ({ success: true }) } });
+mock.module('../apps/api/src/services/webhook.ts', { exports: { sendBookingWebhook: async () => ({ ok: true, n8nExecutionId: 'exec_test' }) } });
 
 // ---------------------------------------------------------------------------
 
@@ -124,10 +124,10 @@ before(async () => {
   process.env.RAZORPAY_WEBHOOK_SECRET = WEBHOOK_SECRET;
   process.env.NODE_ENV = 'test';
 
-  const { registerRoutes } = await import('../server/routes.ts');
+  const { registerRoutes } = await import('../apps/api/src/routes.ts');
 
   const app = express();
-  // Mirrors server/index.ts: the raw body is captured for webhook signature verification.
+  // Mirrors apps/api/src/index.ts: the raw body is captured for webhook signature verification.
   app.use(express.json({
     verify: (req, _res, buf) => { req.rawBody = Buffer.from(buf); },
   }));

@@ -2,10 +2,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
 import express from "express";
-import { goneForSpamPaths, goneForRemovedPages } from "../server/middleware/gone-paths.ts";
-import { stripTrailingSlash } from "../server/middleware/trailing-slash.ts";
+import { goneForSpamPaths, goneForRemovedPages } from "../apps/api/src/middleware/gone-paths.ts";
+import { stripTrailingSlash } from "../apps/api/src/middleware/trailing-slash.ts";
 
-// Same order as server/index.ts.
+// Same order as apps/api/src/index.ts.
 function start() {
   const app = express();
   app.use(goneForSpamPaths);

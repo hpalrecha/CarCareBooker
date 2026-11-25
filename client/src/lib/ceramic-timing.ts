@@ -9,7 +9,7 @@
  * It replaces an existing "How long does the application process take?" answer. It never adds a question the row lacks.
  * When the database rows are corrected (scripts/2026-11-11-ceramic-duration-faq.mjs) this becomes a no-op.
  *
- * Relative imports only: server/vite.ts is bundled by esbuild and imports this directly.
+ * Relative imports only: apps/api/src/vite.ts is bundled by esbuild and imports this directly.
  */
 export const CERAMIC_TIMING_QUESTION = "How long does the application process take?";
 

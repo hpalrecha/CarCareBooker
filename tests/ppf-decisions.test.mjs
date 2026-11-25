@@ -114,7 +114,7 @@ describe('2. the shared Products menu', () => {
     for (const b of nav.PRODUCT_BRANDS) assert.ok(!/self[-\s]?heal/i.test(JSON.stringify(b)), b.name);
   });
   test('every consumer reads the same data, so each follows: header, home grid, /products, home snapshot, chatbot', () => {
-    for (const f of ['client/src/components/redesign/site-header.tsx', 'client/src/pages/home.tsx', 'client/src/pages/products.tsx', 'client/src/lib/crawlable-content.ts', 'server/lib/chatbot-knowledge.ts']) {
+    for (const f of ['client/src/components/redesign/site-header.tsx', 'client/src/pages/home.tsx', 'client/src/pages/products.tsx', 'client/src/lib/crawlable-content.ts', 'apps/api/src/lib/chatbot-knowledge.ts']) {
       assert.match(read(f), /PRODUCT_BRANDS/, f);
     }
     const snapshot = content.homePageContent({ path: '/', title: 't', description: 'd', h1: 'h', lede: 'l' });

@@ -19,7 +19,10 @@ const SRC_EXT = /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/;
 const SKIP_DIRS = new Set(["node_modules", "dist", ".git", "attached_assets", "uploads", "graphify-out", ".cache"]);
 // The codemod and its own test carry example specifiers as data; never rewrite them.
 const SKIP_FILES = new Set(["scripts/tools/relocate.mjs", "tests/tools-relocate.test.mjs"]);
-const SPEC_RE = /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+|\brequire\s*\(\s*|\bmock\.module\s*\(\s*)(["'])([^"'\n]+)\2/g;
+const SPEC_RE = /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+|\brequire\s*\(\s*|\bmock\.module\s*\(\s*|\bnew\s+URL\s*\(\s*)(["'])([^"'\n]+)\2/g;
+// Any quoted string; used only with repoPathStrings, to move repo-relative paths such as
+// read('server/routes.ts') or ['client/src', 'server'] in tests and scripts.
+const STR_RE = /(["'`])([A-Za-z0-9_@-][^"'`\n]*)\1/g;
 
 const posix = (p) => p.split(path.sep).join("/");
 
@@ -68,14 +71,22 @@ function walk(root, dir = "", out = []) {
   return out;
 }
 
-export function rewriteSource(src, fromFile, opts) {
+export function rewriteSource(src, fromFile, { repoPathStrings = false, ...opts }) {
   let changed = false;
-  const next = src.replace(SPEC_RE, (m, lead, q, spec) => {
+  let next = src.replace(SPEC_RE, (m, lead, q, spec) => {
     const r = rewriteSpecifier({ fromFile, spec, ...opts });
     if (r === null) return m;
     changed = true;
     return `${lead}${q}${r}${q}`;
   });
+  if (repoPathStrings) {
+    next = next.replace(STR_RE, (m, q, str) => {
+      const mapped = mapPath(str, opts.moves);
+      if (mapped === str) return m;
+      changed = true;
+      return `${q}${mapped}${q}`;
+    });
+  }
   return { next, changed };
 }
 
@@ -85,7 +96,9 @@ export function applyMoves({ root, moves, aliasRewrites = {}, dryRun = false, us
   const pending = [];
   for (const f of files) {
     const src = fs.readFileSync(path.join(root, f), "utf8");
-    const { next, changed } = rewriteSource(src, f, { moves, aliasRewrites });
+    // Tests and scripts build paths from repo-relative strings; app code never does.
+    const repoPathStrings = /^(tests|scripts)\//.test(f);
+    const { next, changed } = rewriteSource(src, f, { moves, aliasRewrites, repoPathStrings });
     if (changed) { pending.push([f, next]); edited.push(mapPath(f, moves)); }
   }
   const moved = [];

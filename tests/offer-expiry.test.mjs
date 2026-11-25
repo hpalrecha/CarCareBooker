@@ -30,7 +30,7 @@ describe('the end date', () => {
   test('is the same instant in the three places that hold it (window, server, countdown)', () => {
     const iso = '2026-11-08T23:59:59+05:30';
     assert.equal(win.FESTIVAL_OFFER_ENDS_AT.getTime(), new Date(iso).getTime());
-    assert.match(read('server/lib/diwali-offer.ts'), /endsAt: new Date\("2026-11-08T23:59:59\+05:30"\)/);
+    assert.match(read('apps/api/src/lib/diwali-offer.ts'), /endsAt: new Date\("2026-11-08T23:59:59\+05:30"\)/);
     assert.match(read('client/src/components/festival-offer.tsx'), /endsAt: new Date\("2026-11-08T23:59:59\+05:30"\)/);
   });
   test('the last second of 8 November is inside the offer; the next moment is not', () => {
@@ -71,16 +71,16 @@ describe('the page was removed (410 Gone), not just marked ended', () => {
   });
 
   test('the server answers it 410 early, with or without a trailing slash, GET and HEAD only', () => {
-    const src = read('server/middleware/gone-paths.ts');
+    const src = read('apps/api/src/middleware/gone-paths.ts');
     assert.match(src, /REMOVED_PAGES[^=]*=\s*new Set\(\["\/offer\/de-dhana-dhan"\]\)/);
     assert.match(src, /req\.method !== "GET" && req\.method !== "HEAD"\) return next\(\)/);
     assert.match(src, /return sendGone\(res\)/);
-    const idx = read('server/index.ts');
+    const idx = read('apps/api/src/index.ts');
     assert.ok(idx.indexOf('app.use(goneForRemovedPages)') > 0 && idx.indexOf('app.use(goneForRemovedPages)') < idx.indexOf('app.use(stripTrailingSlash)'), 'mounted before the slash redirect');
   });
 
   test('it is not in the sitemap and has no redirect', () => {
-    const routes = read('server/routes.ts');
+    const routes = read('apps/api/src/routes.ts');
     const start = routes.indexOf('app.get("/sitemap.xml"');
     assert.ok(start > 0, 'found the sitemap handler');
     assert.ok(!/de-dhana-dhan/.test(routes.slice(start, start + 6000)), 'not listed in the sitemap handler');

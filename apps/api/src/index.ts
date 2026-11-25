@@ -10,6 +10,7 @@ import { schedulerService } from "./services/scheduler";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import path from "path";
 import fs from "fs";
+import { repoRoot } from "./lib/repo-root";
 
 const app = express();
 
@@ -100,7 +101,7 @@ app.use(express.json({
 app.use(express.urlencoded({ extended: false }));
 
 // Serve attached assets statically - use dirname for reliable path resolution in production
-const attachedAssetsPath = path.resolve(import.meta.dirname, '..', 'attached_assets');
+const attachedAssetsPath = path.resolve(repoRoot(import.meta.dirname), 'attached_assets');
 console.log('Serving attached assets from:', attachedAssetsPath);
 
 // Fail loudly at boot if the directory is missing. express.static() on a non-existent
@@ -127,7 +128,7 @@ app.use('/attached_assets', express.static(attachedAssetsPath, {
 }));
 
 // Serve uploaded images statically
-const uploadsPath = path.resolve(import.meta.dirname, '..', 'uploads');
+const uploadsPath = path.resolve(repoRoot(import.meta.dirname), 'uploads');
 console.log('Serving uploads from:', uploadsPath);
 app.use('/uploads', express.static(uploadsPath, {
   maxAge: '1d',

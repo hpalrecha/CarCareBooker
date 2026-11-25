@@ -3,7 +3,7 @@
  *
  *   npm run test:integration
  *
- * Same approach as booking-payment-integration.itest.mjs: server/routes.ts is mounted on a real Express
+ * Same approach as booking-payment-integration.itest.mjs: apps/api/src/routes.ts is mounted on a real Express
  * app and only the edges are faked (storage, the Razorpay SDK wrapper, notifications). Nothing here
  * talks to Razorpay or to the production database.
  *
@@ -23,8 +23,8 @@ import { test, describe, before, after, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import express from 'express';
-import { __resetRateLimitsForTests } from '../server/lib/rate-limit.ts';
-import { isDiwaliOfferOpen } from '../server/lib/diwali-offer.ts';
+import { __resetRateLimitsForTests } from '../apps/api/src/lib/rate-limit.ts';
+import { isDiwaliOfferOpen } from '../apps/api/src/lib/diwali-offer.ts';
 
 const WEBHOOK_SECRET = 'offer-test-webhook-secret';
 const KEY_SECRET = 'offer-test-key-secret';
@@ -88,7 +88,7 @@ const storage = {
     }
     return snapshot;
   },
-  // Same conditions as the real UPDATEs in server/storage.ts (asserted there by a source test too).
+  // Same conditions as the real UPDATEs in apps/api/src/storage.ts (asserted there by a source test too).
   markPpfLeadPaid: async (id, paymentId) => {
     const row = db.leads.find((l) => l.id === id);
     if (row && row.paymentStatus !== 'paid') { Object.assign(row, { paymentStatus: 'paid', paymentId, paymentVerifiedAt: new Date() }); return { lead: row, changed: true }; }
@@ -102,7 +102,7 @@ const storage = {
   updatePpfLeadDetails: async (id, patch) => Object.assign(db.leads.find((l) => l.id === id), patch),
   getAdmin: async (id) => (id === 'admin-1' ? { id: 'admin-1', email: 'a@p91.test', name: 'Admin' } : undefined),
   getPpfLead: async (id) => db.leads.find((l) => l.id === id),
-  // Same condition as the real DELETE in server/storage.ts (asserted there by a source test too).
+  // Same condition as the real DELETE in apps/api/src/storage.ts (asserted there by a source test too).
   deletePpfLead: async (id) => {
     const i = db.leads.findIndex((l) => l.id === id && l.paymentStatus !== 'paid');
     if (i < 0) return false;
@@ -112,8 +112,8 @@ const storage = {
 };
 class SlotFullError extends Error {}
 
-mock.module('../server/storage.ts', { exports: { storage, SlotFullError } });
-mock.module('../server/services/payment.ts', {
+mock.module('../apps/api/src/storage.ts', { exports: { storage, SlotFullError } });
+mock.module('../apps/api/src/services/payment.ts', {
   exports: {
     createPaymentOrder: async (amount, receipt) => {
       charged.push(amount);
@@ -123,12 +123,12 @@ mock.module('../server/services/payment.ts', {
       signature === crypto.createHmac('sha256', KEY_SECRET).update(`${orderId}|${paymentId}`).digest('hex'),
   },
 });
-mock.module('../server/services/whatsapp.ts', {
+mock.module('../apps/api/src/services/whatsapp.ts', {
   exports: { whatsappService: { sendBookingConfirmation: async () => { notes.whatsapp++; return { success: true, messageId: 'wamid.T' }; }, sendAppointmentReminder: async () => ({ success: true }) } },
 });
-mock.module('../server/services/scheduler.ts', { exports: { schedulerService: { startReminderScheduler() {} } } });
-mock.module('../server/services/email.ts', { exports: { sendBookingConfirmationEmail: async () => ({ success: true }) } });
-mock.module('../server/services/webhook.ts', { exports: { sendBookingWebhook: async () => { notes.erp++; return { ok: true, n8nExecutionId: 'exec' }; } } });
+mock.module('../apps/api/src/services/scheduler.ts', { exports: { schedulerService: { startReminderScheduler() {} } } });
+mock.module('../apps/api/src/services/email.ts', { exports: { sendBookingConfirmationEmail: async () => ({ success: true }) } });
+mock.module('../apps/api/src/services/webhook.ts', { exports: { sendBookingWebhook: async () => { notes.erp++; return { ok: true, n8nExecutionId: 'exec' }; } } });
 
 let server;
 let base;
@@ -139,7 +139,7 @@ before(async () => {
   process.env.RAZORPAY_KEY_SECRET = KEY_SECRET;
   process.env.RAZORPAY_WEBHOOK_SECRET = WEBHOOK_SECRET;
   process.env.NODE_ENV = 'test';
-  const { registerRoutes } = await import('../server/routes.ts');
+  const { registerRoutes } = await import('../apps/api/src/routes.ts');
   const app = express();
   app.use(express.json({ verify: (req, _res, buf) => { req.rawBody = Buffer.from(buf); } }));
   app.use(express.urlencoded({ extended: false }));

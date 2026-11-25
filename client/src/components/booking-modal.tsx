@@ -46,7 +46,7 @@ interface BookingModalProps {
   /**
    * The campaign landing page the booking started on (e.g. "/ppf"). Optional, so every other call site is unchanged.
    * When present, a running free-booking campaign for THIS row is shown as free, matching what the server charges
-   * (server/lib/campaign.ts campaignFreeBookingForService); a campaign for a different row is not (lib/offer-scope.ts).
+   * (apps/api/src/lib/campaign.ts campaignFreeBookingForService); a campaign for a different row is not (lib/offer-scope.ts).
    */
   landingPage?: string;
   /**
@@ -65,7 +65,7 @@ interface BookingModalProps {
   };
   /**
    * Seeds the date/time picker from a `?date=&time=` deep link (the chat widget's
-   * "Book this slot" button — see chat-widget.tsx / server/services/chatbot.ts).
+   * "Book this slot" button — see chat-widget.tsx / apps/api/src/services/chatbot.ts).
    *
    * `initialDate` seeds `selectedDate` directly: the calendar itself already disables a
    * blackout/closed/past date, so a stale link just fails safely the same way a customer
