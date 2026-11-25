@@ -1,6 +1,6 @@
 import { Link } from "wouter";
-import { VERIFIED_REVIEWS, GOOGLE_REVIEWS_URL, HOME_REVIEW_COUNT } from "@/lib/reviews";
-import { HOW_IT_WORKS, VISIT_STUDIO, REVIEWS_SECTION } from "@/lib/studio-sections-data";
+import { VERIFIED_REVIEWS, GOOGLE_REVIEWS_URL, HOME_REVIEW_COUNT } from "@p91/content/reviews";
+import { HOW_IT_WORKS, VISIT_STUDIO, REVIEWS_SECTION } from "@p91/content/studio-sections-data";
 
 /**
  * Two sections shared by every page that should read like the home page: the four-step "How it

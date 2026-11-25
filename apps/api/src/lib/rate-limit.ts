@@ -59,7 +59,7 @@ function sweep(now: number): void {
   if (counters.size < 5000) return;
   // Array.from rather than iterating the Map directly: the tsconfig target predates
   // downlevelIteration, so a for..of over a Map does not compile here. Same constraint
-  // already worked around in client/src/lib/local-business.ts.
+  // already worked around in packages/content/src/local-business.ts.
   for (const [key, counter] of Array.from(counters.entries())) {
     if (counter.resetAt <= now) counters.delete(key);
   }

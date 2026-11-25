@@ -10,7 +10,7 @@ import {
   serviceSeoDescription,
   serviceStructuredData,
   servicesItemListSchema,
-} from "../../../client/src/lib/service-seo";
+} from "../../../packages/content/src/service-seo";
 import {
   injectRootContent,
   servicePageContent,
@@ -20,16 +20,16 @@ import {
   ppfPackagesContent,
   faqPageSchema,
   escapeHtml,
-} from "../../../client/src/lib/crawlable-content";
-import { summariseHours } from "../../../client/src/lib/hours-summary";
-import { displayableFaqs, generalPackageFaqs, withholdUnverifiedClaims } from "../../../client/src/lib/withheld-claims";
-import { withBikeLandingCopy } from "../../../client/src/lib/bike-landing-copy";
-import { withCeramicTiming } from "../../../client/src/lib/ceramic-timing";
-import { SERVICES_SEO } from "../../../client/src/lib/static-seo";
+} from "../../../packages/content/src/crawlable-content";
+import { summariseHours } from "../../../packages/content/src/hours-summary";
+import { displayableFaqs, generalPackageFaqs, withholdUnverifiedClaims } from "../../../packages/content/src/withheld-claims";
+import { withBikeLandingCopy } from "../../../packages/content/src/bike-landing-copy";
+import { withCeramicTiming } from "../../../packages/content/src/ceramic-timing";
+import { SERVICES_SEO } from "../../../packages/content/src/static-seo";
 import { isSpamProductPath } from "./lib/spam-paths";
-import { BRAND_PAGES } from "../../../client/src/lib/brand-pages";
-import { LANDING_PAGES } from "../../../client/src/lib/landing-pages";
-import { serviceCanonicalPath } from "../../../client/src/lib/canonical-overrides";
+import { BRAND_PAGES } from "../../../packages/content/src/brand-pages";
+import { LANDING_PAGES } from "../../../packages/content/src/landing-pages";
+import { serviceCanonicalPath } from "../../../packages/content/src/canonical-overrides";
 import { repoRoot } from "./lib/repo-root";
 
 const viteLogger = createLogger();
@@ -332,7 +332,7 @@ export function serveStatic(app: Express, distPathOverride?: string) {
       const description = serviceSeoDescription(service);
       // Consolidated near-duplicates (PPF size variants, the two ceramic records) name their
       // campaign page as canonical; every other slug is its own. Shared with the client and
-      // the sitemap — see client/src/lib/canonical-overrides.ts.
+      // the sitemap — see packages/content/src/canonical-overrides.ts.
       const canonical = `${origin}${serviceCanonicalPath(service.slug)}`;
       const images = Array.isArray(service.images) ? service.images : [];
       const rawImage = typeof images[0] === "string" && images[0].trim() ? images[0] : null;
@@ -343,7 +343,7 @@ export function serveStatic(app: Express, distPathOverride?: string) {
       const esc = (s: string) =>
         String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-      // Same builder the page uses after hydration (client/src/lib/service-seo.ts): the
+      // Same builder the page uses after hydration (packages/content/src/service-seo.ts): the
       // business with its confirmed address and live hours, the Service, and FAQPage when
       // the record has questions. This copy used to omit FAQPage and the street address,
       // so a crawler that does not run JavaScript saw neither.
@@ -376,7 +376,7 @@ export function serveStatic(app: Express, distPathOverride?: string) {
 
       // The page's real content (title, description, price, included items, FAQ) inside
       // #root, so crawlers that do not run JavaScript can read it. React's createRoot
-      // replaces it on load — see client/src/lib/crawlable-content.ts.
+      // replaces it on load — see packages/content/src/crawlable-content.ts.
       const html = injectRootContent(
         fs.readFileSync(appShell, "utf8").replace(/<\/head>/i, head),
         servicePageContent(service as CrawlableService),

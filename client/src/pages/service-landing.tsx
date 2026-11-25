@@ -4,7 +4,7 @@ import { useParams, useLocation, useSearch, Link } from "wouter";
 // it must import it directly now that main.tsx no longer loads it globally (see main.tsx:
 // moved out to stop blocking every route with CSS most routes don't use).
 import "@/styles/landing-pages.css";
-import { neutraliseWarrantyIssuer } from "@/lib/warranty-wording";
+import { neutraliseWarrantyIssuer } from "@p91/content/warranty-wording";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle, Star, Clock, Shield, MapPin, Play, ArrowRight, Maximize2, Droplet, Eye, Leaf } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -13,14 +13,14 @@ import { ImageWithFallback } from "@/components/image-with-fallback";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
-import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canonical-services";
-import { serviceCanonicalPath } from "@/lib/canonical-overrides";
+import { resolveServiceImage, formatINR, type ServiceRecord } from "@p91/content/canonical-services";
+import { serviceCanonicalPath } from "@p91/content/canonical-overrides";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
-import { deriveCategory, deriveVehicle } from "@/lib/service-taxonomy";
-import { formatServiceTime } from "@/lib/service-time";
-import { withCeramicTiming } from "@/lib/ceramic-timing";
-import { relatedLinksFor } from "@/lib/service-related-links";
-import { serviceSeoTitle, serviceSeoDescription, serviceStructuredData } from "@/lib/service-seo";
+import { deriveCategory, deriveVehicle } from "@p91/content/service-taxonomy";
+import { formatServiceTime } from "@p91/content/service-time";
+import { withCeramicTiming } from "@p91/content/ceramic-timing";
+import { relatedLinksFor } from "@p91/content/service-related-links";
+import { serviceSeoTitle, serviceSeoDescription, serviceStructuredData } from "@p91/content/service-seo";
 import { useHeroVideoGate } from "@/hooks/use-hero-video";
 import { slotFeeFor } from "@/lib/booking-fee";
 import { ILLUSTRATIVE_SLUGS } from "@/lib/real-service-images";
@@ -1371,12 +1371,12 @@ function ServiceSeo({ service }: { service: Service }) {
   const origin = typeof window === "undefined" ? "https://p91carcare.com" : window.location.origin;
 
   // Built by the same function the server uses for the crawler-facing HTML
-  // (client/src/lib/service-seo.ts), so the two heads cannot drift apart again.
+  // (packages/content/src/service-seo.ts), so the two heads cannot drift apart again.
   useSeoMeta({
     title: serviceSeoTitle(service),
     description: serviceSeoDescription(service),
     image: resolveServiceImage(service),
-    // Consolidated variants point at their campaign page (client/src/lib/canonical-overrides.ts),
+    // Consolidated variants point at their campaign page (packages/content/src/canonical-overrides.ts),
     // matching the server-rendered head, so hydration never flips it back to a self-canonical.
     canonicalPath: serviceCanonicalPath(service.slug),
     structuredData: serviceStructuredData(service, { origin, businessHours }),

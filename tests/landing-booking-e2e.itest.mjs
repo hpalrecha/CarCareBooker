@@ -32,7 +32,7 @@ import assert from "node:assert/strict";
 import express from "express";
 
 import { __resetRateLimitsForTests } from "../apps/api/src/lib/rate-limit.ts";
-import { LANDING_PAGES, getLandingPage } from "../client/src/lib/landing-pages.ts";
+import { LANDING_PAGES, getLandingPage } from "../packages/content/src/landing-pages.ts";
 
 /**
  * The five catalogue rows these pages sell, with the prices production actually holds.

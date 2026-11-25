@@ -21,9 +21,9 @@ import { bookingIsFreeForRow, showPreviousPrice } from "@/lib/offer-scope";
 import { isHighValueService, HIGH_VALUE_BOOKING_FEE } from "@/lib/booking-fee";
 import { bookingFormSchema, type BlackoutDate, type BusinessHour } from "@p91/db/schema";
 import { ImageWithFallback } from "@/components/image-with-fallback";
-import { resolveServiceImage, formatINR } from "@/lib/canonical-services";
+import { resolveServiceImage, formatINR } from "@p91/content/canonical-services";
 import { ILLUSTRATIVE_SLUGS } from "@/lib/real-service-images";
-import { formatServiceTime } from "@/lib/service-time";
+import { formatServiceTime } from "@p91/content/service-time";
 import { Check } from "lucide-react";
 
 interface BookingModalProps {

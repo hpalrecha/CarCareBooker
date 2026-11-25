@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { BusinessHour } from "@p91/db/schema";
 import logoPath from "@assets/Car Care (4)_1753951564515.png";
 import { ImageWithFallback } from "@/components/image-with-fallback";
-import { INSTAGRAM_PROFILE_URL, FACEBOOK_PROFILE_URL } from "@/lib/instagram-reels";
+import { INSTAGRAM_PROFILE_URL, FACEBOOK_PROFILE_URL } from "@p91/content/instagram-reels";
 
 /** Brand marks for the social links. Decorative: the link carries the accessible name. */
 function InstagramIcon() {

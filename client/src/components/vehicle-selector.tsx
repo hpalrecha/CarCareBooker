@@ -1,6 +1,6 @@
-import { formatINR, type ServiceRecord } from "@/lib/canonical-services";
-import { displayableIncludes, type CategoryOption } from "@/lib/landing-pages";
-import { formatServiceTime } from "@/lib/service-time";
+import { formatINR, type ServiceRecord } from "@p91/content/canonical-services";
+import { displayableIncludes, type CategoryOption } from "@p91/content/landing-pages";
+import { formatServiceTime } from "@p91/content/service-time";
 import { showPreviousPrice } from "@/lib/offer-scope";
 
 /**

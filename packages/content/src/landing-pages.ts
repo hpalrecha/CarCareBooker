@@ -42,8 +42,8 @@
  *                claim is not something to guess at.
  */
 
-import { BLOG_POSTS, type BlogPost } from "@/lib/blog-posts";
-import { type Carousel, PPF_VS_CERAMIC, PPF_COVERAGE } from "@/lib/carousels";
+import { BLOG_POSTS, type BlogPost } from "./blog-posts";
+import { type Carousel, PPF_VS_CERAMIC, PPF_COVERAGE } from "./carousels";
 
 export type LandingVehicle = "car" | "bike";
 

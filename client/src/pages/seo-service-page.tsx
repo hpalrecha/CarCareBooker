@@ -8,13 +8,13 @@ import BookingModal from "@/components/booking-modal";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
-import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canonical-services";
+import { resolveServiceImage, formatINR, type ServiceRecord } from "@p91/content/canonical-services";
 import { GUIDE_IMAGES, GUIDE_VIDEOS } from "@/lib/real-service-images";
 import LazyVideo from "@/components/redesign/lazy-video";
 import ParallaxFrame from "@/components/redesign/parallax-frame";
 import { useCinematic } from "@/hooks/use-cinematic";
-import { getSeoPage, guideLandingLink } from "@/lib/seo-pages";
-import { hubOptionLinks } from "@/lib/hub-option-links";
+import { getSeoPage, guideLandingLink } from "@p91/content/seo-pages";
+import { hubOptionLinks } from "@p91/content/hub-option-links";
 import { HowItWorks, VisitStudio } from "@/components/redesign/studio-sections";
 
 /** Drops the "✓ " some records prefix to each item — the list already draws a tick. */

@@ -1,11 +1,11 @@
-import { deriveCategory, deriveVehicle, fitsVehicle } from "../../../../client/src/lib/service-taxonomy";
+import { deriveCategory, deriveVehicle, fitsVehicle } from "../../../../packages/content/src/service-taxonomy";
 
 /**
  * Best-guess photo for a brand-new service that was created with no image of its own —
  * e.g. through the simplified admin form (title/description/price only, no upload step).
  *
  * Reuses the same category/vehicle derivation the service-filter tabs already use
- * (client/src/lib/service-taxonomy.ts), scored against the fixed set of photos that
+ * (packages/content/src/service-taxonomy.ts), scored against the fixed set of photos that
  * actually exist in attached_assets/services/ today. A directory scan is deliberately
  * NOT used here: that would silently turn any future unrelated file dropped into that
  * folder (a screenshot, a draft asset) into a candidate service photo. This list is

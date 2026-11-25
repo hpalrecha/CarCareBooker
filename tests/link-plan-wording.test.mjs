@@ -7,7 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 
-const src = fs.readFileSync(new URL("../client/src/lib/blog-posts.ts", import.meta.url), "utf8");
+const src = fs.readFileSync(new URL("../packages/content/src/blog-posts.ts", import.meta.url), "utf8");
 const strip = (t) => t.replace(/\[([^\]]+)\]\(\/[^)]*\)/g, "$1");
 
 test("the two blog sentences that gained a /contact link read exactly as before", () => {
@@ -19,7 +19,7 @@ test("the two blog sentences that gained a /contact link read exactly as before"
 
 test("every link added to a service page, landing page or brand page points at a page that exists", () => {
   const sitemapPaths = new Set(["/ppf", "/ceramic-coating/car", "/ceramic-coating/bike", "/gallery", "/contact", "/faq", "/blog", "/services", "/products/stek", "/products/nasiol", "/products/p91-premium-ppf"]);
-  const landing = fs.readFileSync(new URL("../client/src/lib/landing-pages.ts", import.meta.url), "utf8");
+  const landing = fs.readFileSync(new URL("../packages/content/src/landing-pages.ts", import.meta.url), "utf8");
   for (const m of landing.matchAll(/href: "(\/[^"]*)"/g)) {
     const h = m[1];
     const ok = sitemapPaths.has(h) || h.startsWith("/services/") || h.startsWith("/blog/") || h.startsWith("/service/");

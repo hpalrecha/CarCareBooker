@@ -25,7 +25,7 @@
  * They are a considered default, not a fact from the business — if the studio quotes
  * different turnaround times, edit DURATION_FIXES first.
  *
- * NOTE ON TITLES: client/src/lib/canonical-services.ts asserts the exact title of five
+ * NOTE ON TITLES: packages/content/src/canonical-services.ts asserts the exact title of five
  * services and returns null (dropping the card/link) on a mismatch. None of the titles
  * changed here are in that set — verified against TRANSFORMATION_CTAS and FOOTER_SERVICES
  * — but re-check that file before adding any new rename to this script.

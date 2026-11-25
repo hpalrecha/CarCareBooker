@@ -7,11 +7,11 @@ import SiteFooter from "@/components/redesign/site-footer";
 import LazyVideo from "@/components/redesign/lazy-video";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
-import { STUDIO_PHOTOS, REEL_CAPTIONS } from "@/lib/gallery-photos";
-import { GALLERY_SEO } from "@/lib/static-seo";
-import { GALLERY_REELS, INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, reelEmbedUrl, reelUrl } from "@/lib/instagram-reels";
-import { MONSOON_DAMAGE, PPF_COVERAGE, PPF_ORIGIN, PPF_VS_CERAMIC, type Carousel } from "@/lib/carousels";
-import type { ServiceRecord } from "@/lib/canonical-services";
+import { STUDIO_PHOTOS, REEL_CAPTIONS } from "@p91/content/gallery-photos";
+import { GALLERY_SEO } from "@p91/content/static-seo";
+import { GALLERY_REELS, INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, reelEmbedUrl, reelUrl } from "@p91/content/instagram-reels";
+import { MONSOON_DAMAGE, PPF_COVERAGE, PPF_ORIGIN, PPF_VS_CERAMIC, type Carousel } from "@p91/content/carousels";
+import type { ServiceRecord } from "@p91/content/canonical-services";
 
 const G = "/attached_assets/gallery/";
 

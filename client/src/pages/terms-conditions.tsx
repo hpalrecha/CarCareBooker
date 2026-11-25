@@ -7,7 +7,7 @@ import {
   formatINR,
   resolveCanonical,
   type ServiceRecord,
-} from "@/lib/canonical-services";
+} from "@p91/content/canonical-services";
 
 export default function TermsConditions() {
   usePageTitle("Terms & Conditions — P91 Car Care");

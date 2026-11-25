@@ -8,11 +8,11 @@ import { apiRequest } from "@/lib/queryClient";
 import { z } from "zod";
 import { Phone } from "lucide-react";
 import SiteHeader from "@/components/redesign/site-header";
-import { CONTACT_SEO } from "@/lib/static-seo";
+import { CONTACT_SEO } from "@p91/content/static-seo";
 import SiteFooter from "@/components/redesign/site-footer";
-import { localBusinessSchema } from "@/lib/local-business";
+import { localBusinessSchema } from "@p91/content/local-business";
 import type { BusinessHour } from "@p91/db/schema";
-import { summariseHours } from "@/lib/hours-summary";
+import { summariseHours } from "@p91/content/hours-summary";
 
 /**
  * Contact page in the approved redesign.

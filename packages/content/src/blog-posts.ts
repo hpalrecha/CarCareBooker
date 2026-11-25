@@ -22,7 +22,7 @@ import {
   PPF_COVERAGE,
   PPF_ORIGIN,
   MONSOON_DAMAGE,
-} from "@/lib/carousels";
+} from "./carousels";
 
 /** Inline markup allowed in `text`: **bold** and [label](/internal-path). Nothing else. */
 export type BlogBlock =

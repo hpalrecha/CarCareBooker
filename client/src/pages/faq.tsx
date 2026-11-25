@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
-import { FAQ_SEO } from "@/lib/static-seo";
+import { FAQ_SEO } from "@p91/content/static-seo";
 import {
   FAQ_GROUPS,
   FAQ_INTRO,
@@ -12,7 +12,7 @@ import {
   FAQ_LAST_UPDATED_LABEL,
   FAQ_LAST_UPDATED,
   faqHubSchema,
-} from "@/lib/faq-page";
+} from "@p91/content/faq-page";
 
 /**
  * /faq — the FAQ hub. Copy and schema come from lib/faq-page.ts, which also feeds the

@@ -29,9 +29,9 @@ before(async () => {
   const out = path.join(repoRoot, 'node_modules', '.cache', 'service-seo-description-test.mjs');
   fs.mkdirSync(path.dirname(out), { recursive: true });
   await esbuild.build({
-    entryPoints: [path.join(repoRoot, 'client', 'src', 'lib', 'service-seo.ts')],
+    entryPoints: [path.join(repoRoot, 'packages', 'content', 'src', 'service-seo.ts')],
     bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent',
-    alias: { '@': path.join(repoRoot, 'client', 'src') },
+    alias: { '@': path.join(repoRoot, 'client', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') },
   });
   m = await import(pathToFileURL(out).href + '?t=' + Date.now());
 });
@@ -102,7 +102,7 @@ describe('Premium Sedan and SUV (the reported pages)', () => {
 describe('the server HTML and the browser use the same function', () => {
   test('apps/api/src/vite.ts and service-landing.tsx both call serviceSeoDescription from lib/service-seo', () => {
     assert.match(read('apps/api/src/vite.ts'), /serviceSeoDescription[\s\S]{0,200}service-seo|service-seo[\s\S]{0,400}serviceSeoDescription/);
-    assert.match(read('client/src/pages/service-landing.tsx'), /import \{[^}]*serviceSeoDescription[^}]*\} from "@\/lib\/service-seo"/);
+    assert.match(read('client/src/pages/service-landing.tsx'), /import \{[^}]*serviceSeoDescription[^}]*\} from "@p91\/content\/service-seo"/);
     assert.match(read('apps/api/src/vite.ts'), /serviceSeoDescription\(service\)/);
     assert.match(read('client/src/pages/service-landing.tsx'), /description: serviceSeoDescription\(service\)/);
   });

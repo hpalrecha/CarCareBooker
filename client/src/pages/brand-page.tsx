@@ -7,7 +7,7 @@ import { ImageWithFallback } from "@/components/image-with-fallback";
 import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { useCinematic } from "@/hooks/use-cinematic";
-import { getBrandPage } from "@/lib/brand-pages";
+import { getBrandPage } from "@p91/content/brand-pages";
 
 /**
  * A brand page: /products/stek, /products/nasiol, /products/p91-premium-ppf.

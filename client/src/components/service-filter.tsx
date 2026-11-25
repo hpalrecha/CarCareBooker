@@ -8,7 +8,7 @@ import {
   matchesQuery,
   type ServiceCategory,
   type ServiceVehicle,
-} from "@/lib/service-taxonomy";
+} from "@p91/content/service-taxonomy";
 
 /**
  * Category tabs + vehicle filter + search over the live service catalogue.

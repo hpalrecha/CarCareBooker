@@ -4,10 +4,10 @@ import SiteFooter from "@/components/redesign/site-footer";
 import ServiceCard from "@/components/service-card";
 import ServiceFilter from "@/components/service-filter";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
-import { type ServiceRecord } from "@/lib/canonical-services";
-import { SERVICES_SEO } from "@/lib/static-seo";
+import { type ServiceRecord } from "@p91/content/canonical-services";
+import { SERVICES_SEO } from "@p91/content/static-seo";
 import { groupPpf } from "@/lib/ppf-groups";
-import { SERVICE_GUIDE_LINKS, SERVICE_PRICE_LINKS } from "@/lib/service-hub-links";
+import { SERVICE_GUIDE_LINKS, SERVICE_PRICE_LINKS } from "@p91/content/service-hub-links";
 import { Link } from "wouter";
 import { HowItWorks, VisitStudio } from "@/components/redesign/studio-sections";
 

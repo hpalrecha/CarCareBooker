@@ -6,7 +6,7 @@ import "@/styles/landing-pages.css";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { formatINR, type ServiceRecord } from "@/lib/canonical-services";
+import { formatINR, type ServiceRecord } from "@p91/content/canonical-services";
 import {
   PPF_CERAMIC_PRICE_SLUGS,
   maxDiscountPercent,
@@ -21,12 +21,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
-import { PPF_CERAMIC_SEO } from "@/lib/static-seo";
+import { PPF_CERAMIC_SEO } from "@p91/content/static-seo";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import InstagramReels from "@/components/instagram-reels";
-import { REELS_FOR_PPF_CERAMIC_PAGE } from "@/lib/instagram-reels";
+import { REELS_FOR_PPF_CERAMIC_PAGE } from "@p91/content/instagram-reels";
 import { attributionPayload } from "@/lib/attribution";
 import { trackLead as trackMetaLead } from "@/lib/meta-pixel";
 import {

@@ -2,7 +2,7 @@ import { useState } from "react";
 import CampaignCountdown from "@/components/campaign-countdown";
 import { useCampaign } from "@/hooks/use-campaign";
 import { useBookingOffer, formatOfferEnd } from "@/hooks/use-booking-offer";
-import { formatINR } from "@/lib/canonical-services";
+import { formatINR } from "@p91/content/canonical-services";
 import { freeBookingSource } from "@/lib/offer-scope";
 
 /**

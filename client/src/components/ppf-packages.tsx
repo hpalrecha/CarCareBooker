@@ -1,7 +1,7 @@
 import { Check, ShieldCheck } from "lucide-react";
-import type { ServiceRecord } from "@/lib/canonical-services";
-import { buildPpfPackages, studioTimeLine, type PpfBodyKey, type PpfCatalogueRow } from "@/lib/ppf-packages";
-import { WARRANTY_HANDOVER_LINE } from "@/lib/warranty-wording";
+import type { ServiceRecord } from "@p91/content/canonical-services";
+import { buildPpfPackages, studioTimeLine, type PpfBodyKey, type PpfCatalogueRow } from "@p91/content/ppf-packages";
+import { WARRANTY_HANDOVER_LINE } from "@p91/content/warranty-wording";
 
 /**
  * Basic and Premium PPF side by side on /ppf: two clearly separated sections, three vehicle-specific

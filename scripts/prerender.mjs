@@ -154,7 +154,7 @@ const esc = (s) =>
 /*
  * STATIC PAGES. The title, description, h1 and lede of the hand-written pages used to be
  * copied here (STATIC_ROUTES) and compared to the components by TITLE only, so descriptions
- * drifted. They now come from client/src/lib/static-seo.ts, which the components import too.
+ * drifted. They now come from packages/content/src/static-seo.ts, which the components import too.
  */
 
 /** Bundle the TS content modules so their real data drives the output. */
@@ -169,7 +169,12 @@ async function loadContent() {
       platform: "node",
       outfile: tmp,
       logLevel: "silent",
-      alias: { "@": path.join(ROOT, "client", "src") },
+      alias: {
+        "@": path.join(ROOT, "client", "src"),
+        "@p91/content": path.join(ROOT, "packages", "content", "src"),
+        "@p91/db": path.join(ROOT, "packages", "db", "src"),
+        "@p91/domain": path.join(ROOT, "packages", "domain", "src"),
+      },
     });
   } catch (error) {
     die("could not bundle the content modules — " + (error?.message ?? error));
@@ -182,7 +187,7 @@ async function loadContent() {
 }
 
 function headFor(route, canonicalPathFor) {
-  // Through client/src/lib/canonical-overrides.ts, the same map apps/api/src/vite.ts and the
+  // Through packages/content/src/canonical-overrides.ts, the same map apps/api/src/vite.ts and the
   // client use, so a consolidated /service/ variant can never be baked self-canonical.
   // Today no /service/ route is prerendered (they need the database), so this is a guard.
   const canonical = ORIGIN + canonicalPathFor(route.path);

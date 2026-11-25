@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 
-const posts = read('client/src/lib/blog-posts.ts');
+const posts = read('packages/content/src/blog-posts.ts');
 const index = read('client/src/pages/blog-index.tsx');
 const routes = read('apps/api/src/routes.ts');
 const editorial = read('client/src/styles/editorial.css');

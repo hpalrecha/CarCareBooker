@@ -1,6 +1,6 @@
 import { useCampaign } from "@/hooks/use-campaign";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
-import { formatINR } from "@/lib/canonical-services";
+import { formatINR } from "@p91/content/canonical-services";
 import { bookingIsFreeForRow } from "@/lib/offer-scope";
 
 /**

@@ -8,7 +8,7 @@ import SiteFooter from "@/components/redesign/site-footer";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
-import { resolveServiceImage, type ServiceRecord } from "@/lib/canonical-services";
+import { resolveServiceImage, type ServiceRecord } from "@p91/content/canonical-services";
 import { VisitStudio } from "@/components/redesign/studio-sections";
 import {
   BLOG_POSTS,
@@ -23,7 +23,7 @@ import {
   postsInCategory,
   postsNewestFirst,
   type BlogPost,
-} from "@/lib/blog-posts";
+} from "@p91/content/blog-posts";
 
 /**
  * Blog index and category listings.

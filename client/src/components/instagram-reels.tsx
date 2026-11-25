@@ -8,7 +8,7 @@ import {
   reelEmbedUrl,
   reelUrl,
   type InstagramReel,
-} from "@/lib/instagram-reels";
+} from "@p91/content/instagram-reels";
 
 /**
  * The studio's Instagram reels, presented to match the site.

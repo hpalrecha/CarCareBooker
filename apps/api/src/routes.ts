@@ -1,6 +1,6 @@
 import type { Express } from "express";
-import { withholdUnverifiedClaims } from "../../../client/src/lib/withheld-claims";
-import { SITEMAP_LASTMOD, serviceItemLastmod } from "../../../client/src/lib/sitemap-dates";
+import { withholdUnverifiedClaims } from "../../../packages/content/src/withheld-claims";
+import { SITEMAP_LASTMOD, serviceItemLastmod } from "../../../packages/content/src/sitemap-dates";
 import { createServer, type Server } from "http";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -10,8 +10,8 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import { storage } from "./storage";
-import { buildLlmsTxt } from "../../../client/src/lib/llms-txt";
-import { isConsolidatedServiceSlug } from "../../../client/src/lib/canonical-overrides";
+import { buildLlmsTxt } from "../../../packages/content/src/llms-txt";
+import { isConsolidatedServiceSlug } from "../../../packages/content/src/canonical-overrides";
 import { SlotFullError } from "./storage";
 import { authenticateAdmin, hashPassword, comparePassword } from "./middleware/auth";
 import { createPaymentOrder, verifyPaymentSignature } from "./services/payment";
@@ -363,9 +363,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.getAllServices(),
         storage.getAllBusinessHours().catch(() => undefined),
       ]);
-      const { SEO_PAGES } = await import("../../../client/src/lib/seo-pages");
-      const { BLOG_POSTS } = await import("../../../client/src/lib/blog-posts");
-      const { LANDING_PAGES } = await import("../../../client/src/lib/landing-pages");
+      const { SEO_PAGES } = await import("../../../packages/content/src/seo-pages");
+      const { BLOG_POSTS } = await import("../../../packages/content/src/blog-posts");
+      const { LANDING_PAGES } = await import("../../../packages/content/src/landing-pages");
       const body = buildLlmsTxt({
         origin,
         services: services as any,
@@ -434,17 +434,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // and the 17 per-service pages were previously competing for on their own.
         { loc: "/services", priority: "0.9", changefreq: "weekly" },
         { loc: "/products", priority: "0.6", changefreq: "monthly" },
-        // Brand pages (prerendered from client/src/lib/brand-pages.ts).
+        // Brand pages (prerendered from packages/content/src/brand-pages.ts).
         { loc: "/products/stek", priority: "0.6", changefreq: "monthly" },
         { loc: "/products/nasiol", priority: "0.6", changefreq: "monthly" },
         { loc: "/products/p91-premium-ppf", priority: "0.6", changefreq: "monthly" },
         // Local-intent landing pages. Additive — /service/:slug below is unchanged.
-        // Kept in step with client/src/lib/seo-pages.ts.
+        // Kept in step with packages/content/src/seo-pages.ts.
         { loc: "/services/ceramic-coating-bangalore", priority: "0.8", changefreq: "monthly" },
         { loc: "/services/paint-protection-film-bangalore", priority: "0.8", changefreq: "monthly" },
         { loc: "/services/interior-detailing-bangalore", priority: "0.8", changefreq: "monthly" },
         { loc: "/services/glass-sun-control-film-bangalore", priority: "0.8", changefreq: "monthly" },
-        // Blog. Kept in step with client/src/lib/blog-posts.ts. Every lastmod comes from client/src/lib/sitemap-dates.ts,
+        // Blog. Kept in step with packages/content/src/blog-posts.ts. Every lastmod comes from packages/content/src/sitemap-dates.ts,
         // which records the last MATERIAL change to each page's text with its commit. A page with no material change
         // carries no lastmod: an invented one teaches crawlers to ignore the field.
         { loc: "/blog", priority: "0.7", changefreq: "weekly" },
@@ -462,7 +462,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Campaign landing pages — the URLs that go into the advertisements, and the
         // canonical destination for transactional "PPF price" / "ceramic coating for
         // bikes" intent. Priority 0.9: these are the pages the business most wants found.
-        // Kept in step with client/src/lib/landing-pages.ts.
+        // Kept in step with packages/content/src/landing-pages.ts.
         { loc: "/ceramic-coating/car", priority: "0.9", changefreq: "weekly" },
         { loc: "/ceramic-coating/bike", priority: "0.9", changefreq: "weekly" },
         { loc: "/ppf", priority: "0.9", changefreq: "weekly" },
@@ -492,7 +492,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // A sitemap lists canonical URLs only. The PPF size variants and the two ceramic
           // records canonicalise to their campaign page (listed above), so they stay
           // reachable and bookable but are not offered here as pages of their own.
-          // See client/src/lib/canonical-overrides.ts.
+          // See packages/content/src/canonical-overrides.ts.
           .filter((s: any) => !isConsolidatedServiceSlug(s.slug))
           .map(
             (s: any) =>
@@ -519,7 +519,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/services", async (req, res) => {
     try {
       // Unverified ceramic claims (100% safe, permanent bond, certified technicians, 9H) are dropped on the way out. The
-      // database rows are untouched and the admin list below stays raw (client/src/lib/withheld-claims.ts).
+      // database rows are untouched and the admin list below stays raw (packages/content/src/withheld-claims.ts).
       const services = (await storage.getAllServices()).map((s) => withholdUnverifiedClaims(s));
       res.json(services);
     } catch (error) {

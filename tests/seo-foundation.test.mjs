@@ -32,15 +32,15 @@ before(async () => {
   fs.writeFileSync(
     entry,
     [
-      'export * from "@/lib/static-seo";',
-      'export * from "@/lib/crawlable-content";',
-      'export * from "@/lib/service-seo";',
-      'export * from "@/lib/llms-txt";',
-      'export { SEO_PAGES, guideLandingLink } from "@/lib/seo-pages";',
-      'export { BLOG_POSTS } from "@/lib/blog-posts";',
-      'export { LANDING_PAGES } from "@/lib/landing-pages";',
-      'export { SERVICE_RELATED, relatedLinksFor } from "@/lib/service-related-links";',
-      'export { PRODUCT_BRANDS } from "@/lib/nav-menu";',
+      'export * from "@p91/content/static-seo";',
+      'export * from "@p91/content/crawlable-content";',
+      'export * from "@p91/content/service-seo";',
+      'export * from "@p91/content/llms-txt";',
+      'export { SEO_PAGES, guideLandingLink } from "@p91/content/seo-pages";',
+      'export { BLOG_POSTS } from "@p91/content/blog-posts";',
+      'export { LANDING_PAGES } from "@p91/content/landing-pages";',
+      'export { SERVICE_RELATED, relatedLinksFor } from "@p91/content/service-related-links";',
+      'export { PRODUCT_BRANDS } from "@p91/content/nav-menu";',
     ].join('\n'),
   );
   const out = path.join(dir, 'seo-foundation.mjs');
@@ -51,7 +51,7 @@ before(async () => {
     platform: 'node',
     outfile: out,
     logLevel: 'silent',
-    alias: { '@': path.join(repoRoot, 'client', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') },
+    alias: { '@': path.join(repoRoot, 'client', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') },
     external: ['drizzle-orm', 'drizzle-zod', 'zod', 'drizzle-orm/*'],
   });
   m = await import(pathToFileURL(out).href + '?t=' + Date.now());
@@ -93,7 +93,7 @@ describe('titles and descriptions', () => {
       '/contact': 'client/src/pages/contact.tsx',
       '/gallery': 'client/src/pages/gallery.tsx',
       // faq.tsx renders FAQ_SEO.h1 straight from static-seo.ts (no lede), so the source of the h1 is that file.
-      '/faq': 'client/src/lib/static-seo.ts',
+      '/faq': 'packages/content/src/static-seo.ts',
       '/ppf-ceramic-coating': 'client/src/pages/ppf-ceramic-landing.tsx',
       '/privacy-policy': 'client/src/pages/privacy-policy.tsx',
       '/terms-conditions': 'client/src/pages/terms-conditions.tsx',
@@ -102,7 +102,7 @@ describe('titles and descriptions', () => {
     for (const page of m.STATIC_SEO_PAGES) {
       // Render-ish text of the component: tags and {" "} removed, entities decoded.
       // /products keeps its wording in lib/products-page-data.ts so the page and the first HTML share one source.
-      const extra = page.path === '/products' ? read('client/src/lib/products-page-data.ts') : '';
+      const extra = page.path === '/products' ? read('packages/content/src/products-page-data.ts') : '';
       const rendered = (read(files[page.path]) + ' ' + extra)
         .replace(/\{"\s"\}/g, ' ')
         .replace(/<[^>]+>/g, ' ')
@@ -282,9 +282,9 @@ describe('schema', () => {
   });
 
   test('homepage FAQ: one list feeds the page, the raw HTML and the schema, and states no price or duration figure', () => {
-    const faq = read('client/src/lib/home-faq.ts');
+    const faq = read('packages/content/src/home-faq.ts');
     const home = read('client/src/pages/home.tsx');
-    const crawl = read('client/src/lib/crawlable-content.ts');
+    const crawl = read('packages/content/src/crawlable-content.ts');
     assert.match(home, /HOME_FAQS\.map/);
     assert.match(home, /homeFaqSchema\(\)/);
     assert.match(crawl, /HOME_FAQS/);
@@ -300,7 +300,7 @@ describe('schema', () => {
   });
 
   test('homepage H2s carry both target phrases', () => {
-    const faq = read('client/src/lib/home-faq.ts');
+    const faq = read('packages/content/src/home-faq.ts');
     for (const name of ['HOME_ABOUT_H2', 'HOME_FAQ_HEADING']) {
       const m = faq.match(new RegExp('export const ' + name + ' = "([^"]+)"'));
       assert.ok(m, name + ' exists');
@@ -352,7 +352,7 @@ describe('prerender and server wiring', () => {
     const src = read('client/src/pages/seo-service-page.tsx');
     assert.match(src, /guideLandingLink\(page\)/);
     assert.match(src, /data-testid="link-seo-landing"/);
-    assert.ok(!read('client/src/lib/crawlable-content.ts').includes('guideLandingLink'), 'the crawler snapshot must not duplicate the link');
+    assert.ok(!read('packages/content/src/crawlable-content.ts').includes('guideLandingLink'), 'the crawler snapshot must not duplicate the link');
   });
 
   test('/service/:slug and /services are filled from the database per request, with a safe fallback', () => {

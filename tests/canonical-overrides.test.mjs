@@ -4,7 +4,7 @@
  * Search Console had most pages as "Crawled - currently not indexed". The six PPF size
  * variants share their text, and /ppf, /ceramic-coating/car and /ceramic-coating/bike embed
  * the same service records' sections and FAQPage schema. The decided mapping lives in ONE
- * module, client/src/lib/canonical-overrides.ts, and every canonical emitter must use it:
+ * module, packages/content/src/canonical-overrides.ts, and every canonical emitter must use it:
  * the server-rendered /service/:slug head, the prerenderer, the client after hydration, and
  * the sitemap. The served-HTML half of this lives in tests/sitemap-indexable.itest.mjs.
  */
@@ -34,7 +34,7 @@ before(async () => {
   const out = path.join(repoRoot, 'node_modules', '.cache', 'canonical-overrides.mjs');
   fs.mkdirSync(path.dirname(out), { recursive: true });
   await esbuild.build({
-    entryPoints: [path.join(repoRoot, 'client', 'src', 'lib', 'canonical-overrides.ts')],
+    entryPoints: [path.join(repoRoot, 'packages', 'content', 'src', 'canonical-overrides.ts')],
     bundle: true,
     format: 'esm',
     platform: 'node',
@@ -50,7 +50,7 @@ describe('the mapping', () => {
   });
 
   test('every target is a real campaign page (LANDING_PAGES path)', () => {
-    const landing = read('client/src/lib/landing-pages.ts');
+    const landing = read('packages/content/src/landing-pages.ts');
     for (const target of new Set(Object.values(EXPECTED))) {
       assert.match(landing, new RegExp(`path: "${target.replace(/\//g, '\\/')}"`), target);
     }

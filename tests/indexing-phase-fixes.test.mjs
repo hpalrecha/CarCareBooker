@@ -38,12 +38,12 @@ before(async () => {
   fs.mkdirSync(dir, { recursive: true });
   const bundle = async (entry, name) => {
     const out = path.join(dir, name);
-    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src') } });
+    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') } });
     return import(pathToFileURL(out).href + '?t=' + Date.now());
   };
-  withheld = await bundle('client/src/lib/withheld-claims.ts', 'indexing-phase-withheld.mjs');
-  content = await bundle('client/src/lib/crawlable-content.ts', 'indexing-phase-content.mjs');
-  bikeCopy = await bundle('client/src/lib/bike-landing-copy.ts', 'indexing-phase-bike.mjs');
+  withheld = await bundle('packages/content/src/withheld-claims.ts', 'indexing-phase-withheld.mjs');
+  content = await bundle('packages/content/src/crawlable-content.ts', 'indexing-phase-content.mjs');
+  bikeCopy = await bundle('packages/content/src/bike-landing-copy.ts', 'indexing-phase-bike.mjs');
 });
 
 const textOf = (html) => html.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/\s+/g, ' ');

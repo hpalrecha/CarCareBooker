@@ -20,7 +20,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 // import, so type annotations are stripped rather than pulling a compiler into the test
 // run — the same approach tests/service-taxonomy.test.mjs already uses.
 const taxonomySrc = fs
-  .readFileSync(path.join(repoRoot, 'client/src/lib/service-taxonomy.ts'), 'utf8')
+  .readFileSync(path.join(repoRoot, 'packages/content/src/service-taxonomy.ts'), 'utf8')
   .replace(/^export type[\s\S]*?;$/gm, '')
   .replace(/: \[RegExp, Service(Category|Vehicle)\]\[\]/g, '')
   .replace(/: \{ key: ServiceVehicle \| "all"; label: string \}\[\]/g, '')

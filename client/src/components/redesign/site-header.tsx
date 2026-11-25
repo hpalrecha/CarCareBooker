@@ -3,15 +3,15 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import logoPath from "@assets/Car Care (4)_1753951564515.png";
 import { ImageWithFallback } from "@/components/image-with-fallback";
-import type { ServiceRecord } from "@/lib/canonical-services";
-import { BLOG_POSTS } from "@/lib/blog-posts";
+import type { ServiceRecord } from "@p91/content/canonical-services";
+import { BLOG_POSTS } from "@p91/content/blog-posts";
 import {
   SERVICES_COLUMNS,
   PRODUCT_BRANDS,
   PRODUCT_FINE_PRINT,
   resourcesGuideLinks,
   type NavLink,
-} from "@/lib/nav-menu";
+} from "@p91/content/nav-menu";
 
 /**
  * Site header in the approved redesign — restructured to XPEL's nav shape (sticky

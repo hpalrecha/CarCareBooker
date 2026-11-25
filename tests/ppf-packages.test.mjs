@@ -36,14 +36,14 @@ before(async () => {
     fs.mkdirSync(path.dirname(out), { recursive: true });
     await esbuild.build({
       entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node',
-      outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src') },
+      outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') },
     });
     return import(pathToFileURL(out).href + '?t=' + Date.now());
   };
-  pk = await bundle('client/src/lib/ppf-packages.ts', 'ppf-packages-test.mjs');
-  content = await bundle('client/src/lib/crawlable-content.ts', 'ppf-packages-content-test.mjs');
-  landing = await bundle('client/src/lib/landing-pages.ts', 'ppf-packages-landing-test.mjs');
-  withheld = await bundle('client/src/lib/withheld-claims.ts', 'ppf-packages-withheld-test.mjs');
+  pk = await bundle('packages/content/src/ppf-packages.ts', 'ppf-packages-test.mjs');
+  content = await bundle('packages/content/src/crawlable-content.ts', 'ppf-packages-content-test.mjs');
+  landing = await bundle('packages/content/src/landing-pages.ts', 'ppf-packages-landing-test.mjs');
+  withheld = await bundle('packages/content/src/withheld-claims.ts', 'ppf-packages-withheld-test.mjs');
 });
 
 const withoutSlugs = (...slugs) => six.filter((r) => !slugs.includes(r.slug));
@@ -286,7 +286,7 @@ describe('withheld claims (self-healing) on every surface the /ppf page draws fr
 });
 
 describe('nothing is written in code', () => {
-  const src = read('client/src/lib/ppf-packages.ts');
+  const src = read('packages/content/src/ppf-packages.ts');
   const component = read('client/src/components/ppf-packages.tsx');
   test('ppf-packages.ts holds no price and no discount or promise text', () => {
     const code = src.replace(/\/\*[\s\S]*?\*\//g, '');
@@ -303,7 +303,7 @@ describe('nothing is written in code', () => {
     assert.ok(!landing.getLandingPage('/ceramic-coating/bike').packageComparison);
   });
   test('/ppf stays self-canonical and the six service pages stay consolidated to it', () => {
-    const overrides = read('client/src/lib/canonical-overrides.ts');
+    const overrides = read('packages/content/src/canonical-overrides.ts');
     for (const slug of Object.keys(EXPECTED_PRICES)) assert.match(overrides, new RegExp(`"${slug}": "/ppf"`), slug);
   });
 });

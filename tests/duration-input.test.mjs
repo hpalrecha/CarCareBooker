@@ -5,7 +5,7 @@
  * Pinned here because a rounding or unit-selection mistake would silently corrupt the
  * stored minutes for every service saved through the admin form, the same class of bug
  * the PPF "2/3/4 minutes, almost certainly days" data problem came from (see
- * client/src/lib/landing-pages.ts). These tests never touch the DB, the API, booking
+ * packages/content/src/landing-pages.ts). These tests never touch the DB, the API, booking
  * availability or lib/service-time.ts's customer-facing formatting/overrides — this file
  * is the admin-only conversion layer only.
  */

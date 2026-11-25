@@ -26,7 +26,7 @@ before(async () => {
   fs.mkdirSync(path.dirname(out), { recursive: true });
   await esbuild.build({
     entryPoints: [path.join(repoRoot, 'scripts', 'prerender-content-entry.ts')], bundle: true, format: 'esm', platform: 'node',
-    outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src') },
+    outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') },
   });
   content = await import(pathToFileURL(out).href + '?t=' + Date.now());
 });

@@ -19,11 +19,11 @@ before(async () => {
   const bundle = async (entry, name) => {
     const out = path.join(repoRoot, 'node_modules', '.cache', name);
     fs.mkdirSync(path.dirname(out), { recursive: true });
-    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src') } });
+    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') } });
     return import(pathToFileURL(out).href + '?t=' + Date.now());
   };
-  seo = await bundle('client/src/lib/static-seo.ts', 'offer-expiry-seo.mjs');
-  win = await bundle('client/src/lib/festival-offer-window.ts', 'offer-expiry-window.mjs');
+  seo = await bundle('packages/content/src/static-seo.ts', 'offer-expiry-seo.mjs');
+  win = await bundle('packages/content/src/festival-offer-window.ts', 'offer-expiry-window.mjs');
 });
 
 describe('the end date', () => {

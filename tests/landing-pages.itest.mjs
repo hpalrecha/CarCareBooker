@@ -22,8 +22,8 @@ import {
   getLandingPage,
   relevantPosts,
   displayableIncludes,
-} from "../client/src/lib/landing-pages.ts";
-import { BLOG_POSTS } from "../client/src/lib/blog-posts.ts";
+} from "../packages/content/src/landing-pages.ts";
+import { BLOG_POSTS } from "../packages/content/src/blog-posts.ts";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => fs.readFileSync(path.join(repoRoot, p), "utf8");
@@ -66,7 +66,7 @@ describe("the three ad destinations exist and are distinct", () => {
     // /services/paint-protection-film-bangalore and /services/ceramic-coating-bangalore
     // already target the general intent. These pages target price/package intent, so the
     // titles must not be duplicates of each other.
-    const seo = read("client/src/lib/seo-pages.ts");
+    const seo = read("packages/content/src/seo-pages.ts");
     for (const p of LANDING_PAGES) {
       assert.ok(!seo.includes(`title:\n      "${p.title}"`), "title collides with an SEO page");
       assert.ok(!seo.includes(`title: "${p.title}"`), `${p.path} title collides with an SEO page`);
@@ -76,7 +76,7 @@ describe("the three ad destinations exist and are distinct", () => {
 
 describe("NO pricing may live in the frontend", () => {
   const files = [
-    "client/src/lib/landing-pages.ts",
+    "packages/content/src/landing-pages.ts",
     "client/src/pages/campaign-landing.tsx",
     "client/src/components/vehicle-selector.tsx",
   ];
@@ -92,7 +92,7 @@ describe("NO pricing may live in the frontend", () => {
   });
 
   test("no category-to-price mapping exists", () => {
-    const src = read("client/src/lib/landing-pages.ts");
+    const src = read("packages/content/src/landing-pages.ts");
     // A category names a SLUG. Any numeric price field beside it would be a second
     // pricing authority.
     assert.ok(!/price\s*:\s*['"\d]/.test(src), "no price field on a category option");
@@ -127,7 +127,7 @@ describe("NO pricing may live in the frontend", () => {
 
 describe("no invented or withheld claims", () => {
   const sources = [
-    "client/src/lib/landing-pages.ts",
+    "packages/content/src/landing-pages.ts",
     "client/src/pages/campaign-landing.tsx",
     "client/src/components/vehicle-selector.tsx",
     "client/src/components/blog-carousel.tsx",
@@ -193,7 +193,7 @@ describe("no invented or withheld claims", () => {
 
   test("no FAQ content is authored in the frontend", () => {
     // FAQs come from services.faq or the section does not render. Full PPF has none.
-    const src = read("client/src/lib/landing-pages.ts");
+    const src = read("packages/content/src/landing-pages.ts");
     assert.ok(!/\bfaqs?\s*:\s*\[/i.test(src), "no FAQ array is written here");
   });
 });

@@ -5,16 +5,16 @@
 // that doesn't come from a database table.
 //
 // Reused rather than re-derived:
-//   - buildLlmsTxt()        (client/src/lib/llms-txt.ts)   — services, prices, hours, address, phone
-//   - PRODUCT_BRANDS / PRODUCT_FINE_PRINT (client/src/lib/nav-menu.ts) — brand blurbs
-//   - PHONE                 (client/src/lib/local-business.ts) — the one confirmed phone number
+//   - buildLlmsTxt()        (packages/content/src/llms-txt.ts)   — services, prices, hours, address, phone
+//   - PRODUCT_BRANDS / PRODUCT_FINE_PRINT (packages/content/src/nav-menu.ts) — brand blurbs
+//   - PHONE                 (packages/content/src/local-business.ts) — the one confirmed phone number
 // server/routes.ts already imports from client/src the same way (buildLlmsTxt, for /llms.txt),
 // so this is an established pattern here, not a new one.
 
 import type { Service, BusinessHour, BlackoutDate, ChatbotKnowledgeEntry } from "@p91/db/schema";
-import { buildLlmsTxt } from "../../../../client/src/lib/llms-txt";
-import { PRODUCT_BRANDS, PRODUCT_FINE_PRINT } from "../../../../client/src/lib/nav-menu";
-import { PHONE } from "../../../../client/src/lib/local-business";
+import { buildLlmsTxt } from "../../../../packages/content/src/llms-txt";
+import { PRODUCT_BRANDS, PRODUCT_FINE_PRINT } from "../../../../packages/content/src/nav-menu";
+import { PHONE } from "../../../../packages/content/src/local-business";
 import { istNow } from "./slots";
 
 export interface ChatbotKnowledgeDeps {

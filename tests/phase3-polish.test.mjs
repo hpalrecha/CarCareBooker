@@ -106,7 +106,7 @@ describe('chat widget: long links and the phone keyboard', () => {
 });
 
 describe('blog cover images', () => {
-  const src = read('client/src/lib/blog-posts.ts');
+  const src = read('packages/content/src/blog-posts.ts');
   const covers = [...src.matchAll(/src: "(\/attached_assets\/blog\/[^"]+)"/g)].map((m) => m[1]);
 
   test('every post has its own cover image and the file exists', () => {

@@ -1,9 +1,9 @@
 import { Link } from "wouter";
 import { Clock, ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "@/components/image-with-fallback";
-import { resolveServiceImage, formatINR } from "@/lib/canonical-services";
-import { formatServiceTime } from "@/lib/service-time";
-import { deriveCategory } from "@/lib/service-taxonomy";
+import { resolveServiceImage, formatINR } from "@p91/content/canonical-services";
+import { formatServiceTime } from "@p91/content/service-time";
+import { deriveCategory } from "@p91/content/service-taxonomy";
 import { CARD_IMAGE_HIDDEN, ILLUSTRATIVE_SLUGS } from "@/lib/real-service-images";
 import ParallaxFrame from "@/components/redesign/parallax-frame";
 

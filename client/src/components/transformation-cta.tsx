@@ -6,7 +6,7 @@ import {
   resolveCanonical,
   type CanonicalService,
   type ServiceRecord,
-} from "@/lib/canonical-services";
+} from "@p91/content/canonical-services";
 
 /**
  * Shared CTA button styling.

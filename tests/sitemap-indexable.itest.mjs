@@ -42,7 +42,7 @@ const SERVICE_SLUGS = [
   "interior-detailing-service", "partial-ppf-hatchback", "partial-ppf-sedan",
   "partial-ppf-suv", "ppf-hatchback", "ppf-sedan", "ppf-suv", "stek-suncontrol-films",
   "stek-windsheild-suncontrol-films", "windshield-glass-coating-new", "windshield-glass-polishing",
-  // Added with the canonical consolidation (client/src/lib/canonical-overrides.ts) so the
+  // Added with the canonical consolidation (packages/content/src/canonical-overrides.ts) so the
   // sitemap-exclusion test below sees all eight consolidated slugs, plus one that must stay.
   "ppf-premium-hatchback", "ppf-premium-sedan", "ppf-premium-suv", "premium-car-wash-special",
 ];
@@ -79,7 +79,7 @@ describe("route pipeline: nothing in the sitemap may be left without a handler",
 
   /**
    * Paths prerendered from the hand-written pages. prerender.mjs builds these from
-   * STATIC_SEO_PAGES (client/src/lib/static-seo.ts) rather than its own inline table —
+   * STATIC_SEO_PAGES (packages/content/src/static-seo.ts) rather than its own inline table —
    * see the comment above loadContent() in prerender.mjs — so that is what this reads.
    *
    * Scoped to the STATIC_SEO_PAGES array literal itself, not the whole file: static-seo.ts
@@ -88,7 +88,7 @@ describe("route pipeline: nothing in the sitemap may be left without a handler",
    * being prerendered. Matching `path:` anywhere in the file would find those too and
    * report them as prerendered when they are not.
    */
-  const staticSeoSrc = read("client/src/lib/static-seo.ts");
+  const staticSeoSrc = read("packages/content/src/static-seo.ts");
   const staticSeoPagesArray = staticSeoSrc.slice(
     staticSeoSrc.indexOf("export const STATIC_SEO_PAGES"),
     staticSeoSrc.indexOf("];", staticSeoSrc.indexOf("export const STATIC_SEO_PAGES")) + 2,
@@ -115,7 +115,7 @@ describe("route pipeline: nothing in the sitemap may be left without a handler",
     const landingPaths = prerenderSrc.includes("of LANDING_PAGES")
       ? ["/ceramic-coating/car", "/ceramic-coating/bike", "/ppf"]
       : [];
-    // /products/:brand pages are generated from BRAND_PAGES (client/src/lib/brand-pages.ts).
+    // /products/:brand pages are generated from BRAND_PAGES (packages/content/src/brand-pages.ts).
     const brandPaths = prerenderSrc.includes("of BRAND_PAGES")
       ? ["/products/stek", "/products/nasiol", "/products/p91-premium-ppf"]
       : [];

@@ -10,7 +10,7 @@ import { Clock, Check, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
 import { slotFeeFor } from "@/lib/booking-fee";
-import { formatServiceTime } from "@/lib/service-time";
+import { formatServiceTime } from "@p91/content/service-time";
 
 // Import images
 import headlightBefore from "@assets/6634a243-60ef-4577-8f2d-0cb377dadc96_1754029992282.webp";

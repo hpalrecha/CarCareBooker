@@ -30,7 +30,7 @@ const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 const script = read('scripts/prerender.mjs');
 
 /*
- * The hand-written pages' SEO copy now lives in client/src/lib/static-seo.ts, imported by
+ * The hand-written pages' SEO copy now lives in packages/content/src/static-seo.ts, imported by
  * BOTH the page components and the prerender script. It used to be duplicated in a
  * STATIC_ROUTES table here and compared by TITLE only — which is how the /services and
  * /ppf-ceramic-coating descriptions drifted apart unnoticed.
@@ -85,8 +85,8 @@ describe('prerendered metadata matches the page it represents', () => {
   test('blog posts, SEO pages and campaign landing pages are imported, never duplicated', () => {
     const entry = read('scripts/prerender-content-entry.ts');
     assert.match(entry, /BLOG_POSTS,/);
-    assert.match(entry, /export \{ SEO_PAGES \} from "@\/lib\/seo-pages"/);
-    assert.match(entry, /export \{ LANDING_PAGES \} from "@\/lib\/landing-pages"/);
+    assert.match(entry, /export \{ SEO_PAGES \} from "@p91\/content\/seo-pages"/);
+    assert.match(entry, /export \{ LANDING_PAGES \} from "@p91\/content\/landing-pages"/);
 
     // The script must read them from the bundle, not carry its own copies.
     assert.match(script, /const content = await loadContent\(\)/);

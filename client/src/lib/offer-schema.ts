@@ -1,5 +1,5 @@
-import { localBusinessSchema } from "./local-business";
-import { festivalOfferHasEnded } from "./festival-offer-window";
+import { localBusinessSchema } from "../../../packages/content/src/local-business";
+import { festivalOfferHasEnded } from "../../../packages/content/src/festival-offer-window";
 
 /**
  * schema.org markup for the Dussehra & Diwali "De Dhana Dhan" offer, so search results can show the price and

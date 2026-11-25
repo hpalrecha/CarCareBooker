@@ -33,7 +33,7 @@ const readCode = (p) =>
 
 describe('homepage transformation CTAs', () => {
   const home = readCode('client/src/pages/home.tsx');
-  const config = read('client/src/lib/canonical-services.ts');
+  const config = read('packages/content/src/canonical-services.ts');
 
   // The four priced before/after cards were removed from the homepage on purpose (2026-09-24:
   // "Real work" is now a price-free photo gallery; prices and booking belong on /services and
@@ -176,7 +176,7 @@ describe('canonical image resolver', () => {
 
   test('the resolver returns undefined rather than a remote stand-in', () => {
     // Comments stripped — the resolver's docblock explains the Unsplash fallback it replaced.
-    const lib = readCode('client/src/lib/canonical-services.ts');
+    const lib = readCode('packages/content/src/canonical-services.ts');
     assert.match(lib, /export function resolveServiceImage/);
     assert.ok(!lib.includes('unsplash'), 'resolver still references a remote host');
     assert.match(lib, /return typeof first === 'string' && first\.trim\(\) !== '' \? first : undefined/);
@@ -499,7 +499,7 @@ describe('bike ceramic coating content', () => {
     assert.match(landing, /useSeoMeta/);
     // The schema is built in one shared module, used by the page AND the server's
     // crawler-facing HTML, so the two cannot drift again.
-    const seo = read('client/src/lib/service-seo.ts');
+    const seo = read('packages/content/src/service-seo.ts');
     assert.match(seo, /"@type": "Service"/);
     assert.match(seo, /"@type": "FAQPage"/);
     assert.match(seo, /localBusinessSchema\(/, 'business with confirmed address and live hours');

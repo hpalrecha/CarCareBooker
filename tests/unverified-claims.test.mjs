@@ -10,7 +10,7 @@ before(async () => {
   const dir = path.join(repoRoot, "node_modules", ".cache");
   fs.mkdirSync(dir, { recursive: true });
   const out = path.join(dir, "unverified-claims-t.mjs");
-  await esbuild.build({ entryPoints: [path.join(repoRoot, "client/src/lib/withheld-claims.ts")], bundle: true, format: "esm", platform: "node", outfile: out, logLevel: "silent" });
+  await esbuild.build({ entryPoints: [path.join(repoRoot, "packages/content/src/withheld-claims.ts")], bundle: true, format: "esm", platform: "node", outfile: out, logLevel: "silent" });
   ({ withholdUnverifiedClaims, withholdUnverifiedFromProse, isUnverifiedClaim, displayableIncludes, displayableFaqs } = await import(pathToFileURL(out).href + "?t=" + Date.now()));
 });
 

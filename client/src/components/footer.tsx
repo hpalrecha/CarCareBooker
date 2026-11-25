@@ -5,7 +5,7 @@ import {
   formatINR,
   resolveCanonical,
   type ServiceRecord,
-} from "@/lib/canonical-services";
+} from "@p91/content/canonical-services";
 import { COMPANY_NAME, copyrightYear } from "@/lib/legal-metadata";
 
 export default function Footer() {

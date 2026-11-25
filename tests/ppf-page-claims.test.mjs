@@ -25,8 +25,8 @@ before(async () => {
   const out = path.join(repoRoot, 'node_modules', '.cache', 'ppf-page-claims-landing.mjs');
   fs.mkdirSync(path.dirname(out), { recursive: true });
   await esbuild.build({
-    entryPoints: [path.join(repoRoot, 'client', 'src', 'lib', 'landing-pages.ts')], bundle: true, format: 'esm', platform: 'node',
-    outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src') },
+    entryPoints: [path.join(repoRoot, 'packages', 'content', 'src', 'landing-pages.ts')], bundle: true, format: 'esm', platform: 'node',
+    outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') },
   });
   landing = await import(pathToFileURL(out).href + '?t=' + Date.now());
 });
@@ -44,7 +44,7 @@ describe('same-day wording', () => {
     assert.match(src, /Approx\. \{time\} in the studio/);
   });
   test('the server-rendered snapshot for the landing pages says none of it either', () => {
-    assert.ok(!/same[-\s]?day|finished the day/i.test(code('client/src/lib/crawlable-content.ts').split('export function landingPageContent')[1] ?? ''));
+    assert.ok(!/same[-\s]?day|finished the day/i.test(code('packages/content/src/crawlable-content.ts').split('export function landingPageContent')[1] ?? ''));
   });
 });
 

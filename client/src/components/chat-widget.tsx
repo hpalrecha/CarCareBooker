@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useLocation, Link } from "wouter";
 import { MessageCircle, X, Send } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
-import { PHONE } from "@/lib/local-business";
+import { PHONE } from "@p91/content/local-business";
 
 /**
  * Floating AI chat widget — replaces the WhatsApp-only floating button as the default

@@ -20,7 +20,7 @@ before(async () => {
   const out = path.join(repoRoot, 'node_modules', '.cache', 'instagram-reels.mjs');
   fs.mkdirSync(path.dirname(out), { recursive: true });
   await esbuild.build({
-    entryPoints: [path.join(repoRoot, 'client/src/lib/instagram-reels.ts')],
+    entryPoints: [path.join(repoRoot, 'packages/content/src/instagram-reels.ts')],
     bundle: true, format: 'esm', platform: 'neutral', outfile: out, logLevel: 'silent',
   });
   m = await import(pathToFileURL(out).href + '?t=' + Date.now());
@@ -63,7 +63,7 @@ describe('reel data', () => {
   });
 
   test('every mapped blog slug is a real post', () => {
-    const posts = read('client/src/lib/blog-posts.ts');
+    const posts = read('packages/content/src/blog-posts.ts');
     for (const slug of Object.keys(m.REELS_BY_POST)) assert.ok(posts.includes(`slug: "${slug}"`), slug);
   });
 });

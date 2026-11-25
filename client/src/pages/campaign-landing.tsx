@@ -19,19 +19,19 @@ const BookingModal = lazy(loadBookingModal);
 import CampaignOffer from "@/components/campaign-offer";
 import VehicleSelector from "@/components/vehicle-selector";
 import PpfPackages from "@/components/ppf-packages";
-import { WARRANTY_BATCH_LINE, WARRANTY_HANDOVER_LINE } from "@/lib/warranty-wording";
-import { buildPpfPackages, ppfAggregateOffer, type PpfBodyKey, type PpfCatalogueRow } from "@/lib/ppf-packages";
+import { WARRANTY_BATCH_LINE, WARRANTY_HANDOVER_LINE } from "@p91/content/warranty-wording";
+import { buildPpfPackages, ppfAggregateOffer, type PpfBodyKey, type PpfCatalogueRow } from "@p91/content/ppf-packages";
 import BlogCarousel from "@/components/blog-carousel";
 import HeroOfferStrip from "@/components/hero-offer-strip";
 import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { useHeroVideoGate } from "@/hooks/use-hero-video";
 import { useQuery } from "@tanstack/react-query";
-import { resolveServiceImage, formatINR, type ServiceRecord } from "@/lib/canonical-services";
-import { formatServiceTime } from "@/lib/service-time";
-import { withCeramicTiming } from "@/lib/ceramic-timing";
-import { generalPackageFaqs } from "@/lib/withheld-claims";
-import { withBikeLandingCopy } from "@/lib/bike-landing-copy";
+import { resolveServiceImage, formatINR, type ServiceRecord } from "@p91/content/canonical-services";
+import { formatServiceTime } from "@p91/content/service-time";
+import { withCeramicTiming } from "@p91/content/ceramic-timing";
+import { generalPackageFaqs } from "@p91/content/withheld-claims";
+import { withBikeLandingCopy } from "@p91/content/bike-landing-copy";
 import {
   getLandingPage,
   relevantPosts,
@@ -40,7 +40,7 @@ import {
   type CategoryOption,
   PPF_STATEMENT,
   LANDING_PHOTOS_HEADING,
-} from "@/lib/landing-pages";
+} from "@p91/content/landing-pages";
 
 /**
  * One component serving all three Meta Ads landing pages.

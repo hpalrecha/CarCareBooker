@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { ImageWithFallback } from "@/components/image-with-fallback";
-import { resolveServiceImage, type ServiceRecord } from "@/lib/canonical-services";
-import type { BlogPost } from "@/lib/blog-posts";
+import { resolveServiceImage, type ServiceRecord } from "@p91/content/canonical-services";
+import type { BlogPost } from "@p91/content/blog-posts";
 import "@/styles/blog-carousel.css";
 
 /**

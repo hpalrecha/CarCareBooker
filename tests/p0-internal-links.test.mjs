@@ -26,14 +26,14 @@ before(async () => {
   fs.mkdirSync(dir, { recursive: true });
   const bundle = async (entry, name) => {
     const out = path.join(dir, name);
-    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src') } });
+    await esbuild.build({ entryPoints: [path.join(repoRoot, entry)], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') } });
     return import(pathToFileURL(out).href + '?t=' + Date.now());
   };
-  hub = await bundle('client/src/lib/hub-option-links.ts', 'p0-hub.mjs');
-  content = await bundle('client/src/lib/crawlable-content.ts', 'p0-content.mjs');
-  seoPages = await bundle('client/src/lib/seo-pages.ts', 'p0-seopages.mjs');
-  canon = await bundle('client/src/lib/canonical-overrides.ts', 'p0-canon.mjs');
-  landing = await bundle('client/src/lib/landing-pages.ts', 'p0-landing.mjs');
+  hub = await bundle('packages/content/src/hub-option-links.ts', 'p0-hub.mjs');
+  content = await bundle('packages/content/src/crawlable-content.ts', 'p0-content.mjs');
+  seoPages = await bundle('packages/content/src/seo-pages.ts', 'p0-seopages.mjs');
+  canon = await bundle('packages/content/src/canonical-overrides.ts', 'p0-canon.mjs');
+  landing = await bundle('packages/content/src/landing-pages.ts', 'p0-landing.mjs');
 });
 
 const hrefs = (html) => [...html.matchAll(/<a\s[^>]*href="([^"]+)"/g)].map((m) => m[1]);

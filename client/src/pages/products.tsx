@@ -3,11 +3,11 @@ import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
-import { PRODUCT_BRANDS, PRODUCT_FINE_PRINT } from "@/lib/nav-menu";
-import { getBrandPage } from "@/lib/brand-pages";
-import { PRODUCTS_SEO } from "@/lib/static-seo";
+import { PRODUCT_BRANDS, PRODUCT_FINE_PRINT } from "@p91/content/nav-menu";
+import { getBrandPage } from "@p91/content/brand-pages";
+import { PRODUCTS_SEO } from "@p91/content/static-seo";
 import { VisitStudio } from "@/components/redesign/studio-sections";
-import { PRODUCTS_HERO, PRODUCT_KIND, PRODUCT_CHOOSE, PRODUCTS_CHOOSE_HEADING, PRODUCTS_HELP_BEFORE, PRODUCTS_HELP_LINK, PRODUCTS_HELP_AFTER, PRODUCTS_HELP_HREF } from "@/lib/products-page-data";
+import { PRODUCTS_HERO, PRODUCT_KIND, PRODUCT_CHOOSE, PRODUCTS_CHOOSE_HEADING, PRODUCTS_HELP_BEFORE, PRODUCTS_HELP_LINK, PRODUCTS_HELP_AFTER, PRODUCTS_HELP_HREF } from "@p91/content/products-page-data";
 
 /**
  * /products: the three brands P91 fits, one large row each.

@@ -9,7 +9,7 @@
  *   2. Windshield Glass Polishing (windshield-glass-polishing): main price
  *      ₹1,999 -> ₹2,499. Same embedded-price substitution as above.
  *      Duration column 120 -> 240 (3-4 hrs range, text override added to
- *      client/src/lib/service-time.ts).
+ *      packages/content/src/service-time.ts).
  *
  * Confirmed with the shop: apply the price substitution ₹1,399 -> ₹1,699 and
  * ₹1,999 -> ₹2,499 wherever those two figures occur for these two services,

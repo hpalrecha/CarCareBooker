@@ -8,12 +8,12 @@ import SlideCarousel from "@/components/redesign/slide-carousel";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
-import { resolveServiceImage, type ServiceRecord } from "@/lib/canonical-services";
-import { getPost, formatPostDate, BLOG_POSTS, BLOG_AUTHOR } from "@/lib/blog-posts";
+import { resolveServiceImage, type ServiceRecord } from "@p91/content/canonical-services";
+import { getPost, formatPostDate, BLOG_POSTS, BLOG_AUTHOR } from "@p91/content/blog-posts";
 import { blogPostingSchema, SITE_LOGO_PATH } from "@/lib/blog-schema";
 import ParallaxFrame from "@/components/redesign/parallax-frame";
 import { useCinematic } from "@/hooks/use-cinematic";
-import type { BlogBlock } from "@/lib/blog-posts";
+import type { BlogBlock } from "@p91/content/blog-posts";
 import "@/styles/blog-post.css";
 import { VisitStudio } from "@/components/redesign/studio-sections";
 
