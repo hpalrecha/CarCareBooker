@@ -59,7 +59,7 @@ Aliases after this plan (tsconfig `paths`, vite `resolve.alias`, prerender esbui
 - Create: `docs/superpowers/plans/baseline/dist-fingerprint.json` (generated)
 
 **Interfaces:**
-- Produces: `rewriteSpecifier({ fromFile, spec, moves, aliases }) => string | null` and `applyMoves({ root, moves, aliases, dryRun }) => { moved: string[], edited: string[] }` exported from `scripts/tools/relocate.mjs`. CLI: `node scripts/tools/relocate.mjs <moves.json> [--dry-run]`, where `moves.json` is `{ "moves": [["old/path", "new/path"], ...], "aliases": { "@shared/": "shared/", ... } }` and `aliases` maps an alias prefix to the repo-relative directory it points at **after** the move. `node scripts/tools/dist-fingerprint.mjs <out.json>` writes `{ files: string[], html: { [path]: sha256 } }` for `dist/public`, with `-[A-Za-z0-9_-]{8}\.(js|css)` asset hashes replaced by `-HASH.$1` before hashing.
+- Produces: `rewriteSpecifier({ fromFile, spec, moves, aliasRewrites }) => string | null` and `applyMoves({ root, moves, aliasRewrites, dryRun, useGit }) => { moved: string[], edited: string[] }` exported from `scripts/tools/relocate.mjs`. CLI: `node scripts/tools/relocate.mjs <moves.json> [--dry-run]`, where `moves.json` is `{ "moves": [["old/path", "new/path"], ...], "aliasRewrites": { "@shared/schema": "@p91/db/schema" } }` and `aliasRewrites` maps an exact alias prefix to its replacement. `node scripts/tools/dist-fingerprint.mjs <out.json>` writes `{ files: string[], html: { [path]: sha256 } }` for `dist/public`, with `-[A-Za-z0-9_-]{8}\.(js|css)` asset hashes replaced by `-HASH.$1` before hashing.
 
 - [ ] **Step 1: Create the branch**
 
@@ -156,7 +156,7 @@ Expected: FAIL, `Cannot find module '.../scripts/tools/relocate.mjs'`.
  *
  *   node scripts/tools/relocate.mjs moves.json [--dry-run]
  *
- * moves.json: { "moves": [["old", "new"], ...], "aliases": { "@/": "apps/admin/src/" },
+ * moves.json: { "moves": [["old", "new"], ...],
  *               "aliasRewrites": { "@shared/schema": "@p91/db/schema" } }
  *
  * Relative specifiers stay relative and keep their extension style. Alias specifiers are
@@ -249,7 +249,7 @@ export function applyMoves({ root, moves, aliasRewrites = {}, dryRun = false, us
   return { moved, edited };
 }
 
-if (process.argv[1] && process.argv[1].replace(/\/g, "/").endsWith("scripts/tools/relocate.mjs")) {
+if (process.argv[1] && process.argv[1].split(path.sep).join("/").endsWith("scripts/tools/relocate.mjs")) {
   const cfgPath = process.argv[2];
   if (cfgPath) {
     const cfg = JSON.parse(fs.readFileSync(cfgPath, "utf8"));
