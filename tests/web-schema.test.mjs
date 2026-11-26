@@ -40,3 +40,17 @@ test("faq and breadcrumb shapes", () => {
   assert.equal(b.itemListElement[1].position, 2);
   assert.equal(b.itemListElement[1].item, "https://p91carcare.com/services");
 });
+
+test("article schema: headline, dates, publisher; a [NEEDS] author falls back to the business", async () => {
+  const { articleSchema } = await import("../apps/web/lib/schema.ts");
+  const a = articleSchema({ path: "/guides/x", headline: "H", description: "D", date: "2026-08-12", updated: "2026-11-17", author: "[NEEDS: author]", image: "/photos/a.webp" });
+  assert.equal(a["@type"], "Article");
+  assert.equal(a.datePublished, "2026-08-12");
+  assert.equal(a.dateModified, "2026-11-17");
+  assert.equal(a.author["@id"], BUSINESS_ID);
+  assert.equal(a.publisher["@id"], BUSINESS_ID);
+  assert.equal(a.image, "https://p91carcare.com/photos/a.webp");
+  const b = articleSchema({ path: "/guides/x", headline: "H", description: "D", date: "2026-08-12", author: "Nikhil", image: "/p.webp" });
+  assert.equal(b.author.name, "Nikhil");
+  assert.equal(b.dateModified, "2026-08-12");
+});

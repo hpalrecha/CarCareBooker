@@ -11,6 +11,8 @@ import { TrustStrip } from "@web/components/trust-strip";
 import { BeforeAfter } from "@web/components/before-after";
 import { FaqList } from "@web/components/faq-list";
 import { CtaBand } from "@web/components/cta-band";
+import { ReviewQuotes } from "@web/components/review-quotes";
+import { ppfWarrantyYears } from "@web/lib/warranty";
 
 export const revalidate = 300;
 const PAGE = pageFor("/");
@@ -26,6 +28,9 @@ export default async function HomePage() {
   const rows = await getServices().catch(() => []);
   const range = (f: string) => { const r = rangesFor(f as Family, rows); return r ? formatRange(r.overall) : null; };
   const ppf = range("ppf");
+  const years = ppfWarrantyYears(rows).text;
+  // Trust item 2 carries the years from the catalogue; with none, it falls back to the plain written-warranty line.
+  const trust = HOME.trust.map((t) => (t.strong.includes("{warrantyYears}") ? { ...t, strong: years ? t.strong.replace("{warrantyYears}", years) : "Written PPF warranty" } : t));
 
   return (
     <main>
@@ -46,7 +51,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <TrustStrip items={HOME.trust} />
+      <TrustStrip items={trust} />
 
       <Section labelledBy="svc-h2">
         <h2 id="svc-h2" className="m-0 text-[clamp(30px,4vw,48px)] font-extrabold">Services and price ranges</h2>
@@ -100,6 +105,10 @@ export default async function HomePage() {
             </ol>
           </div>
         </div>
+      </Section>
+
+      <Section labelledBy="rev-h2">
+        <ReviewQuotes names={HOME.reviewNames} labelledBy="rev-h2" />
       </Section>
 
       <Section labelledBy="start-h2" tone="ground">

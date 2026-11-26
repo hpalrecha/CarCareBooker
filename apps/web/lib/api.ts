@@ -11,10 +11,19 @@ async function get<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export async function getServices(): Promise<CatalogueRow[]> {
+/** A catalogue row with the fields marketing pages read: price for ranges, whatIncluded for the PPF warranty years. */
+export type ServiceRow = CatalogueRow & { title: string; whatIncluded?: unknown };
+
+export async function getServices(): Promise<ServiceRow[]> {
   const data = await get<unknown>("/api/services");
   const rows = Array.isArray(data) ? data : ((data as { services?: unknown[] }).services ?? []);
-  return (rows as Array<{ slug: string; price: string; isActive?: boolean }>).map((r) => ({ slug: r.slug, price: r.price, isActive: r.isActive }));
+  return (rows as Array<{ slug: string; price: string; isActive?: boolean; title?: string; whatIncluded?: unknown }>).map((r) => ({
+    slug: r.slug,
+    price: r.price,
+    isActive: r.isActive,
+    title: r.title ?? "",
+    whatIncluded: r.whatIncluded,
+  }));
 }
 
 export const getBusinessHours = () => get<BusinessHour[]>("/api/business-hours");

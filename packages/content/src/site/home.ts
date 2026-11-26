@@ -1,4 +1,5 @@
 import type { FaqItem, ProofPhoto } from "./types.ts";
+import { VERIFIED_REVIEWS, HOME_REVIEW_COUNT, GOOGLE_REVIEWS_URL } from "../reviews.ts";
 
 export const HOME = {
   hero: {
@@ -8,8 +9,9 @@ export const HOME = {
     primary: { href: "/services/paint-protection-film", label: "See the price range for your car" },
   },
   trust: [
-    { strong: "[NEEDS: Google rating]", sub: "[NEEDS: review count] Google reviews" },
-    { strong: "[NEEDS: N]-year warranty", sub: "Written terms at handover" },
+    { strong: "Google reviews", sub: "Read what owners wrote", href: GOOGLE_REVIEWS_URL },
+    // "{warrantyYears}" is filled from the catalogue (warrantyYearsOf) by the page, e.g. "5 or 7-year".
+    { strong: "{warrantyYears} PPF warranty", sub: "Written terms at handover" },
     { strong: "STEK and Nasiol", sub: "You see the sealed roll first" },
     { strong: "Open daily", sub: "Adugodi studio" },
   ],
@@ -48,6 +50,8 @@ export const HOME = {
     { href: "/guides/how-much-ppf-does-your-car-need", label: "Full body or front only?" },
     { href: "/guides/is-your-ppf-really-made-in-usa", label: "Is your PPF genuine?" },
   ],
+  // Owner decision 26 Nov: quote the first HOME_REVIEW_COUNT Google reviews, word for word, in order. No rating, no count.
+  reviewNames: VERIFIED_REVIEWS.slice(0, HOME_REVIEW_COUNT).map((r) => r.name),
   faq: [
     { q: "PPF or ceramic coating?", a: "PPF is a clear film that takes stone chips and scratches. Ceramic coating is a hard, slick layer that sheds water and dirt. Many owners do both: film on the panels that take hits, coating over everything." },
     { q: "How long is my car with you?", a: "About 3 days for full-body PPF and about 1 day for car ceramic coating, from the studio's job times." },
