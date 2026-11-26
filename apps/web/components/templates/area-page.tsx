@@ -50,6 +50,14 @@ export function AreaPage({ content: c, path }: { content: AreaContent; path: str
         </div>
       </Section>
 
+      {(c.sections ?? []).map((s, i) => (
+        <Section key={s.h2} labelledBy={`as-${i}-h2`} tone={i % 2 === 0 ? "white" : "ground"}>
+          <h2 id={`as-${i}-h2`} className={`${H2} mb-5`}>{s.h2}</h2>
+          {s.paras.map((p) => <p key={p} className="mb-3.5 mt-0 max-w-[760px] text-text-2"><RichText text={p} /></p>)}
+          {s.bullets && <ul className="m-0 mt-2 flex max-w-[760px] flex-col gap-2.5 pl-5 text-text-2">{s.bullets.map((b) => <li key={b}><RichText text={b} /></li>)}</ul>}
+        </Section>
+      ))}
+
       {c.jobs.length > 0 && (
         <Section labelledBy="jobs-h2">
           <h2 id="jobs-h2" className={`${H2} mb-7`}>Cars from {c.area} at the studio</h2>

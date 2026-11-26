@@ -62,7 +62,7 @@ export function GuidePage({ content: c, path, description }: { content: GuideCon
             By {c.author} · Reviewed by {c.reviewedBy} ·{" "}
             {c.updated ? <>Updated <time dateTime={c.updated}>{day(c.updated)}</time></> : <time dateTime={c.date}>{day(c.date)}</time>} · {c.readMinutes} min read
           </p>
-          <div className="my-8 h-[360px] overflow-hidden rounded-[16px]"><Photo src={c.image.src} alt={c.image.alt} width={c.image.width} height={c.image.height} priority /></div>
+          {c.image ? <div className="my-8 h-[360px] overflow-hidden rounded-[16px]"><Photo src={c.image.src} alt={c.image.alt} width={c.image.width} height={c.image.height} priority /></div> : <div className="my-8" />}
           {toc.length > 1 && (
             <nav aria-labelledby="toc-h2" className="mb-8 rounded-[14px] border border-line p-6">
               <h2 id="toc-h2" className="m-0 mb-3 text-lg font-bold">In this guide</h2>
@@ -81,7 +81,7 @@ export function GuidePage({ content: c, path, description }: { content: GuideCon
         </div>
       </article>
       <CtaBand title="Questions about your car?" body="Send a photo on WhatsApp and we will tell you what it needs." primary={{ href: SITE.whatsapp, label: "WhatsApp us" }} secondary={{ href: SITE.phoneHref, label: SITE.phone }} />
-      <JsonLd data={articleSchema({ path, headline: c.h1, description, date: c.date, updated: c.updated, author: c.author, image: c.image.src })} />
+      <JsonLd data={articleSchema({ path, headline: c.h1, description, date: c.date, updated: c.updated, author: c.author, image: c.image?.src ?? "/brand/p91-logo.png" })} />
     </main>
   );
 }

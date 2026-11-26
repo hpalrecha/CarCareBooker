@@ -60,6 +60,7 @@ export type AreaContent = {
   jobs: (Photo & { caption: string })[]; // real jobs for owners from this area; [] until supplied
   faq: FaqItem[];
   nearby: LinkItem[];
+  sections?: Section[];                  // Plan 2b adaptation: extra area sections (Koramangala keeps its blog checklist)
 };
 
 export type BrandContent = {
@@ -72,7 +73,7 @@ export type BrandContent = {
 export type GuideContent = {
   slug: string; h1: string; lede: string; date: string; updated?: string; readMinutes: number;
   author: string; reviewedBy: string;    // "[NEEDS: ...]" until the owner names them
-  image: Photo;
+  image: Photo | null;                   // null when no verified photo matches the topic
   blocks: GuideBlock[];                  // migrated BlogBlock[] with links remapped
   mainService: LinkItem; sibling: LinkItem; area: LinkItem;
 };
