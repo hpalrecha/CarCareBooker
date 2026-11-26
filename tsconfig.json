@@ -1,6 +1,6 @@
 {
   "include": ["apps/admin/src/**/*", "apps/api/src/**/*", "packages/*/src/**/*"],
-  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
+  "exclude": ["node_modules", "build", "dist", "**/*.test.ts", "apps/web/**"],
   "compilerOptions": {
     "incremental": true,
     "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",

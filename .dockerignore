@@ -5,6 +5,10 @@
 
 node_modules
 **/node_modules
+# apps/web build output (the API image installs root dependencies only).
+**/.next
+*.tsbuildinfo
+**/*.tsbuildinfo
 dist
 .git
 .gitignore
