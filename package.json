@@ -17,7 +17,9 @@
     "images:force": "node scripts/optimize-images.mjs --force",
     "web:dev": "npm run dev -w apps/web",
     "web:build": "npm run build -w apps/web",
-    "web:start": "npm run start -w apps/web"
+    "web:start": "npm run start -w apps/web",
+    "web:ship-gate": "node --import tsx scripts/web/ship-gate.mjs",
+    "web:check": "node --import tsx scripts/web/check-pages.mjs"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.18.0",
