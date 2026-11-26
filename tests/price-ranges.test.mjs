@@ -39,3 +39,10 @@ test("formatting uses compact rupees", () => {
   assert.equal(formatRange({ low: 7500, high: null }), "₹7.5k");
   assert.equal(formatRange({ low: 999, high: 1800 }), "₹999–1.8k");
 });
+
+test("shownRange hides a lone figure (owner, 26 Nov): only a range with a top end is shown", async () => {
+  const { shownRange } = await import("../packages/domain/src/price-ranges.ts");
+  assert.equal(shownRange(rangesFor("ceramic-car", ROWS)?.overall ?? null), null);
+  assert.equal(shownRange(null), null);
+  assert.deepEqual(shownRange(rangesFor("ppf", ROWS).overall), { low: 50000, high: 90000 });
+});

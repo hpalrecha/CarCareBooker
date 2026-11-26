@@ -12,17 +12,19 @@ async function get<T>(path: string): Promise<T> {
 }
 
 /** A catalogue row with the fields marketing pages read: price for ranges, whatIncluded for the PPF warranty years. */
-export type ServiceRow = CatalogueRow & { title: string; whatIncluded?: unknown };
+export type ServiceRow = CatalogueRow & { title: string; whatIncluded?: unknown; duration?: number | string; durationText?: string | null };
 
 export async function getServices(): Promise<ServiceRow[]> {
   const data = await get<unknown>("/api/services");
   const rows = Array.isArray(data) ? data : ((data as { services?: unknown[] }).services ?? []);
-  return (rows as Array<{ slug: string; price: string; isActive?: boolean; title?: string; whatIncluded?: unknown }>).map((r) => ({
+  return (rows as Array<{ slug: string; price: string; isActive?: boolean; title?: string; whatIncluded?: unknown; duration?: number | string; durationText?: string | null }>).map((r) => ({
     slug: r.slug,
     price: r.price,
     isActive: r.isActive,
     title: r.title ?? "",
     whatIncluded: r.whatIncluded,
+    duration: r.duration,
+    durationText: r.durationText ?? null,
   }));
 }
 

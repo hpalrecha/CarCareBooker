@@ -59,3 +59,12 @@ const k = (n: number) => {
 export function formatRange(r: Range): string {
   return r.high === null ? `₹${k(r.low)}` : `₹${k(r.low)}–${k(r.high)}`;
 }
+
+/**
+ * The range a page may show, or null. Owner decision (26 Nov 2026): a family with one catalogue
+ * price (no top end) shows no price at all, never a lone figure; the page says "WhatsApp a photo
+ * for the price" instead, and `web:check` lists it under "Top price needed".
+ */
+export function shownRange(r: Range | null | undefined): Range | null {
+  return r && r.high !== null ? r : null;
+}

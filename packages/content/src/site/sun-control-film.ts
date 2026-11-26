@@ -42,6 +42,70 @@ export const SUN_CONTROL_FILM: ServiceContent = {
       paras: [],
       bullets: SEO.includes.filter((i) => !/rain-repellent/i.test(i)),
     },
+    // ── New sections (owner, 26 Nov: longer pages). General window-film knowledge; no figures. ──
+    {
+      h2: "The main kinds of film",
+      paras: ["Window film is sold under many brand names, but most of it falls into a few types. The type matters more than the shade:"],
+      bullets: [
+        "**Dyed film** darkens the glass and cuts glare. It is the cheapest kind and does least for heat.",
+        "**Metallised film** reflects heat with a thin metal layer. It can look mirror-like from outside, and metal in the film can interfere with phone and GPS signals.",
+        "**Carbon film** absorbs heat without metal, so it does not affect signals, and has a matte look.",
+        "**Ceramic or nano-ceramic film** uses non-metal particles to reject heat. It can reject a lot of heat while staying fairly light, which matters where VLT limits apply.",
+      ],
+    },
+    {
+      h2: "What moves the price",
+      paras: ["Sun film quotes differ for a few plain reasons:"],
+      bullets: [
+        "**The film line.** Higher heat rejection (TSER) usually costs more than a film that only looks dark.",
+        "**How much glass is covered.** The windshield only, or the side and rear glass as well.",
+        "**The car.** More windows, larger glass and deeply curved rear screens take more film and more fitting time.",
+        "**Old film.** Removing an old film and cleaning off its adhesive adds work before the new film goes on.",
+      ],
+    },
+    {
+      h2: "Why heat control matters in Bangalore",
+      paras: [
+        "Most of the heat in a parked car comes through the glass. The dashboard, seats and steering wheel soak it up, and the cabin stays hot long after the air conditioning is switched on.",
+        "Sunlight through glass also fades dashboards and upholstery over time and makes the low evening sun on east-west roads hard to drive into. A film chosen on its TSER figure deals with heat; a film chosen only on darkness mostly deals with looks.",
+      ],
+    },
+    {
+      h2: "Signs of a poorly fitted film",
+      paras: ["A good fit is hard to notice. These are the things to look for at handover and in the weeks after:"],
+      bullets: [
+        "Bubbles or water pockets that are still there once the film has cured.",
+        "Dust specks or hairs trapped between film and glass.",
+        "Uneven edges, gaps along the top of a side window, or corners starting to lift.",
+        "Creases on the curved rear screen, where the film was not shrunk to shape.",
+        "A purple or brown tint appearing over time, typical of cheap dyed film fading.",
+      ],
+    },
+    {
+      h2: "The first days after fitting",
+      paras: [
+        "Film is fitted wet, and the water between film and glass takes some days to dry out. A slight haze or small water pockets in that time are normal and clear as the film cures.",
+        "Keep the windows rolled up for [NEEDS: days before the windows can be rolled down], so the film edge is not lifted by the window seal. After that, clean the glass with a soft microfibre cloth and a mild, ammonia-free glass cleaner; never scrape the film or use anything abrasive.",
+      ],
+    },
+    {
+      h2: "What to ask before you book",
+      paras: ["The answers to these tell you what is going on your car, and whether it is legal:"],
+      bullets: [
+        "The exact film name and line, not just the brand.",
+        "Its VLT and TSER figures, from the manufacturer's spec sheet.",
+        "Which windows are being covered, and whether each one stays within the legal VLT limit.",
+        "Whether removing old film is included.",
+        "The warranty terms, in writing at handover.",
+      ],
+    },
+  ],
+  steps: [
+    { title: "Prepare the glass", text: "Glass decontaminated and the edges prepared, so nothing is trapped under the film.", photo: null },
+    { title: "Cut the film", text: "Film plotter-cut to the shape of each window.", photo: null },
+    { title: "Shape it", text: "Heat-shrunk to the curvature of the screen where required.", photo: null },
+    { title: "Fit and squeegee", text: "Fitted wet in a controlled, dust-managed bay and squeegeed flat.", photo: null },
+    { title: "Hand over the spec sheet", text: "The manufacturer spec sheet for the film fitted, to keep in the car.", photo: null },
   ],
   faq: [
     hubFaq("sun-control-film", "What is the difference between IR rejection and TSER?"),

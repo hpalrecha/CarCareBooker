@@ -32,9 +32,66 @@ export const CERAMIC_BIKE: ServiceContent = {
         "**Gloss that survives the wash routine.** Bikes get cleaned more often than cars and usually with less equipment. Making each of those washes gentler is most of what protects the finish over a year.",
       ],
     },
+    // ── New sections (owner, 26 Nov: longer pages). ──
+    {
+      // Factors from the approved ceramic FAQ answer and the bike FAQ ("matte or satin paint, a wrap or a repaint").
+      h2: "What moves the price for a motorcycle",
+      paras: ["Motorcycles vary far more than cars in how much painted surface they carry. What changes the work:"],
+      bullets: [
+        "**How much bodywork the bike has.** A fully faired bike has far more painted panel than a naked bike or a scooter-style body.",
+        "**Paint condition.** Swirl marks and light scratches on the tank are polished out before coating, and a tank that has been wiped with a dusty cloth for years needs more of it.",
+        "**The finish.** Matte or satin paint, a wrap or a repaint changes the answer, so ask before you book.",
+      ],
+    },
+    {
+      // Bike FAQ and catalogue maintenance answer (pH-neutral bike shampoo, microfibre, no harsh brushes, wipe off petrol
+      // and chain lube). Keeping pressure jets off bearings and electrics is general motorcycle care.
+      h2: "Washing a coated bike, step by step",
+      paras: ["A coated bike is easier to clean, but the coating lasts longest when the washes are gentle:"],
+      bullets: [
+        "Rinse loose dust and grit off first, so you are not rubbing it into the paint.",
+        "Wash with a pH-neutral bike shampoo and a clean microfibre mitt, top to bottom.",
+        "Keep a pressure washer well away from wheel bearings, the chain, switches and electrical connectors.",
+        "Dry with a clean microfibre towel instead of leaving water to dry on the tank.",
+        "Wipe off petrol splashes and chain lube when you see them, not at the next wash.",
+        "Skip automatic washes with harsh brushes, and do not use a household degreaser on painted panels.",
+      ],
+    },
+    {
+      // Bike FAQ: the coating "will not stop deep scratches, stone chips or damage from a fall ... not armour".
+      h2: "Coating or paint protection film for a bike?",
+      paras: [
+        "The coating is a gloss and easy-cleaning layer. It will not stop deep scratches, stone chips or damage from a fall.",
+        "If the worry is the tank getting scuffed by jackets, bags and knees, or chips on the front fairing, that is a job for [paint protection film for bikes](/services/paint-protection-film/bike). Film can go on the parts that take contact, with the coating over the rest.",
+      ],
+    },
+    {
+      // Catalogue bike row: "made to last 12 months with proper care", "degrades gradually", reapplication after 12 months.
+      h2: "How long it lasts",
+      paras: [
+        "The 1-year coating is made to last about 12 months with proper care. It wears down gradually rather than stopping on one day, so the change is slow: water beads less tightly, and dirt starts to cling to the tank again.",
+        "When water sits in flat sheets on a clean tank instead of beading, it is time for a fresh coat. A new coat brings back full protection and gloss, and the paint underneath is in the condition the coating kept it in.",
+      ],
+    },
+    {
+      h2: "What to ask before you book",
+      paras: ["Five questions that make the job clear on both sides:"],
+      bullets: [
+        "Which parts of the bike are coated: tank, fairings and painted panels, or more.",
+        "Whether your paint finish (gloss, matte, wrapped or repainted) suits the coating.",
+        "How long the bike stays in the studio, so you can plan without it.",
+        "What comes with it: the package lists a care kit and a maintenance guide.",
+        "The warranty terms, in writing at handover.",
+      ],
+    },
   ],
+  catalogueIncludes: {
+    slug: "1-year-bike-ceramic-coating",
+    h2: "What the 1-year bike package lists",
+    intro: "Read from the studio's catalogue entry for the bike coating:",
+  },
   steps: [
-    { title: "Book", text: "Book your appointment online", photo: null },
+    { title: "Book", text: "Book on WhatsApp or call", photo: null },
     { title: "Bring the bike", text: "Bring the bike to our Adugodi studio", photo: null },
     { title: "Decontaminate", text: "Full decontamination wash, including the areas behind the fairings", photo: null },
     { title: "Correct", text: "Paint correction where the finish needs it", photo: null },

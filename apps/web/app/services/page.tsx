@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SERVICES_HUB as H } from "@p91/content/site/services-hub";
-import { rangesFor, formatRange, type Family } from "@p91/domain/price-ranges";
+import { rangesFor, formatRange, shownRange, type Family } from "@p91/domain/price-ranges";
 import { getServices } from "@web/lib/api";
 import { metadataFor } from "@web/lib/metadata";
 import { SITE } from "@web/lib/site";
@@ -19,8 +19,8 @@ export default async function ServicesHub() {
   const rows = await getServices().catch(() => []);
   const range = (f: string | null) => {
     if (!f) return null;
-    const r = rangesFor(f as Family, rows);
-    return r ? formatRange(r.overall) : null;
+    const r = shownRange(rangesFor(f as Family, rows)?.overall);
+    return r ? formatRange(r) : null;
   };
 
   return (
@@ -45,7 +45,7 @@ export default async function ServicesHub() {
                 <div className="flex flex-col gap-1.5 p-5">
                   <h3 className="m-0 text-[21px] font-bold">{s.name}</h3>
                   <p className="m-0 text-[15px] text-text-2">{s.line}</p>
-                  {range(s.family) && <p className="m-0 mt-auto text-lg font-extrabold tabular-nums">{range(s.family)}</p>}
+                  {range(s.family) ? <p className="m-0 mt-auto text-lg font-extrabold tabular-nums">{range(s.family)}</p> : s.family && <p className="m-0 mt-auto text-[15px] font-bold text-action">{SITE.noPriceLabel}</p>}
                 </div>
               </Link>
             ))}

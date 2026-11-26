@@ -1,7 +1,9 @@
 import Link from "next/link";
 import type { ServiceContent } from "@p91/content/site/types";
 import { WARRANTY_HANDOVER_LINE } from "@p91/content/warranty-wording";
-import { rangesFor, formatRange, type Family } from "@p91/domain/price-ranges";
+import { formatServiceTime } from "@p91/content/service-time";
+import { displayableIncludes } from "@p91/content/withheld-claims";
+import { rangesFor, formatRange, shownRange, type Family } from "@p91/domain/price-ranges";
 import { getServices } from "@web/lib/api";
 import { ppfWarrantyLine } from "@web/lib/warranty";
 import { serviceSchema } from "@web/lib/schema";
@@ -21,20 +23,34 @@ import { ReviewQuotes } from "@web/components/review-quotes";
 
 const H2 = "m-0 text-[clamp(30px,4vw,48px)] font-extrabold";
 
-/** "{range}" replaced with the live range; with no range, the sentence that carried it is dropped. */
-function fillRange(text: string, range: string | null): string {
-  if (range) return text.replaceAll("{range}", range);
-  return text.split(/(?<=[.!?])\s+/).filter((s) => !s.includes("{range}")).join(" ");
+/** "{token}" replaced with its value; with no value, the sentence that carried it is dropped. */
+function fill(text: string, token: string, value: string | null): string {
+  if (value) return text.replaceAll(token, value);
+  return text.split(/(?<=[.!?\]])\s+/).filter((s) => !s.includes(token)).join(" ");
+}
+
+/** A catalogue includes list as a page may show it: withheld claims, prices and warranty lines dropped, tick marks removed. */
+function catalogueIncludes(items: unknown): string[] {
+  return displayableIncludes(items)
+    .map((i) => i.replace(/^[\s✓✔•-]+/, "").trim())
+    .filter((i) => i !== "" && !/₹|rs\.?\s?\d|warranty/i.test(i));
 }
 
 export async function ServicePage({ content: c, path }: { content: ServiceContent; path: string }) {
   const rows = await getServices().catch(() => []);
   const ranges = c.family ? rangesFor(c.family as Family, rows) : null;
-  const overall = ranges ? formatRange(ranges.overall) : null;
+  // Owner decision 26 Nov: never a lone figure. No top end means no price line anywhere and no offers in the JSON-LD.
+  const shown = shownRange(ranges?.overall);
+  const overall = shown ? formatRange(shown) : null;
+  const timeRow = c.timeSlug ? rows.find((r) => r.slug === c.timeSlug && r.isActive !== false) : undefined;
+  const time = timeRow ? formatServiceTime(timeRow) : null;
+  const incRow = c.catalogueIncludes ? rows.find((r) => r.slug === c.catalogueIncludes?.slug && r.isActive !== false) : undefined;
+  const includes = incRow ? catalogueIncludes(incRow.whatIncluded) : [];
+  const shortAnswer = fill(fill(c.shortAnswer, "{range}", overall), "{time}", time ? `approx. ${time}` : null);
   const name = c.breadcrumb[c.breadcrumb.length - 1].label;
   const warranty = (c.showWarrantyYears ? ppfWarrantyLine(rows) : null) ?? WARRANTY_HANDOVER_LINE;
   const L = c.labels ?? {};
-  const bodyRows = (c.rangeRows ?? []).map((r) => ({ label: r.label, examples: r.examples, moves: r.moves, range: ranges?.byBody[r.body] ?? null }));
+  const bodyRows = (c.rangeRows ?? []).map((r) => ({ label: r.label, examples: r.examples, moves: r.moves, range: shownRange(ranges?.byBody[r.body]) }));
   const hasRows = bodyRows.some((r) => r.range);
   const crumbs = [{ name: "Home", path: "/" }, ...c.breadcrumb.map((b) => ({ name: b.label, path: b.href }))];
   // Sections alternate white / ground, starting after the (ground) price block.
@@ -55,10 +71,14 @@ export async function ServicePage({ content: c, path }: { content: ServiceConten
             <div className="flex min-w-0 flex-[1_1_380px] flex-col justify-center gap-4 rounded-[16px] bg-ink p-8 text-white md:p-10">
               <p className="m-0 text-[15px] font-semibold text-on-ink">{c.eyebrow}</p>
               <h1 id="svc-h1" className="m-0 text-[clamp(34px,4.2vw,56px)] font-extrabold">{c.h1}</h1>
-              {overall && <p className="m-0 text-[34px] font-extrabold tabular-nums">{overall}{L.rangeLabel && <span className="text-[15px] font-medium text-white/70"> · {L.rangeLabel}</span>}</p>}
+              {overall ? (
+                <p className="m-0 text-[34px] font-extrabold tabular-nums">{overall}{L.rangeLabel && <span className="text-[15px] font-medium text-white/70"> · {L.rangeLabel}</span>}</p>
+              ) : (
+                <p className="m-0 text-xl font-bold"><a href={SITE.whatsapp} className="text-on-ink">{SITE.noPriceLabel}</a></p>
+              )}
               <div className="flex flex-wrap gap-3">
-                <ButtonLink href="#prices" variant="on-ink">{overall ? "See the range for your car" : "How pricing works"}</ButtonLink>
-                <ButtonLink href={SITE.whatsapp} variant="outline-on-ink">WhatsApp a photo for the exact price</ButtonLink>
+                {overall ? <ButtonLink href="#prices" variant="on-ink">See the range for your car</ButtonLink> : <ButtonLink href={SITE.book.href} variant="on-ink">{SITE.book.label}</ButtonLink>}
+                {overall ? <ButtonLink href={SITE.book.href} variant="outline-on-ink">{SITE.book.label}</ButtonLink> : <ButtonLink href={SITE.phoneHref} variant="outline-on-ink">Call {SITE.phone}</ButtonLink>}
               </div>
             </div>
           </div>
@@ -69,25 +89,35 @@ export async function ServicePage({ content: c, path }: { content: ServiceConten
         <div className="wrap">
           <div className="flex flex-wrap gap-x-10 gap-y-4 rounded-[16px] border-[1.5px] border-[#D8F0D6] bg-tint px-8 py-7">
             <h2 id="ans-h2" className="m-0 flex-[1_1_220px] text-[22px] font-extrabold">{name} in one paragraph</h2>
-            <p className="m-0 flex-[999_1_520px] text-lg"><RichText text={fillRange(c.shortAnswer, overall)} /></p>
+            <p className="m-0 flex-[999_1_520px] text-lg"><RichText text={shortAnswer} /></p>
           </div>
         </div>
       </section>
 
       <Section id="prices" labelledBy="price-h2" tone="ground">
-        <h2 id="price-h2" className={H2}>{L.pricesH2 ?? `${name} price range${hasRows ? " by body type" : ""}`}</h2>
+        <h2 id="price-h2" className={H2}>{L.pricesH2 ?? `${name} price${overall ? " range" : ""}${hasRows ? " by body type" : ""}`}</h2>
         <p className="mb-7 mt-3 max-w-[680px] text-text-2">
-          {L.pricesIntro ?? "Where your car lands in the range depends on its size and condition. Send a photo on WhatsApp for the exact figure."}
+          {overall
+            ? (L.pricesIntro ?? "Where your car lands in the range depends on its size and condition. Send a photo on WhatsApp for the exact figure.")
+            : "Send a photo of your car on WhatsApp and we reply with the price for your car."}
         </p>
         {hasRows ? (
           <PriceRangeTable caption={`${name} price range by body type`} rows={bodyRows} />
         ) : (
           <div className="flex flex-col gap-2 rounded-[16px] border border-line bg-white px-6 py-5">
-            {overall && <p className="m-0 text-[28px] font-extrabold tabular-nums">{overall}</p>}
+            {overall ? <p className="m-0 text-[28px] font-extrabold tabular-nums">{overall}</p> : <p className="m-0 text-xl font-bold"><a href={SITE.whatsapp}>{SITE.noPriceLabel}</a></p>}
             {c.rangeNote && <p className="m-0 text-[15px] text-text-2"><RichText text={c.rangeNote} /></p>}
           </div>
         )}
       </Section>
+
+      {includes.length > 0 && c.catalogueIncludes && (
+        <Section labelledBy="inc-h2" tone={nextTone()}>
+          <h2 id="inc-h2" className={`${H2} mb-5`}>{c.catalogueIncludes.h2}</h2>
+          {c.catalogueIncludes.intro && <p className="mb-3.5 mt-0 max-w-[760px] text-text-2"><RichText text={c.catalogueIncludes.intro} /></p>}
+          <ul className="m-0 mt-2 flex max-w-[760px] flex-col gap-2.5 pl-5 text-text-2">{includes.map((i) => <li key={i}>{i}</li>)}</ul>
+        </Section>
+      )}
 
       {c.sections.map((s, i) => (
         <Section key={s.h2} labelledBy={`sec-${i}-h2`} tone={nextTone()}>
@@ -169,11 +199,11 @@ export async function ServicePage({ content: c, path }: { content: ServiceConten
       <CtaBand
         title={L.cta?.title ?? "See the studio before you book"}
         body={L.cta?.body ?? "Visit the studio in Adugodi, near Koramangala. Open daily."}
-        primary={{ href: SITE.whatsapp, label: "WhatsApp us" }}
+        primary={{ href: SITE.book.href, label: SITE.book.label }}
         secondary={{ href: SITE.phoneHref, label: SITE.phone }}
       />
 
-      <JsonLd data={serviceSchema({ name, path, description: pageFor(path).description, range: ranges?.overall ?? null })} />
+      <JsonLd data={serviceSchema({ name, path, description: pageFor(path).description, range: shown })} />
     </main>
   );
 }

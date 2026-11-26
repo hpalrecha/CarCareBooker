@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { HOME } from "@p91/content/site/home";
 import { pageFor } from "@p91/content/site/registry";
-import { rangesFor, formatRange, type Family } from "@p91/domain/price-ranges";
+import { rangesFor, formatRange, shownRange, type Family } from "@p91/domain/price-ranges";
+import { SITE } from "@web/lib/site";
 import { getServices } from "@web/lib/api";
 import { ButtonLink } from "@web/components/button-link";
 import { Section } from "@web/components/section";
@@ -26,7 +27,8 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const rows = await getServices().catch(() => []);
-  const range = (f: string) => { const r = rangesFor(f as Family, rows); return r ? formatRange(r.overall) : null; };
+  // A family with no top end shows no figure (owner, 26 Nov); its card says "WhatsApp a photo for the price".
+  const range = (f: string) => { const r = shownRange(rangesFor(f as Family, rows)?.overall); return r ? formatRange(r) : null; };
   const ppf = range("ppf");
   const years = ppfWarrantyYears(rows).text;
   // Trust item 2 carries the years from the catalogue; with none, it falls back to the plain written-warranty line.
@@ -63,7 +65,7 @@ export default async function HomePage() {
               <div className="flex flex-col gap-1.5 p-5">
                 <h3 className="m-0 text-[21px] font-bold">{s.name}</h3>
                 <p className="m-0 text-[15px] text-text-2">{s.line}</p>
-                {range(s.family) && <p className="m-0 mt-auto text-lg font-extrabold tabular-nums">{range(s.family)}</p>}
+                {range(s.family) ? <p className="m-0 mt-auto text-lg font-extrabold tabular-nums">{range(s.family)}</p> : <p className="m-0 mt-auto text-[15px] font-bold text-action">{SITE.noPriceLabel}</p>}
               </div>
             </Link>
           ))}

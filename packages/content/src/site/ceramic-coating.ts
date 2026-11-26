@@ -44,9 +44,53 @@ export const CERAMIC: ServiceContent = {
       paras: [],
       bullets: SEO.includes,
     },
+    // ── New sections (owner, 26 Nov: longer pages). Sources noted per section. ──
+    {
+      // Factors: the approved FAQ answer ("vehicle size, the paint condition, the preparation needed and the coating"),
+      // expanded with the catalogue's own process steps (iron remover, clay bar, machine polishing).
+      h2: "What moves the price of a ceramic coating",
+      paras: ["Two cars booked for the same coating can need very different amounts of work before the coating goes on. These are the things that make the difference:"],
+      bullets: [
+        "**Size of the car.** More painted panels means more surface to decontaminate, polish and coat.",
+        "**Paint condition.** Swirl marks, water-spot etching and light scratches have to be machine polished out first, or the coating locks them in. Paint correction is the slow part of the job.",
+        "**Preparation.** Tar, iron fallout from brake dust and bonded grime come off with a clay bar and an iron remover before polishing. A neglected car needs more of this than a new one.",
+        "**The coating you choose.** Different coatings are made to last different lengths of time, and the price follows.",
+      ],
+    },
+    {
+      // Catalogue row 1-year-ceramic-coating: "engineered to last 12 months with proper care", "degrades gradually",
+      // maintenance answer. The causes of wear are general coating knowledge.
+      h2: "How long the coating lasts, and what wears it down",
+      paras: [
+        "The 1-year coating is made to last about 12 months with proper care. It does not stop working on one day: it wears down gradually, and a fresh coat brings back the full gloss and water beading.",
+        "What shortens its life is mostly the wash routine. Strong detergents and degreasers, automatic car washes with brushes, and abrasive polishes all take the coating down faster. So does leaving bird droppings and tree sap to bake on in the sun.",
+        "A simple test tells you how it is doing: when water stops beading and starts sitting in flat sheets on a clean panel, the coating is near the end of its life.",
+      ],
+    },
+    {
+      // FAQ answers: "PPF is generally the better choice when stone chips and physical damage are your main concern";
+      // Home FAQ: "Many owners do both".
+      h2: "Ceramic coating or PPF?",
+      paras: [
+        "A ceramic coating is a hard, slick layer for gloss and easy washing. It does not stop stone chips: when chips and scratches are the main worry, [paint protection film](/services/paint-protection-film) is the better choice.",
+        "Many owners do both: film on the panels that take hits, coating over everything, including over the film. Booked together, the two are done in the same visit.",
+      ],
+    },
+    {
+      // Approved warranty and batch lines (warranty-wording.ts); the rest are plain questions, no claims.
+      h2: "What to ask a studio before you book",
+      paras: ["Whoever you book with, these answers tell you what you are paying for:"],
+      bullets: [
+        "Which coating, by brand and product name. At P91 it is [Nasiol](/brands/nasiol) nano-ceramic coating.",
+        "How much paint correction is included, and whether your paint needs more than that.",
+        "How long the car stays in the studio, so the coating can cure before it goes back on the road.",
+        "What the aftercare is: which shampoo, and what to avoid in the first weeks.",
+        "The warranty terms, in writing. Ask to see the batch details before work starts.",
+      ],
+    },
   ],
   steps: [
-    { title: "Book", text: "Book your appointment online", photo: null },
+    { title: "Book", text: "Book on WhatsApp or call", photo: null },
     { title: "Bring the car", text: "Bring the car to our Adugodi studio", photo: null },
     { title: "Decontaminate", text: "Decontamination wash and clay bar treatment", photo: null },
     { title: "Correct the paint", text: "Machine paint correction to remove swirls and water-spot etching", photo: { src: "/photos/polish-porsche-bonnet.webp", alt: "Machine polisher beside the bonnet crest of a Porsche", width: 800, height: 1422 } },

@@ -32,6 +32,13 @@ export type ServiceContent = {
   /** Plan 2b adaptation: before/after pairs (real P91 photos only), shown with the work. */
   beforeAfter?: { before: Photo; after: Photo; caption: string }[];
   reviewNames?: string[];                // names from VERIFIED_REVIEWS to quote
+  /**
+   * Plan 2b adaptation (batch B): read facts from one catalogue row instead of typing them.
+   * `timeSlug`: "{time}" in shortAnswer becomes that row's studio time (formatServiceTime), or its sentence is dropped.
+   * `catalogueIncludes`: a section listing that row's whatIncluded (withheld claims, prices and warranty lines dropped).
+   */
+  timeSlug?: string;
+  catalogueIncludes?: { slug: string; h2: string; intro?: string };
   faq: FaqItem[];                        // "{warranty}" in an answer is replaced with the page's warranty line
   related: LinkItem[];
   /**
