@@ -14,7 +14,7 @@ export function businessSchema(hours: BusinessHour[]) {
     legalName: SITE.legalName,
     url: SITE.origin,
     telephone: SITE.phoneHref.replace("tel:", ""),
-    image: `${SITE.origin}/og/home.png`,
+    image: `${SITE.origin}/og/og-default.jpg`,
     priceRange: "₹₹₹",
     address: {
       "@type": "PostalAddress",
