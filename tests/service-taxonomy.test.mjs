@@ -5,7 +5,7 @@
  *   LIVE_TAXONOMY_CHECK=1 npm test   # additionally re-fetches the live catalogue
  *
  * Why pin the real slugs rather than invented ones: the rule ORDER in
- * client/src/lib/service-taxonomy.ts is load-bearing (Glass must beat Coating, Packages
+ * packages/content/src/service-taxonomy.ts is load-bearing (Glass must beat Coating, Packages
  * must beat Exterior). A reordering that looks harmless silently moves live services
  * into the wrong tab, which is invisible in a build and in a screenshot. These 17 slugs
  * came from GET https://p91carcare.com/api/services.
@@ -26,7 +26,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 // The module is TypeScript with no runtime dependencies, so the type annotations are
 // stripped rather than pulling a compiler into the test run.
 const src = fs
-  .readFileSync(path.join(repoRoot, 'client/src/lib/service-taxonomy.ts'), 'utf8')
+  .readFileSync(path.join(repoRoot, 'packages/content/src/service-taxonomy.ts'), 'utf8')
   .replace(/^export type[\s\S]*?;$/gm, '')
   .replace(/: \[RegExp, Service(Category|Vehicle)\]\[\]/g, '')
   .replace(/: \{ key: ServiceVehicle \| "all"; label: string \}\[\]/g, '')

@@ -3,7 +3,7 @@
  * Both say "6-8 hours ... leave your car/bike with us for the day". The studio confirmed (2026-11-11):
  *   car  = "Approx. 36–48+ hours in the studio, depending on the preparation required."
  *   bike = "Approx. 36–48 hours in the studio."
- * The site already applies these in code (client/src/lib/ceramic-timing.ts); this makes the database agree.
+ * The site already applies these in code (packages/content/src/ceramic-timing.ts); this makes the database agree.
  *
  * WHAT IT WRITES (and nothing else):
  *   car  row: faq[5].answer, and duration_text -> "36-48+ hrs"

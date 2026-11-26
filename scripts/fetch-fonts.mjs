@@ -20,8 +20,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const OUT_DIR = path.join(ROOT, "client", "public", "fonts");
-const CSS_OUT = path.join(ROOT, "client", "src", "styles", "fonts.css");
+const OUT_DIR = path.join(ROOT, "apps/admin", "public", "fonts");
+const CSS_OUT = path.join(ROOT, "apps/admin", "src", "styles", "fonts.css");
 
 /** A modern desktop UA, or Google returns ttf instead of woff2. */
 const UA =

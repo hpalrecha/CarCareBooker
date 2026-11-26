@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const src = readFileSync(new URL("../server/services/lead-sheet.ts", import.meta.url), "utf8");
+const src = readFileSync(new URL("../apps/api/src/services/lead-sheet.ts", import.meta.url), "utf8");
 
 test("lead sheet sync is env-driven with no hardcoded host", () => {
   assert.match(src, /process\.env\.GOOGLE_SHEET_WEBHOOK_URL/);
@@ -16,7 +16,7 @@ test("sync is fire-and-forget and bounded by a timeout", () => {
 });
 
 test("route calls the sync after the lead is saved", () => {
-  const routes = readFileSync(new URL("../server/routes.ts", import.meta.url), "utf8");
+  const routes = readFileSync(new URL("../apps/api/src/routes.ts", import.meta.url), "utf8");
   const create = routes.indexOf("storage.createPpfLead({");
   const call = routes.indexOf("sendLeadToSheet(lead);", create);
   assert.ok(create > 0 && call > create, "sendLeadToSheet must run after createPpfLead");

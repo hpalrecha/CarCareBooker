@@ -20,12 +20,12 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 
 test('robots.txt does not disallow the public /api/ tree', () => {
-  const routes = read('server/routes.ts');
+  const routes = read('apps/api/src/routes.ts');
   assert.doesNotMatch(routes, /`Disallow: \/api\/\\n`/);
   assert.match(routes, /`Disallow: \/api\/admin\/\\n`/);
 });
 
 test('every /api response is marked noindex', () => {
-  const index = read('server/index.ts');
+  const index = read('apps/api/src/index.ts');
   assert.match(index, /app\.use\("\/api",[\s\S]{0,120}X-Robots-Tag", "noindex"/);
 });

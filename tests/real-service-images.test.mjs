@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const src = fs.readFileSync(path.join(root, 'client/src/lib/real-service-images.ts'), 'utf8');
+const src = fs.readFileSync(path.join(root, 'apps/admin/src/lib/real-service-images.ts'), 'utf8');
 // Comments explain what was replaced and may name those files; only real code counts.
 const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
@@ -29,7 +29,7 @@ describe('real service images', () => {
   });
 
   test('it only touches the two service GETs', () => {
-    const q = fs.readFileSync(path.join(root, 'client/src/lib/queryClient.ts'), 'utf8');
+    const q = fs.readFileSync(path.join(root, 'apps/admin/src/lib/queryClient.ts'), 'utf8');
     assert.match(q, /applyRealServiceImages\(/);
     assert.match(code, /url === "\/api\/services"/);
     assert.match(code, /\/api\\\/services\\\//);

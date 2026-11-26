@@ -24,14 +24,14 @@ import {
   pickDeterministic,
   campaignsOverlap,
   millisRemaining,
-} from "../shared/campaign.ts";
+} from "../packages/domain/src/campaign.ts";
 import {
   validateCampaignInput,
   findOverlaps,
   effectiveCampaignForLandingPage,
   campaignFreeBookingForService,
-} from "../server/lib/campaign.ts";
-import { resolveBookingAmount, DEFAULT_BOOKING_FEE } from "../server/lib/booking-amount.ts";
+} from "../apps/api/src/lib/campaign.ts";
+import { resolveBookingAmount, DEFAULT_BOOKING_FEE } from "../apps/api/src/lib/booking-amount.ts";
 
 /**
  * IST helper. Every business expectation in this file is written in Asia/Kolkata, because

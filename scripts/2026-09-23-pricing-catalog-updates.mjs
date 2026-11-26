@@ -23,10 +23,10 @@
  * the "36-48 hrs" / "6-12 hrs" / "18-24 hrs" ranges from the shop can't live
  * in that column alone. This script sets `duration` to the range's upper
  * bound (for sorting/consistency) and the actual range text is rendered by a
- * slug lookup added to client/src/lib/service-time.ts in this same change.
+ * slug lookup added to packages/content/src/service-time.ts in this same change.
  *
  * The Interior Detailing Service rename also requires updating
- * client/src/lib/canonical-services.ts (TRANSFORMATION_CTAS.interiorDeepClean
+ * packages/content/src/canonical-services.ts (TRANSFORMATION_CTAS.interiorDeepClean
  * .expectedTitle), or the homepage "Interior Deep Clean" CTA silently stops
  * resolving. Do not run this against prod without that file changed too.
  */

@@ -16,8 +16,8 @@ const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 describe('item 10 — mobile blog carousel no longer bleeds past the viewport on /ppf and /ceramic-coating/car', () => {
   // The blog carousel rules moved out of landing-pages.css into their own file (the homepage
   // imports the carousel, not the landing pages), so read both files where the rules may live.
-  const landingCss = read('client/src/styles/landing-pages.css') + read('client/src/styles/blog-carousel.css');
-  const redesignCss = read('client/src/styles/redesign.css');
+  const landingCss = read('apps/admin/src/styles/landing-pages.css') + read('apps/admin/src/styles/blog-carousel.css');
+  const redesignCss = read('apps/admin/src/styles/redesign.css');
 
   test(".wrap's mobile padding is 16px (the value .blogc's bleed must match)", () => {
     assert.match(redesignCss, /\.p91x \.wrap \{ padding: 0 16px; \}/);
@@ -32,7 +32,7 @@ describe('item 10 — mobile blog carousel no longer bleeds past the viewport on
 });
 
 describe('item 9 — footer and filter-chip tap targets reach 40px on phone pages', () => {
-  const css = read('client/src/styles/redesign.css');
+  const css = read('apps/admin/src/styles/redesign.css');
 
   // .foot-btn, .foot-more and .foot-legal a were raised from a 40px floor to the full
   // WCAG 44px minimum in a later pass (the render QA that followed the .p91x migration
@@ -55,7 +55,7 @@ describe('item 9 — footer and filter-chip tap targets reach 40px on phone page
   });
 
   test('vehicle/category filter chips and the two "clear filters" buttons have a 40px floor', () => {
-    const filterSrc = read('client/src/components/service-filter.tsx');
+    const filterSrc = read('apps/admin/src/components/service-filter.tsx');
     const hits = filterSrc.match(/min-h-\[40px\]/g) || [];
     assert.ok(
       hits.length >= 4,
@@ -65,7 +65,7 @@ describe('item 9 — footer and filter-chip tap targets reach 40px on phone page
 });
 
 describe('item 14 — refund policy no longer promises a nonexistent ₹599 service', () => {
-  const src = read('client/src/pages/refund-policy.tsx');
+  const src = read('apps/admin/src/pages/refund-policy.tsx');
 
   test('the stale ₹599 figure is gone', () => {
     assert.doesNotMatch(src, /599/);
@@ -91,7 +91,7 @@ describe('item 14 — refund policy no longer promises a nonexistent ₹599 serv
 });
 
 describe('chat widget: long links and the phone keyboard', () => {
-  const src = read('client/src/components/chat-widget.tsx');
+  const src = read('apps/admin/src/components/chat-widget.tsx');
 
   test('a long URL in a bot reply wraps inside the bubble and is a real link', () => {
     assert.match(src, /\[overflow-wrap:anywhere\]/);
@@ -106,7 +106,7 @@ describe('chat widget: long links and the phone keyboard', () => {
 });
 
 describe('blog cover images', () => {
-  const src = read('client/src/lib/blog-posts.ts');
+  const src = read('packages/content/src/blog-posts.ts');
   const covers = [...src.matchAll(/src: "(\/attached_assets\/blog\/[^"]+)"/g)].map((m) => m[1]);
 
   test('every post has its own cover image and the file exists', () => {

@@ -58,7 +58,7 @@ function visit(pathname, search = "", referrer = "") {
 }
 
 const { captureAttribution, getAttribution, attributionPayload, __resetAttributionForTests } =
-  await import("../client/src/lib/attribution.ts");
+  await import("../apps/admin/src/lib/attribution.ts");
 
 describe("first-touch capture", () => {
   beforeEach(() => {

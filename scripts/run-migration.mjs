@@ -1,7 +1,7 @@
 // Applies a single .sql migration file to CARCARE_DATABASE_URL, then reports the result.
 //   node scripts/run-migration.mjs scripts/migrations/<file>.sql [--dry-run]
 //
-// Uses the same Pool/WebSocket client as server/db.ts, because the neon() HTTP client
+// Uses the same Pool/WebSocket client as apps/api/src/db.ts, because the neon() HTTP client
 // (v0.10.x) only supports tagged templates and cannot execute raw DDL.
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';

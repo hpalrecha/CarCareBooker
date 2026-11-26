@@ -17,10 +17,10 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 
-const posts = read('client/src/lib/blog-posts.ts');
-const index = read('client/src/pages/blog-index.tsx');
-const routes = read('server/routes.ts');
-const editorial = read('client/src/styles/editorial.css');
+const posts = read('packages/content/src/blog-posts.ts');
+const index = read('apps/admin/src/pages/blog-index.tsx');
+const routes = read('apps/api/src/routes.ts');
+const editorial = read('apps/admin/src/styles/editorial.css');
 
 /** Categories declared on posts, via the same slug rule the app uses. */
 function categories() {
@@ -217,7 +217,7 @@ describe('the build can actually run in the container', () => {
     assert.equal(isIgnored('scripts/build-erp-poller-workflow.mjs'), true, 'local tooling stays out');
     assert.equal(isIgnored('scripts/optimize-images.mjs'), false, 're-included by name');
     assert.equal(isIgnored('tests/blog-seo.test.mjs'), true, 'tests stay out');
-    assert.equal(isIgnored('client/src/main.tsx'), false, 'app source is included');
+    assert.equal(isIgnored('apps/admin/src/main.tsx'), false, 'app source is included');
   });
 
   test('every script the build invokes is in the Docker build context', () => {

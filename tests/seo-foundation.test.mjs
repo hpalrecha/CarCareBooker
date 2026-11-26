@@ -32,15 +32,15 @@ before(async () => {
   fs.writeFileSync(
     entry,
     [
-      'export * from "@/lib/static-seo";',
-      'export * from "@/lib/crawlable-content";',
-      'export * from "@/lib/service-seo";',
-      'export * from "@/lib/llms-txt";',
-      'export { SEO_PAGES, guideLandingLink } from "@/lib/seo-pages";',
-      'export { BLOG_POSTS } from "@/lib/blog-posts";',
-      'export { LANDING_PAGES } from "@/lib/landing-pages";',
-      'export { SERVICE_RELATED, relatedLinksFor } from "@/lib/service-related-links";',
-      'export { PRODUCT_BRANDS } from "@/lib/nav-menu";',
+      'export * from "@p91/content/static-seo";',
+      'export * from "@p91/content/crawlable-content";',
+      'export * from "@p91/content/service-seo";',
+      'export * from "@p91/content/llms-txt";',
+      'export { SEO_PAGES, guideLandingLink } from "@p91/content/seo-pages";',
+      'export { BLOG_POSTS } from "@p91/content/blog-posts";',
+      'export { LANDING_PAGES } from "@p91/content/landing-pages";',
+      'export { SERVICE_RELATED, relatedLinksFor } from "@p91/content/service-related-links";',
+      'export { PRODUCT_BRANDS } from "@p91/content/nav-menu";',
     ].join('\n'),
   );
   const out = path.join(dir, 'seo-foundation.mjs');
@@ -51,7 +51,7 @@ before(async () => {
     platform: 'node',
     outfile: out,
     logLevel: 'silent',
-    alias: { '@': path.join(repoRoot, 'client', 'src'), '@shared': path.join(repoRoot, 'shared') },
+    alias: { '@': path.join(repoRoot, 'apps/admin', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') },
     external: ['drizzle-orm', 'drizzle-zod', 'zod', 'drizzle-orm/*'],
   });
   m = await import(pathToFileURL(out).href + '?t=' + Date.now());
@@ -87,22 +87,22 @@ describe('titles and descriptions', () => {
 
   test('the h1 and lede fed to crawlers are what the page actually renders', () => {
     const files = {
-      '/': 'client/src/pages/home.tsx',
-      '/services': 'client/src/pages/services.tsx',
-      '/products': 'client/src/pages/products.tsx',
-      '/contact': 'client/src/pages/contact.tsx',
-      '/gallery': 'client/src/pages/gallery.tsx',
+      '/': 'apps/admin/src/pages/home.tsx',
+      '/services': 'apps/admin/src/pages/services.tsx',
+      '/products': 'apps/admin/src/pages/products.tsx',
+      '/contact': 'apps/admin/src/pages/contact.tsx',
+      '/gallery': 'apps/admin/src/pages/gallery.tsx',
       // faq.tsx renders FAQ_SEO.h1 straight from static-seo.ts (no lede), so the source of the h1 is that file.
-      '/faq': 'client/src/lib/static-seo.ts',
-      '/ppf-ceramic-coating': 'client/src/pages/ppf-ceramic-landing.tsx',
-      '/privacy-policy': 'client/src/pages/privacy-policy.tsx',
-      '/terms-conditions': 'client/src/pages/terms-conditions.tsx',
-      '/refund-policy': 'client/src/pages/refund-policy.tsx',
+      '/faq': 'packages/content/src/static-seo.ts',
+      '/ppf-ceramic-coating': 'apps/admin/src/pages/ppf-ceramic-landing.tsx',
+      '/privacy-policy': 'apps/admin/src/pages/privacy-policy.tsx',
+      '/terms-conditions': 'apps/admin/src/pages/terms-conditions.tsx',
+      '/refund-policy': 'apps/admin/src/pages/refund-policy.tsx',
     };
     for (const page of m.STATIC_SEO_PAGES) {
       // Render-ish text of the component: tags and {" "} removed, entities decoded.
       // /products keeps its wording in lib/products-page-data.ts so the page and the first HTML share one source.
-      const extra = page.path === '/products' ? read('client/src/lib/products-page-data.ts') : '';
+      const extra = page.path === '/products' ? read('packages/content/src/products-page-data.ts') : '';
       const rendered = (read(files[page.path]) + ' ' + extra)
         .replace(/\{"\s"\}/g, ' ')
         .replace(/<[^>]+>/g, ' ')
@@ -248,7 +248,7 @@ describe('crawlable content baked into the initial HTML', () => {
   });
 
   test('the app mounts with createRoot, which replaces the snapshot (no hydration to mismatch)', () => {
-    const main = read('client/src/main.tsx');
+    const main = read('apps/admin/src/main.tsx');
     assert.match(main, /createRoot\(/);
     assert.doesNotMatch(main, /hydrateRoot/, 'hydrateRoot would try to reuse the snapshot and mismatch');
   });
@@ -265,9 +265,9 @@ describe('schema', () => {
 
   test('prerendered and server-injected schema is marked, and the hook removes it (no duplicates)', () => {
     assert.match(read('scripts/prerender.mjs'), /application\/ld\+json" data-seo="prerender"/);
-    const vite = read('server/vite.ts');
+    const vite = read('apps/api/src/vite.ts');
     assert.equal((vite.match(/data-seo="prerender"/g) || []).length >= 2, true, '/service/:slug and /services');
-    const hook = read('client/src/hooks/use-seo-meta.ts');
+    const hook = read('apps/admin/src/hooks/use-seo-meta.ts');
     assert.match(hook, /\[data-seo="prerender"\]'\)/);
     // Only types the page replaces are removed, so BreadcrumbList survives on pages that
     // do not re-emit it; everything goes after an in-app navigation.
@@ -282,9 +282,9 @@ describe('schema', () => {
   });
 
   test('homepage FAQ: one list feeds the page, the raw HTML and the schema, and states no price or duration figure', () => {
-    const faq = read('client/src/lib/home-faq.ts');
-    const home = read('client/src/pages/home.tsx');
-    const crawl = read('client/src/lib/crawlable-content.ts');
+    const faq = read('packages/content/src/home-faq.ts');
+    const home = read('apps/admin/src/pages/home.tsx');
+    const crawl = read('packages/content/src/crawlable-content.ts');
     assert.match(home, /HOME_FAQS\.map/);
     assert.match(home, /homeFaqSchema\(\)/);
     assert.match(crawl, /HOME_FAQS/);
@@ -300,7 +300,7 @@ describe('schema', () => {
   });
 
   test('homepage H2s carry both target phrases', () => {
-    const faq = read('client/src/lib/home-faq.ts');
+    const faq = read('packages/content/src/home-faq.ts');
     for (const name of ['HOME_ABOUT_H2', 'HOME_FAQ_HEADING']) {
       const m = faq.match(new RegExp('export const ' + name + ' = "([^"]+)"'));
       assert.ok(m, name + ' exists');
@@ -312,7 +312,7 @@ describe('schema', () => {
 
 describe('prerender and server wiring', () => {
   const script = read('scripts/prerender.mjs');
-  const vite = read('server/vite.ts');
+  const vite = read('apps/api/src/vite.ts');
 
   test('every prerendered route must ship content and exactly one h1, or the build fails', () => {
     assert.match(script, /no crawlable content built/);
@@ -349,10 +349,10 @@ describe('prerender and server wiring', () => {
   });
 
   test('the guide component renders the landing link from the helper, and the snapshot is left alone', () => {
-    const src = read('client/src/pages/seo-service-page.tsx');
+    const src = read('apps/admin/src/pages/seo-service-page.tsx');
     assert.match(src, /guideLandingLink\(page\)/);
     assert.match(src, /data-testid="link-seo-landing"/);
-    assert.ok(!read('client/src/lib/crawlable-content.ts').includes('guideLandingLink'), 'the crawler snapshot must not duplicate the link');
+    assert.ok(!read('packages/content/src/crawlable-content.ts').includes('guideLandingLink'), 'the crawler snapshot must not duplicate the link');
   });
 
   test('/service/:slug and /services are filled from the database per request, with a safe fallback', () => {
@@ -376,7 +376,7 @@ describe('prerender and server wiring', () => {
 
 describe('llms.txt', () => {
   test('is served by the server, not left to 404', () => {
-    const routes = read('server/routes.ts');
+    const routes = read('apps/api/src/routes.ts');
     assert.match(routes, /app\.get\("\/llms\.txt"/);
     // Booking-page descriptions carry the live offer ("book your appointment free"), so
     // they are not republished here.
@@ -410,7 +410,7 @@ describe('home links to the pages that carry the prices', () => {
   test('the rendered home page and its snapshot both link /ppf, /ceramic-coating/* and interior detailing', () => {
     const page = m.STATIC_SEO_PAGES.find((x) => x.path === '/');
     const html = m.homePageContent(page);
-    const home = read('client/src/pages/home.tsx');
+    const home = read('apps/admin/src/pages/home.tsx');
     assert.match(home, /HOME_PACKAGE_LINKS\.map/, 'home.tsx must render the package links');
     for (const href of ['/ppf', '/ceramic-coating/car', '/ceramic-coating/bike', '/services/interior-detailing-bangalore']) {
       assert.ok(html.includes(`<a href="${href}"`), `snapshot missing ${href}`);
@@ -424,11 +424,11 @@ describe('technical SEO brief: robots meta, hub links, gallery images', () => {
   test('every prerendered route states index,follow, except the noindex,follow ones', () => {
     assert.match(prerenderSrc, /route\.noindex \? "noindex,follow" : "index,follow"/);
     assert.match(prerenderSrc, /NOINDEX_STATIC_PATHS = new Set\(\["\/terms-conditions", "\/privacy-policy", "\/refund-policy"\]\)/);
-    assert.match(read('server/vite.ts'), /content="index,follow"/, 'server-rendered /service/:slug must state index,follow too');
+    assert.match(read('apps/api/src/vite.ts'), /content="index,follow"/, 'server-rendered /service/:slug must state index,follow too');
   });
 
   test('noindex pages are not in the sitemap', () => {
-    const routesSrc = read('server/routes.ts');
+    const routesSrc = read('apps/api/src/routes.ts');
     for (const p of ['/terms-conditions', '/privacy-policy', '/refund-policy', '/blog/category/']) {
       assert.ok(!routesSrc.includes(`loc: "${p}`), `${p} is noindex and must not be listed`);
     }
@@ -463,7 +463,7 @@ describe('guide pages bake FAQPage schema into the HTML', () => {
 
 describe('duplicate homepage URL', () => {
   test('/index.html is a permanent redirect to "/", not a second 200 page', () => {
-    const src = read('server/routes.ts');
+    const src = read('apps/api/src/routes.ts');
     const needle = 'index\\.html$/i'; // the regex source as written in routes.ts: index\.html$/i
     assert.ok(src.includes(needle), 'route missing');
     const at = src.indexOf(needle);
@@ -569,7 +569,7 @@ describe('related guides, brands and articles on the /service/* pages', () => {
   });
 
   test('the page renders the same helper, as a section with testable cards', () => {
-    const src = read('client/src/pages/service-landing.tsx');
+    const src = read('apps/admin/src/pages/service-landing.tsx');
     assert.match(src, /relatedLinksFor\(service\.slug\)/);
     assert.match(src, /data-testid="section-related-links"/);
     assert.match(src, /Related guides, products and reading/);

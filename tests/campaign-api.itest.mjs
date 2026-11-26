@@ -56,22 +56,22 @@ const storage = {
 };
 
 class SlotFullError extends Error {}
-mock.module("../server/storage.ts", { exports: { storage, SlotFullError } });
+mock.module("../apps/api/src/storage.ts", { exports: { storage, SlotFullError } });
 // These tests assert the ordinary booking fee. The Diwali ₹99 slot offer is open until 8 Nov 2026 and would change
 // every ordinary amount, so it is pinned closed here; the offer itself is covered in diwali-slot-offer.itest.mjs.
-mock.module('../server/lib/diwali-offer.ts', { exports: { ...(await import('../server/lib/diwali-offer.ts')), isDiwaliOfferOpen: () => false } });
-mock.module("../server/services/payment.ts", {
+mock.module('../apps/api/src/lib/diwali-offer.ts', { exports: { ...(await import('../apps/api/src/lib/diwali-offer.ts')), isDiwaliOfferOpen: () => false } });
+mock.module("../apps/api/src/services/payment.ts", {
   exports: {
     createPaymentOrder: async (amount) => ({ id: "order_" + ++seq, amount: amount * 100, currency: "INR" }),
     verifyPaymentSignature: async () => true,
   },
 });
-mock.module("../server/services/whatsapp.ts", {
+mock.module("../apps/api/src/services/whatsapp.ts", {
   exports: { whatsappService: { sendBookingConfirmation: async () => ({ success: true, messageId: "w" }) } },
 });
-mock.module("../server/services/scheduler.ts", { exports: { schedulerService: { startReminderScheduler() {} } } });
-mock.module("../server/services/email.ts", { exports: { sendBookingConfirmationEmail: async () => ({ success: true }) } });
-mock.module("../server/services/webhook.ts", { exports: { sendBookingWebhook: async () => ({ ok: true }) } });
+mock.module("../apps/api/src/services/scheduler.ts", { exports: { schedulerService: { startReminderScheduler() {} } } });
+mock.module("../apps/api/src/services/email.ts", { exports: { sendBookingConfirmationEmail: async () => ({ success: true }) } });
+mock.module("../apps/api/src/services/webhook.ts", { exports: { sendBookingWebhook: async () => ({ ok: true }) } });
 
 let server;
 let base;
@@ -90,7 +90,7 @@ before(async () => {
   process.env.RAZORPAY_WEBHOOK_SECRET = "fake";
   process.env.NODE_ENV = "test";
 
-  const { registerRoutes } = await import("../server/routes.ts");
+  const { registerRoutes } = await import("../apps/api/src/routes.ts");
   const app = express();
   app.use(express.json({ verify: (req, _res, buf) => { req.rawBody = Buffer.from(buf); } }));
   app.use((req, _res, next) => {

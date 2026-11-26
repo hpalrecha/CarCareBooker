@@ -31,7 +31,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 
 // Load the pure module by stripping its type annotations — it has no runtime dependencies.
 const src = fs
-  .readFileSync(path.join(repoRoot, 'server/lib/booking-amount.ts'), 'utf8')
+  .readFileSync(path.join(repoRoot, 'apps/api/src/lib/booking-amount.ts'), 'utf8')
   .replace(/export interface \w+ \{[\s\S]*?\n\}/g, '')
   .replace(/function usableAmount\([^)]*\)[^{]*\{/, 'function usableAmount(value) {')
   // Multi-line signature with a default parameter, so it needs its own rule.
@@ -51,7 +51,7 @@ const { resolveBookingAmount, isFreeBookingWindow, DEFAULT_BOOKING_FEE, FULL_PRI
 
 /** Route source with comments removed, so assertions match code and not the explanations. */
 const routeCode = fs
-  .readFileSync(path.join(repoRoot, 'server/routes.ts'), 'utf8')
+  .readFileSync(path.join(repoRoot, 'apps/api/src/routes.ts'), 'utf8')
   .replace(/\/\*[\s\S]*?\*\//g, '')
   .replace(/^\s*\/\/.*$/gm, '');
 

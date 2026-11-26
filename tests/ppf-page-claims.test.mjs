@@ -25,47 +25,47 @@ before(async () => {
   const out = path.join(repoRoot, 'node_modules', '.cache', 'ppf-page-claims-landing.mjs');
   fs.mkdirSync(path.dirname(out), { recursive: true });
   await esbuild.build({
-    entryPoints: [path.join(repoRoot, 'client', 'src', 'lib', 'landing-pages.ts')], bundle: true, format: 'esm', platform: 'node',
-    outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'client', 'src') },
+    entryPoints: [path.join(repoRoot, 'packages', 'content', 'src', 'landing-pages.ts')], bundle: true, format: 'esm', platform: 'node',
+    outfile: out, logLevel: 'silent', alias: { '@': path.join(repoRoot, 'apps/admin', 'src'), '@p91/content': path.join(repoRoot, 'packages', 'content', 'src'), '@p91/db': path.join(repoRoot, 'packages', 'db', 'src'), '@p91/domain': path.join(repoRoot, 'packages', 'domain', 'src') },
   });
   landing = await import(pathToFileURL(out).href + '?t=' + Date.now());
 });
 
 describe('same-day wording', () => {
   test('the campaign landing component promises neither same-day slots nor same-day completion', () => {
-    const src = code('client/src/pages/campaign-landing.tsx');
+    const src = code('apps/admin/src/pages/campaign-landing.tsx');
     assert.ok(!/same[-\s]?day/i.test(src));
     assert.ok(!/finished the day you book/i.test(src));
   });
   test('booking is described as booking, installation as the catalogue\'s own studio time', () => {
-    const src = code('client/src/pages/campaign-landing.tsx');
+    const src = code('apps/admin/src/pages/campaign-landing.tsx');
     assert.match(src, /Book your slot online/);
     assert.match(src, /<b>Online booking<\/b><span>Pick your date and time<\/span>/);
     assert.match(src, /Approx\. \{time\} in the studio/);
   });
   test('the server-rendered snapshot for the landing pages says none of it either', () => {
-    assert.ok(!/same[-\s]?day|finished the day/i.test(code('client/src/lib/crawlable-content.ts').split('export function landingPageContent')[1] ?? ''));
+    assert.ok(!/same[-\s]?day|finished the day/i.test(code('packages/content/src/crawlable-content.ts').split('export function landingPageContent')[1] ?? ''));
   });
 });
 
 describe('the free-booking promise follows the package', () => {
   test('the hero strip and the offer block take the selected row and ask offer-scope', () => {
-    for (const f of ['client/src/components/hero-offer-strip.tsx', 'client/src/components/campaign-offer.tsx']) {
+    for (const f of ['apps/admin/src/components/hero-offer-strip.tsx', 'apps/admin/src/components/campaign-offer.tsx']) {
       const src = code(f);
       assert.match(src, /serviceSlug: string \| undefined/, f);
       assert.match(src, /from "@\/lib\/offer-scope"/, f);
       assert.ok(!/const offerRunning = \(campaign !== null && isFreeBooking\) \|\| legacy\.free/.test(src), f + ': the old per-page rule is gone');
     }
-    assert.match(code('client/src/components/campaign-offer.tsx'), /campaign\.serviceSlug === serviceSlug/);
+    assert.match(code('apps/admin/src/components/campaign-offer.tsx'), /campaign\.serviceSlug === serviceSlug/);
   });
   test('the page passes the selected row to both', () => {
-    const src = code('client/src/pages/campaign-landing.tsx');
+    const src = code('apps/admin/src/pages/campaign-landing.tsx');
     assert.match(src, /<HeroOfferStrip[^>]*serviceSlug=\{service\?\.slug\}/);
     assert.match(src, /serviceSlug=\{service\?\.slug\}\s*onBook=/);
   });
   test('the booking modal is told the landing page and uses the same rule', () => {
-    assert.match(code('client/src/pages/campaign-landing.tsx'), /landingPage=\{page\.path\}/);
-    const modal = code('client/src/components/booking-modal.tsx');
+    assert.match(code('apps/admin/src/pages/campaign-landing.tsx'), /landingPage=\{page\.path\}/);
+    const modal = code('apps/admin/src/components/booking-modal.tsx');
     assert.match(modal, /useCampaign\(landingPage\)/);
     assert.match(modal, /bookingIsFreeForRow\(/);
     assert.ok(!/const isFreeBooking = offer\.free;/.test(modal), 'the legacy-only check is gone');
@@ -81,7 +81,7 @@ describe('the free-booking promise follows the package', () => {
 
 describe('previous price in the booking modal', () => {
   test('the modal gates the struck-through price on showPreviousPrice', () => {
-    const modal = code('client/src/components/booking-modal.tsx');
+    const modal = code('apps/admin/src/components/booking-modal.tsx');
     assert.match(modal, /showPreviousPrice\(service\) &&/);
     assert.ok(!/\{service\.originalPrice &&/.test(modal));
   });
@@ -89,7 +89,7 @@ describe('previous price in the booking modal', () => {
 
 describe('self-healing on the /ppf page copy', () => {
   test('campaign-landing.tsx carries no self-healing claim in its text', () => {
-    assert.ok(!/self[-\s]?heal/i.test(code('client/src/pages/campaign-landing.tsx')));
+    assert.ok(!/self[-\s]?heal/i.test(code('apps/admin/src/pages/campaign-landing.tsx')));
   });
   test('the /ppf entry in landing-pages.ts carries none in its fields', () => {
     const ppf = landing.getLandingPage('/ppf');

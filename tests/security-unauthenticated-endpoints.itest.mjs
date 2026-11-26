@@ -3,7 +3,7 @@
  *
  *   node --import tsx --experimental-test-module-mocks --test tests/security-unauthenticated-endpoints.itest.mjs
  *
- * Mounts the REAL route table (server/routes.ts) with only the outer edges faked: storage,
+ * Mounts the REAL route table (apps/api/src/routes.ts) with only the outer edges faked: storage,
  * the Razorpay wrapper and the notification services. Nothing here touches a database,
  * Razorpay or WhatsApp. global fetch is wrapped so that ANY call to graph.facebook.com is
  * recorded and answered locally, so even if a protected action were reachable it could never
@@ -31,7 +31,7 @@ import { test, describe, before, after, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import express from 'express';
-import { __resetRateLimitsForTests } from '../server/lib/rate-limit.ts';
+import { __resetRateLimitsForTests } from '../apps/api/src/lib/rate-limit.ts';
 
 const WEBHOOK_SECRET = 'security-test-webhook-secret';
 const KEY_SECRET = 'security-test-key-secret';
@@ -70,9 +70,9 @@ const storage = {
 };
 class SlotFullError extends Error {}
 
-mock.module('../server/storage.ts', { exports: { storage, SlotFullError } });
-mock.module('../server/lib/diwali-offer.ts', { exports: { ...(await import('../server/lib/diwali-offer.ts')), isDiwaliOfferOpen: () => false } });
-mock.module('../server/services/payment.ts', {
+mock.module('../apps/api/src/storage.ts', { exports: { storage, SlotFullError } });
+mock.module('../apps/api/src/lib/diwali-offer.ts', { exports: { ...(await import('../apps/api/src/lib/diwali-offer.ts')), isDiwaliOfferOpen: () => false } });
+mock.module('../apps/api/src/services/payment.ts', {
   exports: {
     createPaymentOrder: async (amount, receipt) => ({ id: 'order_' + ++seq, amount: Math.round(Number(amount) * 100), currency: 'INR', receipt }),
     verifyPaymentSignature: async (orderId, paymentId, signature) =>
@@ -81,7 +81,7 @@ mock.module('../server/services/payment.ts', {
 });
 // getConfig is included so that, on code that still had the debug route, the handler would run to completion
 // against the fake fetch below instead of failing early and hiding the problem.
-mock.module('../server/services/whatsapp.ts', {
+mock.module('../apps/api/src/services/whatsapp.ts', {
   exports: {
     whatsappService: {
       getConfig: async () => ({ phoneNumberId: 'FAKE_PHONE_ID', accessToken: 'FAKE_TOKEN' }),
@@ -90,9 +90,9 @@ mock.module('../server/services/whatsapp.ts', {
     },
   },
 });
-mock.module('../server/services/scheduler.ts', { exports: { schedulerService: { startReminderScheduler() {} } } });
-mock.module('../server/services/email.ts', { exports: { sendBookingConfirmationEmail: async () => ({ success: true }) } });
-mock.module('../server/services/webhook.ts', { exports: { sendBookingWebhook: async () => ({ ok: true, n8nExecutionId: 'exec_test' }) } });
+mock.module('../apps/api/src/services/scheduler.ts', { exports: { schedulerService: { startReminderScheduler() {} } } });
+mock.module('../apps/api/src/services/email.ts', { exports: { sendBookingConfirmationEmail: async () => ({ success: true }) } });
+mock.module('../apps/api/src/services/webhook.ts', { exports: { sendBookingWebhook: async () => ({ ok: true, n8nExecutionId: 'exec_test' }) } });
 
 let server;
 let base;
@@ -116,7 +116,7 @@ before(async () => {
     return realFetch(url, opts);
   };
 
-  const { registerRoutes } = await import('../server/routes.ts');
+  const { registerRoutes } = await import('../apps/api/src/routes.ts');
   app = express();
   app.use(express.json({ verify: (req, _res, buf) => { req.rawBody = Buffer.from(buf); } }));
   app.use(express.urlencoded({ extended: false }));

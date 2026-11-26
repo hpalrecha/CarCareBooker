@@ -8,8 +8,8 @@
  */
 import http from 'http';
 import type { AddressInfo } from 'net';
-import type { Booking, Service } from '../shared/schema';
-import { sendBookingWebhook, buildBookingWebhookPayload } from '../server/services/webhook';
+import type { Booking, Service } from '../packages/db/src/schema';
+import { sendBookingWebhook, buildBookingWebhookPayload } from '../apps/api/src/services/webhook';
 
 type Mode = 'ok' | 'ok-with-execution' | 'server-error' | 'client-error' | 'hang';
 

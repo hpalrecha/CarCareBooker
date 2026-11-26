@@ -1,11 +1,11 @@
 /**
- * Covers server/lib/service-auto-image.ts — the best-guess photo picker for a brand-new
+ * Covers apps/api/src/lib/service-auto-image.ts — the best-guess photo picker for a brand-new
  * service created with no image of its own (e.g. via the simplified admin form, which
  * has no upload step).
  *
  * Deliberately conservative: an unresolved or ambiguous match must return null, never a
  * wrong guess — the existing UI already shows a clean branded placeholder for a service
- * with no image (client/src/components/image-with-fallback.tsx), so "no photo yet" is a
+ * with no image (apps/admin/src/components/image-with-fallback.tsx), so "no photo yet" is a
  * perfectly fine outcome and always safer than a mismatched one.
  */
 import { test, describe } from 'node:test';
@@ -20,7 +20,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 // import, so type annotations are stripped rather than pulling a compiler into the test
 // run — the same approach tests/service-taxonomy.test.mjs already uses.
 const taxonomySrc = fs
-  .readFileSync(path.join(repoRoot, 'client/src/lib/service-taxonomy.ts'), 'utf8')
+  .readFileSync(path.join(repoRoot, 'packages/content/src/service-taxonomy.ts'), 'utf8')
   .replace(/^export type[\s\S]*?;$/gm, '')
   .replace(/: \[RegExp, Service(Category|Vehicle)\]\[\]/g, '')
   .replace(/: \{ key: ServiceVehicle \| "all"; label: string \}\[\]/g, '')
@@ -34,7 +34,7 @@ const taxonomySrc = fs
   .replace(/^export /gm, '');
 
 const autoImageSrc = fs
-  .readFileSync(path.join(repoRoot, 'server/lib/service-auto-image.ts'), 'utf8')
+  .readFileSync(path.join(repoRoot, 'apps/api/src/lib/service-auto-image.ts'), 'utf8')
   .split('\n')
   .filter((line) => !line.trim().startsWith('import '))
   .join('\n')
@@ -97,7 +97,7 @@ describe('deriveAutoImage — refuses to guess', () => {
 });
 
 describe('storage.ts — auto-image only runs on create, never on update', () => {
-  const src = fs.readFileSync(path.join(repoRoot, 'server/storage.ts'), 'utf8');
+  const src = fs.readFileSync(path.join(repoRoot, 'apps/api/src/storage.ts'), 'utf8');
 
   const createBody = src.slice(src.indexOf('async createService'), src.indexOf('async updateService'));
   const updateBody = src.slice(src.indexOf('async updateService'), src.indexOf('async setServiceActiveStatus'));

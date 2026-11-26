@@ -1,0 +1,118 @@
+/* =====================================================================================
+   DARK STUDIO THEME for every inner page (services, products, guides, contact, gallery).
+   The home page, the policy pages, the booking confirmation and the admin stay light.
+
+   Look taken from the first redesign canvas: graphite ground, warm off-white text, one green accent,
+   surfaces one step lighter than the page. The canvas used orange for the accent; the brand green is
+   used instead. Type, radii, button sizes and the 44px tap targets stay as in the design system
+   (studio.css): this file only changes colour.
+
+   Scoped to html.sd, which apps/admin/index.html sets before first paint and App.tsx keeps in step.
+   It works by re-pointing the colour tokens that redesign.css and studio.css already read, then fixing
+   the few places that hard-code a light colour. Remove the import in main.tsx to switch it off.
+   Colour pairs used: off-white #F3F1EC on #0F1011 = 17:1; muted #A9ADB2 on #0F1011 = 8.4:1;
+   green #4EB848 on #0F1011 = 8.2:1; ink #121314 on green #4EB848 = 7.4:1.
+   ===================================================================================== */
+html.sd {
+  color-scheme: dark;
+  --deep-black: #0F1011;
+  --dark-gray: #17191B;
+  --medium-gray: #2A2D30;
+  --surface-dark: #17191B;
+  --txt: #F3F1EC;
+  --txt-2: #C9CCD0;
+  --txt-3: #A9ADB2;
+  --accent-ink: #4EB848;
+  --action: #4EB848;
+  --action-dark: #6FD068;
+  --green-tint: rgba(78, 184, 72, .14);
+  --neon-soft: rgba(78, 184, 72, .14);
+  --neon-line: rgba(78, 184, 72, .4);
+  --ed-bg: #0F1011;
+  --ed-surface: #17191B;
+  --ed-line: #2A2D30;
+  --ed-line-soft: #202326;
+  --ed-ink: #F3F1EC;
+  --ed-ink-2: #C9CCD0;
+  --ed-ink-3: #A9ADB2;
+  --ed-accent: #4EB848;
+  --ed-accent-soft: rgba(78, 184, 72, .14);
+  --ed-accent-line: rgba(78, 184, 72, .4);
+  background: #0F1011;
+}
+html.sd body { background: #0F1011; color: #F3F1EC; }
+
+/* Header: dark glass. Footer already uses dark tokens. */
+html.sd .p91x header.site { background: rgba(15, 16, 17, .78); border-bottom-color: rgba(255, 255, 255, .08); }
+html.sd .p91x header.site .nav-trigger, html.sd .p91x header.site .nav-plain, html.sd .p91x header.site .icon-btn,
+html.sd .p91x header.site .btn-call, html.sd .p91x header.site .burger { color: #F3F1EC; }
+
+/* Buttons: green with ink text on dark, outlined secondary in off-white. */
+html.sd .p91x .cta-lg, html.sd .p91x .btn-book { background: var(--action); color: #121314; }
+html.sd .p91x .cta-lg:hover, html.sd .p91x .btn-book:hover { background: var(--action-dark); color: #121314; }
+html.sd .p91x .cta-ghost { background: transparent; border-color: rgba(243, 241, 236, .4); color: #F3F1EC; }
+html.sd .p91x .cta-ghost:hover { border-color: #F3F1EC; background: rgba(243, 241, 236, .08); }
+html.sd .p91x .ed-visit-btn { color: #F3F1EC; border-color: rgba(243, 241, 236, .45); }
+html.sd .p91x .ed-visit-btn.is-solid, html.sd .p91x .svc-hero-panel .cta-lg, html.sd .p91x .lp-hero-copy .cta-lg { background: var(--action); color: #121314; }
+
+/* Surfaces that hard-coded a light colour in studio.css */
+html.sd .p91x .sv-start-tile { background: var(--dark-gray); border-color: var(--medium-gray); }
+html.sd .p91x .sv-start-tile:hover { background: #1D2023; border-color: var(--action); }
+html.sd .p91x .sv-chip { border-color: var(--medium-gray); color: var(--txt-2); background: transparent; }
+html.sd .p91x .sv-chip.is-active { background: #F3F1EC; border-color: #F3F1EC; color: #121314; }
+html.sd .p91x .sv-search { background: var(--dark-gray); border-color: var(--medium-gray); color: var(--txt); }
+html.sd .p91x .lp-tier-warranty, html.sd .p91x .pdp-pill { background: rgba(78, 184, 72, .16); color: #A9E5A5; }
+html.sd .p91x .ed-reviews-list blockquote { background: var(--dark-gray); border-color: var(--medium-gray); }
+html.sd .p91x .pd-choose, html.sd .p91x .ed-visit, html.sd .p91x .ed-care { background: #17191B; }
+
+/* Service pages: the hero panel is a lighter graphite block so it reads against the page */
+html.sd .p91x .svc-hero-panel, html.sd .p91x .lp-hero-copy { background: #17191B; border: 1px solid var(--medium-gray); }
+html.sd .p91x .svc-hero-photo { background: var(--dark-gray); }
+html.sd .p91x .lp-hero-copy .vsel, html.sd .p91x .lp-hero-copy .vsel * { color: var(--txt); }
+html.sd .p91x .lp-hero-copy .vsel-q { color: var(--txt); }
+
+/* Inputs and selects inside pages */
+html.sd .p91x input, html.sd .p91x select, html.sd .p91x textarea { background: var(--dark-gray); color: var(--txt); border-color: var(--medium-gray); }
+html.sd .p91x ::placeholder { color: var(--txt-3); }
+
+/* Guides: editorial pages keep their own tokens, set above. */
+html.sd .p91x .prose a, html.sd .p91x .post-sec-body a { color: var(--action); }
+html.sd .p91x .prose a.cta-lg, html.sd .p91x .post-sec-body a.cta-lg { color: #121314; }
+
+/* The guides index sets its own colour variables on .p91x-editorial, which win over html.sd. Same values, higher specificity. */
+html.sd .p91x-editorial {
+  --ed-bg: #0F1011; --ed-surface: #17191B; --ed-line: #2A2D30; --ed-line-soft: #202326;
+  --ed-ink: #F3F1EC; --ed-ink-2: #C9CCD0; --ed-ink-3: #A9ADB2;
+  --ed-accent: #4EB848; --ed-accent-soft: rgba(78, 184, 72, .14); --ed-accent-line: rgba(78, 184, 72, .4);
+  background: #0F1011; color: #C9CCD0;
+}
+
+/* Gallery jump pills and similar chips that hard-coded white */
+html.sd .p91x .gl-jump a { background: var(--dark-gray); color: var(--txt); border-color: var(--medium-gray); }
+html.sd .p91x .gl-jump a.gl-jump-hot { background: var(--action); border-color: var(--action); color: #121314; }
+
+/* Cards that hard-coded a white background */
+html.sd .p91x .gl-offer, html.sd .p91x .post-compare, html.sd .p91x .post-compare tbody tr,
+html.sd .p91x .post-sec-body .post-questions li, html.sd .p91x .post-sec-body .post-areas li,
+html.sd .p91x .post-price, html.sd .p91x .post-faq-item { background: var(--dark-gray); }
+html.sd .p91x .gl-offer:hover { box-shadow: 0 14px 32px rgba(0, 0, 0, .5); }
+
+/* The cream "light band" sections keep their own light palette: cards inside them stay white */
+html.sd .p91x .light-band .card { background: #FFFFFF; border-color: #D9D6CF; color: #121314; }
+html.sd .p91x .light-band .card h3, html.sd .p91x .light-band .card strong, html.sd .p91x .light-band .card-body { color: #121314; }
+html.sd .p91x .light-band .card p { color: #33443C !important; }
+html.sd .p91x .light-band .card p:first-of-type { color: #121314 !important; }
+
+/* Desktop mega-nav dropdowns (Services / Products / Resources). redesign.css paints the panel white at 95%
+   opacity; with the dark theme's light text that left the links unreadable. Same graphite as the cards. */
+html.sd .p91x .mega-panel {
+  background: rgba(23, 25, 27, .98);
+  border-color: rgba(255, 255, 255, .1);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .55), 0 2px 8px rgba(0, 0, 0, .35);
+}
+html.sd .p91x .mega-col h5, html.sd .p91x .mega-col .mega-h { color: #F3F1EC; opacity: .8; }
+html.sd .p91x .mega-col a, html.sd .p91x .mega-brand b, html.sd .p91x .mega-promo-cta { color: #F3F1EC; }
+html.sd .p91x .mega-col a:hover { color: #7FD879; }
+html.sd .p91x .mega-promo p, html.sd .p91x .mega-brand span, html.sd .p91x .mega-fineprint { color: #B9B6AE; opacity: 1; }
+html.sd .p91x .mega-promo, html.sd .p91x .mega-brand, html.sd .p91x .mega-products .mega-fineprint { border-color: rgba(255, 255, 255, .12); }
+html.sd .p91x .mega-brand:hover { border-color: #4EB848; }

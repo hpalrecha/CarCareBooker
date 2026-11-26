@@ -17,7 +17,7 @@
 import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 
-import { startCountdown } from "../client/src/lib/countdown.ts";
+import { startCountdown } from "../apps/admin/src/lib/countdown.ts";
 
 const SECOND = 1000, MINUTE = 60_000, HOUR = 3_600_000, DAY = 86_400_000;
 

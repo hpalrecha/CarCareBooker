@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 
-const src = read('client/src/lib/service-time.ts')
+const src = read('packages/content/src/service-time.ts')
   .replace(/: Record<string, string>/, '')
   .replace(/export function formatServiceTime\(service: \{[\s\S]*?\}\): string \| null \{/, 'function formatServiceTime(service) {');
 

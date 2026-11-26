@@ -17,7 +17,7 @@ import {
   describeRemaining,
   pad2,
   EXPIRED,
-} from "../client/src/lib/countdown.ts";
+} from "../apps/admin/src/lib/countdown.ts";
 
 const IST = (s) => new Date(`${s}+05:30`).getTime();
 const SECOND = 1000, MINUTE = 60_000, HOUR = 3_600_000, DAY = 86_400_000;

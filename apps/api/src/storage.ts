@@ -1,0 +1,650 @@
+import {
+  admins,
+  services,
+  timeSlots,
+  bookings,
+  siteSettings,
+  blackoutDates,
+  ppfLeads,
+  contactMessages,
+  type ContactMessage,
+  type InsertContactMessage,
+  chatbotKnowledge,
+  type ChatbotKnowledgeEntry,
+  type InsertChatbotKnowledgeEntry,
+  businessHours,
+  campaigns,
+  type Admin,
+  type InsertAdmin,
+  type Service,
+  type InsertService,
+  type TimeSlot,
+  type InsertTimeSlot,
+  type Booking,
+  type InsertBooking,
+  type SiteSetting,
+  type InsertSiteSetting,
+  type BlackoutDate,
+  type InsertBlackoutDate,
+  type PpfLead,
+  type InsertPpfLead,
+  type InsertPpfLeadWithPayment,
+  type PpfLeadPaymentStatus,
+  type BusinessHour,
+  type Campaign,
+  type InsertCampaign,
+} from "@p91/db/schema";
+import { db } from "./db";
+import { eq, and, gte, desc, asc, sql, or, isNull, ne, inArray } from "drizzle-orm";
+import { deriveAutoImage } from "./lib/service-auto-image";
+
+/** Thrown by createBookingWithCapacity when the requested slot is already full. */
+export class SlotFullError extends Error {
+  constructor(public readonly maxPerSlot: number) {
+    super(`This time slot is fully booked (max ${maxPerSlot} bookings).`);
+    this.name = "SlotFullError";
+  }
+}
+
+export interface IStorage {
+  // Admin operations
+  getAdmin(id: string): Promise<Admin | undefined>;
+  getAdminByEmail(email: string): Promise<Admin | undefined>;
+  createAdmin(admin: InsertAdmin): Promise<Admin>;
+
+  // Service operations
+  getAllServices(): Promise<Service[]>;
+  getAllServicesAdmin(): Promise<Service[]>;
+  getService(id: string): Promise<Service | undefined>;
+  getServiceBySlug(slug: string): Promise<Service | undefined>;
+  createService(service: InsertService): Promise<Service>;
+  updateService(id: string, service: Partial<InsertService>): Promise<Service>;
+  setServiceActiveStatus(id: string, isActive: boolean): Promise<void>;
+  deleteService(id: string): Promise<void>;
+
+  // Time slot operations
+  getServiceTimeSlots(serviceId: string, date?: Date): Promise<TimeSlot[]>;
+  getTimeSlot(id: string): Promise<TimeSlot | undefined>;
+  createTimeSlot(timeSlot: InsertTimeSlot): Promise<TimeSlot>;
+  updateTimeSlot(id: string, timeSlot: Partial<InsertTimeSlot>): Promise<TimeSlot>;
+  deleteTimeSlot(id: string): Promise<void>;
+
+  // Booking operations
+  getAllBookings(): Promise<(Booking & { service: Service; timeSlot: TimeSlot })[]>;
+  getBooking(id: string): Promise<Booking | undefined>;
+  createBooking(booking: InsertBooking): Promise<Booking>;
+  createBookingWithCapacity(
+    booking: InsertBooking,
+    slot: { serviceId: string; date: string; timeSlotId: string; maxPerSlot: number },
+  ): Promise<Booking>;
+  updateBooking(id: string, booking: Partial<InsertBooking>): Promise<Booking>;
+  getBookingsByStatus(status: string): Promise<Booking[]>;
+  getBookingCountForSlot(serviceId: string, date: string, timeSlotId: string): Promise<number>;
+
+  // Settings operations
+  getSetting(key: string): Promise<SiteSetting | undefined>;
+  getSettingsByCategory(category: string): Promise<SiteSetting[]>;
+  getAllSettings(): Promise<SiteSetting[]>;
+  upsertSetting(setting: InsertSiteSetting): Promise<SiteSetting>;
+  deleteSetting(key: string): Promise<void>;
+
+  // Blackout date operations
+  getAllBlackoutDates(): Promise<BlackoutDate[]>;
+  getBlackoutDate(date: string): Promise<BlackoutDate | undefined>;
+  createBlackoutDate(blackoutDate: InsertBlackoutDate): Promise<BlackoutDate>;
+  deleteBlackoutDate(id: string): Promise<void>;
+
+  // Chatbot knowledge hub (staff-curated facts fed to the AI chat widget)
+  getAllChatbotKnowledge(): Promise<ChatbotKnowledgeEntry[]>;
+  getActiveChatbotKnowledge(): Promise<ChatbotKnowledgeEntry[]>;
+  createChatbotKnowledge(entry: InsertChatbotKnowledgeEntry): Promise<ChatbotKnowledgeEntry>;
+  updateChatbotKnowledge(id: string, entry: Partial<InsertChatbotKnowledgeEntry>): Promise<ChatbotKnowledgeEntry>;
+  deleteChatbotKnowledge(id: string): Promise<void>;
+
+  // Campaign operations
+  getAllCampaigns(): Promise<Campaign[]>;
+  getCampaign(id: string): Promise<Campaign | undefined>;
+  getCampaignByIdentifier(identifier: string): Promise<Campaign | undefined>;
+  createCampaign(values: InsertCampaign): Promise<Campaign>;
+  updateCampaign(id: string, patch: Partial<InsertCampaign>): Promise<Campaign>;
+  deleteCampaign(id: string): Promise<void>;
+
+  // PPF leads operations
+  createContactMessage(m: InsertContactMessage): Promise<ContactMessage>;
+  getAllContactMessages(): Promise<ContactMessage[]>;
+  updateContactMessage(id: string, patch: Partial<Pick<ContactMessage, "status" | "whatsappAlertStatus" | "whatsappAlertError">>): Promise<ContactMessage | undefined>;
+  getAllPpfLeads(): Promise<PpfLead[]>;
+  getPpfLead(id: string): Promise<PpfLead | undefined>;
+  createPpfLead(lead: InsertPpfLead | InsertPpfLeadWithPayment): Promise<PpfLead>;
+  getPpfLeadByOrderId(orderId: string): Promise<PpfLead | undefined>;
+  /** Every lead a customer (by normalised phone) has for this offer, newest first. */
+  findOfferLeadsByPhone(offerName: string, phone: string): Promise<PpfLead[]>;
+  /**
+   * Paid, atomically: one conditional UPDATE, so it can never be lost to (or race with) another writer.
+   * `changed` is false when the lead was already paid.
+   */
+  markPpfLeadPaid(id: string, paymentId: string): Promise<{ lead: PpfLead | undefined; changed: boolean }>;
+  /**
+   * Failed, atomically, and ONLY from pending/failed: a lead that is paid can never be overwritten,
+   * even by a stale read in the caller. `changed` is false when nothing was updated.
+   */
+  markPpfLeadFailed(id: string, paymentId: string | null): Promise<{ lead: PpfLead | undefined; changed: boolean }>;
+  updatePpfLeadDetails(id: string, patch: Partial<Pick<InsertPpfLead, "name" | "email" | "vehicleType" | "vehicleModel"> & Pick<InsertPpfLeadWithPayment, "serviceId" | "appointmentDate" | "appointmentTime" | "amount" | "razorpayOrderId">>): Promise<PpfLead>;
+  updatePpfLeadStatus(id: string, status: string): Promise<PpfLead>;
+  /** Deletes an UNPAID lead. Returns false when nothing was deleted (missing, or paid: paid leads are never deletable). */
+  deletePpfLead(id: string): Promise<boolean>;
+
+  // Business hours operations
+  getAllBusinessHours(): Promise<BusinessHour[]>;
+  getBusinessHoursForDay(dayOfWeek: number): Promise<BusinessHour | undefined>;
+  initializeBusinessHours(): Promise<BusinessHour[]>;
+  updateBusinessHours(dayOfWeek: number, updates: { isOpen?: boolean; openTime?: string; cutoffTime?: string }): Promise<BusinessHour>;
+}
+
+export class DatabaseStorage implements IStorage {
+  // Admin operations
+  async getAdmin(id: string): Promise<Admin | undefined> {
+    const [admin] = await db.select().from(admins).where(eq(admins.id, id));
+    return admin;
+  }
+
+  async getAdminByEmail(email: string): Promise<Admin | undefined> {
+    const [admin] = await db.select().from(admins).where(eq(admins.email, email));
+    return admin;
+  }
+
+  async createAdmin(admin: InsertAdmin): Promise<Admin> {
+    const [newAdmin] = await db.insert(admins).values(admin).returning();
+    return newAdmin;
+  }
+
+  // Service operations
+  async getAllServices(): Promise<Service[]> {
+    return await db.select().from(services).where(eq(services.isActive, true)).orderBy(asc(services.title));
+  }
+
+  async getAllServicesAdmin(): Promise<Service[]> {
+    return await db.select().from(services).orderBy(asc(services.title));
+  }
+
+  async getService(id: string): Promise<Service | undefined> {
+    const [service] = await db.select().from(services).where(eq(services.id, id));
+    return service;
+  }
+
+  async getServiceBySlug(slug: string): Promise<Service | undefined> {
+    const [service] = await db.select().from(services).where(eq(services.slug, slug));
+    return service;
+  }
+
+  async createService(service: InsertService): Promise<Service> {
+    const slug = service.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    // A service created with no photo of its own (e.g. via the simplified admin form,
+    // which has no upload step) gets a best-guess match from the existing photo library
+    // instead of showing the "image coming soon" placeholder forever. Never overrides a
+    // photo the caller actually provided, and never runs on update — see
+    // server/lib/service-auto-image.ts.
+    const needsAutoImage = !service.images || service.images.length === 0;
+    const autoImage = needsAutoImage ? deriveAutoImage({ title: service.title, slug }) : null;
+    const images = autoImage ? [autoImage] : service.images;
+    const [newService] = await db.insert(services).values({ ...service, slug, images }).returning();
+    return newService;
+  }
+
+  async updateService(id: string, service: Partial<InsertService>): Promise<Service> {
+    const [updatedService] = await db
+      .update(services)
+      .set({ ...service, updatedAt: new Date() })
+      .where(eq(services.id, id))
+      .returning();
+    return updatedService;
+  }
+
+  async setServiceActiveStatus(id: string, isActive: boolean): Promise<void> {
+    await db.update(services).set({ isActive }).where(eq(services.id, id));
+  }
+
+  async deleteService(id: string): Promise<void> {
+    await db.update(services).set({ isActive: false }).where(eq(services.id, id));
+  }
+
+  // Time slot operations
+  async getServiceTimeSlots(serviceId: string, date?: Date): Promise<TimeSlot[]> {
+    if (date) {
+      const dateStr = date.toISOString().split('T')[0]; // Convert to YYYY-MM-DD format
+      
+      return await db.select()
+        .from(timeSlots)
+        .where(
+          and(
+            eq(timeSlots.serviceId, serviceId),
+            sql`DATE(${timeSlots.date}) = ${dateStr}`
+          )
+        )
+        .orderBy(asc(timeSlots.startTime));
+    }
+    
+    return await db.select()
+      .from(timeSlots)
+      .where(eq(timeSlots.serviceId, serviceId))
+      .orderBy(asc(timeSlots.date), asc(timeSlots.startTime));
+  }
+
+  async getTimeSlot(id: string): Promise<TimeSlot | undefined> {
+    const [timeSlot] = await db.select().from(timeSlots).where(eq(timeSlots.id, id));
+    return timeSlot;
+  }
+
+  async createTimeSlot(timeSlot: InsertTimeSlot): Promise<TimeSlot> {
+    const [newTimeSlot] = await db.insert(timeSlots).values(timeSlot).returning();
+    return newTimeSlot;
+  }
+
+  async updateTimeSlot(id: string, timeSlot: Partial<InsertTimeSlot>): Promise<TimeSlot> {
+    const [updatedTimeSlot] = await db
+      .update(timeSlots)
+      .set(timeSlot)
+      .where(eq(timeSlots.id, id))
+      .returning();
+    return updatedTimeSlot;
+  }
+
+  async deleteTimeSlot(id: string): Promise<void> {
+    await db.delete(timeSlots).where(eq(timeSlots.id, id));
+  }
+
+  // Booking operations
+  async getAllBookings(): Promise<(Booking & { service: Service; timeSlot: TimeSlot })[]> {
+    const result = await db
+      .select({
+        booking: bookings,
+        service: services,
+        timeSlot: timeSlots,
+      })
+      .from(bookings)
+      .leftJoin(services, eq(bookings.serviceId, services.id))
+      .leftJoin(timeSlots, eq(bookings.timeSlotId, timeSlots.id))
+      .orderBy(desc(bookings.createdAt));
+
+    return result.map(row => ({
+      ...row.booking,
+      service: row.service!,
+      timeSlot: row.timeSlot!,
+    }));
+  }
+
+  async getBooking(id: string): Promise<Booking | undefined> {
+    const [booking] = await db.select().from(bookings).where(eq(bookings.id, id));
+    return booking;
+  }
+
+  /**
+   * Look a booking up by its customer-facing confirmation token.
+   *
+   * This is the ONLY read path a customer can reach without an admin session, so the
+   * token is a bearer credential and this lookup is the gate.
+   *
+   * Guards against a blank token matching the many historical rows whose
+   * confirmation_token is NULL. Without this check a request for `/confirmation/`
+   * would compare against NULL — which in SQL matches nothing, so it happens to be
+   * safe today — but an empty string would match any row later backfilled with one.
+   * Refusing empty input here means that can never become true by accident.
+   */
+  async getBookingByConfirmationToken(token: string): Promise<Booking | undefined> {
+    if (!token || typeof token !== "string" || token.trim() === "") return undefined;
+    const [booking] = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.confirmationToken, token));
+    return booking;
+  }
+
+  async createBooking(booking: InsertBooking): Promise<Booking> {
+    const [newBooking] = await db.insert(bookings).values(booking).returning();
+    return newBooking;
+  }
+
+  /**
+   * Create a booking with an atomic per-slot capacity check.
+   *
+   * Concurrency: a Postgres transaction-scoped advisory lock keyed on the
+   * (serviceId, date, slot) triple serialises simultaneous inserts for the SAME
+   * slot, so two requests for the last space cannot both succeed. Different slots
+   * hash to different keys and never block each other, and the bookings table is
+   * never globally locked. The lock releases automatically at COMMIT/ROLLBACK.
+   *
+   * Throws SlotFullError when the slot is already at capacity.
+   */
+  async createBookingWithCapacity(
+    booking: InsertBooking,
+    slot: { serviceId: string; date: string; timeSlotId: string; maxPerSlot: number },
+  ): Promise<Booking> {
+    return await db.transaction(async (tx) => {
+      // Advisory lock on a stable 64-bit key derived from the slot identity.
+      const lockKey = `${slot.serviceId}|${slot.date}|${slot.timeSlotId}`;
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))`);
+
+      const [{ count }] = await tx
+        .select({ count: sql<number>`count(*)::int` })
+        .from(bookings)
+        .where(
+          and(
+            eq(bookings.serviceId, slot.serviceId),
+            eq(bookings.appointmentDate, slot.date),
+            eq(bookings.timeSlotId, slot.timeSlotId),
+            sql`${bookings.paymentStatus} != 'failed'`,
+            sql`${bookings.bookingStatus} != 'cancelled'`,
+          ),
+        );
+
+      if ((count || 0) >= slot.maxPerSlot) {
+        throw new SlotFullError(slot.maxPerSlot);
+      }
+
+      const [newBooking] = await tx.insert(bookings).values(booking).returning();
+      return newBooking;
+    });
+  }
+
+  async updateBooking(id: string, booking: Partial<InsertBooking>): Promise<Booking> {
+    const [updatedBooking] = await db
+      .update(bookings)
+      .set({ ...booking, updatedAt: new Date() })
+      .where(eq(bookings.id, id))
+      .returning();
+    return updatedBooking;
+  }
+
+  async getBookingsByStatus(status: string): Promise<Booking[]> {
+    return await db.select().from(bookings).where(eq(bookings.paymentStatus, status));
+  }
+
+  async getBookingCountForSlot(serviceId: string, date: string, timeSlotId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(bookings)
+      .where(
+        and(
+          eq(bookings.serviceId, serviceId),
+          eq(bookings.appointmentDate, date),
+          eq(bookings.timeSlotId, timeSlotId),
+          sql`${bookings.paymentStatus} != 'failed'`,
+          sql`${bookings.bookingStatus} != 'cancelled'`
+        )
+      );
+    return result[0]?.count || 0;
+  }
+
+  async getBookingByPaymentOrderId(orderId: string): Promise<Booking | undefined> {
+    const [booking] = await db.select().from(bookings).where(eq(bookings.razorpayOrderId, orderId));
+    return booking;
+  }
+
+  // Settings operations
+  async getSetting(key: string): Promise<SiteSetting | undefined> {
+    const [setting] = await db.select().from(siteSettings).where(eq(siteSettings.key, key));
+    return setting;
+  }
+
+  async getSettingsByCategory(category: string): Promise<SiteSetting[]> {
+    return await db.select().from(siteSettings).where(eq(siteSettings.category, category));
+  }
+
+  async getAllSettings(): Promise<SiteSetting[]> {
+    return await db.select().from(siteSettings);
+  }
+
+  async upsertSetting(settingData: InsertSiteSetting): Promise<SiteSetting> {
+    const [setting] = await db
+      .insert(siteSettings)
+      .values(settingData)
+      .onConflictDoUpdate({
+        target: siteSettings.key,
+        set: {
+          value: settingData.value,
+          description: settingData.description,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return setting;
+  }
+
+  async deleteSetting(key: string): Promise<void> {
+    await db.delete(siteSettings).where(eq(siteSettings.key, key));
+  }
+
+  // Blackout date operations
+  async getAllBlackoutDates(): Promise<BlackoutDate[]> {
+    return await db.select().from(blackoutDates).orderBy(asc(blackoutDates.date));
+  }
+
+  async getBlackoutDate(date: string): Promise<BlackoutDate | undefined> {
+    const [blackoutDate] = await db.select().from(blackoutDates).where(eq(blackoutDates.date, date));
+    return blackoutDate;
+  }
+
+  async createBlackoutDate(blackoutDate: InsertBlackoutDate): Promise<BlackoutDate> {
+    const [newBlackoutDate] = await db.insert(blackoutDates).values(blackoutDate).returning();
+    return newBlackoutDate;
+  }
+
+  async deleteBlackoutDate(id: string): Promise<void> {
+    await db.delete(blackoutDates).where(eq(blackoutDates.id, id));
+  }
+
+  // Chatbot knowledge hub
+  async getAllChatbotKnowledge(): Promise<ChatbotKnowledgeEntry[]> {
+    return await db.select().from(chatbotKnowledge).orderBy(desc(chatbotKnowledge.createdAt));
+  }
+
+  async getActiveChatbotKnowledge(): Promise<ChatbotKnowledgeEntry[]> {
+    return await db
+      .select()
+      .from(chatbotKnowledge)
+      .where(eq(chatbotKnowledge.isActive, true))
+      .orderBy(desc(chatbotKnowledge.createdAt));
+  }
+
+  async createChatbotKnowledge(entry: InsertChatbotKnowledgeEntry): Promise<ChatbotKnowledgeEntry> {
+    const [created] = await db.insert(chatbotKnowledge).values(entry).returning();
+    return created;
+  }
+
+  async updateChatbotKnowledge(
+    id: string,
+    entry: Partial<InsertChatbotKnowledgeEntry>,
+  ): Promise<ChatbotKnowledgeEntry> {
+    const [updated] = await db
+      .update(chatbotKnowledge)
+      .set({ ...entry, updatedAt: new Date() })
+      .where(eq(chatbotKnowledge.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteChatbotKnowledge(id: string): Promise<void> {
+    await db.delete(chatbotKnowledge).where(eq(chatbotKnowledge.id, id));
+  }
+
+  // PPF leads operations
+  // ---------------------------------------------------------------- campaigns
+  //
+  // Reads return EVERY campaign and let packages/domain/src/campaign.ts decide which is effective.
+  // Filtering "active and in-window" in SQL was the obvious alternative and is worse:
+  // the window rules (half-open interval, paused-is-a-draft, invalid-fails-closed) would
+  // then exist in two languages, and the deterministic tiebreak could not be expressed in
+  // the same place as the rest of the logic. The table holds a handful of rows.
+
+  async getAllCampaigns(): Promise<Campaign[]> {
+    return await db.select().from(campaigns).orderBy(desc(campaigns.startsAt));
+  }
+
+  async getCampaign(id: string): Promise<Campaign | undefined> {
+    const [row] = await db.select().from(campaigns).where(eq(campaigns.id, id));
+    return row;
+  }
+
+  async getCampaignByIdentifier(identifier: string): Promise<Campaign | undefined> {
+    if (!identifier || identifier.trim() === "") return undefined;
+    const [row] = await db.select().from(campaigns).where(eq(campaigns.identifier, identifier));
+    return row;
+  }
+
+  async createCampaign(values: InsertCampaign): Promise<Campaign> {
+    const [row] = await db.insert(campaigns).values(values).returning();
+    return row;
+  }
+
+  async updateCampaign(id: string, patch: Partial<InsertCampaign>): Promise<Campaign> {
+    const [row] = await db
+      .update(campaigns)
+      .set({ ...patch, updatedAt: new Date() })
+      .where(eq(campaigns.id, id))
+      .returning();
+    return row;
+  }
+
+  async deleteCampaign(id: string): Promise<void> {
+    // Hard delete: campaigns.id has no foreign key from bookings (bookings snapshot
+    // campaignIdentifier as plain text), so removing a campaign row cannot orphan a
+    // booking or corrupt attribution history — see the schema comment on
+    // bookings.campaignIdentifier.
+    await db.delete(campaigns).where(eq(campaigns.id, id));
+  }
+
+  async createContactMessage(m: InsertContactMessage): Promise<ContactMessage> {
+    const [row] = await db.insert(contactMessages).values(m).returning();
+    return row;
+  }
+
+  async getAllContactMessages(): Promise<ContactMessage[]> {
+    return await db.select().from(contactMessages).orderBy(desc(contactMessages.createdAt));
+  }
+
+  async updateContactMessage(
+    id: string,
+    patch: Partial<Pick<ContactMessage, "status" | "whatsappAlertStatus" | "whatsappAlertError">>,
+  ): Promise<ContactMessage | undefined> {
+    const [row] = await db.update(contactMessages).set(patch).where(eq(contactMessages.id, id)).returning();
+    return row;
+  }
+
+  async getAllPpfLeads(): Promise<PpfLead[]> {
+    return await db.select().from(ppfLeads).orderBy(desc(ppfLeads.createdAt));
+  }
+
+  async getPpfLead(id: string): Promise<PpfLead | undefined> {
+    const [lead] = await db.select().from(ppfLeads).where(eq(ppfLeads.id, id));
+    return lead;
+  }
+
+  async createPpfLead(lead: InsertPpfLead | InsertPpfLeadWithPayment): Promise<PpfLead> {
+    const [newLead] = await db.insert(ppfLeads).values(lead).returning();
+    return newLead;
+  }
+
+  async getPpfLeadByOrderId(orderId: string): Promise<PpfLead | undefined> {
+    const [lead] = await db.select().from(ppfLeads).where(eq(ppfLeads.razorpayOrderId, orderId));
+    return lead;
+  }
+
+  async findOfferLeadsByPhone(offerName: string, phone: string): Promise<PpfLead[]> {
+    return await db
+      .select()
+      .from(ppfLeads)
+      .where(and(eq(ppfLeads.offerName, offerName), eq(ppfLeads.phone, phone)))
+      .orderBy(desc(ppfLeads.createdAt));
+  }
+
+  async markPpfLeadPaid(id: string, paymentId: string): Promise<{ lead: PpfLead | undefined; changed: boolean }> {
+    const [updated] = await db
+      .update(ppfLeads)
+      .set({ paymentStatus: "paid", paymentId, paymentVerifiedAt: new Date() })
+      // The condition lives in the UPDATE itself, so two concurrent confirmations cannot both "win".
+      .where(and(eq(ppfLeads.id, id), or(isNull(ppfLeads.paymentStatus), ne(ppfLeads.paymentStatus, "paid"))))
+      .returning();
+    if (updated) return { lead: updated, changed: true };
+    return { lead: await this.getPpfLead(id), changed: false };
+  }
+
+  async markPpfLeadFailed(id: string, paymentId: string | null): Promise<{ lead: PpfLead | undefined; changed: boolean }> {
+    const [updated] = await db
+      .update(ppfLeads)
+      .set({ paymentStatus: "failed", paymentId })
+      // Only pending/failed rows: a paid lead is never touched, whatever the caller last read.
+      .where(and(eq(ppfLeads.id, id), inArray(ppfLeads.paymentStatus, ["pending", "failed"])))
+      .returning();
+    if (updated) return { lead: updated, changed: true };
+    return { lead: await this.getPpfLead(id), changed: false };
+  }
+
+  async updatePpfLeadDetails(
+    id: string,
+    patch: Partial<Pick<InsertPpfLead, "name" | "email" | "vehicleType" | "vehicleModel"> & Pick<InsertPpfLeadWithPayment, "serviceId" | "appointmentDate" | "appointmentTime" | "amount" | "razorpayOrderId">>,
+  ): Promise<PpfLead> {
+    const [lead] = await db.update(ppfLeads).set(patch).where(eq(ppfLeads.id, id)).returning();
+    return lead;
+  }
+
+  async updatePpfLeadStatus(id: string, status: string): Promise<PpfLead> {
+    const [updatedLead] = await db
+      .update(ppfLeads)
+      .set({ status })
+      .where(eq(ppfLeads.id, id))
+      .returning();
+    return updatedLead;
+  }
+
+  async deletePpfLead(id: string): Promise<boolean> {
+    // The paid guard is part of the DELETE, so a lead that is paid a moment before (or during) the
+    // request cannot be removed by a stale check in the caller. A paid lead is a payment record.
+    const deleted = await db
+      .delete(ppfLeads)
+      .where(and(eq(ppfLeads.id, id), or(isNull(ppfLeads.paymentStatus), ne(ppfLeads.paymentStatus, "paid"))))
+      .returning({ id: ppfLeads.id });
+    return deleted.length > 0;
+  }
+
+  // Business hours operations
+  async getAllBusinessHours(): Promise<BusinessHour[]> {
+    return await db.select().from(businessHours).orderBy(asc(businessHours.dayOfWeek));
+  }
+
+  async getBusinessHoursForDay(dayOfWeek: number): Promise<BusinessHour | undefined> {
+    const [hours] = await db.select().from(businessHours).where(eq(businessHours.dayOfWeek, dayOfWeek));
+    return hours;
+  }
+
+  async initializeBusinessHours(): Promise<BusinessHour[]> {
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const defaultHours = dayNames.map((dayName, index) => ({
+      dayOfWeek: index,
+      dayName,
+      isOpen: index !== 0, // Sunday closed by default
+      openTime: '09:00',
+      cutoffTime: index === 6 ? '14:00' : '18:00', // Saturday half day (2 PM), others full day (6 PM)
+    }));
+
+    // Insert all days, ignore conflicts (already exists)
+    for (const hours of defaultHours) {
+      const existing = await this.getBusinessHoursForDay(hours.dayOfWeek);
+      if (!existing) {
+        await db.insert(businessHours).values(hours);
+      }
+    }
+
+    return this.getAllBusinessHours();
+  }
+
+  async updateBusinessHours(dayOfWeek: number, updates: { isOpen?: boolean; openTime?: string; cutoffTime?: string }): Promise<BusinessHour> {
+    const [updated] = await db
+      .update(businessHours)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(businessHours.dayOfWeek, dayOfWeek))
+      .returning();
+    return updated;
+  }
+}
+
+export const storage = new DatabaseStorage();

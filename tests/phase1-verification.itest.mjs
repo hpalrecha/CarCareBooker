@@ -4,7 +4,7 @@
  *   npm run test:integration
  *
  * This is the evidence run for the thirteen checks Phase 1 was required to pass. It is
- * deliberately not a unit test: it boots the REAL server/routes.ts on a REAL socket and
+ * deliberately not a unit test: it boots the REAL apps/api/src/routes.ts on a REAL socket and
  * drives it with REAL HTTP requests, and it uses the REAL client-side attribution and
  * Meta Pixel modules rather than descriptions of them.
  *
@@ -34,7 +34,7 @@ import { test, describe, before, after, beforeEach, mock } from "node:test";
 import assert from "node:assert/strict";
 import express from "express";
 
-import { __resetRateLimitsForTests } from "../server/lib/rate-limit.ts";
+import { __resetRateLimitsForTests } from "../apps/api/src/lib/rate-limit.ts";
 
 const evidence = [];
 const proof = (n, claim, detail) => {
@@ -81,19 +81,19 @@ const storage = {
 };
 
 class SlotFullError extends Error {}
-mock.module("../server/storage.ts", { exports: { storage, SlotFullError } });
-mock.module("../server/services/payment.ts", {
+mock.module("../apps/api/src/storage.ts", { exports: { storage, SlotFullError } });
+mock.module("../apps/api/src/services/payment.ts", {
   exports: {
     createPaymentOrder: async (amount) => ({ id: "order_" + ++seq, amount: amount * 100, currency: "INR" }),
     verifyPaymentSignature: async () => true,
   },
 });
-mock.module("../server/services/whatsapp.ts", {
+mock.module("../apps/api/src/services/whatsapp.ts", {
   exports: { whatsappService: { sendBookingConfirmation: async () => ({ success: true, messageId: "wamid.T" }) } },
 });
-mock.module("../server/services/scheduler.ts", { exports: { schedulerService: { startReminderScheduler() {} } } });
-mock.module("../server/services/email.ts", { exports: { sendBookingConfirmationEmail: async () => ({ success: true }) } });
-mock.module("../server/services/webhook.ts", { exports: { sendBookingWebhook: async () => ({ ok: true }) } });
+mock.module("../apps/api/src/services/scheduler.ts", { exports: { schedulerService: { startReminderScheduler() {} } } });
+mock.module("../apps/api/src/services/email.ts", { exports: { sendBookingConfirmationEmail: async () => ({ success: true }) } });
+mock.module("../apps/api/src/services/webhook.ts", { exports: { sendBookingWebhook: async () => ({ ok: true }) } });
 
 let server;
 let base;
@@ -107,7 +107,7 @@ before(async () => {
   process.env.META_PIXEL_ID = "1234567890";
   process.env.NODE_ENV = "test";
 
-  const { registerRoutes } = await import("../server/routes.ts");
+  const { registerRoutes } = await import("../apps/api/src/routes.ts");
   const app = express();
   app.use(express.json({ verify: (req, _res, buf) => { req.rawBody = Buffer.from(buf); } }));
   app.use(express.urlencoded({ extended: false }));
@@ -181,7 +181,7 @@ describe("checks 1-4 — Meta ad to attributed booking", () => {
     };
     globalThis.document = { referrer: "" }; // in-app browser: referrer stripped
 
-    const { captureAttribution, attributionPayload } = await import("../client/src/lib/attribution.ts");
+    const { captureAttribution, attributionPayload } = await import("../apps/admin/src/lib/attribution.ts");
 
     const captured = captureAttribution();
     assert.equal(captured.utmSource, "meta");
@@ -257,7 +257,7 @@ describe("check 5 — Meta conversion fires exactly once", () => {
     globalThis.window = { location: { pathname: "/ppf", search: "", host: "p91carcare.com" }, localStorage: { getItem: () => null, setItem() {}, removeItem() {} } };
     globalThis.document = { referrer: "", createElement: () => ({}), getElementsByTagName: () => [{ parentNode: { insertBefore() {} } }] };
 
-    const pixel = await import("../client/src/lib/meta-pixel.ts");
+    const pixel = await import("../apps/admin/src/lib/meta-pixel.ts");
     pixel.__resetMetaPixelForTests();
     pixel.__setPixelIdForTests("1234567890");
 
@@ -283,7 +283,7 @@ describe("check 5 — Meta conversion fires exactly once", () => {
   });
 
   test("Lead is deduplicated on the same key", async () => {
-    const pixel = await import("../client/src/lib/meta-pixel.ts");
+    const pixel = await import("../apps/admin/src/lib/meta-pixel.ts");
     pixel.__resetMetaPixelForTests();
     pixel.__setPixelIdForTests("1234567890");
     const fired = [];
@@ -297,7 +297,7 @@ describe("check 5 — Meta conversion fires exactly once", () => {
 
   test("the pixel is never initialised on an admin route", async () => {
     globalThis.window = { location: { pathname: "/admin/dashboard", search: "", host: "p91carcare.com" }, localStorage: { getItem: () => null, setItem() {}, removeItem() {} } };
-    const pixel = await import("../client/src/lib/meta-pixel.ts");
+    const pixel = await import("../apps/admin/src/lib/meta-pixel.ts");
     pixel.__resetMetaPixelForTests();
     await pixel.initMetaPixel();
     assert.equal(pixel.trackLead({ eventId: "lead-admin" }), false, "no tracking under /admin");

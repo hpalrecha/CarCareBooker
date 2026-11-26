@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
 import express from "express";
-import { stripTrailingSlash } from "../server/middleware/trailing-slash.ts";
+import { stripTrailingSlash } from "../apps/api/src/middleware/trailing-slash.ts";
 
 function start() {
   const app = express();

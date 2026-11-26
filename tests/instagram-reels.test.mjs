@@ -20,7 +20,7 @@ before(async () => {
   const out = path.join(repoRoot, 'node_modules', '.cache', 'instagram-reels.mjs');
   fs.mkdirSync(path.dirname(out), { recursive: true });
   await esbuild.build({
-    entryPoints: [path.join(repoRoot, 'client/src/lib/instagram-reels.ts')],
+    entryPoints: [path.join(repoRoot, 'packages/content/src/instagram-reels.ts')],
     bundle: true, format: 'esm', platform: 'neutral', outfile: out, logLevel: 'silent',
   });
   m = await import(pathToFileURL(out).href + '?t=' + Date.now());
@@ -63,13 +63,13 @@ describe('reel data', () => {
   });
 
   test('every mapped blog slug is a real post', () => {
-    const posts = read('client/src/lib/blog-posts.ts');
+    const posts = read('packages/content/src/blog-posts.ts');
     for (const slug of Object.keys(m.REELS_BY_POST)) assert.ok(posts.includes(`slug: "${slug}"`), slug);
   });
 });
 
 describe('presentation', () => {
-  const component = read('client/src/components/instagram-reels.tsx');
+  const component = read('apps/admin/src/components/instagram-reels.tsx');
 
   test('the Instagram embed loads only when someone chooses to watch', () => {
     // One iframe, inside the dialog, rendered only for the active reel.
@@ -82,19 +82,19 @@ describe('presentation', () => {
   });
 
   test('used on the PPF/ceramic page, blog posts, and linked in the footer', () => {
-    assert.match(read('client/src/pages/ppf-ceramic-landing.tsx'), /reels=\{REELS_FOR_PPF_CERAMIC_PAGE\}/);
-    assert.ok(!/InstagramReels/.test(read('client/src/pages/blog-post.tsx').replace(/\{\/\*[\s\S]*?\*\/\}/g, '')), 'the reel block was removed from blog posts by request');
-    assert.match(read('client/src/components/redesign/site-footer.tsx'), /data-testid="link-footer-instagram"/);
+    assert.match(read('apps/admin/src/pages/ppf-ceramic-landing.tsx'), /reels=\{REELS_FOR_PPF_CERAMIC_PAGE\}/);
+    assert.ok(!/InstagramReels/.test(read('apps/admin/src/pages/blog-post.tsx').replace(/\{\/\*[\s\S]*?\*\/\}/g, '')), 'the reel block was removed from blog posts by request');
+    assert.match(read('apps/admin/src/components/redesign/site-footer.tsx'), /data-testid="link-footer-instagram"/);
   });
 
   test('"See it on Instagram" is gone from /service/:slug pages (removed by request, again, 2026-09-24); /ppf keeps it', () => {
-    assert.doesNotMatch(read('client/src/pages/service-landing.tsx'), /<InstagramReels\b/);
-    assert.doesNotMatch(read('client/src/pages/service-landing.tsx'), /REELS_BY_SERVICE/);
+    assert.doesNotMatch(read('apps/admin/src/pages/service-landing.tsx'), /<InstagramReels\b/);
+    assert.doesNotMatch(read('apps/admin/src/pages/service-landing.tsx'), /REELS_BY_SERVICE/);
     // /ppf and the ceramic pages had them and lost them again on 2026-09-24, by request.
-    assert.doesNotMatch(read('client/src/pages/campaign-landing.tsx'), /<InstagramReels\b/);
+    assert.doesNotMatch(read('apps/admin/src/pages/campaign-landing.tsx'), /<InstagramReels\b/);
   });
 
   test('the unverified YouTube shorts are gone from /ppf-ceramic-coating', () => {
-    assert.doesNotMatch(read('client/src/pages/ppf-ceramic-landing.tsx'), /youtube\.com\/embed/);
+    assert.doesNotMatch(read('apps/admin/src/pages/ppf-ceramic-landing.tsx'), /youtube\.com\/embed/);
   });
 });

@@ -1,0 +1,1035 @@
+import { useState, useEffect, useRef } from "react";
+import { useLocation } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { loadRazorpay } from "@/lib/razorpay";
+import BookingCalendar from "@/components/booking-calendar";
+import { trackBeginCheckout, trackPurchase, trackFreeBooking } from "@/lib/analytics";
+import { attributionPayload } from "@/lib/attribution";
+import { trackBooking as trackMetaBooking } from "@/lib/meta-pixel";
+import { useBookingOffer, formatOfferEnd } from "@/hooks/use-booking-offer";
+import { useCampaign } from "@/hooks/use-campaign";
+import { bookingIsFreeForRow, showPreviousPrice } from "@/lib/offer-scope";
+import { isHighValueService, HIGH_VALUE_BOOKING_FEE } from "@/lib/booking-fee";
+import { bookingFormSchema, type BlackoutDate, type BusinessHour } from "@p91/db/schema";
+import { ImageWithFallback } from "@/components/image-with-fallback";
+import { resolveServiceImage, formatINR } from "@p91/content/canonical-services";
+import { ILLUSTRATIVE_SLUGS } from "@/lib/real-service-images";
+import { formatServiceTime } from "@p91/content/service-time";
+import { Check } from "lucide-react";
+
+interface BookingModalProps {
+  service: {
+    id: string;
+    // The catalogue slug; the fee label needs it to tell PPF from other services (it is on every service record).
+    slug?: string;
+    title: string;
+    description: string;
+    price: string;
+    originalPrice?: string;
+    duration: number;
+    durationText?: string | null;
+    images?: string[];
+    whyChoose?: string;
+    whatIncluded?: string[];
+  };
+  isOpen: boolean;
+  onClose: () => void;
+  /**
+   * The campaign landing page the booking started on (e.g. "/ppf"). Optional, so every other call site is unchanged.
+   * When present, a running free-booking campaign for THIS row is shown as free, matching what the server charges
+   * (apps/api/src/lib/campaign.ts campaignFreeBookingForService); a campaign for a different row is not (lib/offer-scope.ts).
+   */
+  landingPage?: string;
+  /**
+   * What the customer actually selected on a campaign landing page.
+   *
+   * Optional, so every existing call site is unchanged. When present it is sent with the
+   * booking so admin sees "PPF, car, SUV" rather than just the service title — the page
+   * knows the body type the customer picked, and that context is lost otherwise.
+   *
+   * NEVER a pricing input. The selected SERVICE row already determines the price; these
+   * are descriptive fields only.
+   */
+  vehicleContext?: {
+    vehicleType?: "car" | "bike";
+    vehicleCategory?: string;
+  };
+  /**
+   * Seeds the date/time picker from a `?date=&time=` deep link (the chat widget's
+   * "Book this slot" button — see chat-widget.tsx / apps/api/src/services/chatbot.ts).
+   *
+   * `initialDate` seeds `selectedDate` directly: the calendar itself already disables a
+   * blackout/closed/past date, so a stale link just fails safely the same way a customer
+   * clicking that date would. `initialTime` is NOT trusted the same way — it is only applied
+   * once this modal's own live slot-availability query for that date confirms the slot is
+   * still open (see the effect below); a stale or already-booked slot is simply left
+   * unselected rather than shown as picked.
+   */
+  initialDate?: string;
+  initialTime?: string;
+}
+
+export default function BookingModal({ service, isOpen, onClose, landingPage, vehicleContext, initialDate, initialTime }: BookingModalProps) {
+  const [selectedDate, setSelectedDate] = useState("");
+  const [bookingAmount, setBookingAmount] = useState(299);
+  const { toast } = useToast();
+  const [, navigate] = useLocation();
+
+  /**
+   * Applies `initialDate` when it arrives OR changes, rather than trusting
+   * `useState(initialDate ?? "")` above to have caught it.
+   *
+   * THE BUG THIS FIXES (part 1). This modal is always mounted by its callers
+   * (service-landing.tsx renders `<BookingModal .../>` unconditionally, toggling only
+   * `isOpen`) — same as the `serviceId` bug documented further down this file. `prefillSlot`
+   * on the parent page is set inside an effect that only runs AFTER the service has loaded,
+   * which is after this component's first render. `useState`'s initializer only runs on that
+   * first render, so by the time `initialDate` actually had a value, `selectedDate` had
+   * already been initialized to "" and stayed there — the deep link silently did nothing.
+   *
+   * THE BUG THIS FIXES (part 2, found live after the first fix). A plain "applied once" ref
+   * only ever caught the FIRST prefill of the browser session: this component instance is
+   * reused across client-side navigations (wouter does not remount it just because the
+   * `/service/:slug` query string changed), so asking the chat for a second, different slot
+   * after the first one had already been applied did nothing — the ref was already tripped.
+   * Comparing against the actual `initialDate` VALUE, not a boolean, means a genuinely new
+   * date is applied every time, while a re-render with the same `initialDate` (or none) is a
+   * no-op, so it still never fights a date the customer picks for themselves afterwards.
+   */
+  const appliedInitialDateRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!initialDate || appliedInitialDateRef.current === initialDate) return;
+    appliedInitialDateRef.current = initialDate;
+    setSelectedDate(initialDate);
+  }, [initialDate]);
+
+  /**
+   * Send the customer to their confirmation page.
+   *
+   * Until now a completed booking produced a toast and nothing else: the confirmation
+   * route was registered and the page existed, but nothing ever navigated to it.
+   *
+   * Degrades rather than breaks. A missing token means the server did not return one —
+   * an older build, or a booking created before the column existed — and in that case the
+   * customer keeps the success toast they already have. Sending them to a confirmation
+   * page that cannot load would be worse than not sending them at all.
+   */
+  const goToConfirmation = (token: string | null | undefined) => {
+    if (!token) return;
+    navigate(`/booking-confirmation/${encodeURIComponent(token)}`);
+  };
+
+  // Fetch blackout dates
+  const { data: blackoutDates = [], isError: blackoutDatesError } = useQuery<BlackoutDate[]>({
+    queryKey: ["/api/blackout-dates"],
+    retry: 1,
+  });
+
+  // Fetch business hours
+  const { data: businessHours = [] } = useQuery<BusinessHour[]>({
+    queryKey: ["/api/business-hours"],
+    retry: 1,
+  });
+
+  // Log error if blackout dates fail to fetch (but don't block booking - safer to allow than block incorrectly)
+  useEffect(() => {
+    if (blackoutDatesError) {
+      console.warn("Failed to fetch blackout dates - all dates will be available for booking");
+    }
+  }, [blackoutDatesError]);
+
+  // Fix Razorpay CORS issues when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      // Remove restrictive CSP meta tags that block Razorpay
+      const cspMetas = document.querySelectorAll('meta[http-equiv="Content-Security-Policy"]');
+      cspMetas.forEach(meta => meta.remove());
+      
+      // Add a small delay to ensure Razorpay has time to initialize properly
+      const timer = setTimeout(() => {
+        console.log("Razorpay environment prepared");
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  // Fetch booking amount from settings
+  const { data: bookingAmountSetting } = useQuery({
+    queryKey: ["/api/settings/booking_amount"],
+    retry: false,
+  });
+
+  /**
+   * Is the free-booking offer running?
+   *
+   * Answered by the server, never computed here. The window is an IST calendar date, and
+   * a device on another timezone — or with a wrong clock — would otherwise show "Book
+   * Free" and then be charged, or show ₹299 in the middle of the offer. The server is the
+   * same authority that decides the amount, so the label and the charge cannot disagree.
+   *
+   * Defaults to NOT free while loading or on error, so the customer is never promised a
+   * free booking the backend intends to charge for.
+   */
+  const offer = useBookingOffer();
+  // A running free_booking campaign frees ONE row; the legacy window frees every row. Same rule as the server.
+  const { campaign: pageCampaign, isFreeBooking: pageCampaignIsFree } = useCampaign(landingPage);
+  const isFreeBooking = bookingIsFreeForRow({
+    rowSlug: service?.slug,
+    campaign: pageCampaignIsFree ? pageCampaign : null,
+    legacyFree: offer.free,
+  });
+  const offerEnds = offer.free ? formatOfferEnd(offer.until) : null;
+  const isAnnualPackage = service?.title === 'Annual Maintenance Package';
+  const serviceTime = service ? formatServiceTime(service) : null;
+
+  useEffect(() => {
+    console.log("Booking amount setting changed:", bookingAmountSetting);
+    // Check if this is the Annual Maintenance Package - charge full price
+    if (service.title === 'Annual Maintenance Package') {
+      const fullPrice = parseFloat(service.price);
+      console.log("Annual Maintenance Package - setting full price:", fullPrice);
+      setBookingAmount(fullPrice);
+    } else if (isHighValueService(service.slug, service.price)) {
+      // PPF over ₹10,000: ₹499 slot deposit. The server charges the same figure whatever this says.
+      setBookingAmount(HIGH_VALUE_BOOKING_FEE);
+    } else if (offer.slotOffer) {
+      // Diwali offer: every other service takes the ₹99 slot fee. The server decides the real charge from the same rule.
+      setBookingAmount(offer.slotFee);
+    } else if (bookingAmountSetting && typeof bookingAmountSetting === 'object' && 'value' in bookingAmountSetting) {
+      const amount = parseFloat(String(bookingAmountSetting.value));
+      console.log("Setting booking amount to:", amount);
+      setBookingAmount(amount);
+    }
+  }, [bookingAmountSetting, service.title, service.slug, service.price, offer.slotOffer, offer.slotFee]);
+
+  const form = useForm({
+    resolver: zodResolver(bookingFormSchema),
+    defaultValues: {
+      serviceId: service.id,
+      timeSlotId: "",
+      customerName: "",
+      customerEmail: "",
+      customerPhone: "",
+    },
+  });
+
+  /**
+   * Keep the submitted serviceId in step with the `service` prop.
+   *
+   * ─────────────────────────────────────────────────────────────────────────────────────
+   * THE BUG THIS FIXES, because it is not obvious and it was expensive.
+   *
+   * `defaultValues` is read ONCE, when the form is created. Every caller that mounts this
+   * modal before opening it — which is all of them, since `isOpen` only toggles the
+   * dialog — therefore captures whichever service was current at mount and never updates.
+   *
+   * On the PPF landing page the service changes when the customer picks a body type. The
+   * modal correctly re-rendered its heading, price and includes from the new prop, so it
+   * *displayed* "P91 PPF - SUV" — while the form still submitted serviceId
+   * "ppf-hatchback". A customer who selected SUV, saw ₹65,000 and booked would have been
+   * recorded against the ₹45,000 Hatchback package.
+   *
+   * Caught by intercepting the real POST body in a headless browser; no amount of reading
+   * the render output would have shown it, because the render output was right.
+   *
+   * Harmless for the existing catalogue callers: their `service` never changes identity
+   * while mounted, so this runs once with the value the form already holds.
+   * ─────────────────────────────────────────────────────────────────────────────────────
+   */
+  useEffect(() => {
+    if (form.getValues("serviceId") !== service.id) {
+      form.setValue("serviceId", service.id, { shouldValidate: false, shouldDirty: false });
+    }
+  }, [service.id, form]);
+
+  // Static time slots from 10 AM to 7 PM
+  const allTimeSlots = [
+    { id: "10:00", startTime: "10:00 AM", endTime: "11:00 AM", isAvailable: true },
+    { id: "11:00", startTime: "11:00 AM", endTime: "12:00 PM", isAvailable: true },
+    { id: "12:00", startTime: "12:00 PM", endTime: "1:00 PM", isAvailable: true },
+    { id: "13:00", startTime: "1:00 PM", endTime: "2:00 PM", isAvailable: true },
+    { id: "14:00", startTime: "2:00 PM", endTime: "3:00 PM", isAvailable: true },
+    { id: "15:00", startTime: "3:00 PM", endTime: "4:00 PM", isAvailable: true },
+    { id: "16:00", startTime: "4:00 PM", endTime: "5:00 PM", isAvailable: true },
+    { id: "17:00", startTime: "5:00 PM", endTime: "6:00 PM", isAvailable: true },
+    { id: "18:00", startTime: "6:00 PM", endTime: "7:00 PM", isAvailable: true },
+  ];
+
+  // Fetch slot availability when date is selected
+  const { data: slotAvailability, isLoading: slotsLoading } = useQuery<{
+    availability: Record<string, { booked: number; max: number; available: boolean }>;
+    maxPerSlot: number;
+    // New authoritative fields from the server (blackout / closed-day aware).
+    available?: boolean;
+    reason?: string | null;
+    reasonText?: string;
+  }>({
+    queryKey: ["/api/slot-availability", service.id, selectedDate],
+    enabled: !!selectedDate && selectedDate.length > 0,
+  });
+
+  // Helper: check if today in IST (use getUTC* to avoid double-offset in IST browsers)
+  const isTodayIST = (dateStr: string) => {
+    const now = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const istNow = new Date(now.getTime() + istOffset);
+    const y = istNow.getUTCFullYear();
+    const m = String(istNow.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(istNow.getUTCDate()).padStart(2, '0');
+    const todayIST = `${y}-${m}-${d}`;
+    return dateStr === todayIST;
+  };
+
+  // Helper: get current IST time as "HH:MM" (use getUTC* to avoid double-offset)
+  const getCurrentISTTime = () => {
+    const now = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const istNow = new Date(now.getTime() + istOffset);
+    const hours = istNow.getUTCHours().toString().padStart(2, '0');
+    const minutes = istNow.getUTCMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
+  // Filter time slots based on business hours, past time, and availability.
+  // The server's slot-availability response is now authoritative about whether the
+  // DATE is bookable at all (blackout / closed day) — honour that even if the local
+  // blackout/business-hours queries failed or lagged.
+  const timeSlots = (() => {
+    if (!selectedDate) return allTimeSlots;
+
+    // Server says this date is not bookable (blackout or closed) → no slots.
+    if (slotAvailability && slotAvailability.available === false) {
+      return [];
+    }
+
+    if (businessHours.length === 0) {
+      return allTimeSlots;
+    }
+
+    const selectedDay = new Date(selectedDate + 'T00:00:00').getDay();
+    const dayHours = businessHours.find(h => h.dayOfWeek === selectedDay);
+
+    if (!dayHours || !dayHours.isOpen) {
+      return [];
+    }
+
+    const isToday = isTodayIST(selectedDate);
+    const currentTime = isToday ? getCurrentISTTime() : "00:00";
+
+    return allTimeSlots
+      .filter(slot => {
+        const slotTime = slot.id;
+        if (slotTime < dayHours.openTime || slotTime > dayHours.cutoffTime) {
+          return false;
+        }
+        if (isToday && slotTime <= currentTime) {
+          return false;
+        }
+        // If the server returned an explicit slot list, drop slots it doesn't include.
+        if (slotAvailability?.availability && Object.keys(slotAvailability.availability).length > 0
+            && !(slot.id in slotAvailability.availability)) {
+          return false;
+        }
+        return true;
+      })
+      .map(slot => {
+        const avail = slotAvailability?.availability?.[slot.id];
+        const isFull = avail ? !avail.available : false;
+        return {
+          ...slot,
+          isAvailable: !isFull,
+          bookedCount: avail?.booked || 0,
+          maxBookings: avail?.max || 3,
+        };
+      });
+  })();
+
+  // Apply the deep-linked `initialTime`, and only once this modal's own live
+  // slot-availability query for `selectedDate` has loaded and confirms that exact slot is
+  // still open. Tracks the applied (date, time) PAIR rather than a plain "ran once" boolean —
+  // same reason as `appliedInitialDateRef` above: this component instance is reused across
+  // client-side navigations, so a second chat-proposed slot needs its own time re-applied
+  // too. Still never fights a time the customer picks for themselves: once a pair is applied,
+  // the same pair is a no-op, and a different pair only ever comes from a new `initialTime` prop.
+  const appliedInitialTimeRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!initialTime || !selectedDate || slotsLoading) return;
+    const key = `${selectedDate}|${initialTime}`;
+    if (appliedInitialTimeRef.current === key) return;
+    appliedInitialTimeRef.current = key;
+    const match = timeSlots.find((s: any) => s.id === initialTime && s.isAvailable);
+    if (match) form.setValue("timeSlotId", initialTime);
+  }, [initialTime, selectedDate, slotsLoading, timeSlots, form]);
+
+  const bookingMutation = useMutation({
+    mutationFn: async (data: any) => {
+      // Add booking fee amount (₹299) to the request
+      console.log("Sending booking amount:", bookingAmount);
+      const bookingData = {
+        ...data,
+        amount: bookingAmount, // Fixed booking fee
+        isBookingFee: true, // Flag to indicate this is a booking fee, not full payment
+        // Campaign attribution, read at SUBMIT time rather than at mount. This component
+        // never sees the URL that carried the utm parameters — the customer landed on an ad
+        // page, browsed, and only then opened this modal — so the values come from the
+        // first-touch store instead. Server-side validation is authoritative; nothing here
+        // can fail the booking.
+        ...attributionPayload(),
+        // Vehicle context from a campaign landing page, when the booking started there.
+        // Spread AFTER attribution so neither can silently overwrite the other, and
+        // omitted entirely on the catalogue booking path.
+        ...(vehicleContext?.vehicleType ? { vehicleType: vehicleContext.vehicleType } : {}),
+        ...(vehicleContext?.vehicleCategory ? { vehicleCategory: vehicleContext.vehicleCategory } : {}),
+      };
+      const response = await apiRequest("POST", "/api/bookings", bookingData);
+      return response.json();
+    },
+    onSuccess: async (data) => {
+      const { booking, paymentOrder } = data;
+
+      /**
+       * Free-booking offer: the server already confirmed this booking and took no money,
+       * so there is no payment sheet to open.
+       *
+       * Gated on the SERVER's `freeBooking` flag rather than on the local `isFreeBooking`
+       * state. The server decides both the amount and the offer window; trusting its
+       * response means the browser cannot skip Razorpay for a booking the backend
+       * actually expects to be paid for.
+       *
+       * No `purchase` conversion is sent. Nothing was bought — reporting a ₹0 sale to
+       * Google Ads would dilute ROAS and corrupt the conversion value of real payments.
+       * `generate_lead` is the honest signal for a free booking.
+       */
+      if (data?.freeBooking === true) {
+        console.log("🎁 Free booking confirmed — no payment required");
+        trackFreeBooking({
+          serviceId: service.id,
+          serviceTitle: service.title,
+          bookingId: booking?.id,
+        });
+        // Meta's `Schedule`, deduplicated on the booking id. Not `Purchase`: no money
+        // changed hands, and zero-value purchases would corrupt ROAS exactly as they
+        // would in Google Ads above.
+        trackMetaBooking({
+          eventId: `booking-${booking?.id}`,
+          serviceTitle: service.title,
+          value: 0,
+        });
+
+        queryClient.invalidateQueries({ queryKey: ["/api/time-slots"] });
+        form.reset();
+        onClose();
+        // The confirmation page replaces the toast that used to be the ONLY thing a
+        // customer got. Falls back to closing the modal if the server did not return a
+        // token — an older server, or a booking created before this column existed.
+        goToConfirmation(data?.confirmationToken);
+        return;
+      }
+
+      try {
+        console.log("Opening Razorpay payment gateway...");
+
+        // Intent signal, not a conversion — the customer is being shown the payment
+        // sheet. The matching `purchase` fires only after the server verifies payment.
+        trackBeginCheckout({
+          serviceId: service.id,
+          serviceTitle: service.title,
+          amount: bookingAmount,
+        });
+
+        // Load Razorpay with enhanced error handling
+        const razorpay = await loadRazorpay();
+        if (!razorpay) {
+          throw new Error("Razorpay SDK failed to load");
+        }
+
+        console.log("Payment order data:", paymentOrder);
+        console.log("Using Razorpay key:", paymentOrder.key);
+        
+        // Force focus management before opening Razorpay
+        const activeElement = document.activeElement as HTMLElement;
+        if (activeElement) {
+          activeElement.blur();
+        }
+        
+        // Add small delay to ensure DOM is ready
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const options = {
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID || paymentOrder.key,
+          amount: paymentOrder.amount,
+          currency: paymentOrder.currency,
+          name: "P91 Car Care",
+          description: `₹${bookingAmount} Booking Fee - ${service.title}`,
+          order_id: paymentOrder.id,
+          handler: async (response: any) => {
+            console.log("💰 Payment successful:", response);
+            console.log("📄 Payment response:", JSON.stringify(response, null, 2));
+            
+            try {
+              console.log("🔄 Processing payment confirmation...");
+              
+              // Call payment confirmation endpoint with retry logic
+              let confirmResponse;
+              // Declared outside the retry loop so the successful attempt's token is still
+              // in scope after `break`. Stays null if all five attempts fail — the payment
+              // still succeeded, so that case falls back to the reassurance toast below
+              // rather than sending the customer to a confirmation page that cannot load.
+              let confirmationToken: string | null = null;
+              for (let attempt = 1; attempt <= 5; attempt++) {
+                try {
+                  console.log(`🔄 Payment confirmation attempt ${attempt}/5`);
+                  confirmResponse = await fetch("/api/confirm-payment", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      razorpay_order_id: response.razorpay_order_id,
+                      razorpay_payment_id: response.razorpay_payment_id,
+                      razorpay_signature: response.razorpay_signature,
+                    }),
+                  });
+                  
+                  if (confirmResponse.ok) {
+                    console.log("✅ Payment confirmation successful");
+                    const confirmData = await confirmResponse.json();
+
+                    // Conversion fires HERE and nowhere else: the server has verified the
+                    // Razorpay signature. Firing in Razorpay's handler before this point
+                    // would count payments the backend later rejects.
+                    //
+                    // This is reached whether the browser confirmed the payment first or
+                    // Razorpay's webhook got there first — in the latter case the server
+                    // responds ok with alreadyConfirmed: true rather than the 404 it used
+                    // to return, so a webhook-confirmed sale is no longer lost to Ads.
+                    // trackPurchase itself deduplicates on razorpay_payment_id, so the
+                    // retry loop and any re-render cannot report the same sale twice.
+                    trackPurchase({
+                      transactionId: response.razorpay_payment_id,
+                      serviceId: service.id,
+                      serviceTitle: service.title,
+                      amount: bookingAmount,
+                    });
+
+                    // Meta Schedule, deduplicated on the Razorpay payment id — the same
+                    // key trackPurchase uses, and for the same reason: this block is inside
+                    // a five-attempt retry loop and the webhook can arrive first.
+                    trackMetaBooking({
+                      eventId: `payment-${response.razorpay_payment_id}`,
+                      serviceTitle: service.title,
+                      value: bookingAmount,
+                    });
+
+                    // Captured for the redirect below. The retry loop returns the SAME
+                    // token on every attempt, so a retry cannot invalidate a link the
+                    // customer is already looking at.
+                    confirmationToken = confirmData?.confirmationToken ?? null;
+                    break;
+                  } else {
+                    const errorText = await confirmResponse.text();
+                    throw new Error(`HTTP ${confirmResponse.status}: ${errorText}`);
+                  }
+                } catch (err) {
+                  console.error(`⚠️ Confirmation attempt ${attempt} failed:`, err);
+                  if (attempt === 5) {
+                    // Still show success since payment went through
+                    toast({
+                      title: "Payment Successful!", 
+                      description: "Payment completed! Your booking will be processed. Contact us if you don't receive confirmation within 10 minutes.",
+                      variant: "default",
+                    });
+                  } else {
+                    // Wait before retry
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                  }
+                }
+              }
+
+              queryClient.invalidateQueries({ queryKey: ["/api/time-slots"] });
+              form.reset();
+              onClose();
+              // Confirmation page, replacing the toast that used to be the only thing the
+              // customer received. When the token is null every confirmation attempt
+              // failed, and the toast above has already told them the payment went
+              // through — so this is a no-op rather than a broken page.
+              goToConfirmation(confirmationToken);
+            } catch (error) {
+              console.error("💥 Payment confirmation error:", error);
+              // Payment was successful, just confirmation failed
+              toast({
+                title: "Payment Successful!", 
+                description: "Payment completed successfully! Your booking will be processed. Please contact us if you don't receive confirmation.",
+                variant: "default",
+              });
+              
+              onClose();
+              form.reset();
+            }
+          },
+
+          prefill: {
+            name: form.getValues("customerName"),
+            email: form.getValues("customerEmail"),
+            contact: form.getValues("customerPhone"),
+          },
+          theme: {
+            color: "#00FF94"
+          },
+          modal: {
+            backdropclose: false,
+            escape: true,
+            handleback: true,
+            confirm_close: false,
+            animation: true,
+            ondismiss: function() {
+              console.log("Payment modal dismissed");
+            }
+          },
+          remember_customer: false,
+          timeout: 900
+        };
+
+        const payment = new razorpay(options);
+        
+        // Add error handlers
+        payment.on('payment.failed', function (response: any) {
+          console.error('Payment failed:', response.error);
+          toast({
+            title: "Payment Failed",
+            description: response.error.description || "Payment could not be processed. Please try again.",
+            variant: "destructive",
+          });
+        });
+        
+        // Add modal dismiss handler 
+        payment.on('payment.cancel', function () {
+          console.log('Payment cancelled by user');
+          toast({
+            title: "Payment Cancelled",
+            description: "Payment was cancelled. You can try again anytime.",
+          });
+        });
+        
+        console.log("Opening Razorpay payment gateway...");
+        payment.open();
+        
+        // Fix the clicking issue by ensuring proper iframe interaction
+        setTimeout(() => {
+          // Find the Razorpay iframe and ensure it's interactive
+          const razorpayIframe = document.querySelector('iframe[src*="razorpay"]') as HTMLIFrameElement;
+          if (razorpayIframe) {
+            console.log("Found Razorpay iframe, enabling interactions");
+            
+            // Force focus and enable interactions
+            razorpayIframe.focus();
+            razorpayIframe.style.pointerEvents = 'auto';
+            
+            // Simulate a user interaction to "wake up" the iframe
+            const clickEvent = new MouseEvent('click', {
+              view: window,
+              bubbles: true,
+              cancelable: true,
+              clientX: razorpayIframe.offsetLeft + 50,
+              clientY: razorpayIframe.offsetTop + 50
+            });
+            razorpayIframe.dispatchEvent(clickEvent);
+            
+            // Also try focusing on parent container
+            const parentContainer = razorpayIframe.parentElement;
+            if (parentContainer) {
+              parentContainer.focus();
+            }
+          }
+        }, 800); // Increased delay to ensure iframe is fully loaded
+      } catch (error) {
+        toast({
+          title: "Payment Error",
+          description: "Failed to initialize payment. Please try again.",
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Booking Error",
+        description: error.message || "Failed to create booking. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: any) => {
+    // Check if the selected date is a blackout date
+    const blackoutDate = blackoutDates.find((bd: any) => bd.date === selectedDate);
+    if (blackoutDate) {
+      toast({
+        title: "Booking Not Available",
+        description: `Booking not available for this day – ${blackoutDate.reason}. Please choose another date before or after.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Include the selected date and time in the booking data
+    const bookingData = {
+      ...data,
+      appointmentDate: selectedDate,
+      appointmentTime: data.timeSlotId, // The timeSlotId is actually the time (e.g., "16:00")
+    };
+    bookingMutation.mutate(bookingData);
+  };
+
+
+  // Check if a date is a blackout date
+  const isBlackoutDate = (dateString: string) => {
+    return blackoutDates.some((bd: any) => bd.date === dateString);
+  };
+
+  // Get blackout date reason
+  const getBlackoutReason = (dateString: string) => {
+    const blackoutDate = blackoutDates.find((bd: any) => bd.date === dateString);
+    return blackoutDate?.reason || "";
+  };
+
+  // Handle date selection with blackout date and business hours validation.
+  //
+  // Takes the date string directly rather than a change event: the native date input was
+  // replaced by BookingCalendar, which disables unavailable days up front. The guards
+  // below are deliberately KEPT rather than trimmed — the calendar can be working from a
+  // stale blackout/business-hours query, and this is the last client-side check before
+  // the booking call. The server re-validates all of it regardless.
+  const handleDateSelect = (newSelectedDate: string) => {
+
+    if (isBlackoutDate(newSelectedDate)) {
+      const reason = getBlackoutReason(newSelectedDate);
+      toast({
+        title: "Booking Not Available",
+        description: `Booking not available for this day – ${reason}. Please choose another date before or after.`,
+        variant: "destructive",
+      });
+      return; // Don't update the date if it's a blackout date
+    }
+    
+    // Check if store is closed on this day
+    if (businessHours.length > 0) {
+      const dayOfWeek = new Date(newSelectedDate + 'T00:00:00').getDay();
+      const dayHours = businessHours.find(h => h.dayOfWeek === dayOfWeek);
+      
+      if (dayHours && !dayHours.isOpen) {
+        toast({
+          title: "Store Closed",
+          description: `We are closed on ${dayHours.dayName}. Please select another day.`,
+          variant: "destructive",
+        });
+        return; // Don't update the date if store is closed
+      }
+    }
+    
+    // Reset time slot when date changes
+    form.setValue("timeSlotId", "");
+    setSelectedDate(newSelectedDate);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-3xl w-[95vw] max-h-[90vh] overflow-y-auto bg-white text-[var(--txt)] border-medium-gray p-4 sm:p-6">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold gradient-text pr-14" data-testid="text-booking-modal-title">
+            {service.title}
+          </DialogTitle>
+          {/* No close button here on purpose. DialogContent (components/ui/dialog.tsx)
+              already renders a Radix DialogPrimitive.Close in this same top-right
+              corner; a second one stacked two X icons on every service. The Radix one
+              also provides Escape-to-close, focus trapping and focus return to the
+              trigger, which the hand-rolled Button did not. */}
+        </DialogHeader>
+
+        <div className="space-y-5">
+          {/* Service image — same resolver and framing as the corrected service cards:
+              images[0] straight off the canonical record, a 2:1 box reserved before load
+              so the modal never jumps, cover/center so it never stretches, and the shared
+              branded placeholder only after a genuine error event (no hardcoded Unsplash
+              stand-in, and an HTML error response fails the decode rather than rendering). */}
+          {/* Presentation only: a service with no real photograph yet has no banner, instead of
+              the "image coming soon" placeholder (lib/real-service-images.ts). */}
+          {resolveServiceImage(service) && (
+          <div>
+            <ImageWithFallback
+              src={resolveServiceImage(service)}
+              alt={`${service.title} ${ILLUSTRATIVE_SLUGS.has((service as { slug?: string }).slug ?? "") ? "(illustrative image)" : "being carried out at P91 Car Care"}`}
+              width={1600}
+              height={800}
+              className="block w-full aspect-[2/1] object-cover object-center bg-[#1a1a1a] rounded-xl"
+              data-testid="img-service-banner"
+            />
+          </div>
+          )}
+          
+          {/*
+            Booking summary — three tiles. This replaced roughly 300 words that sat between
+            the photo and the date picker: the full "why choose" paragraph, every included
+            item, two offer cards, a four-point "how it works" box and a price line. The
+            service page already says all of that; someone who opened this came to pick a
+            slot. Every figure below is the same one the old block showed.
+          */}
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" data-testid="booking-summary">
+            <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-3">
+              <div className="text-xs text-[var(--txt-2)]">To reserve</div>
+              <div className="mt-0.5 text-xl font-bold text-green-600">
+                {isFreeBooking ? 'No fee' : `₹${bookingAmount}`}
+              </div>
+              <div className="text-xs text-[var(--txt-2)]">
+                {isFreeBooking
+                  ? offerEnds ? `Booking fee waived until ${offerEnds}` : 'Booking fee waived'
+                  : isAnnualPackage ? 'Full package price' : 'Booking fee'}
+              </div>
+            </div>
+            <div className="rounded-xl border border-medium-gray bg-[var(--dark-gray)] p-3">
+              <div className="text-xs text-[var(--txt-2)]">Service price</div>
+              <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2">
+                <span className="text-xl font-bold text-[var(--txt)]" data-testid="text-current-price">
+                  {formatINR(service.price)}
+                </span>
+                {/* No previous price for the PPF rows: it has no approved source (lib/offer-scope.ts showPreviousPrice). */}
+                {showPreviousPrice(service) && (
+                  <span className="text-xs text-[var(--txt-3)] line-through" data-testid="text-original-price">
+                    {formatINR(service.originalPrice)}
+                  </span>
+                )}
+              </div>
+              <div className="text-xs text-[var(--txt-2)]">
+                Paid at the studio{serviceTime ? ` · ${serviceTime}` : ''}
+              </div>
+            </div>
+            <div className="col-span-2 rounded-xl border border-medium-gray bg-[var(--dark-gray)] p-3 sm:col-span-1">
+              <div className="text-xs text-[var(--txt-2)]">{isAnnualPackage ? 'Valid for' : 'Bonus'}</div>
+              <div className="mt-0.5 text-xl font-bold text-[var(--txt)]">
+                {isAnnualPackage ? '12 months' : '₹500 voucher'}
+              </div>
+              <div className="text-xs text-[var(--txt-2)]">
+                {isAnnualPackage ? 'All services included' : 'On your 2nd visit'}
+              </div>
+            </div>
+          </div>
+
+          {/* Booking Form */}
+          <div className="rounded-xl border border-medium-gray bg-white p-4 sm:p-6">
+            <div>
+              <h4 className="mb-4 text-lg font-semibold">Pick your date &amp; time</h4>
+              
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  {/* Date and time, ported from the redesign prototype.
+                      Previously a native date input (every day looked bookable until a
+                      toast said otherwise) and a dropdown that hid how full each slot was.
+                      Both now read the same live blackout/business-hours/availability
+                      queries that were already here — no new endpoints, no new state. */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="mb-2 block">Select Date</Label>
+                      <BookingCalendar
+                        selectedDate={selectedDate}
+                        onSelect={handleDateSelect}
+                        blackoutDates={blackoutDates}
+                        businessHours={businessHours}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="timeSlotId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Select Time</FormLabel>
+                          <FormControl>
+                            <div
+                              className="rounded-xl border border-medium-gray bg-dark-gray p-3 sm:p-4 min-h-[140px]"
+                              role="radiogroup"
+                              aria-label="Choose an appointment time"
+                            >
+                              {!selectedDate ? (
+                                <p className="text-sm text-[var(--txt-3)] py-8 text-center">
+                                  Pick a date to see available times.
+                                </p>
+                              ) : slotsLoading ? (
+                                <p className="text-sm text-[var(--txt-3)] py-8 text-center">Loading slots…</p>
+                              ) : timeSlots.length === 0 ? (
+                                <p className="text-sm text-[var(--txt-3)] py-8 text-center" data-testid="text-no-slots">
+                                  {slotAvailability?.reasonText || "No available slots for this date."}
+                                </p>
+                              ) : (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                  {timeSlots.map((slot: any) => {
+                                    const active = field.value === slot.id;
+                                    const left =
+                                      slot.isAvailable && slot.bookedCount > 0
+                                        ? slot.maxBookings - slot.bookedCount
+                                        : null;
+                                    return (
+                                      <button
+                                        key={slot.id}
+                                        type="button"
+                                        role="radio"
+                                        aria-checked={active}
+                                        disabled={!slot.isAvailable}
+                                        onClick={() => field.onChange(slot.id)}
+                                        data-testid={`option-slot-${slot.id}`}
+                                        className={
+                                          "rounded-lg border px-2 py-2 text-center transition-colors " +
+                                          (active
+                                            ? "bg-neon-green border-neon-green text-[#04120A] font-bold"
+                                            : slot.isAvailable
+                                              ? "border-medium-gray text-[var(--txt)] hover:border-[var(--neon-line)] hover:text-neon-green"
+                                              : "border-medium-gray text-[var(--txt-3)]/45 line-through cursor-not-allowed")
+                                        }
+                                      >
+                                        <span className="block text-sm leading-tight">{slot.startTime}</span>
+                                        {/* Scarcity shown only when it is real — this is the
+                                            remaining capacity the server reported for this
+                                            slot, never a fixed "only N left" string. */}
+                                        {!slot.isAvailable ? (
+                                          <span className="block text-[10px] mt-0.5">Full</span>
+                                        ) : left !== null ? (
+                                          <span
+                                            className={
+                                              "block text-[10px] mt-0.5 " +
+                                              (active ? "text-[#04120A]/70" : "text-[var(--warn)]")
+                                            }
+                                          >
+                                            {left} left
+                                          </span>
+                                        ) : null}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="customerName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Your Name</FormLabel>
+                          <FormControl>
+                            {/*
+                              Browser-native autofill. iOS and Android can fill these from
+                              details the customer already has saved, which matters most for
+                              ad traffic arriving on a phone with no prior intent to type.
+
+                              Nothing is read from the advertisement: Meta does not pass a
+                              visitor name, phone or email to a website, and fbclid is an
+                              opaque click identifier. The attribution model is unchanged.
+                            */}
+                            <Input
+                              {...field}
+                              autoComplete="name"
+                              className="bg-white border-medium-gray text-[var(--txt)]"
+                              data-testid="input-name"
+                              data-clarity-mask="true"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="customerPhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Mobile Number</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              type="tel"
+                              autoComplete="tel"
+                              inputMode="tel"
+                              className="bg-white border-medium-gray text-[var(--txt)]"
+                              data-testid="input-phone"
+                              data-clarity-mask="true"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <FormField
+                    control={form.control}
+                    name="customerEmail"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Address</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            type="email"
+                            autoComplete="email"
+                            inputMode="email"
+                            className="bg-white border-medium-gray text-[var(--txt)]"
+                            data-testid="input-email"
+                            data-clarity-mask="true"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-neon-green text-deep-black hover:bg-neon-green/90 neon-glow font-semibold text-sm sm:text-lg py-4 px-4"
+                    disabled={bookingMutation.isPending}
+                    data-testid="button-proceed-payment"
+                  >
+                    {isFreeBooking ? (
+                      <>
+                        <span className="block sm:hidden">
+                          {bookingMutation.isPending ? "Booking..." : "Book Free + ₹500 Voucher"}
+                        </span>
+                        <span className="hidden sm:block">
+                          {bookingMutation.isPending
+                            ? "Confirming your booking..."
+                            : "Confirm Free Booking + Get FREE ₹500 Voucher"}
+                        </span>
+                      </>
+                    ) : service.title === 'Annual Maintenance Package' ? (
+                      <span>{bookingMutation.isPending ? "Processing..." : `Pay ₹${bookingAmount} Complete Package`}</span>
+                    ) : (
+                      <>
+                        <span className="block sm:hidden">Pay ₹{bookingAmount} + FREE Voucher</span>
+                        <span className="hidden sm:block">{bookingMutation.isPending ? "Processing..." : `Pay ₹${bookingAmount} Booking Fee + Get FREE Voucher`}</span>
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

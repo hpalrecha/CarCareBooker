@@ -23,14 +23,14 @@ export {
   categoryTitle,
   categoryDescription,
   postsInCategory,
-} from "@/lib/blog-posts";
-export { SEO_PAGES } from "@/lib/seo-pages";
-export { LANDING_PAGES } from "@/lib/landing-pages";
-export { BRAND_PAGES } from "@/lib/brand-pages";
+} from "@p91/content/blog-posts";
+export { SEO_PAGES } from "@p91/content/seo-pages";
+export { LANDING_PAGES } from "@p91/content/landing-pages";
+export { BRAND_PAGES } from "@p91/content/brand-pages";
 
 // Phase 1 SEO/GEO: static page copy (shared with the components) and the builders that
 // bake each page's real content into the initial HTML.
-export { STATIC_SEO_PAGES, SERVICES_SEO, OFFER_SEO, currentOfferSeo } from "@/lib/static-seo";
+export { STATIC_SEO_PAGES, SERVICES_SEO, OFFER_SEO, currentOfferSeo } from "@p91/content/static-seo";
 export {
   staticPageContent,
   contactPageContent,
@@ -46,9 +46,9 @@ export {
   brandPageContent,
   faqPageContent,
   injectRootContent,
-} from "@/lib/crawlable-content";
-export { homeFaqSchema } from "@/lib/home-faq";
-export { faqHubSchema } from "@/lib/faq-page";
-export { localBusinessSchema } from "@/lib/local-business";
+} from "@p91/content/crawlable-content";
+export { homeFaqSchema } from "@p91/content/home-faq";
+export { faqHubSchema } from "@p91/content/faq-page";
+export { localBusinessSchema } from "@p91/content/local-business";
 export { festivalOfferSchema } from "@/lib/offer-schema";
-export { canonicalPathFor } from "@/lib/canonical-overrides";
+export { canonicalPathFor } from "@p91/content/canonical-overrides";

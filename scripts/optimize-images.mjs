@@ -35,7 +35,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SRC_DIR = path.join(ROOT, "attached_assets");
 const OUT_DIR = path.join(SRC_DIR, "_opt");
-const MANIFEST = path.join(ROOT, "client", "src", "lib", "image-manifest.json");
+const MANIFEST = path.join(ROOT, "apps/admin", "src", "lib", "image-manifest.json");
 
 /**
  * Widths worth generating.
@@ -65,7 +65,7 @@ const SHARP_OPTS = { failOn: "none" };
 
 const SOURCE_EXT = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif"]);
 const FORCE = process.argv.includes("--force");
-// OPTIMIZE_ALL=1 optimises every image on disk instead of only those client/src names. The Docker
+// OPTIMIZE_ALL=1 optimises every image on disk instead of only those apps/admin/src names. The Docker
 // build sets it in a stage that sees only attached_assets/, so that stage's cache depends on the
 // images alone and a code-only deploy reuses the generated variants instead of re-encoding them.
 const OPTIMIZE_ALL = process.env.OPTIMIZE_ALL === "1";
@@ -144,7 +144,7 @@ async function onlyReferenced(files) {
 
   // One pass over the client source; the filenames are distinctive enough to grep for.
   let source = "";
-  const roots = [path.join(ROOT, "client", "src"), path.join(ROOT, "client", "index.html")];
+  const roots = [path.join(ROOT, "apps/admin", "src"), path.join(ROOT, "apps/admin", "index.html")];
   const walk = async (p) => {
     let stat;
     try {

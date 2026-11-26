@@ -59,7 +59,7 @@
 #   If that fails, the swap is reversed.
 #
 # KNOWN CONSTRAINTS (from the codebase, not from this script)
-#   - server/index.ts starts a node-cron reminder job at 20:00 IST. A candidate running
+#   - apps/api/src/index.ts starts a node-cron reminder job at 20:00 IST. A candidate running
 #     alongside production at that minute would send every reminder twice, so the script
 #     refuses to start a candidate or switch between 19:45 and 20:05 IST.
 #   - Admin uploads are written to /app/uploads. Unless that path is a mount, they live in

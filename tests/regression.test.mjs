@@ -32,8 +32,8 @@ const readCode = (p) =>
 /* ------------------------------------------------------------------ source checks */
 
 describe('homepage transformation CTAs', () => {
-  const home = readCode('client/src/pages/home.tsx');
-  const config = read('client/src/lib/canonical-services.ts');
+  const home = readCode('apps/admin/src/pages/home.tsx');
+  const config = read('packages/content/src/canonical-services.ts');
 
   // The four priced before/after cards were removed from the homepage on purpose (2026-09-24:
   // "Real work" is now a price-free photo gallery; prices and booking belong on /services and
@@ -79,7 +79,7 @@ describe('homepage transformation CTAs', () => {
 });
 
 describe('homepage services anchor', () => {
-  const home = read('client/src/pages/home.tsx');
+  const home = read('apps/admin/src/pages/home.tsx');
   // The closing "Ready when you are" / "Book Your Service Now" panel that used to scroll
   // here was removed by request (redundant with the hero CTA, the statement-break CTA and
   // the header's own Book Now). The anchor itself stays pinned regardless of what points
@@ -91,7 +91,7 @@ describe('homepage services anchor', () => {
 });
 
 describe('branded 404', () => {
-  const nf = read('client/src/pages/not-found.tsx');
+  const nf = read('apps/admin/src/pages/not-found.tsx');
   test('developer wording is gone', () => {
     assert.ok(!nf.includes('Did you forget to add the page to the router'));
   });
@@ -109,7 +109,7 @@ describe('branded 404', () => {
 });
 
 describe('invalid service slug', () => {
-  const sl = read('client/src/pages/service-landing.tsx');
+  const sl = read('apps/admin/src/pages/service-landing.tsx');
   test('shows a customer-friendly state, not raw debug text', () => {
     assert.ok(!sl.includes('>Service Not Found<'));
     assert.match(sl, /We couldn't find that service/);
@@ -118,8 +118,8 @@ describe('invalid service slug', () => {
 });
 
 describe('booking modal', () => {
-  const modal = read('client/src/components/booking-modal.tsx');
-  const dialog = read('client/src/components/ui/dialog.tsx');
+  const modal = read('apps/admin/src/components/booking-modal.tsx');
+  const dialog = read('apps/admin/src/components/ui/dialog.tsx');
 
   test('has exactly one close button (the shared Radix one)', () => {
     assert.equal((modal.match(/data-testid="button-close-modal"/g) || []).length, 0,
@@ -156,9 +156,9 @@ describe('booking modal', () => {
 describe('canonical image resolver', () => {
   test('card, modal and detail hero all use resolveServiceImage', () => {
     for (const f of [
-      'client/src/components/service-card.tsx',
-      'client/src/components/booking-modal.tsx',
-      'client/src/pages/service-landing.tsx',
+      'apps/admin/src/components/service-card.tsx',
+      'apps/admin/src/components/booking-modal.tsx',
+      'apps/admin/src/pages/service-landing.tsx',
     ]) {
       assert.match(read(f), /resolveServiceImage/, `${f} does not use the resolver`);
     }
@@ -166,9 +166,9 @@ describe('canonical image resolver', () => {
 
   test('no images.unsplash.com anywhere in the card / modal / detail flow', () => {
     for (const f of [
-      'client/src/components/service-card.tsx',
-      'client/src/components/booking-modal.tsx',
-      'client/src/pages/service-landing.tsx',
+      'apps/admin/src/components/service-card.tsx',
+      'apps/admin/src/components/booking-modal.tsx',
+      'apps/admin/src/pages/service-landing.tsx',
     ]) {
       assert.ok(!read(f).includes('images.unsplash.com'), `${f} still falls back to Unsplash`);
     }
@@ -176,14 +176,14 @@ describe('canonical image resolver', () => {
 
   test('the resolver returns undefined rather than a remote stand-in', () => {
     // Comments stripped — the resolver's docblock explains the Unsplash fallback it replaced.
-    const lib = readCode('client/src/lib/canonical-services.ts');
+    const lib = readCode('packages/content/src/canonical-services.ts');
     assert.match(lib, /export function resolveServiceImage/);
     assert.ok(!lib.includes('unsplash'), 'resolver still references a remote host');
     assert.match(lib, /return typeof first === 'string' && first\.trim\(\) !== '' \? first : undefined/);
   });
 
   test('ImageWithFallback resets its error state when src changes', () => {
-    const c = read('client/src/components/image-with-fallback.tsx');
+    const c = read('apps/admin/src/components/image-with-fallback.tsx');
     // A boolean would stick across src changes; the failed src is tracked instead.
     assert.match(c, /useState<string \| null>\(null\)/);
     assert.match(c, /failedSrc === src/);
@@ -201,7 +201,7 @@ describe('canonical image resolver', () => {
 });
 
 describe('service card image handling', () => {
-  const card = read('client/src/components/service-card.tsx');
+  const card = read('apps/admin/src/components/service-card.tsx');
   test('2:1 box, cover, center, lazy, alt from the service name', () => {
     assert.match(card, /aspect-\[2\/1\]/);
     assert.match(card, /object-cover/);
@@ -210,7 +210,7 @@ describe('service card image handling', () => {
     // Images must still default to lazy. The attribute is now conditional — the LCP
     // image opts into eager via `priority` — so this asserts the DEFAULT rather than a
     // literal string, which is what the rule was always about.
-    const img = read('client/src/components/image-with-fallback.tsx');
+    const img = read('apps/admin/src/components/image-with-fallback.tsx');
     assert.match(img, /loading=\{priority \? "eager" : "lazy"\}/);
     assert.ok(!/loading="eager"/.test(img), 'nothing may be unconditionally eager');
   });
@@ -273,16 +273,16 @@ describe('service images on disk', () => {
 });
 
 describe('legal page dates', () => {
-  const meta = read('client/src/lib/legal-metadata.ts');
+  const meta = read('apps/admin/src/lib/legal-metadata.ts');
   test('dates are static, not generated at render time', () => {
     for (const f of ['terms-conditions', 'refund-policy', 'privacy-policy']) {
-      const src = read(`client/src/pages/${f}.tsx`);
+      const src = read(`apps/admin/src/pages/${f}.tsx`);
       assert.ok(!src.includes('new Date()'), `${f} still renders new Date()`);
       assert.match(src, /LEGAL_LAST_UPDATED\./, `${f} does not use the static metadata`);
     }
   });
   test('Terms lists no hardcoded prices and reads from active records', () => {
-    const tc = readCode('client/src/pages/terms-conditions.tsx');
+    const tc = readCode('apps/admin/src/pages/terms-conditions.tsx');
     assert.ok(!tc.includes('₹599'), 'non-existent "Premium Car Wash - ₹599" still listed');
     assert.ok(!tc.includes('₹1,999'), 'stale ₹1,999 exterior detailing still listed');
     assert.match(tc, /FOOTER_SERVICES/);
@@ -292,10 +292,10 @@ describe('legal page dates', () => {
 
   test('copyright comes from one shared source, not hardcoded years', () => {
     for (const f of [
-      'client/src/pages/terms-conditions.tsx',
-      'client/src/pages/refund-policy.tsx',
-      'client/src/pages/privacy-policy.tsx',
-      'client/src/components/footer.tsx',
+      'apps/admin/src/pages/terms-conditions.tsx',
+      'apps/admin/src/pages/refund-policy.tsx',
+      'apps/admin/src/pages/privacy-policy.tsx',
+      'apps/admin/src/components/footer.tsx',
     ]) {
       const src = readCode(f);
       assert.ok(!/©\s*20\d\d/.test(src), `${f} hardcodes a copyright year`);
@@ -304,8 +304,8 @@ describe('legal page dates', () => {
   });
 
   test('the privacy policy does not deny advertising cookies while running them', () => {
-    const pp = readCode('client/src/pages/privacy-policy.tsx');
-    const html = read('client/index.html');
+    const pp = readCode('apps/admin/src/pages/privacy-policy.tsx');
+    const html = read('apps/admin/index.html');
     const runsAds = /googletagmanager\.com\/gtag/.test(html) && /AW-\d+/.test(html);
     if (runsAds) {
       assert.ok(!/do not use tracking cookies for advertising/i.test(pp),
@@ -317,7 +317,7 @@ describe('legal page dates', () => {
   });
 
   test('no Replit dev-banner script ships to production', () => {
-    assert.ok(!read('client/index.html').includes('replit-dev-banner'));
+    assert.ok(!read('apps/admin/index.html').includes('replit-dev-banner'));
   });
 
   test('every legal page has a fixed date value', () => {
@@ -330,9 +330,9 @@ describe('legal page dates', () => {
 describe('simulated social proof removed', () => {
   test('the fake-booking components are gone', () => {
     for (const f of [
-      'client/src/components/fake-booking-popup.tsx',
-      'client/src/components/booking-counter.tsx',
-      'client/src/components/countdown-timer.tsx',
+      'apps/admin/src/components/fake-booking-popup.tsx',
+      'apps/admin/src/components/booking-counter.tsx',
+      'apps/admin/src/components/countdown-timer.tsx',
     ]) {
       assert.ok(!fs.existsSync(path.join(repoRoot, f)), `${f} still exists`);
     }
@@ -343,7 +343,7 @@ describe('simulated social proof removed', () => {
       const p = path.join(dir, e.name);
       return e.isDirectory() ? walk(p) : p.endsWith('.tsx') || p.endsWith('.ts') ? [p] : [];
     });
-    for (const p of walk(path.join(repoRoot, 'client/src'))) {
+    for (const p of walk(path.join(repoRoot, 'apps/admin/src'))) {
       const src = fs.readFileSync(p, 'utf8');
       for (const bad of ['FakeBookingPopup', 'BookingCounter', 'countdown-timer']) {
         assert.ok(!src.includes(bad), `${path.relative(repoRoot, p)} references ${bad}`);
@@ -352,23 +352,23 @@ describe('simulated social proof removed', () => {
   });
 
   test('no fabricated slot counts remain in customer-facing copy', () => {
-    const home = readCode('client/src/pages/home.tsx');
+    const home = readCode('apps/admin/src/pages/home.tsx');
     assert.ok(!home.includes('slots left'));
     assert.ok(!home.includes('Only 12 slots'));
     assert.ok(!/3 slots left/.test(home));
-    const landing = readCode('client/src/pages/service-landing.tsx');
+    const landing = readCode('apps/admin/src/pages/service-landing.tsx');
     assert.ok(!landing.includes('Limited Slots'), 'floating CTA still claims limited slots');
   });
 
   test('the sticky booking bar can be dismissed and clears the safe area', () => {
-    const landing = read('client/src/pages/service-landing.tsx');
+    const landing = read('apps/admin/src/pages/service-landing.tsx');
     assert.match(landing, /button-dismiss-floating-cta/);
     assert.match(landing, /env\(safe-area-inset-bottom/);
   });
 });
 
 describe('navigation', () => {
-  const header = read('client/src/components/header.tsx');
+  const header = read('apps/admin/src/components/header.tsx');
   test('has all required destinations', () => {
     for (const href of [
       '"/"', '"/#services"', '"/contact"', '"/terms-conditions"',
@@ -386,13 +386,13 @@ describe('navigation', () => {
     assert.match(header, /e\.key === "Escape"/);
   });
   test('inner pages anchor to /#services rather than a local element', () => {
-    const landing = read('client/src/pages/service-landing.tsx');
+    const landing = read('apps/admin/src/pages/service-landing.tsx');
     assert.match(landing, /href="\/#services"/);
   });
 });
 
 describe('footer', () => {
-  const footer = readCode('client/src/components/footer.tsx');
+  const footer = readCode('apps/admin/src/components/footer.tsx');
   test('service list is generated from active records, not hardcoded', () => {
     assert.match(footer, /FOOTER_SERVICES/);
     assert.match(footer, /resolveCanonical/);
@@ -408,8 +408,8 @@ describe('footer', () => {
 });
 
 describe('static asset serving', () => {
-  const vite = read('server/vite.ts');
-  const index = read('server/index.ts');
+  const vite = read('apps/api/src/vite.ts');
+  const index = read('apps/api/src/index.ts');
   test('a missing asset 404s in both dev and production paths', () => {
     assert.equal((vite.match(/status\(404\)\.type\("text\/plain"\)/g) || []).length, 2);
   });
@@ -461,7 +461,7 @@ describe('static asset serving', () => {
     // The build stage takes its output and must not run the optimiser a second time.
     const build = df.slice(df.indexOf('AS build'), df.indexOf('AS runtime'));
     assert.match(build, /COPY --from=images \/app\/attached_assets\/_opt/);
-    assert.match(build, /COPY --from=images \/app\/client\/src\/lib\/image-manifest\.json/);
+    assert.match(build, /COPY --from=images \/app\/apps\/admin\/src\/lib\/image-manifest\.json/);
     assert.match(build, /RUN npm run build:app/);
     assert.ok(!/RUN npm run build\s*$/m.test(build), 'the build stage must use build:app');
     // build:app is exactly build without the optimiser, so the two cannot drift apart.
@@ -495,22 +495,22 @@ describe('static asset serving', () => {
 
 describe('bike ceramic coating content', () => {
   test('the SEO hook drives title/OG/JSON-LD from the service record', () => {
-    const landing = read('client/src/pages/service-landing.tsx');
+    const landing = read('apps/admin/src/pages/service-landing.tsx');
     assert.match(landing, /useSeoMeta/);
     // The schema is built in one shared module, used by the page AND the server's
     // crawler-facing HTML, so the two cannot drift again.
-    const seo = read('client/src/lib/service-seo.ts');
+    const seo = read('packages/content/src/service-seo.ts');
     assert.match(seo, /"@type": "Service"/);
     assert.match(seo, /"@type": "FAQPage"/);
     assert.match(seo, /localBusinessSchema\(/, 'business with confirmed address and live hours');
     assert.match(seo, /provider: \{ "@id": business\["@id"\] \}/);
     assert.match(landing, /serviceStructuredData\(service/);
-    assert.match(read('server/vite.ts'), /serviceStructuredData\(/);
+    assert.match(read('apps/api/src/vite.ts'), /serviceStructuredData\(/);
     // The old inline <title>/<meta> JSX is inert in React 18 and must be gone.
     assert.ok(!landing.includes('<title>{service.metaTitle'));
   });
   test('the shared service template does not hardcode "car" as the vehicle noun', () => {
-    const landing = readCode('client/src/pages/service-landing.tsx');
+    const landing = readCode('apps/admin/src/pages/service-landing.tsx');
     assert.match(landing, /const vehicleNoun = isBikeService \? "bike" : "car"/);
     // The three fixed strings that read wrong on a motorcycle page.
     assert.ok(!/transform your car\b/i.test(landing), '"transform your car" still hardcoded');
@@ -521,7 +521,7 @@ describe('bike ceramic coating content', () => {
   });
 
   test('the unverified ceramic testimonials are hidden on the bike and car ceramic pages only, and not deleted', () => {
-    const landing = read('client/src/pages/service-landing.tsx');
+    const landing = read('apps/admin/src/pages/service-landing.tsx');
     assert.match(landing, /TESTIMONIALS_SUPPRESSED = new Set<string>\(\['1-year-bike-ceramic-coating', '1-year-ceramic-coating'\]\)/);
     assert.match(landing, /\{showTestimonials && service\.testimonials/);
     // The suppression must be presentation-only — no script may clear the column.

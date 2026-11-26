@@ -1,0 +1,693 @@
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
+import { ArrowUpRight } from "lucide-react";
+import SiteHeader from "@/components/redesign/site-header";
+import SiteFooter from "@/components/redesign/site-footer";
+import { ImageWithFallback } from "@/components/image-with-fallback";
+import { useSeoMeta } from "@/hooks/use-seo-meta";
+import { localBusinessSchema } from "@p91/content/local-business";
+import { HOME_SEO } from "@p91/content/static-seo";
+import { HOME_FAQS, HOME_FAQ_HEADING, HOME_ABOUT_H2, homeFaqSchema } from "@p91/content/home-faq";
+import { resolveServiceImage, formatINR, type ServiceRecord } from "@p91/content/canonical-services";
+import { useBookingOffer } from "@/hooks/use-booking-offer";
+import { PRODUCT_BRANDS } from "@p91/content/nav-menu";
+import { WARRANTY_BATCH_LINE, WARRANTY_HANDOVER_LINE } from "@p91/content/warranty-wording";
+import { HOME_PACKAGE_LINKS } from "@p91/content/home-package-links";
+import { postsNewestFirst } from "@p91/content/blog-posts";
+import BlogCarousel from "@/components/blog-carousel";
+import { HowItWorks, VisitStudio, Reviews } from "@/components/redesign/studio-sections";
+import type { BusinessHour } from "@p91/db/schema";
+
+// Same dialog the mobile estimate bar opens; loaded on first tap.
+const EstimateDialog = lazy(() => import("@/components/mobile-estimate-dialog"));
+
+
+/**
+ * Homepage in the senior-approved redesign (p91-cc-audit.web.app/preview).
+ *
+ * Layout, typography, spacing and section order are the prototype's. Every number is
+ * this application's live data:
+ *
+ *   - the three teaser cards read price, originalPrice and image from GET /api/services
+ *   - the "% off" badge is computed from those two live values, never typed in
+ *   - the booking fee in "Pay ₹299 now" comes from GET /api/settings/booking_amount
+ *   - the footer's opening hours come from GET /api/business-hours
+ *
+ * The prototype hardcoded a service array whose prices were wrong against production —
+ * PPF at ₹74,999 where the real price is ₹45,000, ceramic coating at ₹14,999 where it is
+ * ₹5,999. None of that is carried over. If a price here ever disagrees with the booking
+ * flow, it is a bug in this file, because both must read the same record.
+ *
+ * `.p91x` on the wrapper scopes styles/redesign.css to this page. Removing it would leave
+ * the markup unstyled rather than leaking the prototype's generic class names — .card,
+ * .section, .grid — into the admin screens.
+ */
+
+/** Slug whose photograph is the hero background. */
+const HERO_IMAGE_SLUG = "exterior-detailing-hard-water-new";
+
+/**
+ * Static, build-time-known path to today's hero photo — same file the live
+ * `exterior-detailing-hard-water-new` record points at (see
+ * scripts/set-service-card-images.mjs). Used only so the hero `<img>` can render on the
+ * very first paint, before `/api/services` has answered.
+ *
+ * This is the LCP element. Gating its existence on an API response (as it used to be:
+ * `{heroImage && <img .../>}`) meant the browser could not even discover, let alone
+ * fetch, the image until React mounted, the query resolved, and the element appeared —
+ * a fully serial chain on top of whatever the image itself costs. Rendering it
+ * unconditionally with this fallback, then letting `heroImage` below swap in the live
+ * DB value once it arrives (normally the same file), removes that entire wait from the
+ * LCP and CLS-causing "box appears from nothing" path.
+ */
+const HERO_FALLBACK_IMAGE = "/attached_assets/exterior-hero-poster.webp";
+
+/** One real studio photograph and a kind-of-product label per brand (see the Why P91 section). */
+const BRAND_LOOK: Record<string, { src: string; kind: string }> = {
+  stek: { src: "/attached_assets/gallery/p91-lux-nissan-gtr.webp", kind: "Paint protection & window film" },
+  nasiol: { src: "/attached_assets/gallery/p91-ceramic-gloss-wipe.webp", kind: "Nano-ceramic coating" },
+  "p91-premium-ppf": { src: "/attached_assets/gallery/p91-lux-mg-comet-ev.webp", kind: "Our own PPF line" },
+};
+
+export default function Home() {
+  const { data: services } = useQuery<ServiceRecord[]>({
+    queryKey: ["/api/services"],
+  });
+
+  // Hand over from the first-paint poster baked into the HTML (scripts/prerender.mjs,
+  // #boot-hero) to this page's own hero once that photo has loaded. Capped at 4 s so a failed
+  // image can never leave the poster covering the page.
+  useEffect(() => {
+    // The poster is an UNDERLAY (position:absolute, z-index:-1) under this page's own hero, which paints the
+    // identical photo over it. It is deliberately NOT removed once the app has painted: removing an LCP
+    // candidate makes the browser fall back to the later React-rendered image, so the page's LCP would be the
+    // slow one again. It only has to go when the visitor leaves the home route, or it would sit behind other pages.
+    return () => document.getElementById("boot-hero")?.remove();
+  }, []);
+
+  // Latest 3 real posts — same cap BlogCarousel documents itself ("up to three real
+  // articles"), newest first, no topic filtering (unlike a campaign page, the homepage
+  // isn't about one service).
+  const homeBlogPosts = useMemo(() => postsNewestFirst().slice(0, 3), []);
+
+  // Feeds the AutoRepair schema its real opening hours. Same query key as the footer,
+  // so react-query dedupes it to a single request.
+  const { data: businessHours = [] } = useQuery<BusinessHour[]>({
+    queryKey: ["/api/business-hours"],
+    retry: 1,
+  });
+
+  // The booking fee is a setting, not a constant. The booking modal reads the same key,
+  // so the figure quoted on the homepage and the figure charged can never diverge.
+  const { data: bookingAmountSetting } = useQuery<{ value?: string }>({
+    queryKey: ["/api/settings/booking_amount"],
+    retry: false,
+  });
+  // Free-booking offer, decided server-side by the same authority that sets the amount,
+  // so this page can never advertise a price the booking flow will not charge.
+  const offer = useBookingOffer();
+  const bookingFee = (() => {
+    // During the Diwali offer every ordinary service takes the ₹99 slot fee.
+    if (offer.slotOffer) return offer.slotFee;
+    const raw = bookingAmountSetting?.value;
+    const n = raw ? parseFloat(raw) : NaN;
+    return Number.isFinite(n) && n > 0 ? n : 299;
+  })();
+
+  useSeoMeta({
+    // Shared with scripts/prerender.mjs so the crawler HTML and the page cannot disagree.
+    title: HOME_SEO.title,
+    description: HOME_SEO.description,
+    image: "/og/og-default.jpg",
+    canonicalPath: "/",
+    structuredData: [
+      localBusinessSchema({
+        origin: typeof window === "undefined" ? "https://p91carcare.com" : window.location.origin,
+        businessHours,
+      }),
+      homeFaqSchema(),
+    ].filter(Boolean) as Record<string, unknown>[],
+  });
+
+  /**
+   * Hero background video — gated so it can never be what makes the page slow.
+   *
+   * Starts `false` (server/prerendered HTML renders the photo only, unchanged — no video
+   * in what a crawler or a first paint sees). Flips to `true` client-side, and only when
+   * BOTH of these hold:
+   *   - prefers-reduced-motion is not set.
+   *   - the page has already reached load and gone idle, via requestIdleCallback (or a
+   *     timeout on browsers without it) — so the fetch competes with nothing on the
+   *     critical path and cannot delay first paint or interactivity.
+   * No viewport check: this used to also require >= 769px, back when the only footage was
+   * a 63.6MB unprocessed source with nothing in this project able to transcode it. It has
+   * since been ffmpeg-compressed to ~9.8MB — the same size class as the per-service reels
+   * service-landing.tsx already autoplays on mobile — so the mobile-specific block no
+   * longer has a reason to exist.
+   * The photo stays mounted underneath regardless (see the hero JSX): if either of the
+   * above is false, if the browser blocks autoplay, or if the file is still downloading,
+   * the visitor simply sees the photo hero exactly as it renders today.
+   */
+  const [showHeroVideo, setShowHeroVideo] = useState(false);
+  const [heroVideoReady, setHeroVideoReady] = useState(false);
+  const [estimateOpen, setEstimateOpen] = useState(false);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const enable = () => setShowHeroVideo(true);
+    // Phones: the photo stays the hero and the 845 KB clip waits for the first touch or
+    // keypress. Most visitors are on mobile data, and the photo already carries the LCP.
+    if (window.innerWidth < 769) {
+      const events = ["pointerdown", "keydown", "touchstart"] as const;
+      const onFirst = () => {
+        events.forEach((e) => window.removeEventListener(e, onFirst));
+        enable();
+      };
+      events.forEach((e) => window.addEventListener(e, onFirst, { once: true, passive: true }));
+      return () => events.forEach((e) => window.removeEventListener(e, onFirst));
+    }
+    const ric = (window as any).requestIdleCallback as ((cb: () => void) => number) | undefined;
+    const id = ric ? ric(enable) : window.setTimeout(enable, 1500);
+    return () => {
+      const cic = (window as any).cancelIdleCallback as ((id: number) => void) | undefined;
+      if (ric && cic) cic(id);
+      else window.clearTimeout(id);
+    };
+  }, []);
+
+  /**
+   * Parallax. Elements opt in with data-parallax="<speed>"; nothing here touches layout.
+   *   data-parallax-mode="scroll": moves by scrollY * speed (hero only, where the section
+   *     starts at the top of the page).
+   *   default: moves by its section's distance from viewport centre * -speed, so a positive
+   *     speed drifts slower than the page (backgrounds) and a negative one faster (copy).
+   * One passive scroll listener, one rAF per frame, transform only. Skipped entirely under
+   * prefers-reduced-motion, in which case every element simply sits still.
+   */
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const els = Array.from(document.querySelectorAll<HTMLElement>("[data-parallax]"));
+    if (!els.length) return;
+    let raf = 0;
+    const run = () => {
+      raf = 0;
+      const vh = window.innerHeight;
+      const sy = window.scrollY;
+      for (const el of els) {
+        const speed = parseFloat(el.dataset.parallax ?? "0");
+        let y: number;
+        if (el.dataset.parallaxMode === "scroll") {
+          y = sy * speed;
+        } else {
+          const box = (el.closest("section, .screen-fill") ?? el.parentElement)!.getBoundingClientRect();
+          if (box.bottom < -200 || box.top > vh + 200) continue;
+          y = -(box.top + box.height / 2 - vh / 2) * speed;
+        }
+        el.style.transform = `translate3d(0, ${y.toFixed(1)}px, 0)`;
+      }
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(run); };
+    run();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+      els.forEach((el) => { el.style.transform = ""; });
+    };
+  }, []);
+
+  /**
+   * Reveal on view: elements marked data-reveal fade up once as they enter the viewport.
+   * The hidden starting state is applied by CSS only under html.has-reveal, which this effect
+   * adds — so with no JS, an old browser or reduced motion, nothing is ever hidden.
+   */
+  useEffect(() => {
+    const els = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]"));
+    if (!els.length || !("IntersectionObserver" in window)) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const root = document.documentElement;
+    root.classList.add("has-reveal");
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          (e.target as HTMLElement).classList.add("is-in");
+          io.unobserve(e.target);
+        }
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -8% 0px" },
+    );
+    els.forEach((el) => io.observe(el));
+    return () => {
+      io.disconnect();
+      root.classList.remove("has-reveal");
+      els.forEach((el) => el.classList.remove("is-in"));
+    };
+  }, []);
+
+  /**
+   * Stacked sections (homepage only): each section pins as its bottom edge reaches the bottom of
+   * the screen and the next one slides up over it, like turning pages, instead of one long
+   * continuous scroll. Plain CSS `position: sticky` (see .stack-sec in styles/redesign.css), so
+   * normal scrolling, anchors and links are untouched. A section taller than the screen needs a
+   * negative `top` (screen height minus its own height) to pin by its bottom edge; that is the
+   * only thing measured here. The last section is left alone so the footer follows it normally.
+   * Reduced motion: nothing is applied and the page is the ordinary long scroll.
+   */
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const all = Array.from(document.querySelectorAll<HTMLElement>("#main > section"));
+    const secs = all.slice(0, -1);
+    if (!secs.length) return;
+    const place = () => {
+      const vh = window.innerHeight;
+      // Read every height first, then write: alternating offsetHeight reads with style writes forced a layout per section.
+      const tops = secs.map((el) => Math.min(0, Math.round(vh - el.offsetHeight)));
+      secs.forEach((el, i) => el.style.setProperty("--stack-top", `${tops[i]}px`));
+    };
+    secs.forEach((el) => el.classList.add("stack-sec"));
+    const last = all[all.length - 1];
+    last.classList.add("stack-last");
+    place();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(place) : null;
+    secs.forEach((el) => ro?.observe(el));
+    window.addEventListener("resize", place);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", place);
+      last.classList.remove("stack-last");
+      secs.forEach((el) => {
+        el.classList.remove("stack-sec");
+        el.style.removeProperty("--stack-top");
+      });
+    };
+  }, []);
+
+  const list = Array.isArray(services) ? services : [];
+  const bySlug = new Map(list.map((s) => [s.slug, s]));
+
+  const heroService = bySlug.get(HERO_IMAGE_SLUG) ?? list[0];
+  // Fixed to the static fallback on purpose. This is the same file the exterior-detailing row
+  // points at in the database, so the hero looks exactly as before; it no longer follows that
+  // row's images, which lib/real-service-images.ts now maps for the service pages.
+  void heroService;
+  const heroImage = HERO_FALLBACK_IMAGE;
+
+  return (
+    <div className="p91x min-h-screen home-page">
+      <SiteHeader overHero />
+      <main id="main">
+
+      {/* ---------- hero ---------- */}
+      <section className="hero-bg">
+        {/* Wrapper exists only so the photo and the video move together under parallax; the
+            <img> inside is still the same unconditional, eager, fetchpriority=high LCP element. */}
+        <div className="hero-media" data-parallax="0.2" data-parallax-mode="scroll">
+        <ImageWithFallback
+          className="shot"
+          src={heroImage}
+          alt="Exterior detailing and hard water spot removal at the P91 Car Care studio in Adugodi, Bangalore"
+          width={1600}
+          height={900}
+          /* The LCP element. Rendered unconditionally (heroImage always resolves — to the
+             live DB image once loaded, to HERO_FALLBACK_IMAGE before that) so it exists in
+             the tree from the first paint instead of appearing only after /api/services
+             answers. Eager + fetchpriority=high so it is not queued behind lazy card
+             thumbnails, and 100vw because it really is full-bleed. */
+          sizes="100vw"
+          priority
+          data-testid="img-hero"
+        />
+        {/* Layered directly over the photo above, not swapped in for it — and invisible
+            (opacity 0) until `onPlaying` actually fires. Relying on the `poster` attribute
+            alone left a brief black frame in testing: the instant this element mounts it
+            already owns the same stacking position as the photo, but a video element paints
+            black until it has decoded something, and that can beat the poster/first-frame
+            paint by a beat. Opacity keyed to a real "playing" event means the photo is
+            always what's visible until there is an actual frame to replace it with — never
+            a blank flash, on any connection speed. */}
+        {showHeroVideo && (
+          <video
+            className="shot"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            poster={heroImage}
+            aria-hidden="true"
+            data-testid="video-hero"
+            /* exterior-hero-loop.mp4 is a 4s cut (3.7s-7.7s of the 65s promo edit: the one
+               bright, single-frame, in-focus daylight rinse), ~0.86MB instead of 9.8MB, so
+               the photo is swapped for footage within a beat rather than after a big
+               download. */
+            onPlaying={() => setHeroVideoReady(true)}
+            /* This stretch still reads a touch flat next to the photo hero — a brightness/
+               contrast/saturation lift brings it up to match without touching the photo,
+               which this same .shot class also styles. */
+            style={{ opacity: heroVideoReady ? 1 : 0, transition: "opacity .6s ease, filter .6s ease", filter: "brightness(1.25) contrast(1.1) saturate(1.25)" }}
+          >
+            <source src="/attached_assets/exterior-hero-loop.mp4" type="video/mp4" />
+          </video>
+        )}
+        </div>
+        {/* Two problems, one fix: the h1/lede's text-shadow alone couldn't hold up against
+            a bright moment in the photo/video passing directly behind it (the words
+            actually disappeared), and the video's own burned-in P91 watermark (top-left of
+            the clip) was reading as a second, oversized logo sitting right under the real
+            header logo. This covers the top strip (both the header and the watermark) and
+            fades behind the copy column — see .hero-bg-scrim for why it's two gradients. */}
+        <div className="hero-bg-scrim" aria-hidden="true" />
+        <div className="wrap copy">
+          <span className="eyebrow">Detailing Studio · Adugodi</span>
+          <h1 className="hero-solid">
+            P91 Car Care | Best Car Detailing, PPF &amp; Ceramic Coating in Bangalore
+          </h1>
+          <p className="lede">
+            Ceramic coating, paint protection film and full interior work, done properly.
+            Written warranty terms come with every job, and you can book online in under a minute.
+          </p>
+          {/* One primary action. On phones it is the sticky "Get Free Estimate" bar
+              (mobile-estimate-bar.tsx), so this button shows from 768px up only. Everything
+              else is a quiet text link. */}
+          <div className="hero-cta">
+            <button type="button" className="cta-lg hero-estimate" onClick={() => setEstimateOpen(true)} data-testid="button-hero-estimate">
+              Get Free Estimate
+            </button>
+            <p className="hero-secondary">
+              <Link href="/services" data-testid="link-hero-book">Book a slot</Link>
+              <a
+                href="https://wa.me/917406619191?text=Hi%20P91%20Car%20Care%2C%20I%27d%20like%20to%20know%20more%20about%20your%20detailing%20services."
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="link-hero-whatsapp"
+              >
+                WhatsApp
+              </a>
+              <a href="#results" data-testid="link-hero-see-work">See our work</a>
+            </p>
+          </div>
+          {estimateOpen && (
+            <Suspense fallback={null}>
+              <EstimateDialog open={estimateOpen} onOpenChange={setEstimateOpen} />
+            </Suspense>
+          )}
+          <ul className="hero-trust" aria-label="Why book with P91">
+            <li>Same-day slots</li>
+            <li>Warranty on coatings</li>
+            <li>Adugodi, Bangalore</li>
+          </ul>
+        </div>
+      </section>
+
+      {/* ---------- films and coatings strip (from the redesign canvas) ----------
+          Same brand list and links as the navbar and the brand stories lower down (PRODUCT_BRANDS),
+          so it cannot name a brand the rest of the site does not. */}
+      <section className="ed-brandstrip" aria-label="Films and coatings we fit" data-testid="section-brandstrip">
+        <div className="wrap ed-brandstrip-row">
+          <p className="ed-brandstrip-label">Films and coatings we fit</p>
+          <ul className="ed-brandstrip-list">
+            {PRODUCT_BRANDS.map((b) => (
+              <li key={b.name}>
+                <Link href={b.href}>{b.name}</Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ---------- 01 about ----------
+          Editorial two-column: a short label, a large headline, two lines of copy, a
+          four-row spec list and one text link on the left; one tall real photograph on the
+          right. Every fact here is already stated elsewhere on the site (studio location,
+          STEK / Nasiol / P91 Premium PPF, written warranty terms at handover) — no
+          founding year, counts or awards, because nothing in this codebase states one and
+          tests/regression.test.mjs holds the homepage to that. The photo is a real studio
+          photograph (attached_assets/about/, an upright, resized copy of the camera original
+          20241227_164016 jpg); the alt text describes only what is visible in it. */}
+      <section className="ed-about" id="about" data-testid="section-about">
+        <div className="wrap">
+          <div className="ed-about-grid">
+            <div className="ed-about-copy">
+              <p className="ed-label" data-reveal>01 / About P91</p>
+              <h2 className="ed-title" data-reveal>{HOME_ABOUT_H2}</h2>
+              <p className="ed-lede" data-reveal>
+                P91 Car Care is a car detailing, ceramic coating and paint protection film
+                studio in Adugodi, Bangalore. Every coating and PPF job comes with written warranty
+                terms provided at handover.
+              </p>
+              <dl className="ed-specs" data-reveal>
+                <div><dt>Studio</dt><dd>Adugodi, Bangalore</dd></div>
+                <div><dt>Films</dt><dd>STEK · P91 Premium PPF</dd></div>
+                <div><dt>Coatings</dt><dd>Nasiol</dd></div>
+                <div><dt>Warranty</dt><dd>Written, issued at handover</dd></div>
+              </dl>
+              <Link href="/contact" className="ed-link" data-reveal data-testid="link-about-us">
+                Find the studio →
+              </Link>
+            </div>
+            <figure className="ed-figure" data-reveal>
+              <ImageWithFallback
+                src="/attached_assets/gallery/p91-lux-mercedes-gle.webp"
+                alt="A white Mercedes GLE in the P91 Car Care studio in front of a Nasiol India wall"
+                sizes="(min-width: 861px) 46vw, 92vw"
+                data-parallax="0.06"
+              />
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- 02 what we do ----------
+          ONE screen for PPF, ceramic coating and detailing: a single real P91 video and three
+          typographic rows, instead of a photo section per service. The section that stood here
+          before it (a black-BMW "Done properly, every time" photo break) used
+          services/annual-maintenance-package.webp, an AI-style render captioned as a P91
+          technician — removed, and nothing replaces it: the hero already carries the cinematic
+          visual.
+
+          id="services" lives here because this is where the old services grid sat.
+          tests/regression.test.mjs pins the anchor and external ad links point at /#services.
+
+          The rows link to the destinations the homepage category tiles already used: /ppf and
+          /ceramic-coating/car (the campaign pages) and /services for detailing. The video shows
+          polishing and its caption says exactly that. */}
+      <section className="ed-care" id="services" data-tone="dark" data-testid="section-care">
+        <div className="wrap">
+          <div className="ed-care-grid">
+            <div className="ed-care-copy">
+              <p className="ed-label" data-reveal>02 / What we do</p>
+              <h2 className="ed-title" data-reveal>Protection. Finish. Care.</h2>
+              <ul className="ed-services" data-reveal>
+                {[
+                  { href: "/services/paint-protection-film-bangalore", idx: "01", name: "PPF", id: "ppf" },
+                  { href: "/services/ceramic-coating-bangalore", idx: "02", name: "Ceramic", id: "ceramic" },
+                  { href: "/service/exterior-detailing-hard-water-new", idx: "03", name: "Detailing", id: "detailing" },
+                ].map((s) => (
+                  <li key={s.id}>
+                    <Link href={s.href} className="ed-service" data-testid={`link-care-${s.id}`}>
+                      <span className="ed-service-idx">{s.idx}</span>
+                      <span className="ed-service-name">{s.name}</span>
+                      <ArrowUpRight className="ed-service-arrow" aria-hidden="true" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <p className="ed-care-sub" data-reveal>
+                Film, coating and care, all done in-studio in Adugodi.
+              </p>
+              {/* Crawlable, visible links to the pages that carry the prices. Googlebot reads the rendered
+                  page, and the home page is the one indexed page that passes them weight: before this the
+                  rendered home linked to none of /ppf, /ceramic-coating/* or the interior-detailing guide. */}
+              <p className="ed-pkgs-label" data-reveal>Popular packages</p>
+              <ul className="ed-pkgs" data-reveal>
+                {HOME_PACKAGE_LINKS.map((l) => (
+                  <li key={l.href}>
+                    <Link href={l.href} className="ed-pkg" data-testid={`link-package-${l.id}`}>{l.label}</Link>
+                  </li>
+                ))}
+              </ul>
+              <Link href="/services" className="ed-link" data-reveal data-testid="link-explore-services">
+                Explore services →
+              </Link>
+            </div>
+            <div className="ed-care-media" data-reveal>
+              <figure className="ed-figure ed-figure-video">
+                <ImageWithFallback
+                  src="/attached_assets/gallery/p91-lux-range-rover-evoque.webp"
+                  alt="A white Range Rover Evoque in the P91 studio, protected with P91 Premium PPF"
+                  sizes="(min-width: 861px) 46vw, 92vw"
+                  loading="lazy"
+                />
+              </figure>
+              <p className="ed-caption">Range Rover Evoque · P91 Premium PPF</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- 03 real work ----------
+          A small curated set of real P91 work in place of the priced service cards: no prices,
+          no SAVE badges, no buttons — those live on /services and the booking pages. Every image
+          is P91's own: two studio delivery photos (unnamed_*.webp), a still from the studio's
+          PPF-fitting reel and one from its polishing reel (attached_assets/gallery/, extracted
+          with ffmpeg). The interior-detailing film is deliberately NOT used: its ownership is
+          unconfirmed (see lib/real-service-images.ts). id="results" is the target of the hero's "See our work". */}
+      <section className="ed-work" id="results" data-testid="section-work">
+        <div className="wrap">
+          <p className="ed-label" data-reveal>03 / Real work</p>
+          <h2 className="ed-title ed-title-wide" data-reveal>Real work, from our studio.</h2>
+          <Link href="/gallery" className="ed-link ed-work-more" data-reveal data-testid="link-work-gallery">
+            See all our work →
+          </Link>
+          <div className="ed-work-grid">
+            <Link href="/gallery" className="ed-work-fig ed-work-tall" data-reveal data-testid="link-work-photo">
+              <ImageWithFallback
+                src="/attached_assets/gallery/p91-ppf-fitting.webp"
+                alt="A P91 technician fitting clear paint protection film on the rear door of a black car"
+                sizes="(min-width: 861px) 30vw, 92vw"
+              />
+              <figcaption className="ed-work-cap">PPF fitting</figcaption>
+            </Link>
+            <Link href="/gallery" className="ed-work-fig ed-work-wide" data-reveal data-testid="link-work-photo">
+              <ImageWithFallback
+                src="/attached_assets/gallery/p91-lux-vellfire.webp"
+                alt="A white Toyota Vellfire protected with STEK PPF, in the P91 studio"
+                sizes="(min-width: 861px) 62vw, 92vw"
+              />
+              <figcaption className="ed-work-cap">Toyota Vellfire · STEK PPF</figcaption>
+            </Link>
+            <Link href="/gallery" className="ed-work-fig ed-work-half" data-reveal data-testid="link-work-photo">
+              <ImageWithFallback
+                src="/attached_assets/gallery/p91-lux-nissan-gtr.webp"
+                alt="A white Nissan GT-R with a black bonnet in front of a STEK wall in the P91 studio"
+                sizes="(min-width: 861px) 30vw, 92vw"
+              />
+              <figcaption className="ed-work-cap">Nissan GT-R · STEK PPF</figcaption>
+            </Link>
+            <Link href="/gallery" className="ed-work-fig ed-work-half" data-reveal data-testid="link-work-photo">
+              <ImageWithFallback
+                src="/attached_assets/gallery/p91-lux-innova-hycross.webp"
+                alt="A white Toyota Innova Hycross with STEK ForceShield PPF, in the P91 studio"
+                sizes="(min-width: 861px) 30vw, 92vw"
+              />
+              <figcaption className="ed-work-cap">Innova Hycross · STEK PPF</figcaption>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- how it works ----------
+          Four plain steps, from the redesign canvas. No price or fee is quoted here: the booking
+          flow owns those figures (see the "Why P91" block below). */}
+      <HowItWorks />
+
+      <Reviews />
+
+      {/* ---------- 04 why p91 + brands ----------
+          The former trust strip (four facts) and the brands strip, merged into one compact
+          block. Facts and the booking-fee line are unchanged, including the live
+          offer.free / bookingFee wording, so this can never advertise a price the booking flow
+          will not charge. */}
+      <section className="ed-why" data-testid="section-why">
+        <div className="wrap">
+          <p className="ed-label" data-reveal>04 / Why P91</p>
+          <dl className="ed-why-grid" data-reveal>
+            <div><dt>Written warranty</dt><dd>On every coating and PPF job</dd></div>
+            <div><dt>Same-day service</dt><dd>Most detailing finished the day you book</dd></div>
+            <div><dt>Pickup &amp; drop</dt><dd>Available across Bangalore at cost</dd></div>
+            <div>
+              {offer.free ? (
+                <>
+                  <dt>Free to book</dt>
+                  <dd>No payment to reserve. Settle at the store, no hidden charges</dd>
+                </>
+              ) : (
+                <>
+                  <dt>Pay {formatINR(bookingFee)} to book</dt>
+                  <dd>Balance settled at the store, no hidden charges</dd>
+                </>
+              )}
+            </div>
+          </dl>
+          {/* Same data as the navbar's Products dropdown (lib/nav-menu.ts), so the two cannot disagree. */}
+          {/* Three brand stories, each with one real studio photograph (the studio's own delivery and
+              application stills), a label, a short line and its two strongest points. Copy is
+              PRODUCT_BRANDS (lib/nav-menu.ts), so it matches the navbar and the brand pages. P91 Premium
+              PPF is marked as our own line; nothing is claimed about how or where it is made. */}
+          <div className="ed-brands" data-reveal>
+            <p className="ed-brands-label">The brands behind our work</p>
+            <div className="ed-brand-grid">
+              {PRODUCT_BRANDS.map((b) => {
+                const slug = b.href.split("/").pop() ?? "";
+                const look = BRAND_LOOK[slug];
+                return (
+                  <div className={"ed-brand" + (slug === "p91-premium-ppf" ? " is-own" : "")} key={b.name} data-testid={`brand-${b.name.toLowerCase().replace(/s+/g, "-")}`}>
+                    {look && (
+                      <Link href={b.href} className="ed-brand-photo" tabIndex={-1} aria-hidden="true">
+                        <ImageWithFallback src={look.src} alt="" sizes="(min-width: 861px) 30vw, 92vw" loading="lazy" />
+                      </Link>
+                    )}
+                    <p className="ed-brand-kind">{look?.kind}</p>
+                    <h3>{b.name}</h3>
+                    <p className="ed-brand-line">{b.line}</p>
+                    <ul>
+                      {b.points.slice(0, 2).map((p) => (
+                        <li key={p}>{p}</li>
+                      ))}
+                    </ul>
+                    <Link href={b.href} className="ed-link ed-brand-link" data-testid={`link-explore-brand-${slug}`}>
+                      Explore brand →
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <p className="ed-fine" data-reveal>
+            {WARRANTY_HANDOVER_LINE} {WARRANTY_BATCH_LINE}
+          </p>
+        </div>
+      </section>
+
+      {/* ---------- FAQ ----------
+          Answers are visible text (not an accordion that unmounts them), so the FAQPage schema in
+          <head> matches what a visitor can read. Copy and schema come from lib/home-faq.ts. */}
+      <section className="ed-faq" id="faq" data-testid="section-faq">
+        <div className="wrap">
+          <p className="ed-label" data-reveal>Questions</p>
+          <h2 className="ed-title ed-title-wide" data-reveal>{HOME_FAQ_HEADING}</h2>
+          <dl className="ed-faq-list" data-reveal data-testid="faq-list">
+            {HOME_FAQS.map((f) => (
+              <div key={f.question}>
+                <dt>{f.question}</dt>
+                <dd>{f.answer}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="ed-fine" data-reveal>
+            More answers on PPF, ceramic coating, detailing and warranties are in our{" "}
+            <Link href="/faq" className="ed-link" data-testid="link-home-faq-hub">full FAQ</Link>.
+          </p>
+        </div>
+      </section>
+
+      {/* ---------- 05 guides ----------
+          Real editorial content, connecting the homepage to the blog (SEO audit: the blog
+          existed but was never linked from the homepage). Same component campaign-landing.tsx
+          already uses, same live imagery mechanism — nothing new to build or maintain. */}
+      <BlogCarousel posts={homeBlogPosts} bySlug={bySlug} heading="Guides from the studio" />
+
+      {/* ---------- visit the studio ----------
+          Same address and phone as the footer and the Google Business Profile. Opening hours live
+          on /contact (read from the booking system), so they are linked, not repeated here. */}
+      <VisitStudio />
+
+      </main>
+
+      <SiteFooter />
+    </div>
+  );
+}

@@ -4,7 +4,7 @@
  * Search Console had most pages as "Crawled - currently not indexed". The six PPF size
  * variants share their text, and /ppf, /ceramic-coating/car and /ceramic-coating/bike embed
  * the same service records' sections and FAQPage schema. The decided mapping lives in ONE
- * module, client/src/lib/canonical-overrides.ts, and every canonical emitter must use it:
+ * module, packages/content/src/canonical-overrides.ts, and every canonical emitter must use it:
  * the server-rendered /service/:slug head, the prerenderer, the client after hydration, and
  * the sitemap. The served-HTML half of this lives in tests/sitemap-indexable.itest.mjs.
  */
@@ -34,7 +34,7 @@ before(async () => {
   const out = path.join(repoRoot, 'node_modules', '.cache', 'canonical-overrides.mjs');
   fs.mkdirSync(path.dirname(out), { recursive: true });
   await esbuild.build({
-    entryPoints: [path.join(repoRoot, 'client', 'src', 'lib', 'canonical-overrides.ts')],
+    entryPoints: [path.join(repoRoot, 'packages', 'content', 'src', 'canonical-overrides.ts')],
     bundle: true,
     format: 'esm',
     platform: 'node',
@@ -50,7 +50,7 @@ describe('the mapping', () => {
   });
 
   test('every target is a real campaign page (LANDING_PAGES path)', () => {
-    const landing = read('client/src/lib/landing-pages.ts');
+    const landing = read('packages/content/src/landing-pages.ts');
     for (const target of new Set(Object.values(EXPECTED))) {
       assert.match(landing, new RegExp(`path: "${target.replace(/\//g, '\\/')}"`), target);
     }
@@ -82,9 +82,10 @@ describe('the mapping', () => {
 });
 
 describe('every emitter uses the shared module', () => {
-  test('server-rendered /service/:slug head (server/vite.ts)', () => {
-    const vite = read('server/vite.ts');
-    assert.match(vite, /from "\.\.\/client\/src\/lib\/canonical-overrides"/);
+  test('server-rendered /service/:slug head (apps/api/src/vite.ts)', () => {
+    const vite = read('apps/api/src/vite.ts');
+    // Path-agnostic: the module moves between folders, the import must still be the shared one.
+    assert.match(vite, /from "(\.\.\/)+[\w/-]*\/canonical-overrides"/);
     assert.match(vite, /const canonical = `\$\{origin\}\$\{serviceCanonicalPath\(service\.slug\)\}`/);
     assert.doesNotMatch(vite, /const canonical = `\$\{origin\}\/service\/\$\{service\.slug\}`/, 'the old self-canonical is gone');
     // og:url is emitted from the same variable, so it follows the canonical.
@@ -99,18 +100,18 @@ describe('every emitter uses the shared module', () => {
   });
 
   test('client (ServiceSeo) sets the override, so hydration does not restore a self-canonical', () => {
-    const page = read('client/src/pages/service-landing.tsx');
+    const page = read('apps/admin/src/pages/service-landing.tsx');
     assert.match(page, /canonicalPath: serviceCanonicalPath\(service\.slug\)/);
     assert.doesNotMatch(page, /canonicalPath: `\/service\/\$\{service\.slug\}`/);
   });
 
   test('client og:url follows the canonical rather than location.href', () => {
-    const hook = read('client/src/hooks/use-seo-meta.ts');
+    const hook = read('apps/admin/src/hooks/use-seo-meta.ts');
     assert.match(hook, /setMeta\("property", "og:url", canonicalHref \?\? window\.location\.href\)/);
   });
 
   test('sitemap filters the consolidated slugs out', () => {
-    const routes = read('server/routes.ts');
+    const routes = read('apps/api/src/routes.ts');
     assert.match(routes, /\.filter\(\(s: any\) => !isConsolidatedServiceSlug\(s\.slug\)\)/);
   });
 });

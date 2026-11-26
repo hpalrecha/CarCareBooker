@@ -30,18 +30,18 @@ const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 const script = read('scripts/prerender.mjs');
 
 /*
- * The hand-written pages' SEO copy now lives in client/src/lib/static-seo.ts, imported by
+ * The hand-written pages' SEO copy now lives in packages/content/src/static-seo.ts, imported by
  * BOTH the page components and the prerender script. It used to be duplicated in a
  * STATIC_ROUTES table here and compared by TITLE only — which is how the /services and
  * /ppf-ceramic-coating descriptions drifted apart unnoticed.
  */
 describe('prerendered metadata matches the page it represents', () => {
   const PAIRS = [
-    ['HOME_SEO', 'client/src/pages/home.tsx'],
-    ['CONTACT_SEO', 'client/src/pages/contact.tsx'],
-    ['GALLERY_SEO', 'client/src/pages/gallery.tsx'],
-    ['SERVICES_SEO', 'client/src/pages/services.tsx'],
-    ['PPF_CERAMIC_SEO', 'client/src/pages/ppf-ceramic-landing.tsx'],
+    ['HOME_SEO', 'apps/admin/src/pages/home.tsx'],
+    ['CONTACT_SEO', 'apps/admin/src/pages/contact.tsx'],
+    ['GALLERY_SEO', 'apps/admin/src/pages/gallery.tsx'],
+    ['SERVICES_SEO', 'apps/admin/src/pages/services.tsx'],
+    ['PPF_CERAMIC_SEO', 'apps/admin/src/pages/ppf-ceramic-landing.tsx'],
   ];
 
   for (const [constant, file] of PAIRS) {
@@ -67,7 +67,7 @@ describe('prerendered metadata matches the page it represents', () => {
     // so there is nothing left to drift.
     assert.ok(!/path:\s*"\/blog",\s*\n\s*title:\s*"/.test(script), '/blog title must not be a literal copy');
     assert.match(script, /title: BLOG_INDEX_TITLE/);
-    assert.match(read('client/src/pages/blog-index.tsx'), /BLOG_INDEX_TITLE/);
+    assert.match(read('apps/admin/src/pages/blog-index.tsx'), /BLOG_INDEX_TITLE/);
   });
 
   test('category listings are prerendered, one per category', () => {
@@ -85,8 +85,8 @@ describe('prerendered metadata matches the page it represents', () => {
   test('blog posts, SEO pages and campaign landing pages are imported, never duplicated', () => {
     const entry = read('scripts/prerender-content-entry.ts');
     assert.match(entry, /BLOG_POSTS,/);
-    assert.match(entry, /export \{ SEO_PAGES \} from "@\/lib\/seo-pages"/);
-    assert.match(entry, /export \{ LANDING_PAGES \} from "@\/lib\/landing-pages"/);
+    assert.match(entry, /export \{ SEO_PAGES \} from "@p91\/content\/seo-pages"/);
+    assert.match(entry, /export \{ LANDING_PAGES \} from "@p91\/content\/landing-pages"/);
 
     // The script must read them from the bundle, not carry its own copies.
     assert.match(script, /const content = await loadContent\(\)/);
@@ -135,7 +135,7 @@ describe('prerendering fails the build rather than degrading', () => {
 });
 
 describe('the server prefers prerendered HTML', () => {
-  const vite = read('server/vite.ts');
+  const vite = read('apps/api/src/vite.ts');
 
   test('a directory index is served without a trailing-slash redirect', () => {
     // express.static's default redirect would 301 /blog -> /blog/, contradicting the
@@ -190,7 +190,7 @@ describe('home first-paint poster', () => {
   test('the prerender bakes #boot-hero into "/" only, and Home removes it', () => {
     assert.match(script, /id="boot-hero"/, 'prerender must emit the poster');
     assert.match(script, /route\.path === "\/"\)\s*html = html\.replace\('<div id="root">'/, 'poster is injected for "/" only');
-    assert.match(read('client/src/pages/home.tsx'), /getElementById\("boot-hero"\)/, 'Home must remove the poster');
+    assert.match(read('apps/admin/src/pages/home.tsx'), /getElementById\("boot-hero"\)/, 'Home must remove the poster');
   });
 
   test('the poster uses the same AVIF set as the preload, so there is one download', () => {
@@ -211,7 +211,7 @@ describe('landing-page LCP: first carousel slide', () => {
   });
 
   test('hero carousels mount only nearby slides and load the first one eagerly', () => {
-    const src = read('client/src/components/redesign/slide-carousel.tsx');
+    const src = read('apps/admin/src/components/redesign/slide-carousel.tsx');
     assert.match(src, /const lazyMount = variant === "hero"/);
     assert.match(src, /priority=\{lazyMount && i === 0\}/);
     assert.match(src, /slide-car-ph/);

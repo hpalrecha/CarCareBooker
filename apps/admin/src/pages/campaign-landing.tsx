@@ -1,0 +1,772 @@
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { Link } from "wouter";
+// `.lp-*` (landing-pages.css) is also used by ppf-ceramic-landing.tsx and
+// service-landing.tsx, each importing it themselves. Only this component uses the
+// offer/countdown classes from landing.css. Imported here, not in main.tsx, so they ship
+// in this lazy chunk instead of blocking every other route.
+import "@/styles/landing.css";
+import "@/styles/landing-pages.css";
+import { Phone, Clock, ShieldCheck, MapPin, CheckCircle, Wrench, Layers, ArrowRight } from "lucide-react";
+import SiteHeader from "@/components/redesign/site-header";
+import SiteFooter from "@/components/redesign/site-footer";
+import DeferUntilIdle from "@/components/defer-until-idle";
+import { ImageWithFallback } from "@/components/image-with-fallback";
+import SlideCarousel from "@/components/redesign/slide-carousel";
+// The booking stack (react-hook-form, zod schema, calendar, Razorpay loader, select, dialog: ~80 KB of JS) is only
+// needed once a visitor opens it, but a static import put it on the critical path of the page's first render.
+const loadBookingModal = () => import("@/components/booking-modal");
+const BookingModal = lazy(loadBookingModal);
+import CampaignOffer from "@/components/campaign-offer";
+import VehicleSelector from "@/components/vehicle-selector";
+import PpfPackages from "@/components/ppf-packages";
+import { WARRANTY_BATCH_LINE, WARRANTY_HANDOVER_LINE } from "@p91/content/warranty-wording";
+import { buildPpfPackages, ppfAggregateOffer, type PpfBodyKey, type PpfCatalogueRow } from "@p91/content/ppf-packages";
+import BlogCarousel from "@/components/blog-carousel";
+import HeroOfferStrip from "@/components/hero-offer-strip";
+import NotFound from "@/pages/not-found";
+import { useSeoMeta } from "@/hooks/use-seo-meta";
+import { useHeroVideoGate } from "@/hooks/use-hero-video";
+import { useQuery } from "@tanstack/react-query";
+import { resolveServiceImage, formatINR, type ServiceRecord } from "@p91/content/canonical-services";
+import { formatServiceTime } from "@p91/content/service-time";
+import { withCeramicTiming } from "@p91/content/ceramic-timing";
+import { generalPackageFaqs } from "@p91/content/withheld-claims";
+import { withBikeLandingCopy } from "@p91/content/bike-landing-copy";
+import {
+  getLandingPage,
+  relevantPosts,
+  displayableIncludes,
+  displayableFaqs,
+  type CategoryOption,
+  PPF_STATEMENT,
+  LANDING_PHOTOS_HEADING,
+} from "@p91/content/landing-pages";
+
+/**
+ * One component serving all three Meta Ads landing pages.
+ *
+ *   /ceramic-coating/car   /ceramic-coating/bike   /ppf
+ *
+ * ─────────────────────────────────────────────────────────────────────────────────────
+ * THE ORDER OF THE PAGE IS THE ORDER OF THE CUSTOMER'S QUESTIONS.
+ *
+ *   1. what is this?            hero: h1 + one-line lede + the real photograph
+ *   2. is it for my vehicle?    the ad already decided car vs bike; PPF asks body type
+ *   3. what does it cost?       live catalogue price, ABOVE the fold, never hidden
+ *   4. is the booking free?     the offer block, with the price restated beside it
+ *   5. why you?                 what the treatment actually does
+ *   6. what do I get?           what's included, from the catalogue row
+ *   7. common questions         FAQs from the catalogue, or nothing at all
+ *   8. learn more               genuine blog articles
+ *   9. book                     final CTA
+ *
+ * Someone arriving from an advertisement should not have to hunt for the price or the
+ * button. Both appear in the first screen on every viewport.
+ * ─────────────────────────────────────────────────────────────────────────────────────
+ *
+ * PRICE AUTHORITY. Every figure on this page is read from GET /api/services at render
+ * time and keyed by the catalogue slug the content module names. Nothing is hardcoded,
+ * there is no category-to-price map, and the record shown is the same record handed to
+ * BookingModal — so the page cannot advertise a price checkout will not charge.
+ */
+
+const STUDIO_TEL_HREF = "tel:+917406619191";
+
+/** Shown instead of the price and package selector when the catalogue is unavailable. */
+function PricingUnavailable() {
+  return (
+    <p className="lp-price-pending" data-testid="landing-price-pending">
+      Call the studio for current pricing:{" "}
+      <a href={STUDIO_TEL_HREF} data-testid="link-pricing-call">74066 19191</a>
+    </p>
+  );
+}
+
+interface CampaignLandingProps {
+  /** The route this instance serves. Passed by App.tsx so one component covers three paths. */
+  path: string;
+}
+
+export default function CampaignLanding({ path }: CampaignLandingProps) {
+  const page = getLandingPage(path);
+
+  const { data: services, isError: catalogueError, isSuccess: catalogueLoaded } = useQuery<ServiceRecord[]>({ queryKey: ["/api/services"] });
+
+  const bySlug = useMemo(() => {
+    const list = Array.isArray(services) ? services : [];
+    return new Map(list.map((s) => [s.slug, s]));
+  }, [services]);
+
+  // Explicit default from the content module, never categories[0] — see defaultCategoryKey.
+  // Falls back to the first option only if the config omits one, so the page can never
+  // open with nothing selected and therefore no price.
+  const [categoryKey, setCategoryKey] = useState<string>(
+    () => page?.defaultCategoryKey ?? page?.categories?.[0]?.key ?? "",
+  );
+  const [bookingOpen, setBookingOpen] = useState(false);
+  // Set when a package card (Basic or Premium, any body type) opened the modal; null for every other opener
+  // (header Book Now, the offer block), which keep booking the hero selector's service exactly as before.
+  //
+  // WHAT EACH SIX ROWS ARE CHARGED TO BOOK (decided on the server, apps/api/src/lib/booking-amount.ts; never by this page):
+  //   - a RUNNING free_booking campaign waives the fee for ONE catalogue row only: the campaign's `serviceSlug`
+  //     (apps/api/src/lib/campaign.ts campaignFreeBookingForService). The page-level offer block is keyed to the landing
+  //     page, not to a row, so it can read "free" while another row's package is booked at the normal deposit.
+  //   - the legacy `free_booking_until` window waives it for EVERY row, Basic and Premium.
+  //   - otherwise each of the six PPF rows (all priced over ₹10,000) takes the ₹499 slot deposit.
+  // The package cards do not change any of this; they only choose which row the existing modal opens with.
+  const [pkgBooking, setPkgBooking] = useState<{ slug: string; bodyKey: PpfBodyKey } | null>(null);
+  const openBooking = (pkg?: { slug: string; bodyKey: PpfBodyKey }) => {
+    // The catalogue could not be read (or does not hold the row about to be booked): there is no booking flow that can
+    // work, so send the customer to the phone instead of opening nothing. Never a price, never a fallback booking.
+    const heroCategory = page?.categories?.find((c) => c.key === categoryKey) ?? page?.categories?.[0];
+    const rowSlug = pkg?.slug ?? (page?.categories ? heroCategory?.serviceSlug : page?.primaryServiceSlug);
+    if (catalogueError || (catalogueLoaded && (!rowSlug || !bySlug.get(rowSlug)))) {
+      window.location.href = STUDIO_TEL_HREF;
+      return;
+    }
+    setPkgBooking(pkg ?? null);
+    setBookingOpen(true);
+  };
+  // Mount the modal the first time it is opened (and keep it), and fetch its code on the visitor's first
+  // touch/scroll/key press so the first tap on "Book" is not waiting for it.
+  const [bookingMounted, setBookingMounted] = useState(false);
+  useEffect(() => {
+    if (bookingOpen) setBookingMounted(true);
+  }, [bookingOpen]);
+  useEffect(() => {
+    const events = ["pointerdown", "touchstart", "scroll", "keydown"] as const;
+    const warm = () => {
+      events.forEach((e) => window.removeEventListener(e, warm));
+      void loadBookingModal();
+    };
+    events.forEach((e) => window.addEventListener(e, warm, { once: true, passive: true }));
+    return () => events.forEach((e) => window.removeEventListener(e, warm));
+  }, []);
+  const showHeroVideo = useHeroVideoGate();
+  const [heroVideoReady, setHeroVideoReady] = useState(false);
+
+  // An unrecognised path is a genuine 404, not an empty version of this template.
+  if (!page) return <NotFound />;
+
+  /**
+   * Real studio footage for the hero photo box — only two clips exist studio-wide
+   * (Exterior Detailing, Interior Detailing). Ceramic coating and PPF are both exterior
+   * paint work, so both get the exterior clip; the bike page gets none, because no bike
+   * footage exists and showing the car clip there would misrepresent the work.
+   */
+  const heroVideoSrc = path === "/ceramic-coating/bike" ? null : "/attached_assets/exterior-hero-loop.mp4";
+  const HERO_VIDEO_LOOP_START = 0;
+  const HERO_VIDEO_LOOP_END = 3.95;
+
+  const selectedCategory: CategoryOption | undefined = page.categories?.find(
+    (c) => c.key === categoryKey,
+  ) ?? page.categories?.[0];
+
+  /**
+   * THE service record this page is selling right now.
+   *
+   * For a single-package page that is the one named slug. For PPF it follows the selected
+   * body type. Either way it is one live catalogue row, and it is what the price, the
+   * package name, the includes list, the FAQs and the booking all read from — so those
+   * five things cannot disagree with each other.
+   */
+  const catalogueRow: ServiceRecord | undefined = page.categories
+    ? bySlug.get(selectedCategory?.serviceSlug ?? "")
+    : bySlug.get(page.primaryServiceSlug ?? "");
+  // Confirmed ceramic studio time over the row's stale FAQ answer (lib/ceramic-timing.ts); other rows pass through.
+  // The bike page then gets its own FAQ instead of the car-worded one in the row (lib/bike-landing-copy.ts).
+  const service: ServiceRecord | undefined = withBikeLandingCopy(withCeramicTiming(catalogueRow)) ?? undefined;
+
+  // The row the booking modal opens with: the package card that was clicked, else the hero selector's service.
+  const bookingService: ServiceRecord | undefined = (pkgBooking ? bySlug.get(pkgBooking.slug) : undefined) ?? service;
+
+  // Settled without a usable price: the read failed, or it succeeded without the row this page sells. While the
+  // request is still in flight nothing is claimed either way.
+  const pricingUnavailable = catalogueError || (catalogueLoaded && !service);
+
+  const heroImage = resolveServiceImage(service);
+  const posts = useMemo(() => relevantPosts(page), [page]);
+
+  const price = service ? parseFloat(String(service.price)) : NaN;
+  const wasPrice = service?.originalPrice ? parseFloat(String(service.originalPrice)) : NaN;
+  // Only a genuine reduction. Partial PPF rows carry price === originalPrice, and a
+  // struck-through figure identical to the live one invents a saving.
+  const hasRealDiscount = Number.isFinite(price) && Number.isFinite(wasPrice) && wasPrice > price;
+
+  const origin = typeof window === "undefined" ? "https://p91carcare.com" : window.location.origin;
+
+  // /ppf: prices of the packages that exist, read from the catalogue rows (no discount, no validity date).
+  const packageOffers = page.packageComparison
+    ? ppfAggregateOffer(buildPpfPackages(services as unknown as PpfCatalogueRow[] | undefined), origin)
+    : null;
+
+  const provider = {
+    "@type": "AutoRepair",
+    "@id": `${origin}/#business`,
+    name: "P91 Car Care",
+    telephone: "+91-7406619191",
+    areaServed: { "@type": "City", name: "Bengaluru" },
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "49, 13th Cross, Ayappa Garden, Adugodi",
+      postalCode: "560030",
+      addressLocality: "Bengaluru",
+      addressRegion: "Karnataka",
+      addressCountry: "IN",
+    },
+  };
+
+  const schemas: Record<string, unknown>[] = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      name: page.h1,
+      description: page.description,
+      ...(heroImage ? { image: heroImage.startsWith("http") ? heroImage : `${origin}${heroImage}` } : {}),
+      provider,
+      areaServed: { "@type": "City", name: "Bengaluru" },
+      // Priced from the live record only. No literal fallback: a schema price that
+      // disagrees with checkout is worse than emitting no offer block at all.
+      ...(packageOffers
+        ? { offers: packageOffers }
+        : service
+          ? {
+              offers: {
+                "@type": "Offer",
+                price: service.price,
+                priceCurrency: "INR",
+                availability: "https://schema.org/InStock",
+                url: `${origin}${page.path}`,
+              },
+            }
+          : {}),
+    },
+    // NO BreadcrumbList here, deliberately.
+    //
+    // scripts/prerender.mjs already bakes one into the static HTML for each of these
+    // routes. useSeoMeta APPENDS its blocks without removing prerendered ones, so
+    // emitting a second copy here left every hydrated page carrying two BreadcrumbLists —
+    // visible only in the rendered DOM, not in either source on its own.
+    //
+    // The prerendered copy is the right survivor: it is what a crawler that does not
+    // execute JavaScript receives, and it is present from the first byte. Adding it again
+    // at hydration gains nothing and duplicates it for everyone else.
+    //
+    // Service and FAQPage are NOT prerendered — they depend on the live catalogue record,
+    // which the build has no access to — so those stay here.
+  ];
+
+  /**
+   * FAQPage schema ONLY when the catalogue row genuinely carries FAQs.
+   *
+   * Ceramic car and ceramic bike do. Full PPF does not, so the PPF page emits no FAQ
+   * markup and renders no FAQ section — rather than authoring questions to fill the
+   * layout, which would be inventing business content.
+   */
+  // The same filter as the includes list: a catalogue FAQ answer that restates a withheld claim is cleaned or dropped,
+  // so the FAQ the page shows, the server HTML and the FAQPage schema agree (lib/withheld-claims.ts).
+  // /ppf (several packages): only the FAQs true of every package, not the ones written for the selected body type's package.
+  const rowFaqs = Array.isArray(service?.faq) ? service!.faq! : [];
+  const faqs = displayableFaqs(page.packageComparison ? generalPackageFaqs(rowFaqs) : rowFaqs);
+  if (faqs.length > 0) {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqs.map((f) => ({
+        "@type": "Question",
+        name: f.question,
+        acceptedAnswer: { "@type": "Answer", text: f.answer },
+      })),
+    });
+  }
+
+  useSeoMeta({
+    title: page.title,
+    description: page.description,
+    image: heroImage,
+    canonicalPath: page.path,
+    structuredData: schemas,
+  });
+
+  return (
+    <div className="p91x lp min-h-screen">
+      {/* The one Book Now on this page: it opens the booking modal, so the in-page buttons are not needed. */}
+      <SiteHeader onBookNow={() => openBooking()} />
+      <main id="main">
+
+      {/* ---------- 1-3. hero: what, for whom, how much ---------- */}
+      <section className="section lp-hero">
+        <div className="wrap">
+          <div className="lp-hero-grid">
+            <div className="lp-hero-copy">
+              <p className="eyebrow">{page.eyebrow}</p>
+              <h1 data-testid="text-landing-h1">{page.h1}</h1>
+              <p className="lp-lede">{page.lede}</p>
+
+              {/*
+                PAGES WITH BODY-TYPE PRICING PUT THE SELECTOR HERE, ABOVE ANY PRICE.
+
+                Showing one category's figure before the customer has chosen means an SUV
+                owner's first impression is a price that is ₹20,000 wrong, with nothing
+                indicating it is changeable — the selector used to sit ~960px down. The
+                order is now: what it is -> which vehicle -> that package -> its price,
+                which is the order the customer actually decides in.
+
+                The includes list is suppressed here because the page already has a
+                dedicated section for it; repeating it would push the CTA below the fold.
+              */}
+              {page.categories ? (
+                // The picker only renders once the catalogue has loaded. Its slot reserves the height it
+                // will take (see .lp-selector-slot), so the hero copy, photo and buttons below do not jump.
+                pricingUnavailable ? (
+                  <PricingUnavailable />
+                ) : (
+                  <div className="lp-selector-slot">
+                    <VehicleSelector
+                      categories={page.categories}
+                      bySlug={bySlug}
+                      selectedKey={selectedCategory?.key ?? ""}
+                      onSelect={(c) => setCategoryKey(c.key)}
+                      hideDuration={page.hideDuration}
+                      showIncludes={false}
+                      compact
+                    />
+                  </div>
+                )
+              ) : service ? (
+                <div className="lp-price" data-testid="landing-price">
+                  <span className="lp-price-now">{formatINR(service.price)}</span>
+                  {hasRealDiscount && (
+                    <span className="lp-price-was" data-testid="landing-price-was">
+                      <span className="sr-only">Previous price </span>
+                      {formatINR(service.originalPrice)}
+                    </span>
+                  )}
+                  <span className="lp-price-name">{service.title.trim()}</span>
+                </div>
+              ) : pricingUnavailable ? (
+                // The catalogue could not be read, or does not hold this row. Say so plainly, with a working phone
+                // link, rather than an empty price slot, a placeholder number or any remembered price.
+                <PricingUnavailable />
+              ) : null}
+
+              {/*
+                One line reconciling "free" with the price directly above it. The FULL
+                offer block and countdown stay further down — this is not a replacement
+                for them, it exists so the first viewport is self-consistent.
+              */}
+              <HeroOfferStrip landingPage={page.path} servicePrice={service?.price} serviceSlug={service?.slug} />
+
+              {/* Duration, but never for PPF's raw corrupt minutes — see the data note in
+                  lib/landing-pages.ts. An explicit durationText (e.g. "2-3 days") is
+                  curated, not corrupt, so it is never suppressed by hideDuration. */}
+              {service &&
+                (() => {
+                  const time = formatServiceTime(service);
+                  if (!time) return null;
+                  if (page.hideDuration && !service.durationText) return null;
+                  return (
+                    <p className="lp-meta" data-testid="landing-duration">
+                      Approx. {time} in the studio · Adugodi, Bangalore
+                    </p>
+                  );
+                })()}
+
+              <div className="lp-hero-cta">
+                <a className="cta-ghost" href="tel:+917406619191" data-testid="link-hero-call">
+                  <Phone className="i" aria-hidden="true" /> 74066 19191
+                </a>
+              </div>
+
+              {/* Same trust-row pattern as home.tsx and ppf-ceramic-landing.tsx's hero
+                  (.hero-facts, redesign.css) — this page never had one. Wording is generic
+                  and unnumbered on purpose: it must hold for every category a body-type
+                  selector can pick, and the itest guards against invented statistics. */}
+              {/* Booking and installation are separate things. This says only what is true of booking (the customer
+                  picks a date and time in the booking modal); how long the car is in the studio is the catalogue's own
+                  "Approx. 2-3 days" line above and on each package. Nothing here promises when a car is ready. */}
+              <div className="hero-facts">
+                <span>
+                  <Clock className="i" aria-hidden="true" />
+                  Book your slot online
+                </span>
+                <span>
+                  <ShieldCheck className="i" aria-hidden="true" />
+                  Written warranty
+                </span>
+                <span>
+                  <MapPin className="i" aria-hidden="true" />
+                  Adugodi, Bangalore
+                </span>
+              </div>
+            </div>
+
+            {/*
+              Wrapped in a plain div ON PURPOSE, and it is load-bearing.
+
+              index.css sets `picture { display: contents }` globally so ImageWithFallback
+              stays a drop-in replacement for a bare <img>. The side effect is that when
+              the component emits a <picture>, its children — the <source> elements AND the
+              <img> — all become direct children of whatever laid the picture out. In a
+              two-column grid that means four grid items instead of two, and the image lands
+              in row 2: measured at top 610px against copy at 123px, leaving a large empty
+              gap on desktop.
+
+              This div gives the grid exactly one item no matter what the component expands
+              to. Fixed here rather than by changing the global rule, which the card grids,
+              article headers and homepage all depend on.
+            */}
+            {page.heroCarousel ? (
+              <div className="lp-hero-media">
+                <SlideCarousel
+                  variant="hero"
+                  // Slow enough to read a slide of body copy, not a slideshow that
+                  // snatches the page away mid-sentence. It pauses on hover and focus.
+                  autoAdvanceMs={5200}
+                  dir={page.heroCarousel.dir}
+                  caption={page.heroCarousel.caption}
+                  slides={page.heroCarousel.slides}
+                  testId="carousel-landing-hero"
+                />
+                {page.heroBrand && (
+                  <p className="lp-hero-brand" data-testid="landing-hero-brand">
+                    <span>{page.heroBrand.label}</span>
+                    <ImageWithFallback
+                      src={page.heroBrand.src}
+                      alt={page.heroBrand.alt}
+                      width={543}
+                      height={82}
+                      sizes="128px"
+                    />
+                  </p>
+                )}
+              </div>
+            ) : (
+              heroImage && (
+                <div className="lp-hero-media">
+                  <ImageWithFallback
+                    className="lp-hero-img"
+                    src={heroImage}
+                    alt={page.heroAlt}
+                    width={720}
+                    height={480}
+                    sizes="(min-width: 900px) 520px, 100vw"
+                    data-testid="img-landing-hero"
+                  />
+                  {heroVideoSrc && showHeroVideo && (
+                    <video
+                      className="lp-hero-video"
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      preload="auto"
+                      poster={heroImage}
+                      aria-hidden="true"
+                      data-testid="video-landing-hero"
+                      onLoadedMetadata={(e) => { e.currentTarget.currentTime = HERO_VIDEO_LOOP_START; }}
+                      onTimeUpdate={(e) => {
+                        if (e.currentTarget.currentTime >= HERO_VIDEO_LOOP_END) {
+                          e.currentTarget.currentTime = HERO_VIDEO_LOOP_START;
+                        }
+                      }}
+                      onPlaying={() => setHeroVideoReady(true)}
+                      style={{ opacity: heroVideoReady ? 1 : 0 }}
+                    >
+                      <source src={heroVideoSrc} type="video/mp4" />
+                    </video>
+                  )}
+                </div>
+              )
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* The body-type selector lives in the HERO (see above), not in its own section —
+          the customer must choose before seeing a price, not after scrolling past one. */}
+
+      {/* /ppf: Basic and Premium packages, all six prices visible. Rendered with the hero (outside DeferUntilIdle)
+          because it is the page's main comparison and is baked into the server HTML as well. */}
+      {page.packageComparison && (
+        <PpfPackages rows={services} onBook={(pkg) => openBooking(pkg)} />
+      )}
+
+      {/* Everything below the hero mounts once the browser is idle (or on first scroll/touch) so the hero, the
+          LCP element, is not held back by rendering the rest of the page. See components/defer-until-idle.tsx. */}
+      <DeferUntilIdle minHeight={1600}>
+
+      {/* ---------- 3b. PPF concept block (XPEL layout, by request, /ppf only) ----------
+          Trust strip + photo collage + full-bleed CTA banner. Scoped to path === "/ppf"
+          because the copy below ("color PPF match", paint-chip damage) is PPF-specific —
+          it would misdescribe the ceramic coating pages this same component also
+          renders. Every claim here already exists elsewhere on the site (warranty
+          issued at handover, in-studio fitting, full/partial coverage) — restated, not
+          invented, for this concept block. */}
+      {path === "/ppf" && (
+        <>
+          <section className="strip strip-dark" data-testid="section-ppf-trust-strip">
+            <div className="wrap">
+              <div className="row cols-3">
+                <div className="cell">
+                  <Wrench className="i" aria-hidden="true" />
+                  <b>In-studio professional install</b>
+                  <span>Every panel measured, plotter-cut and fitted by hand in our Adugodi bay.</span>
+                </div>
+                <div className="cell">
+                  <ShieldCheck className="i" aria-hidden="true" />
+                  <b>Written warranty</b>
+                  <span>{WARRANTY_HANDOVER_LINE}</span>
+                </div>
+                <div className="cell">
+                  <Layers className="i" aria-hidden="true" />
+                  <b>Full or partial coverage</b>
+                  <span>Protect the whole car, or just the panels that take the most hits.</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="section" data-testid="section-ppf-collage">
+            <div className="wrap">
+              <div className="guide-collage">
+                <div className="guide-collage-grid">
+                  <ImageWithFallback
+                    src="/attached_assets/gallery/p91-lux-range-rover-evoque.webp"
+                    alt="A white Range Rover Evoque in the P91 studio, protected with P91 Premium PPF"
+                    sizes="(min-width: 860px) 280px, 45vw"
+                    loading="lazy"
+                  />
+                  <ImageWithFallback
+                    src="/attached_assets/gallery/p91-ppf-fitting.webp"
+                    alt="A P91 technician fitting clear paint protection film on the rear door of a black car"
+                    sizes="(min-width: 860px) 280px, 45vw"
+                    loading="lazy"
+                  />
+                  <div className="guide-collage-wide">
+                    <ImageWithFallback
+                      src="/attached_assets/gallery/p91-lux-nissan-gtr.webp"
+                      alt="A white Nissan GT-R with a black bonnet in front of a STEK wall in the P91 studio"
+                      sizes="(min-width: 860px) 580px, 90vw"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+                <div className="guide-collage-copy">
+                  <h2>{PPF_STATEMENT.heading}</h2>
+                  <p>{PPF_STATEMENT.body}</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </>
+      )}
+
+      {/* ---------- 4. the offer ---------- */}
+      <section className="section lp-tight">
+        <div className="wrap narrow">
+          <CampaignOffer
+            landingPage={page.path}
+            servicePrice={service?.price}
+            serviceTitle={service?.title?.trim()}
+            serviceSlug={service?.slug}
+            onBook={() => openBooking()}
+          />
+        </div>
+      </section>
+
+      {/* ---------- 5. what the treatment does ---------- */}
+      <section className="section">
+        <div className="wrap">
+          <div className="section-head">
+            <h2>{page.benefitsHeading}</h2>
+          </div>
+          {/* XPEL-style icon-feature bullets, shared with /service/* (redesign.css). */}
+          <div className="feature-grid">
+            {page.benefits.map((b) => (
+              <div className="feature-item" key={b.title}>
+                <CheckCircle className="i" aria-hidden="true" />
+                <h3>{b.title}</h3>
+                <p>{b.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- 6. what's included, from the catalogue row ---------- */}
+      {displayableIncludes(service?.whatIncluded).length > 0 && (
+        <section className="section lp-tight">
+          <div className="wrap narrow">
+            <div className="section-head">
+              <h2>What the job includes</h2>
+            </div>
+            <div className="feature-grid" data-testid="landing-includes">
+              {displayableIncludes(service?.whatIncluded).map((item, i) => (
+                <div className="feature-item" key={i}>
+                  <CheckCircle className="i" aria-hidden="true" />
+                  <p>{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ---------- real photos, from the catalogue record's own image(s) ----------
+          Not "recent work" — these are the SAME photo(s) already resolved for the hero
+          and for this exact record on /services and /service/:slug, just given a proper
+          image-led moment of their own rather than staying a single small hero thumbnail.
+          Renders 1 photo for most records and up to 3 for the ones that carry more (car
+          ceramic coating) — the grid handles either count without looking sparse or
+          broken, and nothing here is invented: same source, same alt-text convention as
+          the rest of the site. */}
+      {service?.images && service.images.length > 0 && (
+        <section className="section lp-tight">
+          <div className="wrap">
+            <div className="section-head" style={{ textAlign: "center" }}>
+              <h2>{LANDING_PHOTOS_HEADING}</h2>
+            </div>
+            <div className="grid lp-gallery" style={{ gridTemplateColumns: `repeat(${Math.min(service.images.length, 3)}, minmax(0, 1fr))` }}>
+              {service.images.slice(0, 3).map((src, i) => (
+                <div key={src} className="card-img" data-testid={`img-landing-gallery-${i}`}>
+                  <ImageWithFallback
+                    src={src}
+                    alt={`${service.title.trim()} at the P91 Car Care studio in Adugodi, Bangalore`}
+                    width={800}
+                    height={600}
+                    sizes="(min-width: 900px) 33vw, 100vw"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ---------- how it works ---------- */}
+      <section className="section lp-tight">
+        <div className="wrap narrow">
+          <div className="section-head">
+            <h2>How it works</h2>
+          </div>
+          {/* An ordered list because the order is real, not decorative — numbered markers
+              here encode an actual sequence the customer moves through. */}
+          <ol className="lp-steps" data-testid="landing-steps">
+            {page.howItWorks.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* ---------- warranty: existing approved wording, carried over verbatim ---------- */}
+      <section className="section lp-tight">
+        <div className="wrap narrow">
+          <p className="lp-warranty" data-testid="landing-warranty">
+            {WARRANTY_HANDOVER_LINE} {WARRANTY_BATCH_LINE}
+          </p>
+        </div>
+      </section>
+
+      {/* ---------- 7. FAQs — only when the catalogue actually has them ---------- */}
+      {faqs.length > 0 && (
+        <section className="section">
+          <div className="wrap narrow">
+            <div className="section-head">
+              <h2>Common questions</h2>
+            </div>
+            {/* Native <details>/<summary>, collapsed by default — same accordion as
+                service-landing.tsx and ppf-ceramic-landing.tsx (.lp-faq CSS, incl. the
+                summary/+ icon rules). */}
+            <div className="lp-faqs" data-testid="landing-faqs">
+              {faqs.map((f, i) => (
+                <details className="lp-faq" key={i}>
+                  <summary>{f.question}</summary>
+                  <p>{f.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ---------- 8. genuine articles ---------- */}
+      <BlogCarousel posts={posts} bySlug={bySlug} />
+
+      {/* XPEL-style closing trust row before the final CTA — the same three facts already
+          stated in the hero (.hero-facts above), restated larger as reinforcement rather
+          than new claims. */}
+      <section className="strip">
+        <div className="wrap">
+          <div className="row cols-3">
+            <div className="cell">
+              <Clock className="i" aria-hidden="true" />
+              <b>Online booking</b><span>Pick your date and time</span>
+            </div>
+            <div className="cell">
+              <ShieldCheck className="i" aria-hidden="true" />
+              <b>Written warranty</b><span>{WARRANTY_HANDOVER_LINE}</span>
+            </div>
+            <div className="cell">
+              <MapPin className="i" aria-hidden="true" />
+              <b>Adugodi studio</b><span>Bangalore, pickup &amp; drop available</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- 9. related pages ----------
+          The closing "Ready when you are" CTA (heading, price line, Book Now + phone
+          button) that used to sit above this was removed by request — the hero CTA and
+          the offer-card CTA further up already cover booking on this page, and it was the
+          same heading/panel already removed from home.tsx for the same reason. Only the
+          related-pages nav is left, and only when there is one. */}
+      {page.related.length > 0 && (
+        <section className="section lp-tight">
+          <div className="wrap narrow">
+            <nav className="lp-related" aria-label="Related pages">
+              {/* The label sits in a span so the tap target can grow to 44px via padding
+                  on the anchor while the underline still hugs the text. */}
+              {page.related.map((r) => (
+                <Link key={r.href} href={r.href} data-testid={`link-related-${r.href}`}>
+                  <span>{r.label}</span>
+                </Link>
+              ))}
+            </nav>
+          </div>
+        </section>
+      )}
+
+      </DeferUntilIdle>
+
+      </main>
+
+      <DeferUntilIdle>
+        <SiteFooter />
+      </DeferUntilIdle>
+
+      {/*
+        The EXISTING booking modal, handed the same live record this page priced from.
+        `vehicleContext` rides alongside so the booking records what the customer actually
+        chose — "PPF, car, SUV" rather than just "PPF" — without this page knowing anything
+        about how a booking is submitted.
+      */}
+      {bookingService && (bookingOpen || bookingMounted) && (
+        <Suspense fallback={null}>
+          <BookingModal
+            service={bookingService as any}
+            landingPage={page.path}
+            isOpen={bookingOpen}
+            onClose={() => setBookingOpen(false)}
+            vehicleContext={{
+              vehicleType: page.vehicle,
+              vehicleCategory: pkgBooking?.bodyKey ?? (page.categories ? selectedCategory?.key : undefined),
+            }}
+          />
+        </Suspense>
+      )}
+    </div>
+  );
+}

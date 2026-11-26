@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 
-const src = read('client/src/lib/phone.ts')
+const src = read('apps/admin/src/lib/phone.ts')
   .replace(/export function isValidMobile\(value: string\): boolean \{/, 'function isValidMobile(value) {')
   .replace(/^export /gm, '');
 const { isValidMobile } = new Function(src + '; return { isValidMobile };')();

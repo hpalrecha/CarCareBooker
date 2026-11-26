@@ -25,9 +25,9 @@ const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 /** Comments stripped, so "must not contain X" matches code and not the prose explaining X. */
 const code = (p) => read(p).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
-const login = code('client/src/pages/admin-login.tsx');
-const quote = code('client/src/components/quote-form.tsx');
-const schema = read('shared/schema.ts');
+const login = code('apps/admin/src/pages/admin-login.tsx');
+const quote = code('apps/admin/src/components/quote-form.tsx');
+const schema = read('packages/db/src/schema.ts');
 
 /** Classes Tailwind is not configured to generate here. Naming one is a silent no-op. */
 const DEAD_CLASSES = ['text-deep-black', 'text-neon-green', 'border-neon-green', 'border-medium-gray', 'hover:border-neon-green'];
@@ -112,7 +112,7 @@ describe('the staff login screen', () => {
 
   test('client and server reject the same input with the same words', () => {
     // One schema, imported by the page and parsed by the route.
-    assert.match(login, /import \{ adminLoginSchema \} from "@shared\/schema"/);
+    assert.match(login, /import \{ adminLoginSchema \} from "@p91\/db\/schema"/);
     assert.match(schema, /email: z\.string\(\)\.email\("Enter a valid email address"\)/);
     assert.match(schema, /password: z\.string\(\)\.min\(6, "Password must be at least 6 characters"\)/);
   });
@@ -126,7 +126,7 @@ describe('the free-booking offer never reads as a free service', () => {
    * job is. The sticky bar used to read "Free this week — no payment" directly under
    * "Book Your Service", which is exactly that failure.
    */
-  const pages = ['client/src/pages/service-landing.tsx', 'client/src/pages/home.tsx'];
+  const pages = ['apps/admin/src/pages/service-landing.tsx', 'apps/admin/src/pages/home.tsx'];
 
   for (const page of pages) {
     test(`${page.split('/').pop()} qualifies every "free"`, () => {

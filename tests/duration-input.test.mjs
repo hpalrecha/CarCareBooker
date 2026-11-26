@@ -5,7 +5,7 @@
  * Pinned here because a rounding or unit-selection mistake would silently corrupt the
  * stored minutes for every service saved through the admin form, the same class of bug
  * the PPF "2/3/4 minutes, almost certainly days" data problem came from (see
- * client/src/lib/landing-pages.ts). These tests never touch the DB, the API, booking
+ * packages/content/src/landing-pages.ts). These tests never touch the DB, the API, booking
  * availability or lib/service-time.ts's customer-facing formatting/overrides — this file
  * is the admin-only conversion layer only.
  */
@@ -21,7 +21,7 @@ const read = (p) => fs.readFileSync(path.join(repoRoot, p), 'utf8');
 // The module is TypeScript with no runtime dependencies, so the type annotations are
 // stripped rather than pulling a compiler into the test run (same approach as
 // tests/ppf-ceramic-pricing.test.mjs).
-const src = read('client/src/lib/duration-input.ts')
+const src = read('apps/admin/src/lib/duration-input.ts')
   .replace(/^export type DurationUnit[\s\S]*?;$/m, '')
   .replace(/: Record<DurationUnit, number>/, '')
   .replace(/export function minutesToDurationInput\(\s*minutes: number \| string \| undefined \| null,\s*\): \{ value: string; unit: DurationUnit \} \{/, 'function minutesToDurationInput(minutes) {')

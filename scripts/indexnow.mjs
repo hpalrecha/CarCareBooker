@@ -5,7 +5,7 @@
  *   node scripts/indexnow.mjs            # all URLs in the live sitemap
  *   node scripts/indexnow.mjs /blog/x    # only these paths
  *
- * The key is the file name of the .txt in client/public/ (its content is the same key). The file must
+ * The key is the file name of the .txt in apps/admin/public/ (its content is the same key). The file must
  * be live at https://p91carcare.com/<key>.txt before this runs, so deploy first.
  */
 import fs from "node:fs";
@@ -14,9 +14,9 @@ import { fileURLToPath } from "node:url";
 
 const HOST = "p91carcare.com";
 const ORIGIN = `https://${HOST}`;
-const pub = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "client", "public");
+const pub = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "apps/admin", "public");
 const keyFile = fs.readdirSync(pub).find((f) => /^[0-9a-f]{32}\.txt$/.test(f));
-if (!keyFile) throw new Error("no IndexNow key file (32 hex chars .txt) in client/public");
+if (!keyFile) throw new Error("no IndexNow key file (32 hex chars .txt) in apps/admin/public");
 const key = keyFile.replace(/\.txt$/, "");
 
 let urls = process.argv.slice(2).map((p) => (p.startsWith("http") ? p : ORIGIN + p));

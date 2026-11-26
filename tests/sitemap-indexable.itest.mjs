@@ -42,7 +42,7 @@ const SERVICE_SLUGS = [
   "interior-detailing-service", "partial-ppf-hatchback", "partial-ppf-sedan",
   "partial-ppf-suv", "ppf-hatchback", "ppf-sedan", "ppf-suv", "stek-suncontrol-films",
   "stek-windsheild-suncontrol-films", "windshield-glass-coating-new", "windshield-glass-polishing",
-  // Added with the canonical consolidation (client/src/lib/canonical-overrides.ts) so the
+  // Added with the canonical consolidation (packages/content/src/canonical-overrides.ts) so the
   // sitemap-exclusion test below sees all eight consolidated slugs, plus one that must stay.
   "ppf-premium-hatchback", "ppf-premium-sedan", "ppf-premium-suv", "premium-car-wash-special",
 ];
@@ -70,16 +70,16 @@ const services = SERVICE_SLUGS.map((slug, i) => ({
 // ===========================================================================
 describe("route pipeline: nothing in the sitemap may be left without a handler", () => {
   const read = (p) => fs.readFileSync(path.join(repoRoot, p), "utf8");
-  const routesSrc = read("server/routes.ts");
+  const routesSrc = read("apps/api/src/routes.ts");
   const prerenderSrc = read("scripts/prerender.mjs");
-  const viteSrc = read("server/vite.ts");
+  const viteSrc = read("apps/api/src/vite.ts");
 
   /** The literal `loc:` paths the sitemap handler emits. */
   const sitemapStaticPaths = [...routesSrc.matchAll(/\{\s*loc:\s*"([^"]+)"/g)].map((m) => m[1]);
 
   /**
    * Paths prerendered from the hand-written pages. prerender.mjs builds these from
-   * STATIC_SEO_PAGES (client/src/lib/static-seo.ts) rather than its own inline table —
+   * STATIC_SEO_PAGES (packages/content/src/static-seo.ts) rather than its own inline table —
    * see the comment above loadContent() in prerender.mjs — so that is what this reads.
    *
    * Scoped to the STATIC_SEO_PAGES array literal itself, not the whole file: static-seo.ts
@@ -88,7 +88,7 @@ describe("route pipeline: nothing in the sitemap may be left without a handler",
    * being prerendered. Matching `path:` anywhere in the file would find those too and
    * report them as prerendered when they are not.
    */
-  const staticSeoSrc = read("client/src/lib/static-seo.ts");
+  const staticSeoSrc = read("packages/content/src/static-seo.ts");
   const staticSeoPagesArray = staticSeoSrc.slice(
     staticSeoSrc.indexOf("export const STATIC_SEO_PAGES"),
     staticSeoSrc.indexOf("];", staticSeoSrc.indexOf("export const STATIC_SEO_PAGES")) + 2,
@@ -115,7 +115,7 @@ describe("route pipeline: nothing in the sitemap may be left without a handler",
     const landingPaths = prerenderSrc.includes("of LANDING_PAGES")
       ? ["/ceramic-coating/car", "/ceramic-coating/bike", "/ppf"]
       : [];
-    // /products/:brand pages are generated from BRAND_PAGES (client/src/lib/brand-pages.ts).
+    // /products/:brand pages are generated from BRAND_PAGES (packages/content/src/brand-pages.ts).
     const brandPaths = prerenderSrc.includes("of BRAND_PAGES")
       ? ["/products/stek", "/products/nasiol", "/products/p91-premium-ppf"]
       : [];
@@ -143,13 +143,13 @@ describe("route pipeline: nothing in the sitemap may be left without a handler",
 
   test("/ppf-ceramic-coating is a redirect, not a prerendered page", () => {
     // SEO audit (2026-09-22): zero internal links, zero external search visibility.
-    // server/routes.ts now 301s it to /services instead of rendering it, so it must NOT
+    // apps/api/src/routes.ts now 301s it to /services instead of rendering it, so it must NOT
     // be in the sitemap, must NOT have a prerendered file, and the route must not exist
     // in the client router either — three ways the old page could accidentally come back.
     assert.ok(!sitemapStaticPaths.includes("/ppf-ceramic-coating"), "must not be in the sitemap");
     assert.ok(!prerenderedStatic.includes("/ppf-ceramic-coating"), "must not have a prerendered file");
     assert.doesNotMatch(
-      read("client/src/App.tsx"),
+      read("apps/admin/src/App.tsx"),
       /path="\/ppf-ceramic-coating"/,
       "must not have a client route — the server redirect is the only handler now",
     );
@@ -205,16 +205,16 @@ describe("served HTML: every sitemap URL is indexable, and only those", { skip: 
       getAdmin: async () => undefined,
     };
     class SlotFullError extends Error {}
-    mock.module("../server/storage.ts", { exports: { storage, SlotFullError } });
-    mock.module("../server/services/scheduler.ts", { exports: { schedulerService: { startReminderScheduler() {} } } });
+    mock.module("../apps/api/src/storage.ts", { exports: { storage, SlotFullError } });
+    mock.module("../apps/api/src/services/scheduler.ts", { exports: { schedulerService: { startReminderScheduler() {} } } });
 
     process.env.DATABASE_URL = "postgresql://u:p@127.0.0.1:5432/none";
     process.env.SESSION_SECRET = "sitemap-test-secret";
     process.env.NODE_ENV = "test";
     process.env.PUBLIC_SITE_ORIGIN = "https://p91carcare.com";
 
-    const { registerRoutes } = await import("../server/routes.ts");
-    const { serveStatic } = await import("../server/vite.ts");
+    const { registerRoutes } = await import("../apps/api/src/routes.ts");
+    const { serveStatic } = await import("../apps/api/src/vite.ts");
     const app = express();
     app.use(express.json());
     server = await registerRoutes(app);

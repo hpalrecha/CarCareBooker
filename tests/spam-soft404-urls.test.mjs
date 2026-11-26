@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { isSpamProductPath } from "../server/lib/spam-paths.ts";
+import { isSpamProductPath } from "../apps/api/src/lib/spam-paths.ts";
 import fs from "node:fs";
-import { sendGone } from "../server/lib/gone-response.ts";
+import { sendGone } from "../apps/api/src/lib/gone-response.ts";
 
 // The 16 URLs Search Console listed as "Soft 404" on 2026-11-20 (URL Inspection API: last crawled 2026-02-11 to
 // 2026-04-05, before the 410 handling existed). They must keep answering 410 Gone + noindex, and must never be
@@ -61,7 +61,7 @@ test("the 410 response carries noindex, is HTML and never redirects", () => {
 });
 
 test("the middleware only answers GET and HEAD, uses sendGone, and has no redirect call", () => {
-  const src = fs.readFileSync(new URL("../server/middleware/gone-paths.ts", import.meta.url), "utf8");
+  const src = fs.readFileSync(new URL("../apps/api/src/middleware/gone-paths.ts", import.meta.url), "utf8");
   const fn = src.slice(src.indexOf("export function goneForSpamPaths"), src.indexOf("export const REMOVED_PAGES"));
   assert.ok(fn.includes('req.method !== "GET" && req.method !== "HEAD") return next()'));
   assert.ok(fn.includes("isSpamProductPath(req.path)"));

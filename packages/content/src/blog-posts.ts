@@ -1,0 +1,1147 @@
+/**
+ * Blog content for the approved redesign.
+ *
+ * The prose is the prototype's, carried over so the layouts are complete — the business
+ * intends to replace it with its own writing. It is marketing copy only: no price, offer,
+ * availability or voucher claim appears here, because all of those must come from the
+ * database. A future post that needs a price should read it from /api/services rather
+ * than typing it into this file.
+ *
+ * Bodies are structured BLOCKS rather than flat paragraphs, for two reasons the brief
+ * asked for: a strict h1 -> h2 -> h3 cascade, and contextual internal links into the
+ * local-intent service pages. A flat string array could deliver neither.
+ *
+ * Images are not bundled with posts. Each post names a service SLUG and the artwork is
+ * resolved from that live service record at render time, so blog imagery follows whatever
+ * the admin uploads and there is no second copy of the photography to go stale.
+ */
+
+import {
+  type Carousel,
+  PPF_VS_CERAMIC,
+  PPF_COVERAGE,
+  PPF_ORIGIN,
+  MONSOON_DAMAGE,
+} from "./carousels";
+
+/** Inline markup allowed in `text`: **bold** and [label](/internal-path). Nothing else. */
+export type BlogBlock =
+  | { type: "h2"; text: string }
+  | { type: "h3"; text: string }
+  /**
+   * `variant` only changes how a paragraph is dressed: "lead" is larger intro type, "warranty"
+   * a highlighted callout, "price" a callout with quote buttons. The words are unchanged.
+   */
+  | { type: "p"; text: string; variant?: "lead" | "warranty" | "price" }
+  /**
+   * `variant` "areas" shows items as service-area cards; "services" as feature blocks, with
+   * an optional short `tags` label above each (decorative, so it is not repeated to screen readers).
+   */
+  | { type: "ul"; items: string[]; variant?: "areas" | "services"; tags?: string[] }
+  | { type: "ol"; items: string[] }
+  /** Questions and answers as an accessible accordion; the answers are always in the HTML. */
+  | { type: "faq"; items: { q: string; a: string }[] }
+  /**
+   * A small comparison table. `head[0]` labels the row-header column. Cells take the same
+   * inline markup as `p`. Rendered as a real <table> (crawlable) that fits a phone without
+   * horizontal scrolling for two or three short columns.
+   */
+  | { type: "table"; caption: string; head: string[]; rows: string[][] }
+  /** Studio address, phone, map and booking links. Fixed fields, so no raw URLs in prose. */
+  | {
+      type: "contact";
+      address: string;
+      phone: string;
+      phoneHref: string;
+      mapsHref: string;
+      bookHref: string;
+      bookLabel: string;
+    }
+  /** Mid-article prompt. `text` is the pitch; the button always goes to /services. */
+  | { type: "cta"; text: string; label: string }
+  /**
+   * The studio's own social carousel, embedded in the article it illustrates.
+   *
+   * Spread from lib/carousels.ts rather than written here, because the campaign landing
+   * pages render the same carousels in their hero and two copies of 11 lines of alt text
+   * would drift apart within a month.
+   *
+   * The article's prose always says what the slides say. The images are the illustration,
+   * never the only place a claim lives — a picture of a sentence is worth nothing to a
+   * crawler, so a post that leaned on the carousel alone would rank for nothing.
+   */
+  | ({ type: "carousel" } & Carousel);
+
+export interface BlogPost {
+  slug: string;
+  title: string;
+  /**
+   * <title> for the tab and search results, kept under 60 characters.
+   *
+   * Explicit rather than derived: every headline here is 61-70 characters, so appending
+   * the brand would overflow, and truncating a headline at runtime produces sentences cut
+   * mid-phrase. Writing it once is clearer and reviewable.
+   */
+  seoTitle: string;
+  /** ISO date, used for display, <time datetime> and datePublished. */
+  date: string;
+  /** ISO date of the last substantive edit. Feeds dateModified. */
+  updated?: string;
+  readMinutes: number;
+  category: string;
+  /** One-line teaser for the homepage and blog index. */
+  excerpt: string;
+  /** Longer opening line shown under the h1. */
+  lede: string;
+  /** Slug of the live service whose image illustrates this post. */
+  imageServiceSlug: string;
+  /**
+   * Own artwork for this post, used instead of the service photo named above. For posts with a
+   * dedicated image (for example a branded poster). `square` makes the article header show it
+   * uncropped instead of as a wide banner.
+   */
+  image?: { src: string; alt: string; square?: boolean };
+  body: BlogBlock[];
+}
+
+export const BLOG_AUTHOR = "P91 Car Care";
+
+export const BLOG_POSTS: BlogPost[] = [
+  {
+    slug: "ppf-koramangala-hsr-layout-shanti-nagar-adugodi",
+    title:
+      "Paint Protection Film in Bangalore: A Guide for Koramangala, HSR Layout and Shanti Nagar Car Owners",
+    seoTitle: "PPF & Ceramic Coating near Koramangala & HSR | P91",
+    date: "2026-10-05",
+    updated: "2026-11-17",
+    readMinutes: 4,
+    category: "Protection",
+    // Also the meta description (blog-post.tsx and prerender.mjs both use the excerpt).
+    // Supplied wording, over 160 characters; search results may truncate it.
+    excerpt:
+      "Looking for paint protection film near Koramangala, HSR Layout or Shanti Nagar? P91 Car Care in Adugodi offers STEK PPF and ceramic coating with a written warranty. Book online.",
+    lede:
+      "If you live in Koramangala, HSR Layout, Shanti Nagar or Adugodi, your car faces the same problems every day: stop-and-go traffic, tight parking, stone chips on the ORR and Hosur Road, monsoon rain and hard water spots. Paint protection film (PPF) is one of the best ways to keep paint looking new. This guide covers how it works and what to ask before you book a studio near you.",
+    imageServiceSlug: "ppf-sedan",
+    image: {
+      src: "/attached_assets/blog/ppf-koramangala-hsr-layout-shanti-nagar-adugodi.jpg",
+      alt: "P91 Car Care poster: paint protection film and ceramic coating near Koramangala, HSR Layout and Shanti Nagar, on a green sports car. Adugodi, Bengaluru. Call 74066 19191.",
+      square: true,
+    },
+    body: [
+      { type: "h2", text: "What is paint protection film?" },
+      {
+        type: "p",
+        variant: "lead",
+        text:
+          "PPF is a clear, flexible film fitted over your car's paint. It takes the damage so the paint doesn't: stone chips, light scratches, and stains from bird droppings and bug splatter.",
+      },
+      {
+        type: "p",
+        text:
+          "You can pick gloss or matte, whether you want to keep the factory look or change it.",
+      },
+
+      { type: "h2", text: "PPF vs ceramic coating: which one do you need?" },
+      {
+        type: "table",
+        caption: "PPF compared with ceramic coating",
+        head: ["Compare", "PPF", "Ceramic coating"],
+        rows: [
+          ["What it is", "Physical film layer", "Liquid nano-coating"],
+          ["Best against", "Stone chips, scratches", "Water spots, stains, UV, chemicals"],
+          ["Look", "Gloss or matte", "Deep gloss, easy to clean"],
+          ["Ideal for", "New cars, high-use cars", "Easy maintenance and shine"],
+        ],
+      },
+      {
+        type: "p",
+        text:
+          "If chips and scratches worry you, go for PPF. If you want easy cleaning and shine, go for ceramic. Many owners do both. Read the full comparison in [PPF vs ceramic coating for Bangalore traffic and weather](/blog/ppf-vs-ceramic-coating-bangalore).",
+      },
+
+      { type: "h2", text: "5 questions to ask before booking PPF in Bangalore" },
+      {
+        type: "ol",
+        items: [
+          "**Is the warranty in writing?** It should be the manufacturer's warranty, handed over with your car.",
+          "**Can I see the batch details before work starts?**",
+          "**Which brand is the film?**",
+          "**Is the work done in a controlled studio?**",
+          "**Is there a package for my car size?** Hatchbacks, sedans and SUVs need different amounts of film.",
+        ],
+      },
+
+      { type: "h2", text: "PPF studio near Koramangala, HSR Layout and Shanti Nagar" },
+      {
+        type: "p",
+        text:
+          "P91 Car Care is in Ayappa Garden, Adugodi, a short drive from some of the city's busiest car-owning neighbourhoods:",
+      },
+      {
+        type: "ul",
+        variant: "areas",
+        // TODO(drive-times): add approx. drive time for each area once the studio confirms
+        // them. Nothing in the project verifies them, so none are stated here.
+        items: [
+          "**Koramangala:** a short drive from the studio",
+          "**Shanti Nagar:** a short drive from the studio",
+          "**HSR Layout:** a short drive from the studio",
+          "**Adugodi:** right here, so you can drop in and [see the studio](/contact).",
+        ],
+      },
+      {
+        type: "p",
+        text: "Can't make it in? Pickup and drop is available across Bangalore at cost.",
+      },
+
+      { type: "h2", text: "How we do it at P91" },
+      {
+        type: "ul",
+        variant: "services",
+        tags: ["STEK PPF", "P91 Premium PPF", "Nasiol coating"],
+        items: [
+          "[STEK PPF](/products/stek) in gloss and matte. We've fitted it on the Toyota Vellfire, Nissan GT-R and Innova Hycross. [See our work](/gallery).",
+          "[P91 Premium PPF](/products/p91-premium-ppf), our own film line, in hatchback, sedan and SUV packages.",
+          "[Nasiol](/products/nasiol) nano-ceramic coating for water and stain repellence and UV and chemical resistance.",
+        ],
+      },
+      {
+        type: "p",
+        variant: "warranty",
+        text: "Every PPF and coating job comes with a written manufacturer warranty, issued at handover.",
+      },
+
+      { type: "h2", text: "What does PPF cost?" },
+      {
+        type: "p",
+        variant: "price",
+        // TODO(starting-price): add the starting price per package. Prices live in the
+        // services database, not in this file, so none is typed here.
+        text:
+          "Pricing depends on car size, film and coverage (front-end or full body). Message us your car model for an exact quote.",
+      },
+
+      { type: "h2", text: "FAQ" },
+      {
+        type: "faq",
+        items: [
+          {
+            q: "Where can I get PPF near Koramangala?",
+            a: "P91 Car Care in Adugodi is a short drive from Koramangala. We fit STEK PPF and P91 Premium PPF with a written warranty.",
+          },
+          {
+            q: "Is there a ceramic coating studio near HSR Layout?",
+            a: "Yes. We apply Nasiol nano-ceramic coating in Adugodi and offer pickup and drop across Bangalore, including HSR Layout, at cost.",
+          },
+          { q: "Do you offer PPF near Shanti Nagar?", a: "Yes. We're in Adugodi, close to Shanti Nagar." },
+          { q: "Can I see the film details before work starts?", a: "Yes. Ask for the batch details before we begin." },
+        ],
+      },
+
+      { type: "h2", text: "Book your PPF" },
+      {
+        type: "contact",
+        address: "49, 13th Cross, Ayappa Garden, Adugodi, Bengaluru 560030",
+        phone: "+91 74066 19191",
+        phoneHref: "tel:+917406619191",
+        mapsHref:
+          "https://www.google.com/maps/dir/?api=1&destination=P91+Car+Care+Adugodi+Bengaluru",
+        bookHref: "/services",
+        bookLabel: "Book online in under a minute",
+      },
+      {
+        type: "p",
+        text:
+          "Related: [PPF services](/services/paint-protection-film-bangalore) · [Ceramic coating](/services/ceramic-coating-bangalore)",
+      },
+    ],
+  },
+
+  {
+    slug: "ppf-vs-ceramic-coating-bangalore",
+    title: "PPF vs Ceramic Coating: Which is Best for Bangalore Traffic & Weather?",
+    seoTitle: "PPF vs Ceramic Coating in Bangalore | P91",
+    date: "2026-08-21",
+    updated: "2026-11-17",
+    readMinutes: 6,
+    category: "Protection",
+    excerpt:
+      "Stop-start traffic chips paint; monsoon and hard water dull it. Which one your car actually needs.",
+    lede:
+      "People compare them as if they were rivals, but one is a physical barrier and the other a chemical one, and they fail in different ways.",
+    imageServiceSlug: "ppf-sedan",
+    image: {
+      src: "/attached_assets/blog/ppf-vs-ceramic-coating-bangalore.jpg",
+      alt: "A white Mercedes GLE in the P91 Car Care studio, with the P91 logo",
+      square: true,
+    },
+    body: [
+      { type: "h2", text: "The short answer" },
+      {
+        type: "p",
+        text:
+          "If your car spends its life in stop-start traffic on Outer Ring Road or Hosur Road, **paint protection film** is what you want on the front end. If your car is parked outside, washed with borewell water, and you are tired of it looking dull two days after a wash, **ceramic coating** is what you want.",
+      },
+      {
+        type: "p",
+        text:
+          "Most cars in Bangalore do best with both: [PPF](/services/paint-protection-film-bangalore) on the impact zones and [ceramic coating](/services/ceramic-coating-bangalore) over the rest.",
+      },
+
+      { type: "carousel", ...PPF_VS_CERAMIC },
+
+      { type: "h2", text: "What PPF actually does" },
+      {
+        type: "p",
+        text:
+          "PPF is a clear thermoplastic urethane film, roughly 150–200 microns thick, laid over the paint. It is a physical shield. When a stone thrown up by the truck ahead of you hits the bonnet at 60 km/h, the film absorbs the impact instead of the clearcoat.",
+      },
+      {
+        type: "p",
+        text:
+          "Before you pay, ask the studio which film you are getting and what the written warranty covers.",
+      },
+      {
+        type: "p",
+        text:
+          "What PPF does not do is make the car easier to clean. Film has its own surface, and an uncoated film still holds water spots.",
+      },
+      {
+        type: "p",
+        text:
+          "P91 fits [STEK](/products/stek) film and our own [P91 Premium PPF](/products/p91-premium-ppf) line, both backed by a written warranty at handover.",
+      },
+
+      { type: "h2", text: "What ceramic coating actually does" },
+      {
+        type: "p",
+        text:
+          "Ceramic coating is a liquid polymer that cures into a hard, slick, hydrophobic layer a few microns thick. It is chemical protection, not impact protection.",
+      },
+      {
+        type: "p",
+        text:
+          "It resists staining from bird droppings, tree sap and, the one that matters most here, the mineral deposits in Bangalore's borewell water. The surface gets slippery enough that dirt struggles to bond, so washes are quicker and safer.",
+      },
+      {
+        type: "p",
+        text:
+          "What ceramic coating does not do is stop a stone chip. A 9H coating is still measured in microns. It will not survive gravel.",
+      },
+      {
+        type: "p",
+        text: "P91 applies [Nasiol](/products/nasiol) nano-ceramic coating in the Adugodi studio.",
+      },
+
+      {
+        type: "cta",
+        text:
+          "Not sure which your car needs? Bring it to the Adugodi studio and we will tell you what the paint needs before you spend anything.",
+        label: "Book an inspection",
+      },
+
+      { type: "h2", text: "How Bangalore specifically changes the answer" },
+      { type: "h3", text: "Traffic" },
+      {
+        type: "p",
+        text:
+          "Long spells at low speed behind heavy vehicles are the worst place for the front bumper, bonnet leading edge and wing mirrors. This is the strongest argument for at least a [partial PPF](/services/paint-protection-film-bangalore).",
+      },
+      { type: "h3", text: "Water" },
+      {
+        type: "p",
+        text:
+          "Most of the city is on borewell supply with high dissolved mineral content. Let that dry on paint in direct sun and it etches into the clearcoat within days. A ceramic coating buys you the time to get the water off before it bonds.",
+      },
+      { type: "h3", text: "Parking" },
+      {
+        type: "p",
+        text:
+          "Open parking means UV, tree sap and bird droppings. Both products help; ceramic helps more, and helps daily.",
+      },
+
+      { type: "h2", text: "What we would recommend" },
+      {
+        type: "ul",
+        items: [
+          "**New car, kept long term:** partial PPF on the front, ceramic over the whole car. Most of our customers end up choosing this.",
+          "**Older car, paint already marked:** [paint correction and ceramic](/services/ceramic-coating-bangalore) first. Film over damaged paint locks the damage in.",
+          "**Car parked outside daily:** ceramic comes first, because water and UV are doing more damage than gravel.",
+          "**Weekend car, garaged:** neither is urgent. A good sealant and proper drying go a long way.",
+        ],
+      },
+      {
+        type: "p",
+        text:
+          "Whichever you pick, ask to see the batch details of the film or coating before work starts, and get the manufacturer's warranty in writing at handover.",
+      },
+    ],
+  },
+
+  {
+    slug: "hard-water-spot-removal-bangalore",
+    title: "How to Protect Your Car Paint from Hard Water Spots in Bangalore",
+    seoTitle: "Hard Water Spots on Car Paint | P91 Car Care",
+    date: "2026-08-12",
+    updated: "2026-11-17",
+    readMinutes: 4,
+    category: "Paint care",
+    excerpt:
+      "Borewell water etches clearcoat within days. How to prevent it, and when it needs correction.",
+    lede:
+      "A water spot is a mineral deposit left as the water evaporates, and in direct sun it starts cutting into your clearcoat within days.",
+    imageServiceSlug: "exterior-detailing-hard-water-new",
+    image: {
+      src: "/attached_assets/blog/hard-water-spot-removal-bangalore.jpg",
+      alt: "A gloved hand wiping a glossy white car panel, with the P91 logo",
+      square: true,
+    },
+    body: [
+      { type: "h2", text: "Why borewell water is the problem" },
+      {
+        type: "p",
+        text:
+          "When borewell water dries on a panel, the water leaves and the calcium and magnesium stay behind. What is left is a concentrated alkaline deposit sitting directly on the clearcoat, and Bangalore's sun bakes it in.",
+      },
+      {
+        type: "p",
+        text:
+          "Caught the same day, it wipes off. Left for a few weeks, it becomes a crater you can feel with a fingernail, and no amount of washing will remove it.",
+      },
+
+      { type: "h2", text: "The habit that prevents it" },
+      {
+        type: "p",
+        text:
+          "The fix is **drying properly**, not washing more often: a clean microfibre towel, straight away, in the shade. Most of the spotting we see comes from cars washed at 11am in an open car park and left to air-dry.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Wash early morning or evening, never in direct sun",
+          "Work panel by panel and dry each one before moving on",
+          "Use a clean, dedicated drying towel, not the one that was on the wheels",
+          "If you cannot dry it, do not wash it",
+        ],
+      },
+
+      {
+        type: "cta",
+        text:
+          "Already got spotting you cannot wipe off? We will tell you whether it needs a decontamination wash or machine correction before you commit to anything.",
+        label: "Book an inspection",
+      },
+
+      { type: "h2", text: "When it needs correction" },
+      { type: "h3", text: "Surface deposits" },
+      {
+        type: "p",
+        text:
+          "If the mark sits on top of the clearcoat, a decontamination wash and clay bar lifts it. This is cleaning, and it is quick.",
+      },
+      { type: "h3", text: "Etched spots" },
+      {
+        type: "p",
+        text:
+          "If you can feel the edge of the mark, the mineral has eaten into the clearcoat. That needs machine polishing to level the surface around it, which is [exterior detailing with hard water spot removal](/service/exterior-detailing-hard-water-new) rather than a wash.",
+      },
+
+      { type: "h2", text: "Stopping it coming back" },
+      {
+        type: "p",
+        text:
+          "Once the paint is corrected, a [ceramic coating](/services/ceramic-coating-bangalore) is what stops it coming back. Water beads and rolls off instead of sitting in a flat puddle and evaporating in place. That is why coated cars stay clean longer as well as glossier.",
+      },
+      {
+        type: "p",
+        text: "P91 applies [Nasiol](/products/nasiol) nano-ceramic coating for this.",
+      },
+    ],
+  },
+
+  {
+    slug: "windshield-heat-rejection-film-summer",
+    title: "Windshield Heat Rejection Film: What the Numbers Actually Mean",
+    seoTitle: "Windshield Heat Rejection Film | P91 Car Care",
+    date: "2026-07-30",
+    updated: "2026-11-17",
+    readMinutes: 5,
+    category: "Glass & film",
+    excerpt:
+      "VLT, IR rejection and TSER get quoted loosely. Here is which number matters for a Bangalore summer.",
+    lede:
+      "Sun film is sold on three numbers, and only one of them tells you how cool the car will be. The other two are the ones you get quoted.",
+    imageServiceSlug: "stek-windsheild-suncontrol-films",
+    image: {
+      src: "/attached_assets/blog/windshield-heat-rejection-film-summer.jpg",
+      alt: "Heat-rejection film being fitted to a car window at P91 Car Care, with the P91 logo",
+      square: true,
+    },
+    body: [
+      { type: "h2", text: "The three numbers" },
+      { type: "h3", text: "VLT — visible light transmission" },
+      {
+        type: "p",
+        text:
+          "How dark the film looks, as a percentage of light let through. This is the number the law regulates, and it says nothing about heat.",
+      },
+      { type: "h3", text: "IR rejection" },
+      {
+        type: "p",
+        text:
+          "Measured at a single wavelength, which is why it is the number cheap film advertises. A film can claim a very high IR figure and still pass plenty of heat.",
+      },
+      { type: "h3", text: "TSER — total solar energy rejected" },
+      {
+        type: "p",
+        text:
+          "**This is the one that matters.** It counts visible light, infrared and ultraviolet together, which is what your cabin actually feels parked on MG Road in April.",
+      },
+
+      { type: "h2", text: "Dark does not mean cool" },
+      {
+        type: "p",
+        text:
+          "A good windshield film can be almost clear and still reject a large share of solar energy. You are not trying to make the glass dark. You are trying to stop the dashboard getting too hot to touch.",
+      },
+      {
+        type: "p",
+        text:
+          "Darkness and heat rejection are separate things, whatever the roadside shop tells you.",
+      },
+
+      {
+        type: "cta",
+        text:
+          "Bring the car in and we will show you the spec sheet for the exact film before anything is fitted.",
+        label: "Book a fitting",
+      },
+
+      { type: "h2", text: "What to ask for" },
+      {
+        type: "ul",
+        items: [
+          "The manufacturer's spec sheet for the **exact film**, not the product range",
+          "The TSER figure, not just IR rejection",
+          "Your state's VLT limit for the windshield, checked before you commit",
+          "The warranty card, issued at handover",
+        ],
+      },
+      {
+        type: "p",
+        text:
+          "A film that is legal on side glass may not be legal at the front, so confirm the windshield limit separately. Our [sun control film and glass coating](/services/glass-sun-control-film-bangalore) page lists what we fit.",
+      },
+      {
+        type: "p",
+        text: "P91 fits [STEK](/products/stek) sun-control film in the Adugodi studio.",
+      },
+
+      { type: "h2", text: "Film and coating are different jobs" },
+      {
+        type: "p",
+        text:
+          "Sun film manages heat. A [windshield glass coating](/service/windshield-glass-coating-new) makes rain bead and clear at speed, which mostly helps night driving in the monsoon. People ask about them together, but they solve unrelated problems and are priced separately.",
+      },
+    ],
+  },
+
+  {
+    slug: "how-much-ppf-does-your-car-need",
+    title: "Don't Wrap the Whole Car: How Much PPF Your Car Actually Needs",
+    seoTitle: "How Much PPF Does Your Car Need? | P91",
+    date: "2026-09-05",
+    updated: "2026-11-17",
+    readMinutes: 5,
+    category: "Protection",
+    excerpt:
+      "Full-body film is not the default answer. Coverage is a decision about where damage actually lands.",
+    lede:
+      "More film is not automatically more protection. Cars do not get damaged evenly, and what suits a daily driver on Outer Ring Road is not what suits a garaged weekend car.",
+    imageServiceSlug: "ppf-sedan",
+    image: {
+      src: "/attached_assets/blog/how-much-ppf-does-your-car-need.jpg",
+      alt: "A white Toyota Innova Hycross with paint protection film at P91 Car Care, with the P91 logo",
+      square: true,
+    },
+    body: [
+      { type: "h2", text: "Coverage is a decision, not an upsell" },
+      {
+        type: "p",
+        text:
+          "People arrive asking *how much does PPF cost*. What decides the bill is **how much of the car needs it**, and that depends on where stones, grit and door edges land, not on how much film will fit.",
+      },
+      {
+        type: "p",
+        text:
+          "The front of the car takes most of the road damage. Everything behind the A-pillar lives a much quieter life. Spend equally on both and the quote doubles without the paint being meaningfully safer.",
+      },
+
+      { type: "carousel", ...PPF_COVERAGE },
+
+      { type: "h2", text: "The three levels, and who each is for" },
+      { type: "h3", text: "Partial front" },
+      {
+        type: "p",
+        text:
+          "Front bumper, part of the bonnet, and the wing mirrors. It covers the panels that collect stone chips first and leaves the rest alone. A sensible starting point for a daily-driven hatchback or sedan on a budget.",
+      },
+      { type: "h3", text: "Full front end" },
+      {
+        type: "p",
+        text:
+          "Bumper, the whole bonnet, fenders, headlights and mirrors. People step up to it for the bonnet: a partial wrap leaves a cut line across a panel you look at every day, and a full bonnet has none. It is the option we fit most often.",
+      },
+      { type: "h3", text: "Full body" },
+      {
+        type: "p",
+        text:
+          "Every painted panel. It is the right answer for matte paint, which cannot be polished, and for cars that are kept, shown or driven hard. For a normal city car it is a lot of money spent on panels that were never at risk.",
+      },
+
+      {
+        type: "cta",
+        text:
+          "Bring the car in and we will tell you which panels on YOUR car are actually taking damage, and quote only those. Live prices for hatchback, sedan and SUV are on the PPF page.",
+        label: "See PPF prices",
+      },
+
+      { type: "h2", text: "Why PPF and ceramic are quoted together" },
+      {
+        type: "p",
+        text:
+          "Film and coating solve different problems, so partial coverage leaves a gap: the panels without film still face UV, borewell water and bird droppings. [Ceramic coating](/services/ceramic-coating-bangalore) over the rest of the car closes that gap for a fraction of what full-body film costs.",
+      },
+      {
+        type: "p",
+        text:
+          "Coating over the film matters too. Film has its own surface, and an uncoated film holds water spots just like paint does. We wrote up [how the two differ](/blog/ppf-vs-ceramic-coating-bangalore) separately.",
+      },
+      {
+        type: "p",
+        text:
+          "P91 fits [STEK](/products/stek) and our own [P91 Premium PPF](/products/p91-premium-ppf) film, and applies [Nasiol](/products/nasiol) ceramic coating.",
+      },
+
+      { type: "h2", text: "What to ask before you agree to coverage" },
+      {
+        type: "ul",
+        items: [
+          "**Which panels** are included, named one by one, not just \"front\"",
+          "Whether the bonnet is **full or partial**, and where the cut line falls if partial",
+          "Whether headlights and mirrors are in the quote or extra",
+          "What the **uncovered** panels are getting instead, if anything",
+          "The film brand and batch, and the warranty card at handover",
+        ],
+      },
+      {
+        type: "p",
+        text:
+          "Prices at P91 are by body type (hatchback, sedan and SUV) for both partial and full coverage. Pick your body type on the [PPF page](/ppf) and the live price for that combination is shown before you book.",
+      },
+    ],
+  },
+
+  {
+    slug: "is-your-ppf-really-made-in-usa",
+    title: "Is Your PPF Really Made in the USA? What the Label Doesn't Tell You",
+    seoTitle: "Is Your PPF Really Made in the USA? | P91",
+    date: "2026-09-08",
+    updated: "2026-11-17",
+    readMinutes: 5,
+    category: "Protection",
+    excerpt:
+      "Country-of-origin on a PPF box is a marketing line more often than a manufacturing fact. Here is what to ask instead.",
+    lede:
+      "Almost every paint protection film sold in India is described as American. Very few brands make their own film, and fewer still make the raw material, so the flag on the box rarely decides how the film performs.",
+    imageServiceSlug: "ppf-suv",
+    image: {
+      src: "/attached_assets/blog/is-your-ppf-really-made-in-usa.jpg",
+      alt: "A P91 technician fitting clear paint protection film on a black car, with the P91 logo",
+      square: true,
+    },
+    body: [
+      { type: "h2", text: "Why the label is the weakest signal" },
+      {
+        type: "p",
+        text:
+          "PPF is a thermoplastic urethane sheet with an adhesive on one side and a topcoat on the other. A brand may formulate it, cast it, coat it, or simply buy it finished and print its own box, and all four can be described in ways that sound like manufacturing.",
+      },
+      {
+        type: "p",
+        text:
+          "So \"made in\" can mean the polymer was synthesised there, or only that the roll was slit and boxed there. Those are very different products under the same sticker.",
+      },
+
+      { type: "carousel", ...PPF_ORIGIN },
+
+      { type: "h2", text: "The questions that actually separate films" },
+      { type: "h3", text: "Who made the raw material?" },
+      {
+        type: "p",
+        text:
+          "The polymer grade is where clarity and yellowing resistance are decided. A brand that can tell you which TPU grade its film uses knows its own supply chain.",
+      },
+      { type: "h3", text: "What testing has it been through?" },
+      {
+        type: "p",
+        text:
+          "UV and weathering testing is the difference between a film that stays clear for years and one that goes yellow over a bonnet. Ask for the test standard, not the adjective.",
+      },
+      { type: "h3", text: "Who honours the warranty, and where?" },
+      {
+        type: "p",
+        text:
+          "A manufacturer warranty is only worth the process behind it. Ask who you would call, in India, if the film discoloured in year three, and get the answer in writing at handover, not as a verbal promise at quoting.",
+      },
+
+      {
+        type: "cta",
+        text:
+          "We will show you the film we would put on your car, tell you exactly what it is, and give you the warranty terms before you commit to anything.",
+        label: "Talk to the studio",
+      },
+
+      { type: "h2", text: "Installation is the part nobody advertises" },
+      {
+        type: "p",
+        text:
+          "This is the least glamorous point and the most important. A premium film fitted badly (stretched at the edges, dust trapped under it, wrapped where it should have been cut) will fail before a mid-tier film fitted properly.",
+      },
+      {
+        type: "p",
+        text:
+          "Lifted edges, trapped dust and silvering at a corner are installation outcomes, not material defects, and no warranty covers them. When you compare two quotes, the film brand is the easy part. The fitter decides the result.",
+      },
+
+      { type: "h2", text: "A short buyer's checklist" },
+      {
+        type: "ul",
+        items: [
+          "Name of the film and the exact product line, not just the brand",
+          "Who supplies the raw polymer, if they will say",
+          "Written warranty terms, and who services them in India",
+          "Photographs of the fitter's own recent work, edges and corners included",
+          "Whether the quote is for [partial or full coverage](/blog/how-much-ppf-does-your-car-need), panel by panel",
+        ],
+      },
+      {
+        type: "p",
+        text:
+          "If a quote is far cheaper than everything around it, the saving is coming from somewhere, usually the film, sometimes the hours. Both show up on the car eventually. Our [paint protection film page](/services/paint-protection-film-bangalore) sets out what we fit and what it costs.",
+      },
+      {
+        type: "p",
+        text:
+          "P91 fits [STEK](/products/stek) film and our own [P91 Premium PPF](/products/p91-premium-ppf) line. We make no country-of-origin claim on the latter, for the reason this article gives.",
+      },
+    ],
+  },
+
+  {
+    slug: "monsoon-damage-car-bangalore",
+    title: "5 Things the Monsoon Did to Your Car That You Cannot See Yet",
+    seoTitle: "Monsoon Car Damage in Bangalore | P91",
+    date: "2026-09-02",
+    updated: "2026-11-17",
+    readMinutes: 4,
+    category: "Paint care",
+    excerpt:
+      "Rain does its damage quietly. Most of what a Bangalore monsoon leaves behind only becomes visible months later.",
+    lede:
+      "A car that came through the monsoon looking fine has usually still picked up four or five problems. None of them announce themselves. They show up later as dull paint, a musty cabin and a rust bubble a year on.",
+    imageServiceSlug: "exterior-detailing-hard-water-new",
+    image: {
+      src: "/attached_assets/blog/monsoon-damage-car-bangalore.jpg",
+      alt: "A glossy red Maruti Swift finished at P91 Car Care, with the P91 logo",
+      square: true,
+    },
+    body: [
+      { type: "h2", text: "Why rain is worse than it looks" },
+      {
+        type: "p",
+        text:
+          "Rainwater is not clean water. It collects atmospheric pollutants on the way down and picks up road film on the way off the car, then sits on horizontal panels and evaporates, leaving everything it carried behind, concentrated, in the sun.",
+      },
+      {
+        type: "p",
+        text:
+          "That is behind almost everything below. The water leaves and the deposits stay.",
+      },
+
+      { type: "carousel", ...MONSOON_DAMAGE },
+
+      { type: "h2", text: "1. Water spots that are already etching" },
+      {
+        type: "p",
+        text:
+          "The white rings left on a bonnet after rain dries are mineral deposits. Left in direct sun they stop sitting on the clearcoat and start biting into it. At that point washing will not remove them, because the surface itself is now uneven.",
+      },
+      {
+        type: "p",
+        text:
+          "This is the same problem as [borewell hard water](/blog/hard-water-spot-removal-bangalore) and it has the same fix: get the deposits off early, and give the surface something they struggle to bond to.",
+      },
+
+      { type: "h2", text: "2. Rust starting where you cannot see it" },
+      {
+        type: "p",
+        text:
+          "Door bottoms, boot lip seams, wheel arch liners and the underbody hold water long after the paint has dried. Corrosion starts at the edges and in the seams, works outward, and is usually only visible once the paint above it lifts.",
+      },
+
+      { type: "h2", text: "3. A cabin that is still damp" },
+      {
+        type: "p",
+        text:
+          "Wet floor mats put moisture into the carpet, and the carpet puts it into the underlay, where it does not dry. That is where the smell comes from, and where mould grows. A vacuum does not reach it. The mats have to come out and the carpet has to be extracted and dried.",
+      },
+      {
+        type: "p",
+        text:
+          "If the car smells musty with the air conditioning on, that is the cue for an [interior detail](/services/interior-detailing-bangalore) rather than an air freshener.",
+      },
+
+      {
+        type: "cta",
+        text:
+          "After the monsoon is the time to reset the car: decontaminate the paint, dry the cabin properly and put protection back on before the next season.",
+        label: "Book a post-monsoon detail",
+      },
+
+      { type: "h2", text: "4. Rubber and trim wearing faster" },
+      {
+        type: "p",
+        text:
+          "Wiper blades take the worst of it: grit sits on the windscreen, the blade drags it across the glass, and the edge goes. Door and window seals harden and craze with constant wet-dry cycling, and once a seal stops sealing it starts letting water into exactly the places in point two.",
+      },
+
+      { type: "h2", text: "5. Whatever protection the paint had is thinner" },
+      {
+        type: "p",
+        text:
+          "Wax and sealants are sacrificial by design, and a monsoon plus the detergent washes that follow it is what they are sacrificed to. The car can look fine and still have nothing left on the surface, which is why paint that survived one monsoon often deteriorates quickly through the next.",
+      },
+      {
+        type: "p",
+        text:
+          "A [ceramic coating](/ceramic-coating/car) is the durable answer here: it is measured in years, not washes, and it makes the water spotting in point one far easier to remove before it etches.",
+      },
+      {
+        type: "p",
+        text: "P91 applies [Nasiol](/products/nasiol) nano-ceramic coating for this.",
+      },
+
+      { type: "h2", text: "What a post-monsoon reset actually involves" },
+      {
+        type: "ul",
+        items: [
+          "A **decontamination wash**, not a regular wash, to lift bonded deposits",
+          "**Paint correction** where water spots have already etched",
+          "Mats out, carpets extracted and **properly dried**, not just vacuumed",
+          "Seals, trim and wiper edges checked and treated",
+          "Protection reapplied, so the next season starts from a surface that has some",
+        ],
+      },
+      {
+        type: "p",
+        text:
+          "None of this is urgent the way a warning light is. It costs a little now and a lot later, which is why most people skip it.",
+      },
+    ],
+  },
+  {
+    slug: "best-car-detailing-in-bangalore",
+    title: "Best Car Detailing in Bangalore: How to Choose the Right Studio for Your Car",
+    // Supplied wording, over the usual 60 characters; search results may truncate it.
+    seoTitle: "Best Car Detailing in Bangalore: Buyer's Guide | P91",
+    date: "2026-10-07",
+    updated: "2026-11-17",
+    readMinutes: 6,
+    category: "Protection",
+    // Also the meta description (blog-post.tsx and prerender.mjs both use the excerpt).
+    // Supplied wording, over 160 characters; search results may truncate it.
+    excerpt:
+      "Looking for the best car detailing in Bangalore? Learn what to check before you book: ceramic coating, PPF, warranty, products and process. By P91 Car Care, Adugodi.",
+    lede:
+      "Search for the best car detailing in Bangalore and you get hundreds of options, from roadside car wash setups to premium studios. They all promise a showroom shine, but the results, and what you pay, vary a lot.",
+    imageServiceSlug: "ppf-sedan",
+    image: {
+      src: "/attached_assets/blog/best-car-detailing-in-bangalore.jpg",
+      alt: "P91 Car Care poster: Best Car Detailing in Bengaluru. A technician wipes the bonnet of a black car in the studio. Paint protection film, ceramic coating, interior and exterior detailing. Adugodi, Bengaluru. Call 74066 19191.",
+      square: true,
+    },
+    body: [
+      {
+        type: "p",
+        text:
+          "Bangalore is hard on paint. Monsoon rain, hard water, dust, long traffic crawls under the sun and the occasional stone chip on the way to Mysore Road or the airport all add up. A good detailing studio looks after the paint and interior for years, not just for the week after a wash.",
+      },
+      {
+        type: "p",
+        text:
+          "This guide covers what car detailing includes, which services are worth paying for, and how to judge a studio before you hand over your keys.",
+      },
+
+      { type: "h2", text: "What is car detailing (and how is it different from a car wash)?" },
+      {
+        type: "p",
+        text:
+          "A car wash removes surface dirt. Car detailing is a deep, methodical restoration and protection process for the whole vehicle, inside and out.",
+      },
+      {
+        type: "p",
+        text:
+          "A proper exterior detail usually includes a safe wash, decontamination of bonded dirt and hard-water spots, paint correction where needed, and a protective layer such as wax, sealant or ceramic coating. A proper interior detail covers deep vacuuming, steam or chemical cleaning of upholstery and plastics, leather care, and cleaning of vents, crevices and the roof liner.",
+      },
+      {
+        type: "p",
+        text: "If a studio can't explain what it does at each step, treat that as a warning sign.",
+      },
+
+      { type: "h2", text: "The main services to look for" },
+      { type: "h3", text: "1. Ceramic coating in Bangalore" },
+      {
+        type: "p",
+        text:
+          "[Ceramic coating](/services/ceramic-coating-bangalore) is a thin, hard layer applied over the paint. It helps the car shed water and dirt, makes washing easier, and widens the window before hard-water damage starts. It is not a magic shield against stone chips or deep scratches, so be wary of anyone who promises that.",
+      },
+      {
+        type: "p",
+        text:
+          "Coating quality depends on two things: the product and the paint preparation underneath. A great coating over badly prepared paint locks in the flaws.",
+      },
+      { type: "h3", text: "2. Paint protection film (PPF) in Bangalore" },
+      {
+        type: "p",
+        text:
+          "[PPF](/services/paint-protection-film-bangalore) is a transparent urethane film fitted over the paint. Stone chips and kerb scuffs hit the film instead of the clearcoat. It is the better choice for real physical protection, especially on new or high-value cars, and it comes in gloss and matte.",
+      },
+      {
+        type: "p",
+        text:
+          "Ceramic coating and PPF protect against different things, and many owners combine them: film on the high-impact areas, or the full body, with coating on top for easy cleaning.",
+      },
+      { type: "h3", text: "3. Interior detailing" },
+      {
+        type: "p",
+        text:
+          "Dust and humidity can make a car's cabin smell musty and look tired. Deep [interior detailing](/services/interior-detailing-bangalore) restores seats, carpets, door cards and the dashboard, and is often the most noticeable upgrade for daily drivers.",
+      },
+      { type: "h3", text: "4. Exterior detailing and hard water treatment" },
+      {
+        type: "p",
+        text:
+          "Bangalore's hard water leaves mineral spots that bake onto paint and glass. Regular washing at home or at a basic wash station can make this worse. Proper [exterior detailing](/service/exterior-detailing-hard-water-new) removes these deposits safely, before they etch into the clearcoat.",
+      },
+
+      { type: "h2", text: "7 things to check before choosing a car detailing studio in Bangalore" },
+      {
+        type: "ol",
+        items: [
+          "**A written warranty.** Ask who issues it and what it covers. The strongest warranties come from the film or coating manufacturer and are handed over in writing, with batch details you can see before work starts.",
+          "**Named, reputable products.** Good studios tell you exactly which film or coating they use. Look for established brands, for example [STEK](/products/stek) for paint protection film or [Nasiol](/products/nasiol) for nano-ceramic coating, rather than \"imported coating\" with no name.",
+          "**A real studio, not a roadside setup.** PPF and ceramic coating need a clean, controlled space for paint prep and curing. Dust and humidity ruin results.",
+          "**Transparent pricing.** Prices should depend on your car's body type and the package, and you should be able to get a clear estimate for your specific car.",
+          "**Honest timelines.** Basic detailing can often be done the same day. Ceramic coating and PPF take longer because paint prep and curing come first. Be careful with anyone who promises a full PPF job in a few hours.",
+          "**Proof of past work.** Look at a gallery of real cars, ideally models similar to yours, and read recent Google reviews.",
+          "**Convenience.** Easy online booking and pickup and drop service save time, particularly given Bangalore traffic.",
+        ],
+      },
+
+      { type: "h2", text: "Why car owners choose P91 Car Care in Adugodi" },
+      {
+        type: "p",
+        text:
+          "P91 Car Care is a detailing, ceramic coating and paint protection film studio in Adugodi, Bengaluru. It matches the checklist above like this:",
+      },
+      {
+        type: "ul",
+        items: [
+          "**Warranty-backed work:** every coating and PPF job comes with a written warranty from the film or coating manufacturer, issued at handover. You can ask to see the batch details before work starts.",
+          "**Trusted brands:** [STEK](/products/stek) paint protection film, [Nasiol](/products/nasiol) nano-ceramic coating, and the studio's own [P91 Premium PPF](/products/p91-premium-ppf), with packages for hatchbacks, sedans and SUVs.",
+          "**Same-day service:** most detailing is finished the day you book.",
+          "**Pickup and drop:** available across Bangalore at cost.",
+          "**Real results:** the [gallery](/gallery) includes STEK PPF work on cars like the Toyota Vellfire, Nissan GT-R and Innova Hycross.",
+          "**Easy booking:** [book online](/services) in under a minute, or get a free estimate for your car.",
+        ],
+      },
+      {
+        type: "p",
+        text:
+          "The full range is on the [services page](/services), including [paint protection film](/services/paint-protection-film-bangalore) and [ceramic coating](/services/ceramic-coating-bangalore).",
+      },
+
+      { type: "h2", text: "Ceramic coating vs PPF: which should you pick?" },
+      {
+        type: "p",
+        text:
+          "Choose [ceramic coating](/ceramic-coating/car) if your main goals are gloss, water beading, easy cleaning and protection from hard-water spots and UV.",
+      },
+      {
+        type: "p",
+        text:
+          "Choose [PPF](/ppf) if you want protection from stone chips, scratches and kerb damage, particularly on a new car or the front end of a car you drive on highways.",
+      },
+      {
+        type: "p",
+        text: "Choose both for the most complete protection and the easiest upkeep.",
+      },
+      {
+        type: "p",
+        text:
+          "Not sure? A good studio will look at your car, your driving habits and your budget before recommending anything, and shouldn't push the most expensive option.",
+      },
+
+      { type: "h2", text: "How to keep your car looking great after detailing" },
+      {
+        type: "ol",
+        items: [
+          "Avoid washing the car for the first week after a coating or PPF job, or as advised by your studio.",
+          "Use the two-bucket method or a proper contactless wash instead of cheap brush washes.",
+          "Dry with clean microfibre towels, not old cloths.",
+          "Park in shade or under cover when possible, especially during peak summer.",
+          "Book periodic maintenance washes to keep the coating performing.",
+        ],
+      },
+
+      { type: "h2", text: "Frequently asked questions" },
+      {
+        type: "faq",
+        items: [
+          {
+            q: "What is the best car detailing in Bangalore?",
+            a: "The best studio is the one that uses named, reputable products, works in a controlled studio environment, gives a written manufacturer warranty, and is open about pricing and timelines. Use the checklist above to compare options.",
+          },
+          {
+            q: "How much does car detailing cost in Bangalore?",
+            a: "Prices depend on your car's body type and the package. Basic interior or exterior detailing costs far less than ceramic coating or PPF. The most reliable way to get a real figure is a free estimate for your specific car.",
+          },
+          {
+            q: "How long does car detailing take?",
+            a: "Most standard detailing can be completed the same day. Ceramic coating and PPF take longer because of paint preparation and curing.",
+          },
+          {
+            q: "Is ceramic coating worth it in Bangalore?",
+            a: "For most owners, yes. It makes washing easier and helps the paint cope with dust, rain and hard water. It works best when applied over properly prepared paint.",
+          },
+          {
+            q: "Is PPF better than ceramic coating?",
+            a: "Neither is better across the board. PPF protects against physical damage like chips, while ceramic coating helps with gloss, water repellency and cleaning. Many owners use both.",
+          },
+          {
+            q: "Do you offer pickup and drop for car detailing?",
+            a: "At P91 Car Care, pickup and drop is available across Bangalore at cost.",
+          },
+        ],
+      },
+
+      { type: "h2", text: "Book your car detailing in Bangalore" },
+      {
+        type: "p",
+        text:
+          "If you're looking for car detailing, ceramic coating or paint protection film in Bangalore, [visit P91 Car Care](/contact) or book online in under a minute.",
+      },
+      {
+        type: "contact",
+        address: "49, 13th Cross, Ayappa Garden, Adugodi, Bengaluru 560030",
+        phone: "+91 74066 19191",
+        phoneHref: "tel:+917406619191",
+        mapsHref:
+          "https://www.google.com/maps/dir/?api=1&destination=P91+Car+Care+Adugodi+Bengaluru",
+        bookHref: "/services",
+        bookLabel: "Get a free estimate →",
+      },
+      {
+        type: "p",
+        text: "Website: [p91carcare.com](/)",
+      },
+    ],
+  },
+];
+
+export function getPost(slug: string): BlogPost | undefined {
+  return BLOG_POSTS.find((p) => p.slug === slug);
+}
+
+/** Long-form date used in the post header, e.g. "21 Aug 2026". */
+export function formatPostDate(iso: string): string {
+  const d = new Date(iso + "T00:00:00");
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
+/**
+ * Categories present in the post list, in the order they first appear.
+ *
+ * Derived, never a hand-kept list. A separate constant would let a post carry a
+ * category the filter cannot show — the post would then be unreachable from the
+ * index, which is the kind of bug nobody notices for months.
+ */
+export function blogCategories(): string[] {
+  const seen: string[] = [];
+  for (const post of BLOG_POSTS) {
+    if (post.category && !seen.includes(post.category)) seen.push(post.category);
+  }
+  return seen;
+}
+
+/**
+ * URL-safe form of a category name ("Glass & film" -> "glass-film").
+ *
+ * Used for /blog/category/:slug. Kept as a function rather than a stored field so
+ * a category cannot have two spellings of its own slug.
+ */
+export function categorySlug(category: string): string {
+  return category
+    .toLowerCase()
+    .replace(/&/g, " ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/** The category whose slug matches, or undefined. Case- and spelling-safe. */
+export function categoryFromSlug(slug: string): string | undefined {
+  return blogCategories().find((c) => categorySlug(c) === slug);
+}
+
+/** Posts in a category, newest first. */
+export function postsInCategory(category: string): BlogPost[] {
+  return BLOG_POSTS.filter((p) => p.category === category).sort(
+    (a, b) => Date.parse(b.date) - Date.parse(a.date),
+  );
+}
+
+/** All posts, newest first — the order the index renders. */
+export function postsNewestFirst(): BlogPost[] {
+  return [...BLOG_POSTS].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+}
+
+/**
+ * Index copy, shared by the page and the prerenderer.
+ *
+ * These live here rather than being typed into both blog-index.tsx and
+ * scripts/prerender.mjs because that duplication already bit once: /contact shipped a
+ * prerendered <title> that differed from the one useSeoMeta set, so a crawler would have
+ * indexed one string and a visitor seen another. Anything the prerenderer can import, it
+ * should — a shared constant cannot drift.
+ */
+export const BLOG_INDEX_TITLE = "Car Care Guides & Detailing Advice | P91 Car Care";
+
+export const BLOG_INDEX_DESCRIPTION =
+  "Straight answers on ceramic coating, paint protection film, hard water spots and sun " +
+  "control film — written for Bangalore conditions by the P91 Car Care studio.";
+
+/** <title> for a category listing. */
+export function categoryTitle(category: string): string {
+  return `${category} guides | P91 Car Care`;
+}
+
+/** Meta description for a category listing. */
+export function categoryDescription(category: string): string {
+  return (
+    `P91 Car Care guides on ${category.toLowerCase()} — written for Bangalore traffic, ` +
+    `water and weather.`
+  );
+}
