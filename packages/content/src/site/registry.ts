@@ -16,6 +16,12 @@ import { HARD_WATER } from "./hard-water.ts";
 import { GLASS_COATING } from "./windshield-glass-coating.ts";
 import { MAINTENANCE_PLAN } from "./maintenance-plan.ts";
 import { CAR_WASH } from "./car-wash.ts";
+import { KORAMANGALA, HSR_LAYOUT, INDIRANAGAR } from "./areas.ts";
+import { BRANDS, BRANDS_HUB } from "./brands.ts";
+import { GUIDES, GUIDES_HUB } from "./guides.ts";
+import { GALLERY } from "./gallery.ts";
+import { FAQ_PAGE } from "./faq.ts";
+import { CONTACT, ABOUT } from "./contact-about.ts";
 
 export const PAGES: PageEntry[] = [
   {
@@ -137,6 +143,99 @@ export const PAGES: PageEntry[] = [
     description: "Hand car wash in Adugodi, Bangalore: foam pre-wash, hand wash, wheels, undercarriage rinse and hand drying. Safe for ceramic-coated and PPF cars.",
     lastmod: "2026-11-26",
     content: CAR_WASH,
+  },
+  // ── Batch C: areas and brands ──
+  {
+    path: "/areas/koramangala",
+    title: "PPF and Ceramic Coating near Koramangala | P91",
+    description: "P91 Car Care is in Adugodi, next to Koramangala: PPF, ceramic coating and detailing for Koramangala cars, pickup on request and what to ask first.",
+    lastmod: "2026-11-26",
+    content: KORAMANGALA,
+  },
+  {
+    path: "/areas/hsr-layout",
+    title: "PPF and Ceramic Coating for HSR Layout | P91",
+    description: "For HSR Layout owners: PPF for Outer Ring Road traffic, ceramic coating and hard-water care at the P91 studio in Adugodi. Pickup on request.",
+    lastmod: "2026-11-26",
+    content: HSR_LAYOUT,
+  },
+  {
+    path: "/areas/indiranagar",
+    title: "PPF and Ceramic Coating for Indiranagar | P91",
+    description: "For Indiranagar owners: PPF, ceramic coating and detailing at the P91 studio in Adugodi (no branch in Indiranagar). Pickup on request.",
+    lastmod: "2026-11-26",
+    content: INDIRANAGAR,
+  },
+  {
+    path: "/brands",
+    title: "Brands We Fit: STEK, Nasiol, P91 PPF | P91 Car Care",
+    description: "The products fitted at P91 Car Care in Adugodi: STEK paint protection film, Nasiol ceramic coating and P91 Premium PPF, and how to check each is genuine.",
+    lastmod: "2026-11-26",
+    content: BRANDS_HUB,
+  },
+  {
+    path: "/brands/stek",
+    title: "STEK Paint Protection Film in Bangalore | P91",
+    description: "STEK paint protection film and sun-control film fitted at P91 Car Care, Adugodi: what STEK is, where we use it and how to check the film is genuine.",
+    lastmod: "2026-11-26",
+    content: BRANDS.stek,
+  },
+  {
+    path: "/brands/nasiol",
+    title: "Nasiol Ceramic Coating in Bangalore | P91 Car Care",
+    description: "Nasiol nano-ceramic coating applied at P91 Car Care in Adugodi: what Nasiol is, the cars and bikes we coat with it, and how to check the batch details.",
+    lastmod: "2026-11-26",
+    content: BRANDS.nasiol,
+  },
+  {
+    path: "/brands/p91-premium-ppf",
+    title: "P91 Premium PPF, Our Own Film Line | P91 Car Care",
+    description: "P91 Premium PPF, the studio's own paint protection film line: the packages by body type, where it is fitted and the written warranty terms at handover.",
+    lastmod: "2026-11-26",
+    content: BRANDS["p91-premium-ppf"],
+  },
+  // ── Batch D: guides, gallery, FAQ, contact, about (legal pages are noindex and not listed here) ──
+  {
+    path: "/guides",
+    title: "Car Care Guides for Bangalore Owners | P91 Car Care",
+    description: "Plain guides on PPF, ceramic coating, hard water spots, monsoon damage and sun control film, written for Bangalore cars by the P91 Car Care studio.",
+    lastmod: "2026-11-26",
+    content: GUIDES_HUB,
+  },
+  ...GUIDES.map((g) => ({
+    path: `/guides/${g.slug}`,
+    title: g.meta.title,
+    description: g.meta.description,
+    lastmod: "2026-11-26",
+    content: g,
+  })),
+  {
+    path: "/gallery",
+    title: "Gallery: Our Work in the Adugodi Studio | P91 Car Care",
+    description: "Photos from the P91 Car Care studio in Adugodi: PPF being fitted, paint polishing, ceramic coating, headlights, interiors and finished cars at handover.",
+    lastmod: "2026-11-26",
+    content: GALLERY,
+  },
+  {
+    path: "/faq",
+    title: "Car Detailing, PPF and Ceramic FAQ | P91 Car Care",
+    description: "Answers on PPF, ceramic coating, detailing, sun control film and warranty terms from P91 Car Care in Adugodi, Bangalore, with links to each service.",
+    lastmod: "2026-11-26",
+    content: FAQ_PAGE,
+  },
+  {
+    path: "/contact",
+    title: "Contact P91 Car Care, Adugodi, Bangalore",
+    description: "Visit, call or WhatsApp P91 Car Care at 49, 13th Cross, Ayappa Garden, Adugodi, Bengaluru 560030. Opening hours, directions, map and pickup on request.",
+    lastmod: "2026-11-26",
+    content: CONTACT,
+  },
+  {
+    path: "/about",
+    title: "About P91 Car Care, Adugodi, Bangalore",
+    description: "P91 Car Care is a PPF, ceramic coating and detailing studio in Adugodi, Bangalore. How we work, the products we fit and the studio you can visit.",
+    lastmod: "2026-11-26",
+    content: ABOUT,
   },
 ];
 
