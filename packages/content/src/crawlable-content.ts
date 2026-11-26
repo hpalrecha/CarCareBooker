@@ -554,13 +554,7 @@ const cleanItem = (item: string) => String(item).replace(/^\s*[✓✔]\s*/, "").
 export function servicePageContent(rawService: CrawlableService): string {
   const service = withCeramicTiming(rawService);
   const title = String(service.title || "").trim();
-  const price = formatINR(service.price ?? undefined);
-  const original = formatINR(service.originalPrice ?? undefined);
-  // Price only — no "paid at the studio": the annual package is paid in full online, so a
-  // payment-location sentence would be false for at least one record.
-  const priceLine = price
-    ? p(`Price: ${price}${original && original !== price ? ` (regular ${original})` : ""}.`)
-    : "";
+  // Owner rule (26 Nov 2026): no price on any public page, so the record's price is not printed.
   const included = Array.from(new Set((service.whatIncluded || []).map(cleanItem).filter(Boolean)));
   const faqs = faqList(service.faq || []);
   const why = String(service.whyChoose || "").trim();
@@ -584,7 +578,6 @@ export function servicePageContent(rawService: CrawlableService): string {
   return shell(
     h1(title) +
       (service.description ? p(String(service.description).trim()) : "") +
-      priceLine +
       timeLine +
       (included.length ? h2("What's Included") + ul(included) : "") +
       (why ? h2(`Why ${title}`) + p(why) + h2("Why choose P91 in Adugodi?") + p((why.match(/^[sS]*?[.!?](?=s|$)/) || [why])[0].trim()) : "") +
@@ -644,7 +637,7 @@ export function ppfPackagesContent(rows: ReadonlyArray<PpfCatalogueRow> | null |
       const cards = tier.cards
         .map((c) => {
           const time = tier.sharedStudioTime ? null : studioTimeLine(c.studioTime);
-          return `<li>${e(c.bodyLabel)} (${e(c.examples)}): ${e(c.priceLabel)}. ${e(c.title)}${time ? `. ${e(time)}` : ""}</li>`;
+          return `<li>${e(c.bodyLabel)} (${e(c.examples)}): ${e(c.title)}${time ? `. ${e(time)}` : ""}</li>`;
         })
         .join("");
       const shared = studioTimeLine(tier.sharedStudioTime);
@@ -679,9 +672,8 @@ export function servicesListContent(page: StaticSeoPage, services: CrawlableServ
   const items = services
     .filter((s) => s.slug && String(s.title || "").trim())
     .map((s) => {
-      const price = formatINR(s.price ?? undefined);
       const blurb = String(s.description || "").trim();
-      return `<li><a href="/service/${e(s.slug)}" style="color:#4ade80">${e(String(s.title).trim())}</a>${price ? `: ${e(price)}` : ""}${blurb ? `<p>${e(blurb)}</p>` : ""}</li>`;
+      return `<li><a href="/service/${e(s.slug)}" style="color:#4ade80">${e(String(s.title).trim())}</a>${blurb ? `<p>${e(blurb)}</p>` : ""}</li>`;
     })
     .join("");
   return shell(

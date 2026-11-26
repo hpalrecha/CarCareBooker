@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Clock, ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "@/components/image-with-fallback";
-import { resolveServiceImage, formatINR } from "@p91/content/canonical-services";
+import { resolveServiceImage } from "@p91/content/canonical-services";
 import { formatServiceTime } from "@p91/content/service-time";
 import { deriveCategory } from "@p91/content/service-taxonomy";
 import { CARD_IMAGE_HIDDEN, ILLUSTRATIVE_SLUGS } from "@/lib/real-service-images";
@@ -37,7 +37,7 @@ interface ServiceCardProps {
  *
  * Kept from earlier passes (each is pinned by a test):
  *   - No free-text `discountText` badge. Only the "% off" computed from the real prices.
- *   - Prices are formatted (formatINR), never printed raw.
+ *   - No price (owner rule, 26 Nov 2026): the card says "Learn more" and links to the service page.
  *   - Duration goes through formatServiceTime, which omits an implausible value.
  *   - The image is the canonical resolved one, 2:1, cover, centred, lazy, alt from the title.
  *   - No <button> inside the card link.
@@ -45,10 +45,6 @@ interface ServiceCardProps {
 export default function ServiceCard({ service }: ServiceCardProps) {
   const cardImage = CARD_IMAGE_HIDDEN.has(service.slug) ? undefined : resolveServiceImage(service);
   const time = formatServiceTime(service);
-  const price = parseFloat(service.price);
-  const original = service.originalPrice ? parseFloat(service.originalPrice) : NaN;
-  const discountPercent =
-    Number.isFinite(original) && original > price ? Math.round(((original - price) / original) * 100) : 0;
 
   return (
     <Link href={service.href ?? `/service/${service.slug}`} className="sv-link">
@@ -97,22 +93,9 @@ export default function ServiceCard({ service }: ServiceCardProps) {
             {service.description}
           </p>
           <div className="sv-foot">
-            <div className="sv-prices">
-              {service.fromPrice && <span className="sv-from">From</span>}
-              <span className="sv-now" data-testid={`text-price-${service.id}`}>
-                {service.priceNote && !service.price ? service.priceNote : formatINR(service.price)}
-              </span>
-              {discountPercent > 0 && (
-                <span className="sv-was" data-testid={`text-original-price-${service.id}`}>
-                  {formatINR(service.originalPrice)}
-                </span>
-              )}
-              {discountPercent > 0 && (
-                <span className="sv-off" data-testid={`text-off-${service.id}`}>{discountPercent}% off</span>
-              )}
-            </div>
+            {/* No price on the card (owner rule, 26 Nov 2026): it links to the service page instead. */}
             <span className="sv-go" data-testid={`button-view-service-${service.id}`}>
-              View service
+              Learn more
               <ArrowRight className="i" aria-hidden="true" />
             </span>
           </div>

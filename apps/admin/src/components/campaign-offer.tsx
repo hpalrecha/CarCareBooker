@@ -132,7 +132,7 @@ export default function CampaignOffer({
         <p className="offer-price" data-testid={`${testId}-price`}>
           <strong>Book free</strong>
           <span className="offer-price-sep" aria-hidden="true"> · </span>
-          <span className="offer-price-amount">{priceLabel} at the studio</span>
+          <span className="offer-price-amount">service paid at the studio</span>
         </p>
       )}
 

@@ -139,17 +139,18 @@ describe('brand green and one booking phrase', () => {
 describe('/services cards', () => {
   const card = code('apps/admin/src/components/service-card.tsx');
 
-  test('no "Limited Time" / "MEGA SAVINGS" badge — only the computed % off', () => {
+  test('no "Limited Time" / "MEGA SAVINGS" badge, and no % off (owner rule 26 Nov 2026: no prices)', () => {
     assert.doesNotMatch(card, /service\.discountText/);
-    assert.match(card, /\{discountPercent\}% off/);
+    assert.doesNotMatch(card, /% off/);
   });
 
   test('no Tailwind classes that generate no CSS in this project', () => {
     assert.doesNotMatch(card, /text-neon-green|border-neon-green|text-deep-black|glass-effect|neon-glow/);
   });
 
-  test('prices are formatted and implausible durations are not printed', () => {
-    assert.match(card, /formatINR\(service\.price\)/);
+  test('no price on the card (it says Learn more) and implausible durations are not printed', () => {
+    assert.doesNotMatch(card, /formatINR|service\.price\b|service\.originalPrice/);
+    assert.match(card, /Learn more/);
     assert.match(card, /formatServiceTime\(service\)/);
     assert.doesNotMatch(card, /minutes/);
   });

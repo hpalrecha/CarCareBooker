@@ -13,7 +13,7 @@ import { ImageWithFallback } from "@/components/image-with-fallback";
 import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
-import { resolveServiceImage, formatINR, type ServiceRecord } from "@p91/content/canonical-services";
+import { resolveServiceImage, type ServiceRecord } from "@p91/content/canonical-services";
 import { serviceCanonicalPath } from "@p91/content/canonical-overrides";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
 import { deriveCategory, deriveVehicle } from "@p91/content/service-taxonomy";
@@ -502,10 +502,6 @@ export default function ServiceLanding() {
     );
   }
 
-  const discountPercent = service.originalPrice
-    ? Math.round(((parseFloat(service.originalPrice) - parseFloat(service.price)) / parseFloat(service.originalPrice)) * 100)
-    : 0;
-
   const showTestimonials = !TESTIMONIALS_SUPPRESSED.has(service.slug);
   const isAnnualPackage = service.title === 'Annual Maintenance Package';
   // ₹499 for a PPF service over ₹10,000, else ₹99 during the Diwali offer, else the usual ₹299.
@@ -803,26 +799,15 @@ export default function ServiceLanding() {
                 <span className="eyebrow" style={{ marginBottom: 0, color: "rgba(241,244,241,.6)" }}>
                   {isAnnualPackage ? 'Annual package' : 'In-studio offer'}
                 </span>
-                {discountPercent > 0 && <span className="cta-price-save">{discountPercent}% off</span>}
               </div>
 
-              <p style={{ marginTop: 16, display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "4px 10px" }}>
-                <ins data-testid="text-offer-price" style={{ textDecoration: "none", fontSize: 30, fontWeight: 800, color: "#fff" }}>
-                  {formatINR(service.price)}
-                </ins>
-                {service.originalPrice && (
-                  <del style={{ color: "rgba(241,244,241,.5)", fontSize: 16 }}>{formatINR(service.originalPrice)}</del>
-                )}
-              </p>
-              <p style={{ color: "rgba(241,244,241,.6)", fontSize: 13, marginTop: 2 }}>
-                {isAnnualPackage ? 'Package value' : 'Offer price · paid at the studio after the work'}
-              </p>
+              {/* No price block (owner rule, 26 Nov 2026): the service's own page shows no price. */}
 
               <p style={{ marginTop: 16, borderRadius: 8, border: "1px solid var(--neon-line)", background: "rgba(78,184,72,.14)", padding: "10px 12px", fontSize: 13.5, color: "var(--neon-green)", fontWeight: 600 }}>
                 {offer.free
                   ? 'No booking fee. Reserve your slot online.'
                   : isAnnualPackage
-                    ? `Pay ${formatINR(service.price)} online for the full annual package.`
+                    ? 'Pay online for the full annual package.'
                     : `Pay just ₹${slotFee} online today to hold your slot.`}
               </p>
 
@@ -848,7 +833,7 @@ export default function ServiceLanding() {
                 {offer.free
                   ? 'Reserve your slot, no fee'
                   : isAnnualPackage
-                    ? `Book the package: ${formatINR(service.price)}`
+                    ? 'Book the package'
                     : `Reserve your slot for ₹${slotFee}`}
                 <ArrowRight className="i" aria-hidden="true" />
               </button>
@@ -1208,7 +1193,7 @@ export default function ServiceLanding() {
                   data-testid={`link-related-${s.slug}`}
                 >
                   <b>{s.title.trim()}</b>
-                  <span>{formatINR(s.price)}</span>
+                  <span>Learn more</span>
                 </Link>
               ))}
             </div>
@@ -1310,10 +1295,7 @@ export default function ServiceLanding() {
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px" }}>
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                <span style={{ fontSize: 18, fontWeight: 800 }}>{formatINR(service.price)}</span>
-                {service.originalPrice && (
-                  <del style={{ fontSize: 12, color: "var(--txt-3)" }}>{formatINR(service.originalPrice)}</del>
-                )}
+                <span style={{ fontSize: 16, fontWeight: 800, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{service.title.trim()}</span>
               </div>
               <div style={{ fontSize: 12, color: "var(--neon-green)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {offer.free

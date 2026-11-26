@@ -4,7 +4,6 @@ import { BrandHeader, BrandFooter } from "@/components/redesign/brand-chrome";
 import { LEGAL_LAST_UPDATED, COMPANY_NAME, copyrightYear } from "@/lib/legal-metadata";
 import {
   FOOTER_SERVICES,
-  formatINR,
   resolveCanonical,
   type ServiceRecord,
 } from "@p91/content/canonical-services";
@@ -44,13 +43,13 @@ export default function TermsConditions() {
               <ul className="list-disc ml-6 space-y-2" data-testid="list-terms-services">
                 {termsServices.map((row) => (
                   <li key={row.id}>
-                    {row.title.trim()} - {formatINR(row.price)}
+                    {row.title.trim()}
                   </li>
                 ))}
               </ul>
               <p className="text-sm text-gray-400">
-                This list reflects our current published prices. The price shown on the
-                service page at the time of booking is the price that applies.
+                Prices are quoted by the studio before work begins. The amount shown at
+                checkout at the time of booking is the amount that applies.
               </p>
             </section>
 

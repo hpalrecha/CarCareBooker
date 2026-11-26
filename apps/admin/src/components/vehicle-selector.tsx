@@ -1,7 +1,6 @@
-import { formatINR, type ServiceRecord } from "@p91/content/canonical-services";
+import { type ServiceRecord } from "@p91/content/canonical-services";
 import { displayableIncludes, type CategoryOption } from "@p91/content/landing-pages";
 import { formatServiceTime } from "@p91/content/service-time";
-import { showPreviousPrice } from "@/lib/offer-scope";
 
 /**
  * Body-category picker for services priced by vehicle size.
@@ -61,14 +60,6 @@ export default function VehicleSelector({
   const selected = available.find((c) => c.key === selectedKey) ?? available[0];
   const service = bySlug.get(selected.serviceSlug);
 
-  // Only a genuine discount. Partial PPF rows have price === originalPrice, and rendering
-  // a struck-through figure identical to the live one invents a saving that does not exist.
-  const price = service ? parseFloat(String(service.price)) : NaN;
-  const wasPrice = service?.originalPrice ? parseFloat(String(service.originalPrice)) : NaN;
-  // No struck-through price for the PPF rows: it has no approved source (lib/offer-scope.ts showPreviousPrice).
-  const hasRealDiscount =
-    Number.isFinite(price) && Number.isFinite(wasPrice) && wasPrice > price && showPreviousPrice(service);
-
   return (
     <div className={compact ? "vsel vsel-compact" : "vsel"} data-testid="vehicle-selector">
       <p className="vsel-q" id="vsel-label">
@@ -105,17 +96,7 @@ export default function VehicleSelector({
             {service.title.trim()}
           </p>
 
-          <p className="vsel-pkg-price">
-            <span className="vsel-pkg-now" data-testid="vehicle-package-price">
-              {formatINR(service.price)}
-            </span>
-            {hasRealDiscount && (
-              <span className="vsel-pkg-was" data-testid="vehicle-package-was">
-                <span className="sr-only">Previous price </span>
-                {formatINR(service.originalPrice)}
-              </span>
-            )}
-          </p>
+          {/* No price (owner rule, 26 Nov 2026): this sits on the service's own page. */}
 
           {/* Duration is suppressed for PPF: the catalogue holds 2/3/4 in a minutes field
               for full PPF, which would render as "2 minutes" beside a ₹45,000 price. An

@@ -8,7 +8,7 @@ import BookingModal from "@/components/booking-modal";
 import { ImageWithFallback } from "@/components/image-with-fallback";
 import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
-import { resolveServiceImage, formatINR, type ServiceRecord } from "@p91/content/canonical-services";
+import { resolveServiceImage, type ServiceRecord } from "@p91/content/canonical-services";
 import { GUIDE_IMAGES, GUIDE_VIDEOS } from "@/lib/real-service-images";
 import LazyVideo from "@/components/redesign/lazy-video";
 import ParallaxFrame from "@/components/redesign/parallax-frame";
@@ -165,19 +165,8 @@ export default function SeoServicePage() {
       ...(heroImage ? { image: heroImage } : {}),
       provider,
       areaServed: { "@type": "City", name: "Bengaluru" },
-      // Priced from the live record when one is resolved. No literal fallback: a schema
-      // price that disagrees with checkout is worse than no offer block at all.
-      ...(primary
-        ? {
-            offers: {
-              "@type": "Offer",
-              price: primary.price,
-              priceCurrency: "INR",
-              availability: "https://schema.org/InStock",
-              url: `${origin}/service/${primary.slug}`,
-            },
-          }
-        : {}),
+      // No offers/price (owner rule, 26 Nov 2026): no price on any public page or in its schema.
+      ...(primary ? { url: `${origin}/service/${primary.slug}` } : {}),
     },
   ];
 
@@ -299,7 +288,7 @@ export default function SeoServicePage() {
                       Book Now
                     </button>
                     <Link href={`/service/${variant.slug}`} className="cta-ghost" data-testid="link-explore-learn-more">
-                      {formatINR(variant.price)} · Learn More
+                      Learn More
                     </Link>
                   </div>
                   {variantFeatures.length > 0 && (

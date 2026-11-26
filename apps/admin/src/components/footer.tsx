@@ -2,7 +2,6 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import {
   FOOTER_SERVICES,
-  formatINR,
   resolveCanonical,
   type ServiceRecord,
 } from "@p91/content/canonical-services";
@@ -53,7 +52,7 @@ export default function Footer() {
                       className="hover:text-neon-green transition-colors cursor-pointer"
                       data-testid={`link-footer-service-${row.slug}`}
                     >
-                      {row.title.trim()} - {formatINR(row.price)}
+                      {row.title.trim()}
                     </span>
                   </Link>
                 </li>
@@ -101,7 +100,6 @@ export default function Footer() {
             <h3 className="text-lg font-semibold text-neon-green">Payment & Security</h3>
             <div className="text-gray-400 text-sm space-y-2">
               <p>Secure payments via Razorpay</p>
-              <p>All prices in INR (₹)</p>
               <p>SSL encrypted transactions</p>
               <div className="mt-4">
                 <p className="text-xs text-gray-500">

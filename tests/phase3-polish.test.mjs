@@ -71,21 +71,21 @@ describe('item 14 — refund policy no longer promises a nonexistent ₹599 serv
     assert.doesNotMatch(src, /599/);
   });
 
-  test('the real service is named at its current catalogue price instead', () => {
+  test('the real service is named, without a price (owner rule 26 Nov 2026)', () => {
     // Premium Car Wash Special is the actual bookable service this section was describing.
-    assert.match(src, /Premium Car Wash Special \(₹999\)/);
+    assert.match(src, /Premium Car Wash Special<\/h3>/);
   });
 
   test('the other three Section 2 prices match the current admin/catalogue values, not the old stale ones', () => {
-    assert.match(src, /Interior Detailing \(₹4,000\)/);
+    assert.match(src, /Interior Detailing<\/h3>/);
     assert.doesNotMatch(src, /Interior Detailing \(₹2,499\)/);
     assert.doesNotMatch(src, /Interior Detailing \(₹2,999\)/);
 
-    assert.match(src, /Exterior Detailing \(₹3,500\)/);
+    assert.match(src, /Exterior Detailing<\/h3>/);
     assert.doesNotMatch(src, /Exterior Detailing \(₹1,999\)/);
     assert.doesNotMatch(src, /Exterior Detailing \(₹3,499\)/);
 
-    assert.match(src, /Headlight Restoration \(₹1,499\)/);
+    assert.match(src, /Headlight Restoration<\/h3>/);
     assert.doesNotMatch(src, /Headlight Restoration \(₹1,199\)/);
   });
 });

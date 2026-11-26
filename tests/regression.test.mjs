@@ -287,7 +287,8 @@ describe('legal page dates', () => {
     assert.ok(!tc.includes('₹1,999'), 'stale ₹1,999 exterior detailing still listed');
     assert.match(tc, /FOOTER_SERVICES/);
     assert.match(tc, /resolveCanonical/);
-    assert.match(tc, /formatINR\(row\.price\)/);
+    // Owner rule (26 Nov 2026): titles only, no price.
+    assert.doesNotMatch(tc, /formatINR|row\.price/);
   });
 
   test('copyright comes from one shared source, not hardcoded years', () => {
@@ -402,8 +403,8 @@ describe('footer', () => {
   test('each listed service is a link to its canonical slug', () => {
     assert.match(footer, /href=\{`\/service\/\$\{row\.slug\}`\}/);
   });
-  test('prices use the shared INR formatter', () => {
-    assert.match(footer, /formatINR\(row\.price\)/);
+  test('no prices in the footer (owner rule 26 Nov 2026)', () => {
+    assert.doesNotMatch(footer, /formatINR|row\.price|₹/);
   });
 });
 

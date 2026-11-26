@@ -129,8 +129,8 @@ describe('2. the shared Products menu', () => {
 describe('3. hero pricing and the database-unavailable state', () => {
   const page = () => code('apps/admin/src/pages/campaign-landing.tsx');
 
-  test('the selector hides the struck-through price for the PPF rows', () => {
-    assert.match(code('apps/admin/src/components/vehicle-selector.tsx'), /wasPrice > price && showPreviousPrice\(service\)/);
+  test('the selector shows no price at all, current or struck-through (owner rule 26 Nov 2026)', () => {
+    assert.doesNotMatch(code('apps/admin/src/components/vehicle-selector.tsx'), /formatINR|originalPrice|service\.price/);
   });
 
   test('unavailable catalogue: the exact message, a working phone link, and no price anywhere in the component', () => {

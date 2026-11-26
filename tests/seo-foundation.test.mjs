@@ -144,10 +144,10 @@ describe('crawlable content baked into the initial HTML', () => {
     }
   });
 
-  test('service content is the record: price, deduplicated items, answered FAQs only', () => {
+  test('service content is the record: no price, deduplicated items, answered FAQs only', () => {
     const t = text(m.servicePageContent(SERVICE));
     assert.ok(t.includes('1 Year Bike Ceramic Coating'));
-    assert.ok(t.includes('Price: ₹2,999 (regular ₹6,000).'));
+    assert.ok(!/₹\s?\d/.test(t), 'no price (owner rule 26 Nov 2026)');
     assert.ok(!/paid at the studio/i.test(t), 'false for the annual package, which is paid online');
     assert.equal((t.match(/UV protection/g) || []).length, 1, 'duplicate item and ✓ prefix removed');
     assert.ok(t.includes('How long does it last?') && t.includes('A full year with proper care.'));
@@ -396,7 +396,8 @@ describe('llms.txt', () => {
     assert.match(body, /^# P91 Car Care\n\n> /);
     assert.match(body, /49, 13th Cross, Ayappa Garden, Adugodi, Bengaluru, Karnataka 560030/);
     assert.match(body, /\+91 74066 19191/);
-    assert.match(body, /\[1 Year Bike Ceramic Coating\]\(https:\/\/p91carcare\.com\/service\/1-year-bike-ceramic-coating\): ₹2,999$/m);
+    assert.match(body, /\[1 Year Bike Ceramic Coating\]\(https:\/\/p91carcare\.com\/service\/1-year-bike-ceramic-coating\)$/m);
+    assert.doesNotMatch(body, /₹\s?\d/, 'no price (owner rule 26 Nov 2026)');
     // Where a service is paid differs (the annual package is paid online), so it is not stated.
     assert.doesNotMatch(body, /paid at the studio/i);
     // cutoffTime is the LAST BOOKING time, not a closing time.

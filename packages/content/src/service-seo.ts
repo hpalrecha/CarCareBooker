@@ -145,15 +145,9 @@ export function serviceStructuredData(
       ...(image ? { image } : {}),
       areaServed: { "@type": "City", name: "Bengaluru" },
       provider: { "@id": business["@id"] },
-      offers: {
-        "@type": "Offer",
-        // Live price from the record. Never a literal — a schema price that disagrees with
-        // the page is a Merchant-listing violation as well as a lie to the customer.
-        price: service.price,
-        priceCurrency: "INR",
-        availability: "https://schema.org/InStock",
-        url: `${origin}/service/${service.slug}`,
-      },
+      url: `${origin}/service/${service.slug}`,
+      // No offers/price (owner rule, 26 Nov 2026): the page shows no price, and schema must not
+      // state one the page does not show.
     },
   ];
 

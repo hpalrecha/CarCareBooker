@@ -72,8 +72,8 @@ describe('buildPpfPackages', () => {
       assert.equal(card.price, parseFloat(bySlug[card.slug].price), card.slug);
       assert.equal(card.title, bySlug[card.slug].title.trim(), card.slug);
     }
-    assert.equal(tiers[0].cards[0].priceLabel, '₹50,000');
-    assert.equal(tiers[1].cards[2].priceLabel, '₹90,000');
+    // No display label: the cards show no price (owner rule 26 Nov 2026).
+    assert.equal(tiers[0].cards[0].priceLabel, undefined);
   });
 
   test('the warranty of each tier is read from the rows: 5 years and 7 years', () => {
@@ -134,22 +134,19 @@ describe('buildPpfPackages', () => {
 describe('ppfPackagesContent: the HTML the server sends', () => {
   const html = () => content.ppfPackagesContent(six);
 
-  test('one section heading, a heading per tier with its warranty, and all six prices', () => {
+  test('one section heading, a heading per tier with its warranty, and no price', () => {
     const h = html();
     assert.match(h, /<h2>Choose your PPF package<\/h2>/);
     assert.match(h, /<h3>Basic PPF: 5-year warranty<\/h3>/);
     assert.match(h, /<h3>Premium PPF: 7-year warranty<\/h3>/);
-    for (const price of ['₹50,000', '₹60,000', '₹70,000', '₹80,000', '₹90,000']) assert.ok(h.includes(price), price);
-    assert.equal((h.match(/₹70,000/g) || []).length, 2, '₹70,000 is both Basic SUV and Premium Hatchback');
+    assert.ok(!/₹/.test(h), 'no rupee figure (owner rule 26 Nov 2026)');
   });
 
-  test('each price sits in the line of its own package, with the row title', () => {
+  test('each package has its own line with the row title', () => {
     const h = html();
-    for (const [slug, price] of Object.entries(EXPECTED_PRICES)) {
-      const label = '₹' + price.toLocaleString('en-IN');
+    for (const slug of Object.keys(EXPECTED_PRICES)) {
       const line = [...h.matchAll(/<li>([^<]*)<\/li>/g)].map((m) => m[1]).find((l) => l.includes(bySlug[slug].title.trim()));
       assert.ok(line, `${slug}: line`);
-      assert.ok(line.includes(label), `${slug}: ${line}`);
     }
   });
 
@@ -157,9 +154,8 @@ describe('ppfPackagesContent: the HTML the server sends', () => {
     assert.equal((html().match(/<p>Approx\. 2-3 days in the studio<\/p>/g) || []).length, 2);
   });
 
-  test('every rupee amount in the HTML is the price of a catalogue row', () => {
-    const allowed = new Set(Object.values(EXPECTED_PRICES).map((p) => '₹' + p.toLocaleString('en-IN')));
-    for (const m of html().matchAll(/₹[\d,]+/g)) assert.ok(allowed.has(m[0]), m[0]);
+  test('no rupee amount in the HTML at all', () => {
+    assert.equal([...html().matchAll(/₹\s?\d/g)].length, 0);
   });
 
   test('no discount, previous price, same-day promise or self-healing claim', () => {
@@ -190,31 +186,9 @@ describe('ppfPackagesContent: the HTML the server sends', () => {
   });
 });
 
-describe('ppfAggregateOffer: structured data', () => {
-  test('prices only: the lowest, the highest, and one Offer per package', () => {
-    const offer = pk.ppfAggregateOffer(pk.buildPpfPackages(six), 'https://p91carcare.com');
-    assert.equal(offer['@type'], 'AggregateOffer');
-    assert.equal(offer.priceCurrency, 'INR');
-    assert.equal(offer.lowPrice, '50000');
-    assert.equal(offer.highPrice, '90000');
-    assert.equal(offer.offerCount, 6);
-    assert.deepEqual(offer.offers.map((o) => o.price).sort(), ['50000', '60000', '70000', '70000', '80000', '90000']);
-    for (const o of offer.offers) {
-      assert.equal(o.url, 'https://p91carcare.com/ppf');
-      assert.deepEqual(Object.keys(o).sort(), ['@type', 'name', 'price', 'priceCurrency', 'url']);
-    }
-  });
-
-  test('no discount, validity, availability or seller invented', () => {
-    const json = JSON.stringify(pk.ppfAggregateOffer(pk.buildPpfPackages(six), 'https://p91carcare.com'));
-    for (const word of ['availability', 'priceValidUntil', 'discount', 'highPrice":"85', 'seller']) assert.ok(!json.includes(word), word);
-  });
-
-  test('it follows the rows that exist, and is null when none do', () => {
-    const offer = pk.ppfAggregateOffer(pk.buildPpfPackages(withoutSlugs('ppf-premium-suv', 'ppf-premium-sedan', 'ppf-premium-hatchback')), 'https://p91carcare.com');
-    assert.equal(offer.highPrice, '70000');
-    assert.equal(offer.offerCount, 3);
-    assert.equal(pk.ppfAggregateOffer(null, 'https://p91carcare.com'), null);
+describe('no price in structured data (owner rule 26 Nov 2026)', () => {
+  test('ppfAggregateOffer no longer exists', () => {
+    assert.equal(pk.ppfAggregateOffer, undefined);
   });
 });
 

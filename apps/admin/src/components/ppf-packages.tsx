@@ -75,9 +75,6 @@ export default function PpfPackages({ rows, onBook }: PpfPackagesProps) {
                     <article className="lp-pkg" key={card.slug} data-testid={`ppf-package-${card.slug}`}>
                       <h4>{card.bodyLabel}</h4>
                       <p className="lp-pkg-eg">{card.examples}</p>
-                      <p className="lp-pkg-price" data-testid={`ppf-package-price-${card.slug}`}>
-                        {card.priceLabel}
-                      </p>
                       {time && <p className="lp-pkg-time">{time}</p>}
                       <button
                         type="button"

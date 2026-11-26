@@ -1,5 +1,4 @@
 import type { BusinessHour } from "@p91/db/schema";
-import { formatINR } from "./canonical-services";
 import { ADDRESS_CONFIRMED, STREET_ADDRESS, POSTAL_CODE, PHONE } from "./local-business";
 
 /**
@@ -95,11 +94,10 @@ export function buildLlmsTxt(input: {
 
   const services = input.services.filter((s) => s.slug && String(s.title || "").trim());
   if (services.length) {
-    out.push("", "## Services and prices", "");
+    out.push("", "## Services", "");
     for (const s of services) {
-      const price = formatINR(s.price ?? undefined);
-      // Price only: where it is paid differs by service (the annual package is paid online).
-      out.push(link(String(s.title).trim(), `/service/${s.slug}`, price || undefined));
+      // Owner rule (26 Nov 2026): no price on any public surface, llms.txt included.
+      out.push(link(String(s.title).trim(), `/service/${s.slug}`));
     }
   }
 
@@ -134,8 +132,7 @@ export function buildLlmsTxt(input: {
     "",
     "Warranty terms and studio time for each package are on " +
       `${origin}/ppf` +
-      ". Prices change, so confirm the current price there. A listed P91 package price is not a " +
-      "price for STEK or any other film.",
+      ". For a quote, message the studio on WhatsApp.",
     "",
     "## Installation and warranty",
     "",
@@ -156,9 +153,9 @@ export function buildLlmsTxt(input: {
     "",
     "## Source accuracy",
     "",
-    "This website is the primary source for P91 Car Care's services, prices and booking details. " +
-      "Prices, durations and warranty terms vary by service and product and are shown on each " +
-      "service page, not in this file. P91 Car Care is an automotive detailing and paint " +
+    "This website is the primary source for P91 Car Care's services and booking details. " +
+      "Durations and warranty terms vary by service and product and are shown on each " +
+      "service page, not in this file. Prices are quoted by the studio on WhatsApp. P91 Car Care is an automotive detailing and paint " +
       "protection studio in Adugodi, Bengaluru; it is not a ranked or independently rated " +
       '"best" studio.',
     "",

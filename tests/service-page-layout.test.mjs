@@ -171,10 +171,9 @@ describe('service pages share the /ppf-ceramic-coating layout', () => {
     assert.ok(src.includes('in Adugodi, Bangalore: FAQs'));
   });
 
-  test('one offer card, with semantic prices, and no offer section repeating it', () => {
+  test('one offer card, with no price block (owner rule 26 Nov 2026), and no offer section repeating it', () => {
     assert.ok(hero.includes('data-testid="offer-card"'));
-    assert.match(hero, /<ins\b[\s\S]*?formatINR\(service\.price\)[\s\S]*?<\/ins>/);
-    assert.match(hero, /<del\b[^>]*>\{formatINR\(service\.originalPrice\)\}<\/del>/);
+    assert.doesNotMatch(hero, /formatINR|service\.originalPrice|<del\b/);
     assert.ok(!src.includes('Booking Fee Explanation Section'));
     assert.ok(!src.includes('data-testid="price-card"'), 'the table it replaced');
   });

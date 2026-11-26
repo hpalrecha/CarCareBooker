@@ -37,27 +37,27 @@ export default function RefundPolicy() {
               
               <div className="space-y-4">
                 <div className="bg-medium-gray p-4 rounded-lg">
-                  <h3 className="text-white font-semibold">Premium Car Wash Special (₹999)</h3>
+                  <h3 className="text-white font-semibold">Premium Car Wash Special</h3>
                   <p>Full service refund if not satisfied within 2 hours of completion</p>
                 </div>
                 
                 <div className="bg-medium-gray p-4 rounded-lg">
-                  <h3 className="text-white font-semibold">Interior Detailing (₹4,000)</h3>
+                  <h3 className="text-white font-semibold">Interior Detailing</h3>
                   <p>Partial refund available if service standards not met</p>
                 </div>
                 
                 <div className="bg-medium-gray p-4 rounded-lg">
-                  <h3 className="text-white font-semibold">Exterior Detailing (₹3,500)</h3>
+                  <h3 className="text-white font-semibold">Exterior Detailing</h3>
                   <p>Warranty-backed service with satisfaction guarantee</p>
                 </div>
                 
                 <div className="bg-medium-gray p-4 rounded-lg">
-                  <h3 className="text-white font-semibold">Windshield Glass Coating (₹1,699)</h3>
+                  <h3 className="text-white font-semibold">Windshield Glass Coating</h3>
                   <p>No refund after application due to material usage</p>
                 </div>
                 
                 <div className="bg-medium-gray p-4 rounded-lg">
-                  <h3 className="text-white font-semibold">Headlight Restoration (₹1,499)</h3>
+                  <h3 className="text-white font-semibold">Headlight Restoration</h3>
                   <p>Warranty-backed with quality guarantee</p>
                 </div>
               </div>
