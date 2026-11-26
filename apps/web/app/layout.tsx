@@ -5,6 +5,7 @@ import { SITE } from "@web/lib/site";
 import { SiteHeader } from "@web/components/site-header";
 import { SiteFooter } from "@web/components/site-footer";
 import { JsonLd } from "@web/components/json-ld";
+import { Analytics } from "@web/components/analytics";
 import { businessSchema } from "@web/lib/schema";
 import { getBusinessHours } from "@web/lib/api";
 
@@ -27,6 +28,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {children}
         <SiteFooter />
         <JsonLd data={businessSchema(hours)} />
+        <Analytics />
       </body>
     </html>
   );
