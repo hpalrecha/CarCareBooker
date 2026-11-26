@@ -23,9 +23,13 @@
  *
  * Every slug not listed here keeps its self-canonical. Deliberately NOT listed:
  * premium-car-wash-special (kept as its own page on purpose).
+ *
+ * Since Plan 3 (cutover) this map only drives the OLD site's hub option links and the old API
+ * sitemap; the /service/<slug> canonical itself is serviceCanonicalPath() below (new site pages).
  */
+import { remapPath } from "./site/link-map.ts";
 
-/** service slug -> root-relative canonical path */
+/** service slug -> root-relative campaign page it was consolidated onto (old site) */
 export const CANONICAL_OVERRIDES: Readonly<Record<string, string>> = Object.freeze({
   "ppf-hatchback": "/ppf",
   "ppf-sedan": "/ppf",
@@ -37,14 +41,36 @@ export const CANONICAL_OVERRIDES: Readonly<Record<string, string>> = Object.free
   "1-year-bike-ceramic-coating": "/ceramic-coating/bike",
 });
 
-/** True when /service/<slug> points its canonical at another URL (so: not in the sitemap). */
+/**
+ * True when /service/<slug> is one of the eight records consolidated onto an old campaign page.
+ * The old API sitemap leaves these out (Plan 3: the API sitemap stays as it is; after cutover nginx
+ * serves /sitemap.xml from the new site, so the API copy goes unused).
+ */
 export function isConsolidatedServiceSlug(slug: string): boolean {
   return Object.prototype.hasOwnProperty.call(CANONICAL_OVERRIDES, slug);
 }
 
-/** Root-relative canonical path for /service/<slug>. */
-export function serviceCanonicalPath(slug: string): string {
+/**
+ * The old campaign page a consolidated record stands for, else its own /service/<slug>. The old
+ * site's hub option lists (hub-option-links.ts) link by this until those hubs are retired at cutover.
+ */
+export function consolidatedTargetPath(slug: string): string {
   return isConsolidatedServiceSlug(slug) ? CANONICAL_OVERRIDES[slug] : `/service/${slug}`;
+}
+
+/**
+ * Plan 3 Task 3 (cutover, 26 Nov 2026): the old booking pages /service/<slug> stay live (online
+ * booking and payment, until Plan 2c) but stop competing in search. Every one is noindex,follow and
+ * names the NEW site page for its service as canonical, from the same table the new site uses for
+ * links (site/link-map.ts; its /service/* rows are the Book-online map of site/booking-links.ts
+ * inverted to the family page). A record with no page of its own on the new site points at /services.
+ */
+export const OLD_BOOKING_PAGE_ROBOTS = "noindex,follow";
+
+/** Root-relative canonical path for /service/<slug>: always a page of the new site. */
+export function serviceCanonicalPath(slug: string): string {
+  const to = remapPath(`/service/${slug}`);
+  return to.startsWith("/service/") ? "/services" : to;
 }
 
 /**

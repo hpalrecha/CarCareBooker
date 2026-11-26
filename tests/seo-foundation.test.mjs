@@ -425,7 +425,8 @@ describe('technical SEO brief: robots meta, hub links, gallery images', () => {
   test('every prerendered route states index,follow, except the noindex,follow ones', () => {
     assert.match(prerenderSrc, /route\.noindex \? "noindex,follow" : "index,follow"/);
     assert.match(prerenderSrc, /NOINDEX_STATIC_PATHS = new Set\(\["\/terms-conditions", "\/privacy-policy", "\/refund-policy"\]\)/);
-    assert.match(read('apps/api/src/vite.ts'), /content="index,follow"/, 'server-rendered /service/:slug must state index,follow too');
+    // Plan 3 (cutover): the old /service/:slug booking pages are noindex,follow with the new site page as canonical.
+    assert.match(read('apps/api/src/vite.ts'), /<meta name="robots" content="\$\{OLD_BOOKING_PAGE_ROBOTS\}" \/>/, 'server-rendered /service/:slug states its robots directive');
   });
 
   test('noindex pages are not in the sitemap', () => {

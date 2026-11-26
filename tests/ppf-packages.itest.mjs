@@ -172,11 +172,12 @@ describe('/ppf served HTML', { skip: !built ? 'run `npm run build` first' : fals
     }
   });
 
-  test('the six /service/ppf-* pages keep their /ppf canonical, and the sitemap lists /ppf once and none of the six', async () => {
+  test('the six /service/ppf-* pages are noindex with the new PPF page as canonical (Plan 3), and the sitemap lists /ppf once and none of the six', async () => {
     for (const row of six) {
       const { status, html } = await get('/service/' + row.slug);
       assert.equal(status, 200, row.slug);
-      assert.match(html, /<link rel="canonical" href="https:\/\/p91carcare\.com\/ppf"/, row.slug);
+      assert.match(html, /<link rel="canonical" href="https:\/\/p91carcare\.com\/services\/paint-protection-film"/, row.slug);
+      assert.match(html, /<meta name="robots" content="noindex,follow"/, row.slug);
       assert.ok(!/manufactur/i.test(html), `${row.slug}: the service page (HTML and FAQPage JSON-LD) does not name the manufacturer as the warranty issuer`);
       assert.match(html, /Written warranty terms provided at handover\./, row.slug);
     }

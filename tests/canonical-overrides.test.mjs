@@ -56,22 +56,63 @@ describe('the mapping', () => {
     }
   });
 
-  test('consolidated slugs resolve to their target', () => {
+  test('consolidated slugs keep their old campaign target for the old hub links and the old sitemap', () => {
     for (const [slug, target] of Object.entries(EXPECTED)) {
-      assert.equal(m.serviceCanonicalPath(slug), target, slug);
+      assert.equal(m.consolidatedTargetPath(slug), target, slug);
       assert.equal(m.isConsolidatedServiceSlug(slug), true, slug);
+    }
+    for (const slug of ['windshield-glass-polishing', 'premium-car-wash-special', 'partial-ppf-suv', 'constructor']) {
+      assert.equal(m.consolidatedTargetPath(slug), `/service/${slug}`, slug);
+      assert.equal(m.isConsolidatedServiceSlug(slug), false, slug);
+    }
+  });
+});
+
+describe('Plan 3: every old booking page canonicalises to its new site service page', () => {
+  // The Book-online map of the new site (site/booking-links.ts), inverted to the family page.
+  const NEW_CANONICAL = {
+    'ppf-hatchback': '/services/paint-protection-film',
+    'ppf-sedan': '/services/paint-protection-film',
+    'ppf-suv': '/services/paint-protection-film',
+    'ppf-premium-hatchback': '/services/paint-protection-film',
+    'ppf-premium-sedan': '/services/paint-protection-film',
+    'ppf-premium-suv': '/services/paint-protection-film',
+    '1-year-ceramic-coating': '/services/ceramic-coating',
+    '1-year-bike-ceramic-coating': '/services/ceramic-coating/bike',
+    'interior-detailing-service': '/services/interior-detailing',
+    'exterior-detailing-hard-water-new': '/services/exterior-detailing/hard-water-spot-removal',
+    'headlight-restoration-both': '/services/exterior-detailing/headlight-restoration',
+    'windshield-glass-coating-new': '/services/sun-control-film/windshield-glass-coating',
+    'windshield-glass-polishing': '/services/exterior-detailing',
+    'annual-maintenance-package': '/services/maintenance-plan',
+    'premium-car-wash-special': '/services/car-wash',
+  };
+
+  test('each active booking slug -> its new page, for serviceCanonicalPath and canonicalPathFor', () => {
+    for (const [slug, target] of Object.entries(NEW_CANONICAL)) {
+      assert.equal(m.serviceCanonicalPath(slug), target, slug);
       assert.equal(m.canonicalPathFor(`/service/${slug}`), target, slug);
     }
   });
 
-  test('a non-mapped service keeps its self-canonical', () => {
-    for (const slug of ['windshield-glass-polishing', 'car-polishing', 'premium-car-wash-special', 'partial-ppf-suv']) {
-      assert.equal(m.serviceCanonicalPath(slug), `/service/${slug}`, slug);
-      assert.equal(m.isConsolidatedServiceSlug(slug), false, slug);
-      assert.equal(m.canonicalPathFor(`/service/${slug}`), `/service/${slug}`, slug);
+  test('a slug with no new page of its own points at the /services hub, never at a /service/ URL', () => {
+    for (const slug of ['car-polishing', 'partial-ppf-suv', 'constructor']) assert.equal(m.serviceCanonicalPath(slug), '/services', slug);
+  });
+
+  test('every target is a live page of the new site, and booking it books the same record (except glass polishing)', async () => {
+    const { PAGES } = await import('../packages/content/src/site/registry.ts');
+    const { bookingFor } = await import('../packages/content/src/site/booking-links.ts');
+    const live = new Set(PAGES.map((p) => p.path));
+    for (const [slug, target] of Object.entries(NEW_CANONICAL)) {
+      assert.ok(live.has(target), `${slug} -> ${target}`);
+      if (slug === 'windshield-glass-polishing' || slug.startsWith('ppf-')) continue;
+      assert.equal(bookingFor(target).href, `/service/${slug}`, `${target} books ${slug}`);
     }
-    // Prototype keys must not be mistaken for overrides.
-    assert.equal(m.serviceCanonicalPath('constructor'), '/service/constructor');
+    assert.equal(bookingFor('/services/paint-protection-film').href, '/service/ppf-hatchback');
+  });
+
+  test('the old booking pages are noindex,follow', () => {
+    assert.equal(m.OLD_BOOKING_PAGE_ROBOTS, 'noindex,follow');
   });
 
   test('non-service routes are their own canonical', () => {
@@ -90,6 +131,9 @@ describe('every emitter uses the shared module', () => {
     assert.doesNotMatch(vite, /const canonical = `\$\{origin\}\/service\/\$\{service\.slug\}`/, 'the old self-canonical is gone');
     // og:url is emitted from the same variable, so it follows the canonical.
     assert.match(vite, /og:url" content="\$\{esc\(canonical\)\}"/);
+    // Plan 3: noindex,follow from the shared constant; the old index,follow is gone.
+    assert.match(vite, /<meta name="robots" content="\$\{OLD_BOOKING_PAGE_ROBOTS\}" \/>/);
+    assert.doesNotMatch(vite, /<meta name="robots" content="index,follow" \/>/);
   });
 
   test('prerender (scripts/prerender.mjs) routes canonicals through canonicalPathFor', () => {
@@ -103,6 +147,13 @@ describe('every emitter uses the shared module', () => {
     const page = read('apps/admin/src/pages/service-landing.tsx');
     assert.match(page, /canonicalPath: serviceCanonicalPath\(service\.slug\)/);
     assert.doesNotMatch(page, /canonicalPath: `\/service\/\$\{service\.slug\}`/);
+    assert.match(page, /robots: OLD_BOOKING_PAGE_ROBOTS/, 'client head is noindex too, so hydration agrees with the server');
+  });
+
+  test('client hook sets robots and restores the previous value on unmount', () => {
+    const hook = read('apps/admin/src/hooks/use-seo-meta.ts');
+    assert.match(hook, /setMeta\("name", "robots", robots\)/);
+    assert.match(hook, /robotsPrevious/);
   });
 
   test('client og:url follows the canonical rather than location.href', () => {

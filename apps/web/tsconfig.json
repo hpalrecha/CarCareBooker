@@ -42,6 +42,7 @@
     ".next/types/**/*.ts",
     "../../packages/content/src/site/**/*.ts",
     "../../packages/domain/src/price-ranges.ts",
+    "../../packages/domain/src/spam-paths.ts",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [

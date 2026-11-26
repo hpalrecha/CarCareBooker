@@ -5,6 +5,7 @@ import { SITE } from "@web/lib/site";
 import { SiteHeader } from "@web/components/site-header";
 import { SiteFooter } from "@web/components/site-footer";
 import { JsonLd } from "@web/components/json-ld";
+import { Analytics } from "@web/components/analytics";
 import { businessSchema } from "@web/lib/schema";
 import { getBusinessHours } from "@web/lib/api";
 
@@ -14,6 +15,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE.origin),
   title: { default: "PPF and ceramic coating in Bangalore | P91 Car Care", template: "%s | P91 Car Care" },
   robots: { index: true, follow: true, googleBot: { "max-image-preview": "large" } },
+  // The favicon files are the old site's (apps/admin/public); after cutover nginx serves them from the
+  // API container for both sites (deploy/nginx/p91carcare.locations.conf), so there is one set.
+  icons: { icon: [{ url: "/favicon.ico" }, { url: "/favicon-64.png", sizes: "64x64", type: "image/png" }], apple: "/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = { themeColor: "#12211B" };
@@ -27,6 +31,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {children}
         <SiteFooter />
         <JsonLd data={businessSchema(hours)} />
+        <Analytics />
       </body>
     </html>
   );

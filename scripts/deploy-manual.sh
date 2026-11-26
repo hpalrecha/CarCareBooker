@@ -47,8 +47,9 @@
 #   8. Switch: stop production, back up /app/uploads out of it, rename it
 #      carcarebooker-prev-<timestamp> (kept, stopped), create the new carcarebooker with the
 #      identical run config, copy uploads in, start it.
-#   9. Health-check 127.0.0.1:8084, then the public URL — the public homepage must reference
-#      the same JS entry file as the new container, proving traffic reaches it.
+#   9. Health-check 127.0.0.1:8084, then the public URL — the public /service/ppf-hatchback page
+#      must reference the same JS entry file as the new container, proving traffic reaches it
+#      (not the homepage: after the Plan 3 cutover nginx sends / to the new site on 8085).
 #  10. Any failure after step 8 (including an unexpected error) restores the previous
 #      container automatically and re-verifies it.
 #
@@ -164,8 +165,23 @@ print((state.get("Health") or {}).get("Status") or ("running" if state.get("Runn
   return 1
 }
 
-# Prints the JS entry file the homepage references, e.g. /assets/index-Cp1Vr_J8.js
-entry_asset() { curl -s -m 10 "$1/" | grep -o -m1 -E '/assets/index-[A-Za-z0-9_-]+\.js' || true; }
+# Prints the JS entry file a page references, e.g. /assets/index-Cp1Vr_J8.js (default page: the homepage).
+entry_asset() { curl -s -m 10 "$1${2:-/}" | grep -o -m1 -E '/assets/index-[A-Za-z0-9_-]+\.js' || true; }
+
+# PUBLIC checks use only paths nginx keeps on this container after the Plan 3 cutover (/, /ppf and
+# /services move to the new site's container on 8085, where /ppf is a 308 and no /assets/index-*.js
+# exists). /service/<slug> is the old booking page, served from the same app shell, so its JS entry
+# proves which build the public site runs, before and after the cutover alike.
+readonly PUBLIC_PROBE_PAGE="/service/ppf-hatchback"
+check_public_app() { # public-origin -> 0 when every check passes
+  local base="$1" body ok=0
+  body="$(curl -s -m 10 "$base/api/business-hours" || true)"
+  if [[ "$body" == *dayOfWeek* ]]; then note "  ok   $base/api/business-hours"; else note "  FAIL $base/api/business-hours"; ok=1; fi
+  body="$(curl -s -m 10 "$base/api/services" || true)"
+  if [[ "$body" == \[*slug* ]]; then note "  ok   $base/api/services"; else note "  FAIL $base/api/services"; ok=1; fi
+  if [[ "$(http_code "$base$PUBLIC_PROBE_PAGE")" == "200" ]]; then note "  ok   $base$PUBLIC_PROBE_PAGE"; else note "  FAIL $base$PUBLIC_PROBE_PAGE"; ok=1; fi
+  return "$ok"
+}
 
 check_app() { # base-url  -> 0 when every check passes
   local base="$1" body entry ok=0
@@ -186,8 +202,8 @@ check_app() { # base-url  -> 0 when every check passes
 check_public_matches() { # expected-entry-asset
   local expected="$1" live
   for _ in $(seq 1 10); do
-    live="$(entry_asset "$PUBLIC_URL")"
-    if [[ "$live" == "$expected" ]] && check_app "$PUBLIC_URL"; then
+    live="$(entry_asset "$PUBLIC_URL" "$PUBLIC_PROBE_PAGE")"
+    if [[ "$live" == "$expected" ]] && check_public_app "$PUBLIC_URL"; then
       note "public site serves $live"
       return 0
     fi

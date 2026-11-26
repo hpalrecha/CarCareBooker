@@ -29,7 +29,7 @@ import { SERVICES_SEO } from "../../../packages/content/src/static-seo";
 import { isSpamProductPath } from "./lib/spam-paths";
 import { BRAND_PAGES } from "../../../packages/content/src/brand-pages";
 import { LANDING_PAGES } from "../../../packages/content/src/landing-pages";
-import { serviceCanonicalPath } from "../../../packages/content/src/canonical-overrides";
+import { OLD_BOOKING_PAGE_ROBOTS, serviceCanonicalPath } from "../../../packages/content/src/canonical-overrides";
 import { repoRoot } from "./lib/repo-root";
 
 const viteLogger = createLogger();
@@ -331,9 +331,9 @@ export function serveStatic(app: Express, distPathOverride?: string) {
       const origin = process.env.PUBLIC_SITE_ORIGIN || "https://p91carcare.com";
       const title = serviceSeoTitle(service);
       const description = serviceSeoDescription(service);
-      // Consolidated near-duplicates (PPF size variants, the two ceramic records) name their
-      // campaign page as canonical; every other slug is its own. Shared with the client and
-      // the sitemap — see packages/content/src/canonical-overrides.ts.
+      // Plan 3 (cutover): this page is the old online booking flow and stays live, but every
+      // /service/<slug> is noindex,follow with its NEW site service page as canonical. Shared
+      // with the client (ServiceSeo) — see packages/content/src/canonical-overrides.ts.
       const canonical = `${origin}${serviceCanonicalPath(service.slug)}`;
       const images = Array.isArray(service.images) ? service.images : [];
       const rawImage = typeof images[0] === "string" && images[0].trim() ? images[0] : null;
@@ -358,7 +358,7 @@ export function serveStatic(app: Express, distPathOverride?: string) {
         `    <title>${esc(title)}</title>`,
         `    <meta name="description" content="${esc(description)}" />`,
         `    <link rel="canonical" href="${esc(canonical)}" />`,
-        `    <meta name="robots" content="index,follow" />`,
+        `    <meta name="robots" content="${OLD_BOOKING_PAGE_ROBOTS}" />`,
         `    <meta property="og:title" content="${esc(title)}" />`,
         `    <meta property="og:description" content="${esc(description)}" />`,
         `    <meta property="og:url" content="${esc(canonical)}" />`,

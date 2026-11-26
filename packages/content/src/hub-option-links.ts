@@ -13,7 +13,7 @@
  * Used by the hub page (pages/seo-service-page.tsx) and its crawlable HTML (lib/crawlable-content.ts), so both list the same links.
  * Relative imports only: apps/api/src/vite.ts and the prerender bundle import this.
  */
-import { serviceCanonicalPath } from "./canonical-overrides";
+import { consolidatedTargetPath } from "./canonical-overrides";
 
 export interface HubOptionLink {
   /** The first record behind this link; used for stable test ids. */
@@ -28,13 +28,13 @@ export function hubOptionLinks(
 ): HubOptionLink[] {
   const count = new Map<string, number>();
   for (const o of options) {
-    const href = serviceCanonicalPath(o.slug);
+    const href = consolidatedTargetPath(o.slug);
     count.set(href, (count.get(href) ?? 0) + 1);
   }
   const seen = new Set<string>();
   const out: HubOptionLink[] = [];
   for (const o of options) {
-    const href = serviceCanonicalPath(o.slug);
+    const href = consolidatedTargetPath(o.slug);
     if (seen.has(href)) continue;
     seen.add(href);
     const shared = (count.get(href) ?? 0) > 1;

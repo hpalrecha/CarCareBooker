@@ -35,6 +35,8 @@ for (const page of PAGES) {
   if (gaps) { visibleGaps += gaps.length; fail(page.path, `content gap in visible HTML: ${gaps[0]}`); }
   for (const href of new Set([...visible.matchAll(/href="(\/[^"#?]*)"/g)].map((m) => m[1]))) {
     if (href.startsWith("/_next") || /\.(png|webp|ico|xml|txt)$/.test(href)) continue;
+    // /service/<slug> is the old online booking page, served by the API container after cutover (Plan 3 Task 2), not by Next.
+    if (href.startsWith("/service/")) continue;
     const r = await fetch(BASE + href, { redirect: "manual" });
     if (r.status === 404) pending.add(href); else if (r.status >= 400) fail(page.path, `${href} -> ${r.status}`);
   }
