@@ -16,7 +16,8 @@
 FROM node:20-bookworm-slim AS images
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+COPY apps/web/package.json apps/web/package.json
+RUN npm ci --workspaces=false
 COPY scripts/optimize-images.mjs scripts/optimize-images.mjs
 COPY attached_assets attached_assets
 RUN OPTIMIZE_ALL=1 node scripts/optimize-images.mjs
@@ -25,12 +26,17 @@ RUN OPTIMIZE_ALL=1 node scripts/optimize-images.mjs
 ###############################################################################
 # Build stage — needs the FULL dependency tree, because vite and esbuild are
 # devDependencies.
+#
+# apps/web (the Next.js site) is an npm workspace of the root package.json. Every
+# `npm ci` here copies its package.json only so the lockfile matches, and runs with
+# --workspaces=false so the API image gets root dependencies only (no Next, no React 19).
 ###############################################################################
 FROM node:20-bookworm-slim AS build
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci
+COPY apps/web/package.json apps/web/package.json
+RUN npm ci --workspaces=false
 
 COPY . .
 
@@ -67,7 +73,8 @@ WORKDIR /app
 # not boot. --include=dev makes it explicit even if the order is disturbed
 # again, and the assertion below fails the build rather than the container.
 COPY package.json package-lock.json ./
-RUN npm ci --include=dev && npm cache clean --force
+COPY apps/web/package.json apps/web/package.json
+RUN npm ci --include=dev --workspaces=false && npm cache clean --force
 RUN test -f node_modules/vite/package.json \
     && test -f node_modules/@vitejs/plugin-react/package.json \
     || (echo "FATAL: devDependencies missing — dist/index.js imports vite at load time"; exit 1)
