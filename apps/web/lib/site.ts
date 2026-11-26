@@ -13,7 +13,8 @@ export const SITE = {
     region: "Karnataka",
     country: "IN",
   },
-  // Taken from the live AutoRepair JSON-LD on p91carcare.com (25 Nov 2026). Re-check in Task 3 Step 1.
+  // The live AutoRepair JSON-LD on p91carcare.com has no geo (checked 26 Nov 2026), so these are
+  // unconfirmed Adugodi coordinates. Confirm against the Google Business Profile pin before cutover.
   geo: { lat: 12.9416, lng: 77.6105 },
 } as const;
 
