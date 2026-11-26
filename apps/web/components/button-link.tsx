@@ -8,7 +8,8 @@ const STYLES = {
 } as const;
 
 export function ButtonLink({ href, children, variant = "primary" }: { href: string; children: React.ReactNode; variant?: keyof typeof STYLES }) {
-  const external = /^(https?:|tel:)/.test(href);
+  // /service/* is the old booking page on the API container (Plan 3): a full page load, never a Next client route or prefetch.
+  const external = /^(https?:|tel:)/.test(href) || href.startsWith("/service/");
   const cls = `inline-flex min-h-[52px] items-center justify-center rounded-[12px] px-6 text-base font-bold no-underline transition-colors ${STYLES[variant]}`;
   return external ? <a href={href} className={cls}>{children}</a> : <Link href={href} className={cls}>{children}</Link>;
 }

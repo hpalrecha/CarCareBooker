@@ -7,6 +7,7 @@ import { getServices } from "@web/lib/api";
 import { ppfWarrantyLine } from "@web/lib/warranty";
 import { serviceSchema } from "@web/lib/schema";
 import { pageFor } from "@p91/content/site/registry";
+import { bookingFor } from "@p91/content/site/booking-links";
 import { gapFree, hasGap, proseWithoutGaps, withoutGaps } from "@p91/content/site/gaps";
 import { SITE } from "@web/lib/site";
 import { JsonLd } from "@web/components/json-ld";
@@ -59,6 +60,8 @@ export async function ServicePage({ content, path }: { content: ServiceContent; 
   const name = c.breadcrumb[c.breadcrumb.length - 1].label;
   const warranty = (c.showWarrantyYears ? ppfWarrantyLine(rows) : null) ?? WARRANTY_HANDOVER_LINE;
   const L = c.labels ?? {};
+  // Plan 3 Task 2: "Book online" opens the old booking page for this service; WhatsApp stays as the second option.
+  const book = bookingFor(path);
   const crumbs = [{ name: "Home", path: "/" }, ...c.breadcrumb.map((b) => ({ name: b.label, path: b.href }))];
   // Sections alternate ground / white after the short answer.
   let tone = 0;
@@ -79,7 +82,8 @@ export async function ServicePage({ content, path }: { content: ServiceContent; 
               <p className="m-0 text-[15px] font-semibold text-on-ink">{c.eyebrow}</p>
               <h1 id="svc-h1" className="m-0 text-[clamp(34px,4.2vw,56px)] font-extrabold">{c.h1}</h1>
               <div className="flex flex-wrap gap-3">
-                <ButtonLink href={SITE.book.href} variant="on-ink">{SITE.book.label}</ButtonLink>
+                <ButtonLink href={book.href} variant="on-ink">{book.label}</ButtonLink>
+                {book.online && <ButtonLink href={SITE.whatsapp} variant="outline-on-ink">WhatsApp</ButtonLink>}
                 <ButtonLink href={SITE.phoneHref} variant="outline-on-ink">Call {SITE.phone}</ButtonLink>
               </div>
             </div>
@@ -184,8 +188,8 @@ export async function ServicePage({ content, path }: { content: ServiceContent; 
       <CtaBand
         title={L.cta?.title ?? "See the studio before you book"}
         body={L.cta?.body ?? "Visit the studio in Adugodi, near Koramangala. Open daily."}
-        primary={{ href: SITE.book.href, label: SITE.book.label }}
-        secondary={{ href: SITE.phoneHref, label: SITE.phone }}
+        primary={{ href: book.href, label: book.label }}
+        secondary={book.online ? { href: SITE.whatsapp, label: "WhatsApp" } : { href: SITE.phoneHref, label: SITE.phone }}
       />
 
       <JsonLd data={serviceSchema({ name, path, description: pageFor(path).description })} />

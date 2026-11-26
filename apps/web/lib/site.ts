@@ -5,7 +5,8 @@ export const SITE = {
   phone: "+91 74066 19191",
   phoneHref: "tel:+917406619191",
   whatsapp: "https://wa.me/917406619191",
-  // Until Plan 2c ships the booking flow, every Book CTA goes to WhatsApp (owner, 26 Nov 2026).
+  // Book CTA for pages with no online booking record. Service pages use bookingFor() (content/site/booking-links.ts),
+  // which opens the old /service/<slug> booking page until Plan 2c (owner, 26 Nov 2026).
   book: { href: "https://wa.me/917406619191", label: "Book on WhatsApp" },
   address: {
     street: "49, 13th Cross, Ayappa Garden, Adugodi",
