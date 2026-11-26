@@ -26,6 +26,11 @@ interface SeoMeta {
    * accidentally point a staging host's canonical at production.
    */
   canonicalPath?: string;
+  /**
+   * <meta name="robots"> content, e.g. "noindex,follow" on the old booking pages (Plan 3).
+   * Left alone when omitted; restored to its previous value on unmount.
+   */
+  robots?: string;
 }
 
 function upsert(selector: string, create: () => HTMLElement): HTMLElement {
@@ -45,7 +50,7 @@ function upsert(selector: string, create: () => HTMLElement): HTMLElement {
  * were inert elements in the document body and the tab kept whatever title was already
  * set. Everything here is written into <head> imperatively and cleaned up on unmount.
  */
-export function useSeoMeta({ title, description, image, structuredData, canonicalPath }: SeoMeta) {
+export function useSeoMeta({ title, description, image, structuredData, canonicalPath, robots }: SeoMeta) {
   useEffect(() => {
     const previousTitle = document.title;
     document.title = title;
@@ -70,6 +75,10 @@ export function useSeoMeta({ title, description, image, structuredData, canonica
     };
 
     setMeta("name", "description", description);
+    // Robots: the server-rendered head already carries it; set here too so an in-app navigation
+    // onto the page gets the same directive, and put the previous value back on the way out.
+    const robotsPrevious = robots ? document.head.querySelector('meta[name="robots"]')?.getAttribute("content") ?? null : null;
+    setMeta("name", "robots", robots);
     setMeta("property", "og:title", title);
     setMeta("property", "og:description", description);
     setMeta("property", "og:type", "website");
@@ -148,6 +157,7 @@ export function useSeoMeta({ title, description, image, structuredData, canonica
       document.title = previousTitle;
       created.forEach((el) => el.remove());
       ldNodes.forEach((el) => el.remove());
+      if (robotsPrevious !== null) document.head.querySelector('meta[name="robots"]')?.setAttribute("content", robotsPrevious);
       canonicalEl?.remove();
       if (canonicalPrevious !== null) {
         document.head
@@ -155,5 +165,5 @@ export function useSeoMeta({ title, description, image, structuredData, canonica
           ?.setAttribute("href", canonicalPrevious);
       }
     };
-  }, [title, description, image, canonicalPath, JSON.stringify(structuredData ?? null)]);
+  }, [title, description, image, canonicalPath, robots, JSON.stringify(structuredData ?? null)]);
 }

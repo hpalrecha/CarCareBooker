@@ -22,6 +22,7 @@ import { neutraliseWarrantyIssuer } from "./warranty-wording";
  */
 
 import { withCeramicTiming } from "./ceramic-timing";
+import { serviceCanonicalPath } from "./canonical-overrides";
 
 export interface ServiceSeoInput {
   title?: string | null;
@@ -145,7 +146,8 @@ export function serviceStructuredData(
       ...(image ? { image } : {}),
       areaServed: { "@type": "City", name: "Bengaluru" },
       provider: { "@id": business["@id"] },
-      url: `${origin}/service/${service.slug}`,
+      // The page's canonical (Plan 3: the new site service page; this booking page is noindex).
+      url: `${origin}${serviceCanonicalPath(String(service.slug))}`,
       // No offers/price (owner rule, 26 Nov 2026): the page shows no price, and schema must not
       // state one the page does not show.
     },

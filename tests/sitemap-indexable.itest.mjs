@@ -242,6 +242,9 @@ describe("served HTML: every sitemap URL is indexable, and only those", { skip: 
 
     const broken = [];
     for (const url of urls) {
+      // Plan 3: the API sitemap stays as it is (after cutover nginx serves /sitemap.xml from the new
+      // site), but the old /service/ booking pages it still lists are noindex by design.
+      if (url.startsWith("/service/")) continue;
       const r = await get(url);
       if (r.status !== 200) { broken.push(`${url} -> HTTP ${r.status}`); continue; }
       if (isNoindex(r.html)) { broken.push(`${url} -> noindex`); continue; }
@@ -256,38 +259,29 @@ describe("served HTML: every sitemap URL is indexable, and only those", { skip: 
     );
   });
 
-  // This used to check 1-year-ceramic-coating and ppf-suv for a SELF-canonical. Both are now
-  // consolidated near-duplicates whose canonical is their campaign page (next test), so the
-  // self-canonical check uses slugs that are not in CANONICAL_OVERRIDES.
-  test("each non-consolidated /service/:slug carries its own title, canonical and Service schema", async () => {
-    for (const slug of ["windshield-glass-polishing", "car-polishing", "premium-car-wash-special"]) {
+  // Plan 3 (cutover): every old booking page stays a working 200 page (no redirect: ads and
+  // booking links must keep working) but is noindex,follow with its NEW site page as canonical.
+  test("each /service/:slug is a working noindex page, canonicalised to its new site page", async () => {
+    const NEW_CANONICAL = {
+      "windshield-glass-polishing": "/services/exterior-detailing", "car-polishing": "/services",
+      "premium-car-wash-special": "/services/car-wash", "ppf-suv": "/services/paint-protection-film",
+      "ppf-premium-hatchback": "/services/paint-protection-film", "1-year-ceramic-coating": "/services/ceramic-coating",
+      "1-year-bike-ceramic-coating": "/services/ceramic-coating/bike", "interior-detailing-service": "/services/interior-detailing",
+    };
+    for (const [slug, target] of Object.entries(NEW_CANONICAL)) {
       const r = await get(`/service/${slug}`);
       assert.equal(r.status, 200, slug);
-      assert.ok(!isNoindex(r.html), `${slug} must not be noindex`);
-      assert.ok(!isNotFound(r.html), `${slug} must not be the 404 shell`);
-      assert.match(r.html, new RegExp(`<link rel="canonical" href="https://p91carcare\\.com/service/${slug}"`), slug);
-      assert.match(r.html, new RegExp(`<meta property="og:url" content="https://p91carcare\\.com/service/${slug}"`), slug);
-      assert.match(r.html, /"@type":"Service"/, `${slug} needs Service schema`);
-      assert.match(r.html, /<meta property="og:title"/, slug);
-      // Exactly one of each — the prerender shell must not also be contributing one.
-      assert.equal((r.html.match(/<title>/g) || []).length, 1, `${slug}: one title`);
-      assert.equal((r.html.match(/<link rel="canonical"/g) || []).length, 1, `${slug}: one canonical`);
-      assert.equal((r.html.match(/<meta property="og:title"/g) || []).length, 1, `${slug}: one og:title`);
-    }
-  });
-
-  test("each consolidated /service/:slug is still a working page, canonicalised to its campaign page", async () => {
-    for (const [slug, target] of Object.entries(CONSOLIDATED)) {
-      const r = await get(`/service/${slug}`);
-      // No redirect, no noindex: ads and booking links to these URLs must keep working.
-      assert.equal(r.status, 200, slug);
-      assert.ok(!isNoindex(r.html), `${slug} must not be noindex`);
+      assert.match(r.html, /<meta name="robots" content="noindex,follow"/, `${slug} must be noindex,follow`);
       assert.ok(!isNotFound(r.html), `${slug} must not be the 404 shell`);
       assert.match(r.html, /"@type":"Service"/, `${slug} keeps its Service schema`);
+      assert.match(r.html, /<meta property="og:title"/, slug);
       const canon = [...r.html.matchAll(/<link rel="canonical" href="([^"]+)"/g)].map((m) => m[1]);
       assert.deepEqual(canon, [`https://p91carcare.com${target}`], `${slug}: exactly one canonical, -> ${target}`);
       const ogUrl = [...r.html.matchAll(/<meta property="og:url" content="([^"]+)"/g)].map((m) => m[1]);
       assert.deepEqual(ogUrl, [`https://p91carcare.com${target}`], `${slug}: og:url matches the canonical`);
+      // Exactly one of each — the prerender shell must not also be contributing one.
+      assert.equal((r.html.match(/<title>/g) || []).length, 1, `${slug}: one title`);
+      assert.equal((r.html.match(/<meta property="og:title"/g) || []).length, 1, `${slug}: one og:title`);
     }
   });
 

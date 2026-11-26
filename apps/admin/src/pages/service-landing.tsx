@@ -14,7 +14,7 @@ import SiteHeader from "@/components/redesign/site-header";
 import SiteFooter from "@/components/redesign/site-footer";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { resolveServiceImage, type ServiceRecord } from "@p91/content/canonical-services";
-import { serviceCanonicalPath } from "@p91/content/canonical-overrides";
+import { OLD_BOOKING_PAGE_ROBOTS, serviceCanonicalPath } from "@p91/content/canonical-overrides";
 import { useBookingOffer } from "@/hooks/use-booking-offer";
 import { deriveCategory, deriveVehicle } from "@p91/content/service-taxonomy";
 import { formatServiceTime } from "@p91/content/service-time";
@@ -26,7 +26,7 @@ import { slotFeeFor } from "@/lib/booking-fee";
 import { ILLUSTRATIVE_SLUGS } from "@/lib/real-service-images";
 import ParallaxFrame from "@/components/redesign/parallax-frame";
 import { useCinematic } from "@/hooks/use-cinematic";
-import type { BusinessHour } from "@shared/schema";
+import type { BusinessHour } from "@shared/schema";
 import { VisitStudio } from "@/components/redesign/studio-sections";
 
 // The one before/after pair that is verifiably P91's own: the studio's photographs of a customer's
@@ -1358,9 +1358,11 @@ function ServiceSeo({ service }: { service: Service }) {
     title: serviceSeoTitle(service),
     description: serviceSeoDescription(service),
     image: resolveServiceImage(service),
-    // Consolidated variants point at their campaign page (packages/content/src/canonical-overrides.ts),
-    // matching the server-rendered head, so hydration never flips it back to a self-canonical.
+    // Plan 3 (cutover): every old booking page names its new site service page as canonical and is
+    // noindex,follow (packages/content/src/canonical-overrides.ts), matching the server-rendered head,
+    // so hydration never flips either back.
     canonicalPath: serviceCanonicalPath(service.slug),
+    robots: OLD_BOOKING_PAGE_ROBOTS,
     structuredData: serviceStructuredData(service, { origin, businessHours }),
   });
   return null;
