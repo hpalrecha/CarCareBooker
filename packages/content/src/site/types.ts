@@ -17,14 +17,12 @@ export type Section = { h2: string; paras: string[]; bullets?: string[]; photo?:
 export type LinkItem = { href: string; label: string };
 
 export type ServiceContent = {
-  family: string | null;                 // key in FAMILIES (price-ranges.ts); null = no range shown
+  family: string | null;                 // key in FAMILIES (price-ranges.ts); unused while the site shows no prices (owner, 26 Nov)
   breadcrumb: LinkItem[];                // excluding Home, including this page last
   eyebrow: string;
   h1: string;
-  shortAnswer: string;                   // 40-60 words; "{range}" is replaced with the live range, or its sentence removed
+  shortAnswer: string;                   // 40-60 words; no money (owner, 26 Nov); "{time}" = catalogue studio time
   hero: Photo | null;                    // null = ink panel only, full width
-  rangeRows?: { body: "hatchback" | "sedan" | "suv"; label: string; examples: string; moves: string }[];
-  rangeNote?: string;                    // shown under the overall range when there are no body rows
   showWarrantyYears?: boolean;           // PPF family only
   sections: Section[];                   // the page's unique body: benefits, how it works, cost factors, coverage
   steps?: Step[];
@@ -46,9 +44,6 @@ export type ServiceContent = {
    * PPF page's "Three days, five steps" survives the move to the template. Generic text otherwise.
    */
   labels?: {
-    rangeLabel?: string;                 // beside the hero range, e.g. "full body, by car size and film"
-    pricesH2?: string;
-    pricesIntro?: string;
     stepsH2?: string;
     workH2?: string;
     faqH2?: string;

@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { HOME } from "@p91/content/site/home";
 import { pageFor } from "@p91/content/site/registry";
-import { rangesFor, formatRange, shownRange, type Family } from "@p91/domain/price-ranges";
-import { SITE } from "@web/lib/site";
 import { getServices } from "@web/lib/api";
 import { ButtonLink } from "@web/components/button-link";
 import { Section } from "@web/components/section";
@@ -27,9 +25,6 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const rows = await getServices().catch(() => []);
-  // A family with no top end shows no figure (owner, 26 Nov); its card says "WhatsApp a photo for the price".
-  const range = (f: string) => { const r = shownRange(rangesFor(f as Family, rows)?.overall); return r ? formatRange(r) : null; };
-  const ppf = range("ppf");
   const years = ppfWarrantyYears(rows).text;
   // Trust item 2 carries the years from the catalogue; with none, it falls back to the plain written-warranty line.
   const trust = HOME.trust.map((t) => (t.strong.includes("{warrantyYears}") ? { ...t, strong: years ? t.strong.replace("{warrantyYears}", years) : "Written PPF warranty" } : t));
@@ -43,7 +38,7 @@ export default async function HomePage() {
         <div className="wrap">
           <div className="relative -mt-40 flex max-w-[640px] flex-col gap-4 rounded-[16px] border-t-4 border-brand bg-ink p-8 text-white md:-mt-60 md:p-10">
             <h1 id="home-h1" className="m-0 text-[clamp(34px,4.6vw,60px)] font-extrabold">{HOME.hero.h1}</h1>
-            <p className="m-0 text-lg text-white/85">{HOME.hero.lead}{ppf && <> Full-body PPF <strong className="text-white">{ppf}</strong> by car size and film.</>}</p>
+            <p className="m-0 text-lg text-white/85">{HOME.hero.lead}</p>
             <div className="flex flex-wrap gap-3">
               <ButtonLink href={HOME.hero.primary.href} variant="on-ink">{HOME.hero.primary.label}</ButtonLink>
               <ButtonLink href="https://wa.me/917406619191" variant="outline-on-ink">WhatsApp a photo of your car</ButtonLink>
@@ -56,8 +51,8 @@ export default async function HomePage() {
       <TrustStrip items={trust} />
 
       <Section labelledBy="svc-h2">
-        <h2 id="svc-h2" className="m-0 text-[clamp(30px,4vw,48px)] font-extrabold">Services and price ranges</h2>
-        <p className="mb-8 mt-2 max-w-[680px] text-text-2">Price ranges, not teaser prices. Each service page explains what moves your car up or down its range.</p>
+        <h2 id="svc-h2" className="m-0 text-[clamp(30px,4vw,48px)] font-extrabold">Services</h2>
+        <p className="mb-8 mt-2 max-w-[680px] text-text-2">Each service page explains what the job involves, how long the car stays and what makes it cost more or less.</p>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-4">
           {HOME.services.map((s) => (
             <Link key={s.href} href={s.href} className={`grid min-h-[190px] overflow-hidden rounded-[16px] text-ink no-underline ${s.photo ? "grid-cols-[150px_1fr] border border-line" : "bg-ground"}`}>
@@ -65,7 +60,7 @@ export default async function HomePage() {
               <div className="flex flex-col gap-1.5 p-5">
                 <h3 className="m-0 text-[21px] font-bold">{s.name}</h3>
                 <p className="m-0 text-[15px] text-text-2">{s.line}</p>
-                {range(s.family) ? <p className="m-0 mt-auto text-lg font-extrabold tabular-nums">{range(s.family)}</p> : <p className="m-0 mt-auto text-[15px] font-bold text-action">{SITE.noPriceLabel}</p>}
+                <p className="m-0 mt-auto text-[15px] font-bold text-action">Learn more</p>
               </div>
             </Link>
           ))}

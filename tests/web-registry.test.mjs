@@ -14,10 +14,11 @@ test("every page has a unique absolute path, a title of 30-60 chars and a descri
   }
 });
 
-test("no page states an exact rupee price in its copy (ranges only)", () => {
+test("no page carries a price of any kind (owner, 26 Nov 2026: no prices on the new site)", () => {
   for (const p of PAGES) {
     const text = JSON.stringify(p.content);
-    assert.doesNotMatch(text, /from ₹|₹\d{1,3}(,\d{3})+(?!\s*[–-])/, `${p.path} has an exact price`);
+    assert.doesNotMatch(text, /₹\s?\d/, `${p.path} has a rupee figure`);
+    assert.doesNotMatch(text, /\{range\}|rangeRows|rangeNote/, `${p.path} still carries a price-range slot`);
   }
 });
 

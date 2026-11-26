@@ -23,7 +23,6 @@ export const SUN_CONTROL_FILM: ServiceContent = {
   shortAnswer:
     "Sun control film is heat-rejection film for the cabin glass. Judge it by its TSER figure, not by how dark it looks, and check the legal VLT limits before it is fitted. It is a different job from windshield glass coating, the rain-repellent treatment, but people usually ask about both. [NEEDS: time in the studio]",
   hero: null,
-  rangeNote: "Send a photo of your car on WhatsApp for the price of the film you choose. [NEEDS: a sun control film row in the catalogue, so the price range can be shown]",
   sections: [
     {
       h2: SEO.context.heading,
@@ -112,6 +111,7 @@ export const SUN_CONTROL_FILM: ServiceContent = {
     seoFaq("glass-sun-control-film-bangalore", "Does darker film mean a cooler cabin?"),
     hubFaq("sun-control-film", "Is automotive sun film legal in Bangalore?"),
     seoFaq("glass-sun-control-film-bangalore", "What does windshield glass coating do?"),
+    { q: "Will sun film stop the dashboard fading?", a: "It slows it down. Sunlight through the glass is what fades and dries out dashboards and seats, and film reduces how much of it gets in. A windscreen sunshade when parked still helps." },
   ],
   related: [
     { href: "/services/sun-control-film/windshield-glass-coating", label: "Windshield glass coating" },
@@ -120,8 +120,6 @@ export const SUN_CONTROL_FILM: ServiceContent = {
     { href: "/services/interior-detailing", label: "Interior detailing" },
   ],
   labels: {
-    pricesH2: "Sun control film price",
-    pricesIntro: "The price depends on the film you choose.",
     faqH2: "Sun control film questions",
   },
 };

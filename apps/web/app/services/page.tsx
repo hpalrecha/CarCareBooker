@@ -1,7 +1,5 @@
 import Link from "next/link";
 import { SERVICES_HUB as H } from "@p91/content/site/services-hub";
-import { rangesFor, formatRange, shownRange, type Family } from "@p91/domain/price-ranges";
-import { getServices } from "@web/lib/api";
 import { metadataFor } from "@web/lib/metadata";
 import { SITE } from "@web/lib/site";
 import { Breadcrumbs } from "@web/components/breadcrumbs";
@@ -16,13 +14,6 @@ export const metadata = metadataFor(PATH, "/photos/ppf-install-rear-quarter.webp
 const H2 = "m-0 text-[clamp(30px,4vw,48px)] font-extrabold";
 
 export default async function ServicesHub() {
-  const rows = await getServices().catch(() => []);
-  const range = (f: string | null) => {
-    if (!f) return null;
-    const r = shownRange(rangesFor(f as Family, rows)?.overall);
-    return r ? formatRange(r) : null;
-  };
-
   return (
     <main>
       <section aria-labelledby="hub-h1" className="pb-10 pt-8">
@@ -45,7 +36,7 @@ export default async function ServicesHub() {
                 <div className="flex flex-col gap-1.5 p-5">
                   <h3 className="m-0 text-[21px] font-bold">{s.name}</h3>
                   <p className="m-0 text-[15px] text-text-2">{s.line}</p>
-                  {range(s.family) ? <p className="m-0 mt-auto text-lg font-extrabold tabular-nums">{range(s.family)}</p> : s.family && <p className="m-0 mt-auto text-[15px] font-bold text-action">{SITE.noPriceLabel}</p>}
+                  <p className="m-0 mt-auto text-[15px] font-bold text-action">Learn more</p>
                 </div>
               </Link>
             ))}

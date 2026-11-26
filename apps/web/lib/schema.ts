@@ -1,5 +1,4 @@
 import type { Article, AutoRepair, BreadcrumbList, DayOfWeek, FAQPage, Service, WithContext } from "schema-dts";
-import type { Range } from "@p91/domain/price-ranges";
 import type { BusinessHour } from "./api.ts";
 import { SITE } from "./site.ts";
 
@@ -36,7 +35,8 @@ export function businessSchema(hours: BusinessHour[]) {
   } satisfies WithContext<AutoRepair>;
 }
 
-export function serviceSchema(a: { name: string; path: string; description: string; range: Range | null }) {
+/** Service. No offers and no prices (owner, 26 Nov 2026: the new site shows no prices at all). */
+export function serviceSchema(a: { name: string; path: string; description: string }) {
   return {
     "@context": "https://schema.org",
     "@type": "Service",
@@ -45,9 +45,6 @@ export function serviceSchema(a: { name: string; path: string; description: stri
     url: abs(a.path),
     areaServed: { "@type": "City", name: "Bengaluru" },
     provider: { "@id": BUSINESS_ID },
-    ...(a.range
-      ? { offers: { "@type": "AggregateOffer", priceCurrency: "INR", lowPrice: a.range.low, highPrice: a.range.high ?? a.range.low } }
-      : {}),
   } satisfies WithContext<Service>;
 }
 

@@ -18,19 +18,12 @@ test("business is an AutoRepair with a stable @id, address, phone and only open 
   assert.deepEqual(s.areaServed.map((a) => a.name), ["Koramangala", "HSR Layout", "Indiranagar", "Bengaluru"]);
 });
 
-test("service carries an AggregateOffer range in INR and points at the business", () => {
-  const s = serviceSchema({ name: "Paint protection film", path: "/services/paint-protection-film", description: "d", range: { low: 50000, high: 90000 } });
-  assert.equal(s.offers["@type"], "AggregateOffer");
-  assert.equal(s.offers.lowPrice, 50000);
-  assert.equal(s.offers.highPrice, 90000);
-  assert.equal(s.offers.priceCurrency, "INR");
+test("service points at the business and carries no offers or prices (owner, 26 Nov: no prices on the site)", () => {
+  const s = serviceSchema({ name: "Paint protection film", path: "/services/paint-protection-film", description: "d" });
   assert.equal(s.provider["@id"], BUSINESS_ID);
   assert.equal(s.url, "https://p91carcare.com/services/paint-protection-film");
-});
-
-test("service without a known range carries no offers", () => {
-  const s = serviceSchema({ name: "x", path: "/x", description: "d", range: null });
   assert.equal(s.offers, undefined);
+  assert.doesNotMatch(JSON.stringify(s), /Offer|price/i);
 });
 
 test("faq and breadcrumb shapes", () => {

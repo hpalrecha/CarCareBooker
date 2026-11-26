@@ -19,7 +19,7 @@ export const EXTERIOR: ServiceContent = {
   eyebrow: "Polishing · Hard-water spots · Headlights · Adugodi",
   h1: "Exterior detailing in Bangalore",
   shortAnswer:
-    "Exterior detailing cleans and restores the outside of the car more thoroughly than a wash: decontamination, polishing to reduce swirl marks, light scratches and dullness, and hard-water spot removal. At P91 it costs {range}. The car stays {time} in the studio.",
+    "Exterior detailing cleans and restores the outside of the car more thoroughly than a wash: decontamination, polishing to reduce swirl marks, light scratches and dullness, and hard-water spot removal. The car stays {time} in the studio.",
   hero: { src: "/photos/polish-porsche-bonnet.webp", alt: "Machine polisher beside the bonnet crest of a Porsche", width: 800, height: 1422 },
   timeSlug: "exterior-detailing-hard-water-new",
   catalogueIncludes: {
@@ -27,7 +27,6 @@ export const EXTERIOR: ServiceContent = {
     h2: "What the exterior package lists",
     intro: "Read from the studio's catalogue entry for exterior detailing with hard water spot removal:",
   },
-  rangeNote: "[NEEDS: what moves the exterior detailing price, for example car size or paint condition]",
   sections: [
     {
       h2: "What exterior detailing can fix, and what it cannot",
@@ -114,6 +113,7 @@ export const EXTERIOR: ServiceContent = {
     hubFaq("car-detailing", "Can detailing restore faded car paint?"),
     hubFaq("car-detailing", "Can I get my car detailed before selling it?"),
     hubFaq("car-detailing", "Where can I get professional paint correction in Bengaluru?"),
+    { q: "How often should a car be detailed?", a: "It depends on how it is parked and washed. A car parked outside and washed with care may need an exterior detail once or twice a year; one that is dry-wiped or brush-washed will collect swirls and spots faster." },
   ],
   related: [
     { href: "/services/car-wash", label: "Car wash" },

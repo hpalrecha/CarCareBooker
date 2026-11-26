@@ -4,7 +4,7 @@ import { FAQ_COMPARISON } from "../faq-page.ts";
 /**
  * /services hub. Sources:
  * - h1 and lede: SERVICES_SEO (static-seo.ts:55) and apps/admin/src/pages/services.tsx:76-80. "Prices and
- *   availability are live, the same figures you will see at checkout" becomes "price range" wording (ranges only).
+ *   availability are live, the same figures you will see at checkout" is dropped (owner, 26 Nov: no prices on the site).
  * - Card lines: SERVICE_GUIDE_LINKS / SERVICE_PRICE_LINKS notes (service-hub-links.ts) and the Home service lines
  *   (site/home.ts), with "live prices" wording dropped.
  * - "Which one do you need?": each row restates one approved line (FAQ_COMPARISON in faq-page.ts, the FAQ group
@@ -15,10 +15,10 @@ export type HubGroup = { h2: string; intro: string; cards: HubCard[] };
 
 export const SERVICES_HUB = {
   h1: "All services",
-  lede: "Pick your vehicle and what it needs. Each service shows its price range and what moves your car up or down it.",
+  lede: "Pick your vehicle and what it needs. Each service page explains what the job involves and what makes it cost more or less.",
   about: [
     "Everything below is done at the studio in Adugodi, next to Koramangala: paint protection film, ceramic coating, interior and exterior detailing, glass film and headlight restoration.",
-    "Price ranges, not teaser prices. The range on each card is worked out from the studio's current prices; the service page explains where your car lands in it. Send a photo of your car on WhatsApp for the exact price.",
+    "Every car arrives in a different state, so the work, and what it costs, is set for your car. Send a photo of your car on WhatsApp and we reply with what it needs and a quote.",
   ],
   groups: [
     {

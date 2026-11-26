@@ -15,13 +15,8 @@ export const PPF: ServiceContent = {
   eyebrow: "STEK · P91 Premium PPF · Adugodi",
   h1: "Paint protection film in Bangalore",
   shortAnswer:
-    "Paint protection film is a clear, self-healing urethane film fitted over the paint so stone chips and scratches hit the film, not the car. At P91 full-body PPF costs {range} depending on car size and film line, and the car stays about 3 days in the studio.",
+    "Paint protection film is a clear, self-healing urethane film fitted over the paint so stone chips and scratches hit the film, not the car. At P91 a full-body job keeps the car about 3 days in the studio; the cost depends on car size, film line and coverage.",
   hero: { src: "/photos/ppf-install-door-handle.webp", alt: "A P91 fitter tucking paint protection film around a door handle in the Adugodi studio", width: 720, height: 1280 },
-  rangeRows: [
-    { body: "hatchback", label: "Hatchback", examples: "Swift, i20, Altroz", moves: "Standard film at the low end, premium film at the top." },
-    { body: "sedan", label: "Sedan", examples: "City, Verna, 3 Series", moves: "Film line, plus door cups and edge wrapping." },
-    { body: "suv", label: "SUV", examples: "Creta, XUV700, GLE", moves: "Film line and paint correction on larger panels." },
-  ],
   showWarrantyYears: true,
   sections: [
     {
@@ -72,9 +67,6 @@ export const PPF: ServiceContent = {
     { href: "/guides/ppf-vs-ceramic-coating-bangalore", label: "PPF vs ceramic coating" },
   ],
   labels: {
-    rangeLabel: "full body, by car size and film",
-    pricesH2: "PPF price range by body type",
-    pricesIntro: "Full-body film, fitted in the studio. Where your car lands in its range depends on the film line, coverage and paint condition. Send a photo on WhatsApp for the exact figure.",
     stepsH2: "Three days, five steps",
     workH2: "PPF jobs from the studio",
     faqH2: "PPF questions",

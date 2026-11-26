@@ -17,9 +17,8 @@ export const CERAMIC_BIKE: ServiceContent = {
   eyebrow: "Ceramic coating · Motorcycles · Adugodi",
   h1: "Bike ceramic coating in Bangalore",
   shortAnswer:
-    "A nano-ceramic layer over the tank, fairings and painted panels, so fuel splashes, road grime and chain fling wipe off instead of settling in. At P91 the 1-year bike coating costs {range}. The bike stays approx. 36–48 hours in the studio.",
+    "A nano-ceramic layer over the tank, fairings and painted panels, so fuel splashes, road grime and chain fling wipe off instead of settling in. The 1-year coating is made to last about 12 months with proper care. The bike stays approx. 36–48 hours in the studio.",
   hero: null,
-  rangeNote: "The final price depends on the vehicle size, the paint condition, the preparation needed and the coating you choose.",
   sections: [
     {
       h2: "Why coating a motorcycle is a different job",
@@ -115,7 +114,6 @@ export const CERAMIC_BIKE: ServiceContent = {
     { href: "/faq", label: "PPF and ceramic coating FAQs" },
   ],
   labels: {
-    rangeLabel: "1-year coating for motorcycles",
     stepsH2: "How the job is done, step by step",
     faqH2: "Bike ceramic coating questions",
     cta: { title: "Bring the bike to the studio", body: "Visit the studio in Adugodi, near Koramangala. Open daily." },

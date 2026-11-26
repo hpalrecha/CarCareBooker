@@ -19,10 +19,9 @@ export const INTERIOR: ServiceContent = {
   eyebrow: "Vacuum · Steam · Fabric and leather · Adugodi",
   h1: "Car interior detailing in Bangalore",
   shortAnswer:
-    "Seats shampooed, vents cleared, leather conditioned and the cabin deodorised: a full reset of the space you sit in. At P91 interior detailing costs {range}. The car stays {time} in the studio, because the upholstery has to dry properly before the car goes back out.",
+    "Seats shampooed, vents cleared, leather conditioned and the cabin deodorised: a full reset of the space you sit in. The car stays {time} in the studio, because the upholstery has to dry properly before the car goes back out.",
   hero: { src: "/photos/interior-vacuum-footwell.webp", alt: "Vacuuming debris from a rear footwell carpet", width: 800, height: 1422 },
   timeSlug: "interior-detailing-service",
-  rangeNote: "[NEEDS: what moves the interior detailing price, for example car size or cabin condition]",
   sections: [
     {
       h2: SEO.context.heading,
@@ -105,6 +104,7 @@ export const INTERIOR: ServiceContent = {
   faq: [
     seoFaq("interior-detailing-bangalore", "Will it remove smoke or pet odour?"),
     seoFaq("interior-detailing-bangalore", "Are the products safe for leather?"),
+    { q: "How do I know if the cabin needs a detail, not just a vacuum?", a: "If it smells musty or stale, if stains have set into the seats, if the vents blow dust, or if a vacuum no longer makes it look clean, the dirt is in the fabric and the corners, and a vacuum cannot reach it." },
   ],
   related: [
     { href: "/services/exterior-detailing", label: "Exterior detailing" },

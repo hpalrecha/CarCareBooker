@@ -3,7 +3,6 @@ import type { ServiceContent } from "@p91/content/site/types";
 import { WARRANTY_HANDOVER_LINE } from "@p91/content/warranty-wording";
 import { formatServiceTime } from "@p91/content/service-time";
 import { displayableIncludes } from "@p91/content/withheld-claims";
-import { rangesFor, formatRange, shownRange, type Family } from "@p91/domain/price-ranges";
 import { getServices } from "@web/lib/api";
 import { ppfWarrantyLine } from "@web/lib/warranty";
 import { serviceSchema } from "@web/lib/schema";
@@ -14,7 +13,6 @@ import { Breadcrumbs } from "@web/components/breadcrumbs";
 import { ButtonLink } from "@web/components/button-link";
 import { Section } from "@web/components/section";
 import { Photo } from "@web/components/photo";
-import { PriceRangeTable } from "@web/components/price-range-table";
 import { FaqList } from "@web/components/faq-list";
 import { CtaBand } from "@web/components/cta-band";
 import { BeforeAfter } from "@web/components/before-after";
@@ -38,24 +36,19 @@ function catalogueIncludes(items: unknown): string[] {
 
 export async function ServicePage({ content: c, path }: { content: ServiceContent; path: string }) {
   const rows = await getServices().catch(() => []);
-  const ranges = c.family ? rangesFor(c.family as Family, rows) : null;
-  // Owner decision 26 Nov: never a lone figure. No top end means no price line anywhere and no offers in the JSON-LD.
-  const shown = shownRange(ranges?.overall);
-  const overall = shown ? formatRange(shown) : null;
+  // Owner decision 26 Nov 2026: the new site shows no prices at all (no ranges, no figures, no offers).
   const timeRow = c.timeSlug ? rows.find((r) => r.slug === c.timeSlug && r.isActive !== false) : undefined;
   const time = timeRow ? formatServiceTime(timeRow) : null;
   const incRow = c.catalogueIncludes ? rows.find((r) => r.slug === c.catalogueIncludes?.slug && r.isActive !== false) : undefined;
   const includes = incRow ? catalogueIncludes(incRow.whatIncluded) : [];
-  const shortAnswer = fill(fill(c.shortAnswer, "{range}", overall), "{time}", time ? `approx. ${time}` : null);
+  const shortAnswer = fill(c.shortAnswer, "{time}", time ? `approx. ${time}` : null);
   const name = c.breadcrumb[c.breadcrumb.length - 1].label;
   const warranty = (c.showWarrantyYears ? ppfWarrantyLine(rows) : null) ?? WARRANTY_HANDOVER_LINE;
   const L = c.labels ?? {};
-  const bodyRows = (c.rangeRows ?? []).map((r) => ({ label: r.label, examples: r.examples, moves: r.moves, range: shownRange(ranges?.byBody[r.body]) }));
-  const hasRows = bodyRows.some((r) => r.range);
   const crumbs = [{ name: "Home", path: "/" }, ...c.breadcrumb.map((b) => ({ name: b.label, path: b.href }))];
-  // Sections alternate white / ground, starting after the (ground) price block.
+  // Sections alternate ground / white after the short answer.
   let tone = 0;
-  const nextTone = () => (tone++ % 2 === 0 ? "white" : "ground") as "white" | "ground";
+  const nextTone = () => (tone++ % 2 === 0 ? "ground" : "white") as "white" | "ground";
 
   return (
     <main>
@@ -71,14 +64,9 @@ export async function ServicePage({ content: c, path }: { content: ServiceConten
             <div className="flex min-w-0 flex-[1_1_380px] flex-col justify-center gap-4 rounded-[16px] bg-ink p-8 text-white md:p-10">
               <p className="m-0 text-[15px] font-semibold text-on-ink">{c.eyebrow}</p>
               <h1 id="svc-h1" className="m-0 text-[clamp(34px,4.2vw,56px)] font-extrabold">{c.h1}</h1>
-              {overall ? (
-                <p className="m-0 text-[34px] font-extrabold tabular-nums">{overall}{L.rangeLabel && <span className="text-[15px] font-medium text-white/70"> · {L.rangeLabel}</span>}</p>
-              ) : (
-                <p className="m-0 text-xl font-bold"><a href={SITE.whatsapp} className="text-on-ink">{SITE.noPriceLabel}</a></p>
-              )}
               <div className="flex flex-wrap gap-3">
-                {overall ? <ButtonLink href="#prices" variant="on-ink">See the range for your car</ButtonLink> : <ButtonLink href={SITE.book.href} variant="on-ink">{SITE.book.label}</ButtonLink>}
-                {overall ? <ButtonLink href={SITE.book.href} variant="outline-on-ink">{SITE.book.label}</ButtonLink> : <ButtonLink href={SITE.phoneHref} variant="outline-on-ink">Call {SITE.phone}</ButtonLink>}
+                <ButtonLink href={SITE.book.href} variant="on-ink">{SITE.book.label}</ButtonLink>
+                <ButtonLink href={SITE.phoneHref} variant="outline-on-ink">Call {SITE.phone}</ButtonLink>
               </div>
             </div>
           </div>
@@ -93,23 +81,6 @@ export async function ServicePage({ content: c, path }: { content: ServiceConten
           </div>
         </div>
       </section>
-
-      <Section id="prices" labelledBy="price-h2" tone="ground">
-        <h2 id="price-h2" className={H2}>{L.pricesH2 ?? `${name} price${overall ? " range" : ""}${hasRows ? " by body type" : ""}`}</h2>
-        <p className="mb-7 mt-3 max-w-[680px] text-text-2">
-          {overall
-            ? (L.pricesIntro ?? "Where your car lands in the range depends on its size and condition. Send a photo on WhatsApp for the exact figure.")
-            : "Send a photo of your car on WhatsApp and we reply with the price for your car."}
-        </p>
-        {hasRows ? (
-          <PriceRangeTable caption={`${name} price range by body type`} rows={bodyRows} />
-        ) : (
-          <div className="flex flex-col gap-2 rounded-[16px] border border-line bg-white px-6 py-5">
-            {overall ? <p className="m-0 text-[28px] font-extrabold tabular-nums">{overall}</p> : <p className="m-0 text-xl font-bold"><a href={SITE.whatsapp}>{SITE.noPriceLabel}</a></p>}
-            {c.rangeNote && <p className="m-0 text-[15px] text-text-2"><RichText text={c.rangeNote} /></p>}
-          </div>
-        )}
-      </Section>
 
       {includes.length > 0 && c.catalogueIncludes && (
         <Section labelledBy="inc-h2" tone={nextTone()}>
@@ -203,7 +174,7 @@ export async function ServicePage({ content: c, path }: { content: ServiceConten
         secondary={{ href: SITE.phoneHref, label: SITE.phone }}
       />
 
-      <JsonLd data={serviceSchema({ name, path, description: pageFor(path).description, range: shown })} />
+      <JsonLd data={serviceSchema({ name, path, description: pageFor(path).description })} />
     </main>
   );
 }

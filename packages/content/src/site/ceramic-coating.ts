@@ -20,9 +20,8 @@ export const CERAMIC: ServiceContent = {
   eyebrow: "Ceramic coating · Cars · Adugodi",
   h1: "Ceramic coating in Bangalore",
   shortAnswer:
-    "Ceramic coating is machine paint correction followed by a nano-ceramic layer that deepens the gloss, repels water and dirt, and makes every wash after it easier. At P91 the car coating costs {range}. The car stays approx. 36–48+ hours in the studio, depending on the preparation required.",
+    "Ceramic coating is machine paint correction followed by a nano-ceramic layer that deepens the gloss, repels water and dirt, and makes every wash after it easier. The car stays approx. 36–48+ hours in the studio, depending on the preparation required.",
   hero: { src: "/photos/gle-nasiol-wall.webp", alt: "White Mercedes-Benz GLE in front of the Nasiol wall in the P91 studio", width: 1084, height: 911 },
-  rangeNote: "The final price depends on the vehicle size, the paint condition, the preparation needed and the coating you choose.",
   sections: [
     {
       h2: "What a ceramic coating actually does",
@@ -54,7 +53,8 @@ export const CERAMIC: ServiceContent = {
         "**Size of the car.** More painted panels means more surface to decontaminate, polish and coat.",
         "**Paint condition.** Swirl marks, water-spot etching and light scratches have to be machine polished out first, or the coating locks them in. Paint correction is the slow part of the job.",
         "**Preparation.** Tar, iron fallout from brake dust and bonded grime come off with a clay bar and an iron remover before polishing. A neglected car needs more of this than a new one.",
-        "**The coating you choose.** Different coatings are made to last different lengths of time, and the price follows.",
+        "**The coating you choose.** Different coatings are made to last different lengths of time, and cost more or less accordingly.",
+        "**Coating over film.** Coating a car that already has PPF, or booking the two together, changes the work involved.",
       ],
     },
     {
@@ -120,7 +120,6 @@ export const CERAMIC: ServiceContent = {
     { href: "/gallery", label: "See our work" },
   ],
   labels: {
-    rangeLabel: "1-year coating for cars",
     stepsH2: "How the job is done, step by step",
     faqH2: "Ceramic coating questions",
   },
