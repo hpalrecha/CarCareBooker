@@ -21,3 +21,6 @@ attached_assets/_opt/
 # service-account keys: never commit
 secrets/
 cookies.txt
+
+# Next.js build output for the public site
+apps/web/.next
