@@ -32,7 +32,6 @@ const POSTS: { title: string; carousel: Carousel }[] = [
 ];
 const slideSrc = (dir: string, n: number) => `/attached_assets/carousels/${dir}/${String(n + 1).padStart(2, "0")}.jpg`;
 
-const rupees = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
 const OPENS_AT: Record<string, string> = {
   "1-year-ceramic-coating": "/services/ceramic-coating-bangalore",
   "1-year-bike-ceramic-coating": "/services/ceramic-coating-bangalore",
@@ -164,23 +163,19 @@ export default function Gallery() {
           <div className="wrap">
             <div className="gl-sec-head">
               <h2>Running right now</h2>
-              <p>Live prices from our booking system, the same ones you pay at checkout.</p>
+              <p>Services on offer now. Tap one to learn more.</p>
             </div>
             <div className="gl-offers">
-              {offers.map(({ s, price, was, pct }) => {
+              {offers.map(({ s }) => {
                 const img = offerImage(s);
                 return (
                   <a key={s.id} href={OPENS_AT[s.slug] ?? `/service/${s.slug}`} className="gl-offer" data-testid={`offer-${s.slug}`}>
                     <span className="gl-offer-img">
                       <ImageWithFallback src={img} alt={s.title} sizes="(min-width: 900px) 360px, 90vw" width={720} height={450} />
-                      <em className="gl-badge">{pct}% off</em>
                     </span>
                     <span className="gl-offer-body">
                       <strong>{s.title}</strong>
-                      <span className="gl-price">
-                        {rupees(price)} <s>{rupees(was)}</s>
-                      </span>
-                      <span className="gl-go">Book this →</span>
+                      <span className="gl-go">Learn more →</span>
                     </span>
                   </a>
                 );

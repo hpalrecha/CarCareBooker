@@ -2,7 +2,6 @@ import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  formatINR,
   resolveCanonical,
   type CanonicalService,
   type ServiceRecord,
@@ -63,32 +62,18 @@ export default function TransformationCTA({ service, services, action = "Get", t
     );
   }
 
-  const original = row.originalPrice ? parseFloat(row.originalPrice) : 0;
-  const price = parseFloat(row.price);
-  const showOriginal = Number.isFinite(original) && original > price;
-  const savePct = showOriginal ? Math.round(((original - price) / original) * 100) : 0;
-
+  // No price (owner rule, 26 Nov 2026): the card links to the service page instead.
   return (
     <>
-      <div className="cta-price">
-        <span className="cta-price-now">{formatINR(row.price)}</span>
-        {showOriginal && (
-          <span className="cta-price-was" data-testid={`${testId}-original-price`}>
-            {formatINR(row.originalPrice)}
-          </span>
-        )}
-        {showOriginal && savePct >= 5 && (
-          <span className="cta-price-save">Save {savePct}%</span>
-        )}
-      </div>
+      <div className="cta-price" />
       <Link href={`/service/${row.slug}`} className="shrink-0">
         <Button
           size="lg"
           className={CTA_CLASS}
-          aria-label={`${action} ${row.title.trim()} — ${formatINR(row.price)}`}
+          aria-label={`${action} ${row.title.trim()}: learn more`}
           data-testid={testId}
         >
-          View details
+          Learn more
           <ArrowRight className="ml-2 w-4 h-4 shrink-0" />
         </Button>
       </Link>

@@ -68,7 +68,7 @@ export default function HeroOfferStrip({
     <p className="lp-offer-strip" data-testid={testId}>
       <span className="lp-offer-strip-free">Booking is free</span>
       <span className="lp-offer-strip-sep" aria-hidden="true"> · </span>
-      <span className="lp-offer-strip-paid">{price} paid at the studio</span>
+      <span className="lp-offer-strip-paid">service paid at the studio</span>
     </p>
   );
 }

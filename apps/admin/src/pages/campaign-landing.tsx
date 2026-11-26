@@ -20,14 +20,14 @@ import CampaignOffer from "@/components/campaign-offer";
 import VehicleSelector from "@/components/vehicle-selector";
 import PpfPackages from "@/components/ppf-packages";
 import { WARRANTY_BATCH_LINE, WARRANTY_HANDOVER_LINE } from "@p91/content/warranty-wording";
-import { buildPpfPackages, ppfAggregateOffer, type PpfBodyKey, type PpfCatalogueRow } from "@p91/content/ppf-packages";
+import { type PpfBodyKey } from "@p91/content/ppf-packages";
 import BlogCarousel from "@/components/blog-carousel";
 import HeroOfferStrip from "@/components/hero-offer-strip";
 import NotFound from "@/pages/not-found";
 import { useSeoMeta } from "@/hooks/use-seo-meta";
 import { useHeroVideoGate } from "@/hooks/use-hero-video";
 import { useQuery } from "@tanstack/react-query";
-import { resolveServiceImage, formatINR, type ServiceRecord } from "@p91/content/canonical-services";
+import { resolveServiceImage, type ServiceRecord } from "@p91/content/canonical-services";
 import { formatServiceTime } from "@p91/content/service-time";
 import { withCeramicTiming } from "@p91/content/ceramic-timing";
 import { generalPackageFaqs } from "@p91/content/withheld-claims";
@@ -187,18 +187,7 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
   const heroImage = resolveServiceImage(service);
   const posts = useMemo(() => relevantPosts(page), [page]);
 
-  const price = service ? parseFloat(String(service.price)) : NaN;
-  const wasPrice = service?.originalPrice ? parseFloat(String(service.originalPrice)) : NaN;
-  // Only a genuine reduction. Partial PPF rows carry price === originalPrice, and a
-  // struck-through figure identical to the live one invents a saving.
-  const hasRealDiscount = Number.isFinite(price) && Number.isFinite(wasPrice) && wasPrice > price;
-
   const origin = typeof window === "undefined" ? "https://p91carcare.com" : window.location.origin;
-
-  // /ppf: prices of the packages that exist, read from the catalogue rows (no discount, no validity date).
-  const packageOffers = page.packageComparison
-    ? ppfAggregateOffer(buildPpfPackages(services as unknown as PpfCatalogueRow[] | undefined), origin)
-    : null;
 
   const provider = {
     "@type": "AutoRepair",
@@ -225,21 +214,8 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
       ...(heroImage ? { image: heroImage.startsWith("http") ? heroImage : `${origin}${heroImage}` } : {}),
       provider,
       areaServed: { "@type": "City", name: "Bengaluru" },
-      // Priced from the live record only. No literal fallback: a schema price that
-      // disagrees with checkout is worse than emitting no offer block at all.
-      ...(packageOffers
-        ? { offers: packageOffers }
-        : service
-          ? {
-              offers: {
-                "@type": "Offer",
-                price: service.price,
-                priceCurrency: "INR",
-                availability: "https://schema.org/InStock",
-                url: `${origin}${page.path}`,
-              },
-            }
-          : {}),
+      url: `${origin}${page.path}`,
+      // No offers/price: owner rule (26 Nov 2026), no price on any public page or in its schema.
     },
     // NO BreadcrumbList here, deliberately.
     //
@@ -334,14 +310,8 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
                   </div>
                 )
               ) : service ? (
+                // No price (owner rule, 26 Nov 2026): the package name only.
                 <div className="lp-price" data-testid="landing-price">
-                  <span className="lp-price-now">{formatINR(service.price)}</span>
-                  {hasRealDiscount && (
-                    <span className="lp-price-was" data-testid="landing-price-was">
-                      <span className="sr-only">Previous price </span>
-                      {formatINR(service.originalPrice)}
-                    </span>
-                  )}
                   <span className="lp-price-name">{service.title.trim()}</span>
                 </div>
               ) : pricingUnavailable ? (
@@ -365,6 +335,15 @@ export default function CampaignLanding({ path }: CampaignLandingProps) {
                   const time = formatServiceTime(service);
                   if (!time) return null;
                   if (page.hideDuration && !service.durationText) return null;
+                  // The vehicle selector card already prints "Approx. … in the studio" for the selected
+                  // package; repeating it here showed the duration twice on /ppf.
+                  if (page.categories && !pricingUnavailable) {
+                    return (
+                      <p className="lp-meta" data-testid="landing-location">
+                        Adugodi, Bangalore
+                      </p>
+                    );
+                  }
                   return (
                     <p className="lp-meta" data-testid="landing-duration">
                       Approx. {time} in the studio · Adugodi, Bangalore
