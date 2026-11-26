@@ -7,7 +7,7 @@ export function GET() {
   const lines = [
     `# ${SITE.name}`,
     "",
-    `> Paint protection film (STEK, P91 Premium), ceramic coating (Nasiol) and detailing studio at ${SITE.address.street}, ${SITE.address.city} ${SITE.address.postalCode}. Phone ${SITE.phone}. Prices are shown as ranges by car size; exact quotes on WhatsApp.`,
+    `> Paint protection film (STEK, P91 Premium), ceramic coating (Nasiol) and detailing studio at ${SITE.address.street}, ${SITE.address.city} ${SITE.address.postalCode}. Phone ${SITE.phone}. Quotes on WhatsApp or by phone.`,
     "",
     "## Pages",
     ...PAGES.map((p) => `- [${p.title}](${new URL(p.path, SITE.origin)}): ${p.description}`),
