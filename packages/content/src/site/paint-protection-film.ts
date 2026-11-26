@@ -38,7 +38,8 @@ export const PPF: ServiceContent = {
       paras: [
         "Front-only film covers the panels that take most stone chips on Bangalore roads: bonnet, front bumper, headlamps and mirrors.",
         "Full body also guards doors and quarters against parking-lot scrapes and keeps the finish even across the car.",
-        "**Aftercare:** [NEEDS: days before the first wash]. After that, a pH-neutral wash. Light swirls in the film fade in the sun. [How much PPF does your car need?](/guides/how-much-ppf-does-your-car-need)",
+        // 26 Nov: reordered so the hidden gap (gaps.ts) leaves a whole sentence; wording otherwise unchanged.
+        "**Aftercare:** once the film has settled, a pH-neutral wash. [NEEDS: days before the first wash] Light swirls in the film fade in the sun. [How much PPF does your car need?](/guides/how-much-ppf-does-your-car-need)",
       ],
       photo: { src: "/photos/ppf-install-door-edge.webp", alt: "P91 installer fitting clear PPF around the rear door of a black SUV", width: 720, height: 1280 },
     },

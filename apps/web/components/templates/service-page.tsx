@@ -7,6 +7,7 @@ import { getServices } from "@web/lib/api";
 import { ppfWarrantyLine } from "@web/lib/warranty";
 import { serviceSchema } from "@web/lib/schema";
 import { pageFor } from "@p91/content/site/registry";
+import { gapFree, hasGap, proseWithoutGaps, withoutGaps } from "@p91/content/site/gaps";
 import { SITE } from "@web/lib/site";
 import { JsonLd } from "@web/components/json-ld";
 import { Breadcrumbs } from "@web/components/breadcrumbs";
@@ -34,14 +35,27 @@ function catalogueIncludes(items: unknown): string[] {
     .filter((i) => i !== "" && !/₹|rs\.?\s?\d|warranty/i.test(i));
 }
 
-export async function ServicePage({ content: c, path }: { content: ServiceContent; path: string }) {
+export async function ServicePage({ content, path }: { content: ServiceContent; path: string }) {
+  // Owner decision 26 Nov 2026: a [NEEDS ...] gap is never rendered (gaps.ts); sections left empty are dropped.
+  const c: ServiceContent = {
+    ...content,
+    sections: content.sections
+      .filter((s) => !hasGap(s.h2))
+      .map((s) => ({ ...s, paras: proseWithoutGaps(s.paras), ...(s.bullets ? { bullets: gapFree(s.bullets) } : {}) }))
+      .filter((s) => s.paras.length > 0 || (s.bullets?.length ?? 0) > 0 || s.photo),
+    steps: gapFree(content.steps),
+    work: gapFree(content.work),
+    beforeAfter: gapFree(content.beforeAfter),
+    faq: gapFree(content.faq),
+    related: gapFree(content.related),
+  };
   const rows = await getServices().catch(() => []);
   // Owner decision 26 Nov 2026: the new site shows no prices at all (no ranges, no figures, no offers).
   const timeRow = c.timeSlug ? rows.find((r) => r.slug === c.timeSlug && r.isActive !== false) : undefined;
   const time = timeRow ? formatServiceTime(timeRow) : null;
   const incRow = c.catalogueIncludes ? rows.find((r) => r.slug === c.catalogueIncludes?.slug && r.isActive !== false) : undefined;
   const includes = incRow ? catalogueIncludes(incRow.whatIncluded) : [];
-  const shortAnswer = fill(c.shortAnswer, "{time}", time ? `approx. ${time}` : null);
+  const shortAnswer = withoutGaps(fill(c.shortAnswer, "{time}", time ? `approx. ${time}` : null));
   const name = c.breadcrumb[c.breadcrumb.length - 1].label;
   const warranty = (c.showWarrantyYears ? ppfWarrantyLine(rows) : null) ?? WARRANTY_HANDOVER_LINE;
   const L = c.labels ?? {};
@@ -85,7 +99,7 @@ export async function ServicePage({ content: c, path }: { content: ServiceConten
       {includes.length > 0 && c.catalogueIncludes && (
         <Section labelledBy="inc-h2" tone={nextTone()}>
           <h2 id="inc-h2" className={`${H2} mb-5`}>{c.catalogueIncludes.h2}</h2>
-          {c.catalogueIncludes.intro && <p className="mb-3.5 mt-0 max-w-[760px] text-text-2"><RichText text={c.catalogueIncludes.intro} /></p>}
+          {c.catalogueIncludes.intro && !hasGap(c.catalogueIncludes.intro) && <p className="mb-3.5 mt-0 max-w-[760px] text-text-2"><RichText text={c.catalogueIncludes.intro} /></p>}
           <ul className="m-0 mt-2 flex max-w-[760px] flex-col gap-2.5 pl-5 text-text-2">{includes.map((i) => <li key={i}>{i}</li>)}</ul>
         </Section>
       )}
@@ -96,7 +110,7 @@ export async function ServicePage({ content: c, path }: { content: ServiceConten
             <div className="min-w-0 flex-[1_1_420px]">
               <h2 id={`sec-${i}-h2`} className={`${H2} mb-5`}>{s.h2}</h2>
               {s.paras.map((p) => <p key={p} className="mb-3.5 mt-0 max-w-[760px] text-text-2"><RichText text={p} /></p>)}
-              {s.bullets && (
+              {s.bullets && s.bullets.length > 0 && (
                 <ul className="m-0 mt-2 flex max-w-[760px] flex-col gap-2.5 pl-5 text-text-2">
                   {s.bullets.map((b) => <li key={b}><RichText text={b} /></li>)}
                 </ul>

@@ -8,12 +8,28 @@ import { Photo } from "@web/components/photo";
 import { FaqList } from "@web/components/faq-list";
 import { CtaBand } from "@web/components/cta-band";
 import { RichText } from "@web/components/rich-text";
+import { gapFree, hasGap, proseWithoutGaps, withoutGaps } from "@p91/content/site/gaps";
 
 const H2 = "m-0 text-[clamp(30px,4vw,48px)] font-extrabold";
 const DIRECTIONS = "https://www.google.com/maps/dir/?api=1&destination=P91+Car+Care+Adugodi+Bengaluru";
 
 /** Area page (spec section 2): how far the studio is, pickup, real jobs, every service in the area's words, FAQ, nearby. */
-export function AreaPage({ content: c, path }: { content: AreaContent; path: string }) {
+export function AreaPage({ content, path }: { content: AreaContent; path: string }) {
+  // Owner decision 26 Nov 2026: a [NEEDS ...] gap is never rendered (gaps.ts); sections left empty are dropped.
+  const c: AreaContent = {
+    ...content,
+    intro: withoutGaps(content.intro),
+    facts: gapFree(content.facts),
+    routeNote: withoutGaps(content.routeNote),
+    services: gapFree(content.services),
+    jobs: gapFree(content.jobs),
+    faq: gapFree(content.faq),
+    nearby: gapFree(content.nearby),
+    sections: (content.sections ?? [])
+      .filter((s) => !hasGap(s.h2))
+      .map((s) => ({ ...s, paras: proseWithoutGaps(s.paras), ...(s.bullets ? { bullets: gapFree(s.bullets) } : {}) }))
+      .filter((s) => s.paras.length > 0 || (s.bullets?.length ?? 0) > 0),
+  };
   return (
     <main>
       <section aria-labelledby="area-h1" className="pb-14 pt-8">
@@ -23,7 +39,7 @@ export function AreaPage({ content: c, path }: { content: AreaContent; path: str
             <div className="flex min-w-0 flex-[1_1_480px] flex-col justify-center gap-4 rounded-[16px] bg-ink p-8 text-white md:p-10">
               <p className="m-0 text-[15px] font-semibold text-on-ink">Studio in Adugodi · owners from {c.area}</p>
               <h1 id="area-h1" className="m-0 text-[clamp(34px,4.2vw,56px)] font-extrabold">{c.h1}</h1>
-              <p className="m-0 text-lg text-white/85"><RichText text={c.intro} /></p>
+              {c.intro && <p className="m-0 text-lg text-white/85"><RichText text={c.intro} /></p>}
               <div className="flex flex-wrap gap-3">
                 <ButtonLink href={DIRECTIONS} variant="on-ink">Directions to the studio</ButtonLink>
                 <ButtonLink href={SITE.whatsapp} variant="outline-on-ink">WhatsApp us</ButtonLink>
@@ -33,7 +49,7 @@ export function AreaPage({ content: c, path }: { content: AreaContent; path: str
               {c.facts.map((f) => <div key={f.k}><dt className="text-sm font-semibold text-muted">{f.k}</dt><dd className="m-0 text-lg font-bold">{f.v}</dd></div>)}
             </dl>
           </div>
-          <p className="mb-0 mt-6 max-w-[760px] text-text-2"><RichText text={c.routeNote} /></p>
+          {c.routeNote && <p className="mb-0 mt-6 max-w-[760px] text-text-2"><RichText text={c.routeNote} /></p>}
         </div>
       </section>
 
@@ -54,7 +70,7 @@ export function AreaPage({ content: c, path }: { content: AreaContent; path: str
         <Section key={s.h2} labelledBy={`as-${i}-h2`} tone={i % 2 === 0 ? "white" : "ground"}>
           <h2 id={`as-${i}-h2`} className={`${H2} mb-5`}>{s.h2}</h2>
           {s.paras.map((p) => <p key={p} className="mb-3.5 mt-0 max-w-[760px] text-text-2"><RichText text={p} /></p>)}
-          {s.bullets && <ul className="m-0 mt-2 flex max-w-[760px] flex-col gap-2.5 pl-5 text-text-2">{s.bullets.map((b) => <li key={b}><RichText text={b} /></li>)}</ul>}
+          {s.bullets && s.bullets.length > 0 && <ul className="m-0 mt-2 flex max-w-[760px] flex-col gap-2.5 pl-5 text-text-2">{s.bullets.map((b) => <li key={b}><RichText text={b} /></li>)}</ul>}
         </Section>
       ))}
 
@@ -67,12 +83,14 @@ export function AreaPage({ content: c, path }: { content: AreaContent; path: str
         </Section>
       )}
 
-      <Section labelledBy="faq-h2">
-        <div className="flex flex-wrap gap-10">
-          <h2 id="faq-h2" className="m-0 flex-[1_1_300px] text-[clamp(30px,3.6vw,46px)] font-extrabold">Questions from {c.area}</h2>
-          <div className="min-w-0 flex-[999_1_520px]"><FaqList items={c.faq} /></div>
-        </div>
-      </Section>
+      {c.faq.length > 0 && (
+        <Section labelledBy="faq-h2">
+          <div className="flex flex-wrap gap-10">
+            <h2 id="faq-h2" className="m-0 flex-[1_1_300px] text-[clamp(30px,3.6vw,46px)] font-extrabold">Questions from {c.area}</h2>
+            <div className="min-w-0 flex-[999_1_520px]"><FaqList items={c.faq} /></div>
+          </div>
+        </Section>
+      )}
 
       <section aria-labelledby="near-h2" className="pb-20">
         <div className="wrap">
