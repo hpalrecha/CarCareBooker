@@ -1,5 +1,4 @@
 import { displayableIncludes } from "./withheld-claims";
-import { formatINR } from "./canonical-services";
 import { formatServiceTime } from "./service-time";
 
 /**
@@ -82,7 +81,6 @@ export interface PpfPackageCard {
   examples: string;
   title: string;
   price: number;
-  priceLabel: string;
   /** The studio's own turnaround text for this row, e.g. "2-3 days"; null when the row has none. */
   studioTime: string | null;
 }
@@ -143,7 +141,6 @@ export function buildPpfPackages(rows: ReadonlyArray<PpfCatalogueRow> | null | u
         examples: body.examples,
         title: String(row.title ?? "").trim(),
         price,
-        priceLabel: formatINR(price),
         studioTime: formatServiceTime(row),
       });
     }
@@ -180,27 +177,3 @@ export function studioTimeLine(time: string | null): string | null {
   return time ? `Approx. ${time} in the studio` : null;
 }
 
-/**
- * Service.offers for /ppf: the lowest and highest price across the packages that exist, plus one
- * Offer per package. Prices only, taken from the rows. No availability, no discount, no priceValidUntil.
- */
-export function ppfAggregateOffer(tiers: PpfTier[] | null, origin: string): Record<string, unknown> | null {
-  if (!tiers) return null;
-  const cards = tiers.flatMap((t) => t.cards);
-  if (cards.length === 0) return null;
-  const prices = cards.map((c) => c.price);
-  return {
-    "@type": "AggregateOffer",
-    priceCurrency: "INR",
-    lowPrice: String(Math.min(...prices)),
-    highPrice: String(Math.max(...prices)),
-    offerCount: cards.length,
-    offers: cards.map((c) => ({
-      "@type": "Offer",
-      name: c.title,
-      price: String(c.price),
-      priceCurrency: "INR",
-      url: `${origin}/ppf`,
-    })),
-  };
-}
