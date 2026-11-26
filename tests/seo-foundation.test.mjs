@@ -558,8 +558,8 @@ describe('related guides, brands and articles on the /service/* pages', () => {
       assert.ok(html.includes('>' + l.label.replace(/&/g, '&amp;') + '<'), l.label);
     }
     assert.ok(text(html).includes('Related guides, products and reading'));
-    // Duration comes from the same function as the page ("About 24 hrs" there, a legacy range override).
-    assert.ok(text(html).includes('Time at the studio: about 24 hrs.'), text(html).slice(0, 300));
+    // Duration comes from the same function as the page (a legacy range override; owner 26 Nov 2026: 36-48 hours, was 24).
+    assert.ok(text(html).includes('Time at the studio: about 36-48 hrs.'), text(html).slice(0, 300));
   });
 
   test('records without related links and without a plausible duration get neither section', () => {

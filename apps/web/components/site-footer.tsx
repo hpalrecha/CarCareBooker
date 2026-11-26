@@ -4,7 +4,7 @@ import { SITE } from "@web/lib/site";
 // Hubs and legal pages only (spec: the footer stops linking every page equally).
 const LINKS = [
   ["/services", "Services"], ["/areas/koramangala", "Areas"], ["/brands", "Brands"], ["/guides", "Guides"],
-  ["/gallery", "Gallery"], ["/about", "About"], ["/contact", "Contact"], ["/privacy-policy", "Privacy"], ["/terms-conditions", "Terms"],
+  ["/gallery", "Gallery"], ["/about", "About"], ["/contact", "Contact"], ["/privacy-policy", "Privacy"], ["/terms-conditions", "Terms"], ["/refund-policy", "Refunds"],
 ] as const;
 
 export function SiteFooter() {

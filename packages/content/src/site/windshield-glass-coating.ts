@@ -5,7 +5,9 @@ import { seoFaq, hubFaq } from "./sources.ts";
  * /services/sun-control-film/windshield-glass-coating. Sources:
  * - /faq hub "What is windshield glass coating?" (faq-page.ts:317) and SEO_PAGES[3] FAQ "What does windshield glass
  *   coating do?" (seo-pages.ts:277).
- * - Catalogue row windshield-glass-coating-new: studio time ("{time}"); its FAQ answers "lasts 6-12 months depending
+ * - Studio time: 36 to 48 hours (owner decision 26 Nov 2026, "everywhere"; typed here so the page never depends on the
+ *   catalogue for it, and the legacy "24 hrs" fallback in service-time.ts now reads 36-48 hrs too).
+ * - Catalogue row windshield-glass-coating-new: its FAQ answers "lasts 6-12 months depending
  *   on usage and maintenance" and "suitable for windshields, side windows, and mirrors" (reworded, not typed as prices).
  *   The row's descriptions carry exact prices and a "24 hours" stay that differs from its own time field; neither is used.
  * - Catalogue row windshield-glass-polishing: "Removes water spots and light scratches", "No curing time required".
@@ -21,9 +23,8 @@ export const GLASS_COATING: ServiceContent = {
   eyebrow: "Rain repellent · Windshield · Adugodi",
   h1: "Windshield glass coating in Bangalore",
   shortAnswer:
-    "Windshield glass coating is a surface treatment that makes rain bead up and clear off the glass at speed, which helps most with night driving in the monsoon. It lasts about 6 to 12 months depending on usage and maintenance. The car stays {time} so the coating can cure.",
+    "Windshield glass coating is a surface treatment that makes rain bead up and clear off the glass at speed, which helps most with night driving in the monsoon. It lasts about 6 to 12 months depending on usage and maintenance. The car stays in the studio for about 36 to 48 hours so the coating can cure.",
   hero: null,
-  timeSlug: "windshield-glass-coating-new",
   sections: [
     {
       h2: "What the coating does",
@@ -107,13 +108,13 @@ export const GLASS_COATING: ServiceContent = {
     { title: "Inspect the glass", text: "The windshield checked for spots, wiper haze and chips.", photo: null },
     { title: "Clean and prepare", text: "Glass deep cleaned, and polished where needed, so the coating bonds to bare glass.", photo: null },
     { title: "Apply", text: "Windshield glass coating applied and buffed to a streak-free finish.", photo: null },
-    { title: "Cure", text: "The car stays in the studio while the coating cures.", photo: null },
+    { title: "Cure", text: "The car stays in the studio for about 36 to 48 hours while the coating cures.", photo: null },
   ],
   faq: [
     hubFaq("sun-control-film", "What is windshield glass coating?"),
     seoFaq("glass-sun-control-film-bangalore", "What does windshield glass coating do?"),
     { q: "How long does it last?", a: "About 6 to 12 months, depending on usage and maintenance. Highway driving, frequent wiper use and harsh cleaners wear it faster." },
-    { q: "Can I pick the car up early?", a: "The coating needs its full curing time to bond and repel water as it should, so plan to leave the car for the time you are given when you book." },
+    { q: "Can I pick the car up early?", a: "The coating needs its full curing time, about 36 to 48 hours in the studio, to bond and repel water as it should, so plan to leave the car for that long." },
     { q: "Does it work on side windows and mirrors?", a: "Yes. It suits windshields, side windows and mirrors." },
     { q: "Will the coating affect the wipers?", a: "Not good ones. Old, hardened blades can judder on coated glass; fresh, soft blades glide over it and the coating helps them clear water." },
     { q: "Can the coating be removed?", a: "It wears off on its own over its life, and glass polishing removes it completely if needed." },

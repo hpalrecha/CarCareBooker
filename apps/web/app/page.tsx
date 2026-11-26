@@ -12,6 +12,7 @@ import { FaqList } from "@web/components/faq-list";
 import { CtaBand } from "@web/components/cta-band";
 import { ReviewQuotes } from "@web/components/review-quotes";
 import { ppfWarrantyYears } from "@web/lib/warranty";
+import { gapFree, hasGap, withoutGaps } from "@p91/content/site/gaps";
 
 export const revalidate = 300;
 const PAGE = pageFor("/");
@@ -27,7 +28,7 @@ export default async function HomePage() {
   const rows = await getServices().catch(() => []);
   const years = ppfWarrantyYears(rows).text;
   // Trust item 2 carries the years from the catalogue; with none, it falls back to the plain written-warranty line.
-  const trust = HOME.trust.map((t) => (t.strong.includes("{warrantyYears}") ? { ...t, strong: years ? t.strong.replace("{warrantyYears}", years) : "Written PPF warranty" } : t));
+  const trust = gapFree(HOME.trust).map((t) => (t.strong.includes("{warrantyYears}") ? { ...t, strong: years ? t.strong.replace("{warrantyYears}", years) : "Written PPF warranty" } : t));
 
   return (
     <main>
@@ -43,7 +44,7 @@ export default async function HomePage() {
               <ButtonLink href={HOME.hero.primary.href} variant="on-ink">{HOME.hero.primary.label}</ButtonLink>
               <ButtonLink href="https://wa.me/917406619191" variant="outline-on-ink">WhatsApp a photo of your car</ButtonLink>
             </div>
-            <p className="m-0 text-sm text-on-ink">{HOME.hero.photo.caption}</p>
+            {withoutGaps(HOME.hero.photo.caption) && <p className="m-0 text-sm text-on-ink">{withoutGaps(HOME.hero.photo.caption)}</p>}
           </div>
         </div>
       </section>
@@ -54,7 +55,7 @@ export default async function HomePage() {
         <h2 id="svc-h2" className="m-0 text-[clamp(30px,4vw,48px)] font-extrabold">Services</h2>
         <p className="mb-8 mt-2 max-w-[680px] text-text-2">Each service page explains what the job involves, how long the car stays and what makes it cost more or less.</p>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-4">
-          {HOME.services.map((s) => (
+          {gapFree(HOME.services).map((s) => (
             <Link key={s.href} href={s.href} className={`grid min-h-[190px] overflow-hidden rounded-[16px] text-ink no-underline ${s.photo ? "grid-cols-[150px_1fr] border border-line" : "bg-ground"}`}>
               {s.photo && <Photo src={s.photo.src} alt={s.photo.alt} width={s.photo.width} height={s.photo.height} />}
               <div className="flex flex-col gap-1.5 p-5">
@@ -71,7 +72,7 @@ export default async function HomePage() {
         <h2 id="ba-h2" className="m-0 text-[clamp(30px,4vw,48px)] font-extrabold">Same car, before and after</h2>
         <p className="mb-7 mt-2 max-w-[680px] text-text-2">Real jobs from our studio. Drag the line to compare.</p>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(380px,1fr))] gap-5">
-          {HOME.beforeAfter.map((b) => <BeforeAfter key={b.caption} before={b.before} after={b.after} caption={<>{b.caption} · <Link href={b.href} className="font-bold">Exterior detailing</Link></>} />)}
+          {gapFree(HOME.beforeAfter).map((b) => <BeforeAfter key={b.caption} before={b.before} after={b.after} caption={<>{b.caption} · <Link href={b.href} className="font-bold">Exterior detailing</Link></>} />)}
         </div>
       </Section>
 
@@ -81,7 +82,8 @@ export default async function HomePage() {
           {HOME.work.map((w) => (
             <figure key={w.src} className="m-0 flex flex-col gap-2.5">
               <div className="h-[230px] overflow-hidden rounded-[14px]"><Photo src={w.src} alt={w.alt} width={w.width} height={w.height} /></div>
-              <figcaption className="flex flex-col"><strong className="text-[17px]">{w.car}</strong><span className="text-sm text-muted">{w.job}</span></figcaption>
+              {/* A job still marked [NEEDS ...] shows the car only (owner, 26 Nov 2026: gaps are never rendered). */}
+              <figcaption className="flex flex-col"><strong className="text-[17px]">{w.car}</strong>{!hasGap(w.job) && <span className="text-sm text-muted">{w.job}</span>}</figcaption>
             </figure>
           ))}
         </div>
@@ -96,7 +98,7 @@ export default async function HomePage() {
             <h2 id="genuine-h2" className="m-0 text-[clamp(30px,4vw,48px)] font-extrabold">{HOME.genuine.h2}</h2>
             <p className="mb-6 mt-4 text-white/85">{HOME.genuine.lead}</p>
             <ol className="m-0 flex list-none flex-col gap-3.5 p-0">
-              {HOME.genuine.steps.map((s, i) => (
+              {gapFree(HOME.genuine.steps).map((s, i) => (
                 <li key={s} className="flex items-center gap-3.5"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-brand font-extrabold text-ink">{i + 1}</span><span>{s}</span></li>
               ))}
             </ol>
@@ -111,14 +113,14 @@ export default async function HomePage() {
       <Section labelledBy="start-h2" tone="ground">
         <h2 id="start-h2" className="mb-6 mt-0 text-[clamp(28px,3.6vw,44px)] font-extrabold">New to PPF? Start here</h2>
         <ul className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3 p-0">
-          {HOME.startHere.map((g) => <li key={g.href}><Link href={g.href} className="flex min-h-[64px] items-center rounded-[14px] border border-line bg-white px-5 font-bold text-ink no-underline hover:border-action">{g.label}</Link></li>)}
+          {gapFree(HOME.startHere).map((g) => <li key={g.href}><Link href={g.href} className="flex min-h-[64px] items-center rounded-[14px] border border-line bg-white px-5 font-bold text-ink no-underline hover:border-action">{g.label}</Link></li>)}
         </ul>
       </Section>
 
       <Section labelledBy="faq-h2">
         <div className="flex flex-wrap gap-10">
           <h2 id="faq-h2" className="m-0 flex-[1_1_300px] text-[clamp(28px,3.6vw,44px)] font-extrabold">Quick answers</h2>
-          <div className="min-w-0 flex-[999_1_520px]"><FaqList items={HOME.faq} /></div>
+          <div className="min-w-0 flex-[999_1_520px]"><FaqList items={gapFree(HOME.faq)} /></div>
         </div>
       </Section>
 

@@ -8,6 +8,7 @@ import { Photo } from "@web/components/photo";
 import { FaqList } from "@web/components/faq-list";
 import { CtaBand } from "@web/components/cta-band";
 import { RichText } from "@web/components/rich-text";
+import { guideBlocksWithoutGaps, hasGap, withoutGaps } from "@p91/content/site/gaps";
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const day = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
@@ -49,7 +50,11 @@ function Block({ b }: { b: GuideBlock }) {
 }
 
 /** Guide (spec section 2): contents, author and reviewer line, updated date, the image, the body, then the onward links. Article JSON-LD. */
-export function GuidePage({ content: c, path, description }: { content: GuideContent; path: string; description: string }) {
+export function GuidePage({ content, path, description }: { content: GuideContent; path: string; description: string }) {
+  const c: GuideContent = { ...content, lede: withoutGaps(content.lede), blocks: guideBlocksWithoutGaps(content.blocks) };
+  // Unknown author: the studio's team; unknown reviewer: no reviewer line (owner, 26 Nov 2026).
+  const byline = hasGap(c.author) || !c.author.trim() ? "the P91 Car Care team" : c.author;
+  const reviewer = hasGap(c.reviewedBy) || !c.reviewedBy.trim() ? null : c.reviewedBy;
   const toc = c.blocks.filter((b): b is Extract<GuideBlock, { t: "h2" | "h3" }> => b.t === "h2");
   return (
     <main>
@@ -57,12 +62,12 @@ export function GuidePage({ content: c, path, description }: { content: GuideCon
         <div className="wrap max-w-[860px]">
           <Breadcrumbs items={[{ name: "Home", path: "/" }, { name: "Guides", path: "/guides" }, { name: c.h1, path }]} />
           <h1 id="guide-h1" className="m-0 text-[clamp(32px,4vw,52px)] font-extrabold">{c.h1}</h1>
-          <p className="mb-4 mt-4 text-xl text-text-2"><RichText text={c.lede} /></p>
+          {c.lede && <p className="mb-4 mt-4 text-xl text-text-2"><RichText text={c.lede} /></p>}
           <p className="m-0 text-sm text-muted">
-            By {c.author} · Reviewed by {c.reviewedBy} ·{" "}
+            By {byline} ·{" "}{reviewer && <>Reviewed by {reviewer} ·{" "}</>}
             {c.updated ? <>Updated <time dateTime={c.updated}>{day(c.updated)}</time></> : <time dateTime={c.date}>{day(c.date)}</time>} · {c.readMinutes} min read
           </p>
-          <div className="my-8 h-[360px] overflow-hidden rounded-[16px]"><Photo src={c.image.src} alt={c.image.alt} width={c.image.width} height={c.image.height} priority /></div>
+          {c.image ? <div className="my-8 h-[360px] overflow-hidden rounded-[16px]"><Photo src={c.image.src} alt={c.image.alt} width={c.image.width} height={c.image.height} priority /></div> : <div className="my-8" />}
           {toc.length > 1 && (
             <nav aria-labelledby="toc-h2" className="mb-8 rounded-[14px] border border-line p-6">
               <h2 id="toc-h2" className="m-0 mb-3 text-lg font-bold">In this guide</h2>
@@ -81,7 +86,7 @@ export function GuidePage({ content: c, path, description }: { content: GuideCon
         </div>
       </article>
       <CtaBand title="Questions about your car?" body="Send a photo on WhatsApp and we will tell you what it needs." primary={{ href: SITE.whatsapp, label: "WhatsApp us" }} secondary={{ href: SITE.phoneHref, label: SITE.phone }} />
-      <JsonLd data={articleSchema({ path, headline: c.h1, description, date: c.date, updated: c.updated, author: c.author, image: c.image.src })} />
+      <JsonLd data={articleSchema({ path, headline: c.h1, description, date: c.date, updated: c.updated, author: c.author, image: c.image?.src ?? "/brand/p91-logo.png" })} />
     </main>
   );
 }

@@ -2,8 +2,8 @@
 /**
  * Starts the built web app on :3100 and checks every registry page:
  * 200, one <h1>, self canonical on p91carcare.com, title/description match the registry,
- * every JSON-LD block parses, no rupee figure ("₹" + digit) outside JSON-LD (owner, 26 Nov: no prices), and every internal
- * link either resolves to 200 or is listed as pending (pages from later plans).
+ * every JSON-LD block parses, no rupee figure ("₹" + digit) outside JSON-LD (owner, 26 Nov: no prices), no content
+ * gap ("[NEEDS" or "NEEDS:") outside scripts (owner, 26 Nov: gaps are hidden, never shown), and every internal link either resolves to 200 or is listed as pending (pages from later plans).
  */
 import { spawn, spawnSync } from "node:child_process";
 import { PAGES } from "../../packages/content/src/site/registry.ts";
@@ -14,6 +14,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 for (let i = 0; i < 60; i++) { try { await fetch(BASE); break; } catch { await wait(1000); } }
 
 let failures = 0;
+let visibleGaps = 0;
 const fail = (p, m) => { failures++; console.log(`FAIL ${p}: ${m}`); };
 const pending = new Set();
 for (const page of PAGES) {
@@ -29,6 +30,9 @@ for (const page of PAGES) {
   const visible = html.replace(/<script[\s\S]*?<\/script>/g, "");
   // Owner decision (26 Nov 2026): no prices on the site at all, so any rupee figure fails.
   if (/₹\s?\d/.test(visible)) fail(page.path, "rupee figure in visible HTML (no prices on the site)");
+  // Owner decision (26 Nov 2026, indexing priority): a [NEEDS ...] gap is hidden by the templates (content/site/gaps.ts), never shown.
+  const gaps = visible.match(/.{0,40}(\[NEEDS|NEEDS:).{0,60}/g);
+  if (gaps) { visibleGaps += gaps.length; fail(page.path, `content gap in visible HTML: ${gaps[0]}`); }
   for (const href of new Set([...visible.matchAll(/href="(\/[^"#?]*)"/g)].map((m) => m[1]))) {
     if (href.startsWith("/_next") || /\.(png|webp|ico|xml|txt)$/.test(href)) continue;
     const r = await fetch(BASE + href, { redirect: "manual" });
@@ -39,5 +43,6 @@ for (const page of PAGES) {
 if (process.platform === "win32") spawnSync("taskkill", ["/pid", String(server.pid), "/T", "/F"], { stdio: "ignore" });
 else server.kill();
 console.log(`\nPending links (pages planned in 2b/2c): ${[...pending].sort().join(", ") || "none"}`);
-console.log(failures ? `${failures} failure(s)` : "All registry pages pass.");
+console.log(`Visible content gaps ([NEEDS): ${visibleGaps}`);
+console.log(failures ?`${failures} failure(s)` : "All registry pages pass.");
 process.exit(failures ? 1 : 0);

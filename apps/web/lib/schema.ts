@@ -48,11 +48,14 @@ export function serviceSchema(a: { name: string; path: string; description: stri
   } satisfies WithContext<Service>;
 }
 
+/** Answers may carry the RichText marks (**bold**, [label](/path)); the schema gets the plain words. */
+const plain = (t: string) => t.replace(/\*\*(.+?)\*\*/g, "$1").replace(/\[([^\]]+)\]\([^)\s]+\)/g, "$1");
+
 export function faqSchema(items: { q: string; a: string }[]) {
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: items.map((i) => ({ "@type": "Question" as const, name: i.q, acceptedAnswer: { "@type": "Answer" as const, text: i.a } })),
+    mainEntity: items.map((i) => ({ "@type": "Question" as const, name: plain(i.q), acceptedAnswer: { "@type": "Answer" as const, text: plain(i.a) } })),
   } satisfies WithContext<FAQPage>;
 }
 

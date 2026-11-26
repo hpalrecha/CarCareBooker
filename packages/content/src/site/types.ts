@@ -60,6 +60,7 @@ export type AreaContent = {
   jobs: (Photo & { caption: string })[]; // real jobs for owners from this area; [] until supplied
   faq: FaqItem[];
   nearby: LinkItem[];
+  sections?: Section[];                  // Plan 2b adaptation: extra area sections (Koramangala keeps its blog checklist)
 };
 
 export type BrandContent = {
@@ -67,12 +68,16 @@ export type BrandContent = {
   about: string[]; fits: string[]; benefits: string[];
   genuine?: string[];                    // how to check the product is genuine
   usedIn: LinkItem[]; official: { href: string; label: string } | null;
+  /** Owner, 26 Nov 2026: brand pages to ~800 words. Extra sections (what it is, how P91 uses it, what it suits, care). */
+  sections?: Section[];
+  genuineIntro?: string[];               // paragraphs above the "how to check it is genuine" list
+  faq?: FaqItem[];
 };
 
 export type GuideContent = {
   slug: string; h1: string; lede: string; date: string; updated?: string; readMinutes: number;
   author: string; reviewedBy: string;    // "[NEEDS: ...]" until the owner names them
-  image: Photo;
+  image: Photo | null;                   // null when no verified photo matches the topic
   blocks: GuideBlock[];                  // migrated BlogBlock[] with links remapped
   mainService: LinkItem; sibling: LinkItem; area: LinkItem;
 };
