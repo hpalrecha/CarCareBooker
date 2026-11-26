@@ -1,5 +1,6 @@
 import type { GuideBlock, GuideContent, LinkItem, Photo } from "./types.ts";
 import { GUIDE_SOURCES } from "./guides-data.ts";
+import { REWRITTEN_GUIDES } from "./guides-rewritten.ts";
 
 /**
  * /guides/<slug>. The seven migrated posts come from guides-data.ts (generated from BLOG_POSTS by
@@ -8,7 +9,10 @@ import { GUIDE_SOURCES } from "./guides-data.ts";
  * description, and the author / reviewer lines, which stay [NEEDS] until the owner names them.
  * Blog images are not reused where the photo catalogue says they do not match the topic (hard water,
  * monsoon, windshield) or are posters (best-car-detailing); a matching verified P91 photo or none is used.
- * Two guides are new copy: ppf-cost-bangalore and what-is-ppf (no prices, owner 26 Nov).
+ * Two guides are new copy: ppf-cost-bangalore and what-is-ppf (no prices, owner 26 Nov). Two migrated guides are rewritten
+ * (guides-rewritten.ts, owner 26 Nov) so they answer the decision questions and stop repeating their service pages:
+ * how-much-ppf-does-your-car-need and hard-water-spot-removal-bangalore. Their slugs, titles and onward links are kept.
+ * Author and reviewer: while they are [NEEDS], the template shows "By the P91 Car Care team" and no reviewer line.
  */
 const AUTHOR = "[NEEDS: author name]";
 const REVIEWER = "[NEEDS: reviewer name and role]";
@@ -31,7 +35,7 @@ export const GUIDE_META: Record<string, Meta> = {
   },
   "hard-water-spot-removal-bangalore": {
     title: "Hard Water Spots on Car Paint | P91 Car Care",
-    description: "Why Bangalore borewell water etches car paint within days, the drying habit that prevents it, and when spots need machine polishing.",
+    description: "Why borewell and tanker water spots so many cars in Bangalore, how to test your water, how to prevent spots at home, and when to call a studio.",
     image: P("polish-red-bonnet.webp", "Rotary polisher with a foam pad on the glossy bonnet of a red car", 720, 1280),
     mainService: { href: "/services/exterior-detailing/hard-water-spot-removal", label: "Hard water spot removal" },
     sibling: G("monsoon-damage-car-bangalore", "What the monsoon did to your car"), area: HSR,
@@ -45,7 +49,7 @@ export const GUIDE_META: Record<string, Meta> = {
   },
   "how-much-ppf-does-your-car-need": {
     title: "How Much PPF Does Your Car Need? | P91 Car Care",
-    description: "Partial front, full front end or full body: where damage really lands on a car, who each PPF coverage level suits, and what to ask before agreeing.",
+    description: "How to choose PPF coverage from how your car is driven, where it is parked, how long you keep it and your budget, with three example owners.",
     image: P("creta-stek-ppf-studio.webp", "Hyundai Creta in the P91 studio beside the STEK wall", 3420, 1925),
     mainService: { href: "/services/paint-protection-film/front", label: "Front PPF" },
     sibling: G("is-your-ppf-really-made-in-usa", "Is your PPF really made in the USA?"), area: KOR,
@@ -188,9 +192,10 @@ function build(slug: string): GuideContent & { meta: Meta } {
     return { slug, h1: n.h1, lede: n.lede, date: n.date, readMinutes: n.readMinutes, author: AUTHOR, reviewedBy: REVIEWER,
       image: n.meta.image, blocks: n.blocks, mainService: n.meta.mainService, sibling: n.meta.sibling, area: n.meta.area, meta: n.meta };
   }
-  const s = GUIDE_SOURCES[slug];
+  const src = GUIDE_SOURCES[slug];
   const m = GUIDE_META[slug];
-  if (!s || !m) throw new Error(`no guide ${slug}`);
+  if (!src || !m) throw new Error(`no guide ${slug}`);
+  const s = { ...src, ...(REWRITTEN_GUIDES[slug] ?? {}) };
   return { slug, h1: s.title, lede: s.lede, date: s.date, ...(s.updated ? { updated: s.updated } : {}), readMinutes: s.readMinutes,
     author: AUTHOR, reviewedBy: REVIEWER, image: m.image, blocks: s.blocks, mainService: m.mainService, sibling: m.sibling, area: m.area, meta: m };
 }

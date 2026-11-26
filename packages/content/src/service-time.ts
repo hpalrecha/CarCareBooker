@@ -19,7 +19,8 @@
  *  column only holds one number, so these are shown as text instead. Legacy fallback:
  *  set `durationText` on the row instead of adding new entries here. */
 const DURATION_RANGE_OVERRIDES: Record<string, string> = {
-  "windshield-glass-coating-new": "24 hrs",
+  // Owner decision 26 Nov 2026: windshield glass coating is 36-48 hours everywhere (was "24 hrs").
+  "windshield-glass-coating-new": "36-48 hrs",
   "1-year-bike-ceramic-coating": "36-48 hrs",
   "exterior-detailing-hard-water-new": "6-12 hrs",
   "interior-detailing-service": "18-24 hrs",

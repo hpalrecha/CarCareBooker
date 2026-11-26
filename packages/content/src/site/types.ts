@@ -68,6 +68,10 @@ export type BrandContent = {
   about: string[]; fits: string[]; benefits: string[];
   genuine?: string[];                    // how to check the product is genuine
   usedIn: LinkItem[]; official: { href: string; label: string } | null;
+  /** Owner, 26 Nov 2026: brand pages to ~800 words. Extra sections (what it is, how P91 uses it, what it suits, care). */
+  sections?: Section[];
+  genuineIntro?: string[];               // paragraphs above the "how to check it is genuine" list
+  faq?: FaqItem[];
 };
 
 export type GuideContent = {

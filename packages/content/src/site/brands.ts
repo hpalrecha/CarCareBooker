@@ -3,6 +3,7 @@ import { BRAND_PAGES } from "../brand-pages.ts";
 import { PRODUCTS_HERO, PRODUCT_KIND, PRODUCT_CHOOSE, PRODUCTS_CHOOSE_HEADING } from "../products-page-data.ts";
 import { WARRANTY_HANDOVER_LINE, WARRANTY_BATCH_LINE, impliesManufacturerWarranty } from "../warranty-wording.ts";
 import { remapLinks, remapPath } from "./link-map.ts";
+import { BRAND_MORE } from "./brand-more.ts";
 
 /**
  * /brands and /brands/<slug> (Plan 2b Task 4), built from BRAND_PAGES (brand-pages.ts:49, :80, :110) and
@@ -13,6 +14,7 @@ import { remapLinks, remapPath } from "./link-map.ts";
  * - Links remapped through link-map.ts. Hero photos are verified P91 photos (never attached_assets/gallery/p91-stek-*):
  *   STEK = the Creta, Nasiol = the GLE at the Nasiol wall, P91 Premium PPF = a P91 fitting shot.
  * - "How to check it is genuine" steps are the Home page's genuine-film steps (PPF brands) and the batch line (Nasiol).
+ * - 26 Nov 2026 (owner: brand pages to ~800 words): the longer sections, genuine-check intro and FAQs come from brand-more.ts.
  */
 const HERO: Record<string, Photo> = {
   stek: { src: "/photos/creta-stek-ppf-studio.webp", alt: "Hyundai Creta in the P91 studio beside the STEK wall", width: 3420, height: 1925 },
@@ -66,6 +68,7 @@ export const BRANDS: Record<string, BrandContent> = Object.fromEntries(
       genuine: b.slug === "nasiol" ? [WARRANTY_BATCH_LINE, WARRANTY_HANDOVER_LINE] : FILM_GENUINE,
       usedIn: USED_IN[b.slug],
       official: b.official ? { href: b.official.href, label: b.official.label } : null,
+      ...BRAND_MORE[b.slug],
     };
     return [b.slug, content];
   }),
