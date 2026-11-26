@@ -76,3 +76,12 @@ test("every quoted review exists in VERIFIED_REVIEWS and is never the one with a
 test("no page shows or asks for a star rating or a review count", () => {
   for (const p of PAGES) assert.doesNotMatch(JSON.stringify(p.content), /Google rating|review count|★|\/ ?5(\.0)? stars?/i, p.path);
 });
+
+test("no quoted review states a price (Fazil Ahmed and Rahul Mehta quote exact figures)", () => {
+  for (const p of PAGES) {
+    for (const n of p.content?.reviewNames ?? []) {
+      const r = VERIFIED_REVIEWS.find((v) => v.name === n);
+      assert.doesNotMatch(r.text, /(₹|Rs\.?)\s?\d/i, `${p.path}: review by ${n} quotes a price`);
+    }
+  }
+});
