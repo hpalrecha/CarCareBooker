@@ -1,6 +1,8 @@
-# Plan 2b ship gate (26 Nov 2026)
+# Plan 2b content gaps (26 Nov 2026)
 
-Output of `npm run web:ship-gate` on branch `feat/web-wave1-cd` after batches C and D. Every `[NEEDS ...]` below is a fact the studio must supply before cutover (Plan 3). Legal pages are not in the registry, so they are not gated here; their open questions are in `2b-review-CD.md`.
+Output of `npm run web:ship-gate` on branch `feat/web-wave1-cd` after the owner decisions of 26 Nov. Every `[NEEDS ...]` below is a fact the studio has not supplied yet.
+
+**No longer blocking (owner decision 26 Nov 2026, indexing priority).** The templates hide every sentence, list item, FAQ, fact row, caption and empty section that carries a marker (`packages/content/src/site/gaps.ts`), so these pages can be indexed now; `npm run web:check` fails if a marker ever reaches visible HTML. The script exits 0 and this list is the studio to-do: when a fact arrives, replace its marker in the content and it appears on the page. Counts are unique markers (the Home marker covers three photo captions). Legal pages are not in the registry; their open questions are in `2b-review-CD.md`.
 
 ```
 /
@@ -46,6 +48,16 @@ Output of `npm run web:ship-gate` on branch `feat/web-wave1-cd` after batches C 
 /areas/indiranagar
   [NEEDS: approx. drive time from Indiranagar]
   [NEEDS: the usual route from Indiranagar to Adugodi]
+/brands/stek
+  [NEEDS: which STEK PPF lines P91 stocks, and which of them are self-healing]
+  [NEEDS: whether STEK offers warranty registration or product verification for P91 jobs, and how the owner does it]
+/brands/nasiol
+  [NEEDS: which Nasiol coating product or products P91 applies on cars and on bikes]
+  [NEEDS: how an owner can check a Nasiol coating is genuine: label, batch number, or any Nasiol registration]
+/brands/p91-premium-ppf
+  [NEEDS: where P91 Premium PPF is made, and who supplies it]
+  [NEEDS: the finishes P91 Premium PPF comes in, and whether it is self-healing]
+  [NEEDS: how a P91 Premium PPF roll is labelled, and what the owner can check on it]
 /guides/ppf-cost-bangalore
   [NEEDS: author name]
   [NEEDS: reviewer name and role]
@@ -76,7 +88,7 @@ Output of `npm run web:ship-gate` on branch `feat/web-wave1-cd` after batches C 
 /about
   [NEEDS: who runs the studio, the team and their roles, and since when, in the owner's words]
 
-24 page(s) blocked from production.
+55 gap(s) on 27 page(s), hidden on the site until the studio supplies them (informational, not blocking).
 ```
 
 ## The same list, grouped by who answers it
@@ -84,5 +96,6 @@ Output of `npm run web:ship-gate` on branch `feat/web-wave1-cd` after batches C 
 - **Studio times and process (studio):** PPF first-wash days (car and bike), sun-control film studio time and roll-down days, matte full-body time, front PPF times, bike PPF time and panels, paint-correction time and paint-thickness check, headlight fog/tail lamps, UV coat life and single-headlight option, interior seat removal.
 - **Packages (owner):** all-glass coating package; the six maintenance-plan policy questions.
 - **Areas (studio):** drive time and usual route from Koramangala, HSR Layout and Indiranagar; parking at the studio; whether pickup covers HSR Layout on most days.
-- **People (owner):** author and reviewer for all 9 guides; the team, roles and founding facts for /about.
+- **People (owner):** author and reviewer for all 9 guides (until then: "By the P91 Car Care team", no reviewer line); the team, roles and founding facts for /about (section hidden until then).
+- **Brands (owner/studio):** which STEK PPF lines are stocked and which are self-healing; STEK warranty registration or verification; which Nasiol products are applied and how to check one is genuine; where P91 Premium PPF is made and who supplies it, its finishes and self-healing, and how its roll is labelled.
 - **Home:** the three work captions (`[NEEDS: service]`).
