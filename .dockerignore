@@ -2,10 +2,15 @@
 # NOTE: attached_assets/ is deliberately NOT ignored — the server serves
 # /attached_assets/* from it at runtime and leaving it out is exactly the bug
 # this Dockerfile fixes.
+#
+# Shared by BOTH images, whose context is the repo root: ./Dockerfile (API) and apps/web/Dockerfile
+# (the new site, Plan 3). The web image copies only package.json, package-lock.json, apps/web,
+# packages/content and packages/domain, so nothing it needs may be ignored here; a local
+# apps/web/.next or apps/web/node_modules must never reach it (the image builds and installs its own).
 
 node_modules
 **/node_modules
-# apps/web build output (the API image installs root dependencies only).
+# apps/web build output: never copied into either image (the web image runs its own next build).
 **/.next
 *.tsbuildinfo
 **/*.tsbuildinfo
