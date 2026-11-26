@@ -130,7 +130,7 @@ describe("CampaignCountdown markup", () => {
 describe("CampaignOffer — wording and price are inseparable", () => {
   const noop = () => {};
 
-  test("an active campaign shows the offer, the countdown and the real price", () => {
+  test("an active campaign shows the offer and the countdown, and no price (owner rule 26 Nov 2026)", () => {
     const html = renderWithData(
       React.createElement(CampaignOffer, {
         landingPage: "/ceramic-coating/car",
@@ -144,11 +144,11 @@ describe("CampaignOffer — wording and price are inseparable", () => {
 
     assert.match(html, /Booking Is Free This Week/, "campaign title from the database");
     assert.match(html, /Days/, "countdown present");
-    assert.match(html, /₹5,999/, "the REAL catalogue price is shown");
+    assert.doesNotMatch(html, /₹\s?\d/, "no price on a public page");
     assert.match(html, /Book Free Appointment/, "campaign CTA text");
   });
 
-  test("the price cannot be rendered without the free-booking claim, or vice versa", () => {
+  test("the free-booking claim always comes with 'service paid at the studio', and no amount", () => {
     const html = renderWithData(
       React.createElement(CampaignOffer, {
         landingPage: "/ppf",
@@ -161,7 +161,8 @@ describe("CampaignOffer — wording and price are inseparable", () => {
     );
 
     assert.match(html, /Book free/, "the claim");
-    assert.match(html, /₹45,000 at the studio/, "and the amount, in the same sentence");
+    assert.match(html, /service paid at the studio/, "in the same sentence");
+    assert.doesNotMatch(html, /₹\s?\d/, "no price on a public page");
     assert.match(html, /charged as normal at the studio/, "explicit clarifier");
   });
 
@@ -296,7 +297,7 @@ describe("CampaignOffer — fallback behaviour", () => {
     assert.match(html, /Booking Is Free/, "the offer still shows");
     assert.match(html, /Free booking until 16 September 2026/, "states the date it actually has");
     assert.ok(!html.includes("Seconds"), "no countdown invented for a date-only setting");
-    assert.match(html, /₹5,999/, "and the price is still shown");
+    assert.doesNotMatch(html, /₹\s?\d/, "no price on a public page (owner rule 26 Nov 2026)");
   });
 
   test("no campaign and no legacy offer: renders nothing", () => {
