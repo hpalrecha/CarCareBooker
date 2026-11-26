@@ -22,9 +22,19 @@ export const FAQ_FIXES: [string, string][] = [
   ["You can ask about the available gloss and matte films, coverage options, the installation procedure and the applicable manufacturer warranty.",
    "You can ask about the available gloss and matte films, coverage options, the installation procedure and the written warranty terms."],
   ["The current starting price for each ceramic coating package is shown on the ceramic coating page, so it is always up to date.",
-   "Send a photo of your car on WhatsApp for a quote for your car."],
+   "[Learn more](/services/ceramic-coating) on the ceramic coating page, or send a photo of your car on WhatsApp for a quote for your car."],
   ["Coating and PPF jobs are backed by the film or coating manufacturer's written warranty, issued at handover.",
    WARRANTY_HANDOVER_LINE],
+  // Pickup wording rule (owner): "on request, confirmed on a call". The source said "at cost" / "at an additional cost".
+  ["Pickup and drop is available across Bangalore at cost, subject to booking confirmation.",
+   "Pickup and drop is on request, confirmed on a call."],
+  ["Pickup and drop is available across Bengaluru at an additional cost, subject to booking confirmation.",
+   "Pickup and drop is on request, confirmed on a call."],
+  ["Yes. P91 Car Care offers pickup and drop in Koramangala and other parts of Bengaluru at an additional cost, subject to availability and booking confirmation.",
+   "Pickup and drop is on request. Call or WhatsApp us and we confirm it for your address on the call."],
+  // Price slot (owner: no prices; price slots become Learn more links).
+  ["What is the starting price of ceramic coating at P91 Car Care?",
+   "How is ceramic coating priced at P91 Car Care?"],
 ];
 
 const used = new Set<string>();

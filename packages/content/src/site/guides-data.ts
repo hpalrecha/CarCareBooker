@@ -206,7 +206,7 @@ export const GUIDE_SOURCES: Record<string, GuideSource> = {
       },
       {
         "t": "p",
-        "text": "Once the paint is corrected, a [ceramic coating](/services/ceramic-coating) is what stops it coming back. Water beads and rolls off instead of sitting in a flat puddle and evaporating in place. That is why coated cars stay clean longer as well as glossier."
+        "text": "Once the paint is corrected, a [ceramic coating](/services/ceramic-coating) makes some mineral deposits easier to clean, but it cannot fully prevent hard water spotting. Water beads and rolls off instead of sitting in a flat puddle and evaporating in place. That is why coated cars stay clean longer as well as glossier."
       },
       {
         "t": "p",

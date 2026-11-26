@@ -65,7 +65,8 @@ export const KORAMANGALA: AreaPageContent = {
   faq: [
     { q: "Where can I get PPF near Koramangala?", a: "P91 Car Care in Adugodi is a short drive from Koramangala. We fit STEK PPF and P91 Premium PPF with written warranty terms at handover." },
     hubFaq("finding-a-studio", "Where can I get ceramic coating near Koramangala?"),
-    hubFaq("finding-a-studio", "Does P91 Car Care offer pickup and drop in Koramangala?"),
+    // faq-page.ts:125 said "at an additional cost, subject to availability"; pickup wording rule applied instead.
+    { q: "Does P91 Car Care offer pickup and drop in Koramangala?", a: "Pickup and drop is on request. Call or WhatsApp us and we confirm it for your address in Koramangala on the call." },
     { q: "Can I see the film details before work starts?", a: "Yes. Ask for the batch details before we begin." },
   ],
   nearby: [
@@ -98,7 +99,8 @@ export const HSR_LAYOUT: AreaPageContent = {
   jobs: [],
   faq: [
     { q: "Is there a ceramic coating studio near HSR Layout?", a: "Yes. We apply Nasiol nano-ceramic coating at our studio in Adugodi. Pickup and drop is on request: call or WhatsApp and we confirm it for HSR Layout on the call." },
-    hubFaq("finding-a-studio", "Does P91 Car Care serve customers outside Adugodi?"),
+    // faq-page.ts:113, first sentence word for word; its "available across Bangalore at cost" line follows the pickup rule instead.
+    { q: "Does P91 Car Care serve customers outside Adugodi?", a: "Yes. P91 Car Care works from its Adugodi studio and serves owners from Koramangala, HSR Layout, Shanti Nagar and other parts of Bengaluru. Pickup and drop is on request, confirmed on a call." },
     { q: "How long will my car be away?", a: "It depends on the job. Each service page states its studio time, and we confirm it when you book." },
   ],
   nearby: [

@@ -6,6 +6,7 @@ import type { Photo } from "./types.ts";
  * installers' footage), the stock steering-wheel shot, the GT-R frame with a graphic overlay and the mislabelled
  * "MG Comet" are dropped. Only the verified photos in apps/web/public/photos are shown, with captions that state
  * the car and what is visible; a job is named only where it is on record (Creta and Vellfire: STEK PPF).
+ * The Mahindra collage is captioned without a model name: the photo catalogue says the model is unconfirmed.
  * Reels are not embedded (the sun-film reel is likely other footage); the Instagram link replaces them.
  */
 type GPhoto = Photo & { caption: string };
@@ -25,7 +26,7 @@ export const GALLERY = {
       photos: [
         p("creta-stek-ppf-studio.webp", "Black Hyundai Creta in the P91 studio beside the STEK wall", 3420, 1925, "Hyundai Creta · STEK PPF"),
         p("vellfire-stek-wall.webp", "White Toyota Vellfire beside the STEK wall", 958, 732, "Toyota Vellfire · STEK PPF"),
-        p("mahindra-be6-arrival-handover.webp", "Dark blue Mahindra BE 6 on arrival in the wash bay (top) and at handover beside the STEK wall (bottom)", 1473, 1962, "Mahindra BE 6 · arrival and handover"),
+        p("mahindra-be6-arrival-handover.webp", "Dark blue Mahindra electric SUV on arrival in the wash bay (top) and at handover beside the STEK wall (bottom)", 1473, 1962, "Mahindra electric SUV · arrival and handover"),
         p("xuv700-stek-wall.webp", "Dark blue Mahindra XUV700 in front of the STEK wall", 1120, 1316, "Mahindra XUV700"),
         p("gle-nasiol-wall.webp", "White Mercedes-Benz GLE in front of the Nasiol wall", 1084, 911, "Mercedes-Benz GLE"),
         p("evoque-studio.webp", "White Range Rover Evoque with copper roof under the P91 wall logo", 1038, 1418, "Range Rover Evoque"),

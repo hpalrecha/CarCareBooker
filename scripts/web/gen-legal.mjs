@@ -10,14 +10,17 @@
  * Run: node scripts/web/gen-legal.mjs
  */
 import { readFileSync, writeFileSync } from "node:fs";
+import { FOOTER_SERVICES } from "../../packages/content/src/canonical-services.ts";
 
 const SRC = new URL("../../apps/admin/src/pages/", import.meta.url);
 const PAGES = { privacy: "privacy-policy.tsx", terms: "terms-conditions.tsx", refund: "refund-policy.tsx" };
 
 export const FIXES = {
   terms: [
-    ["{termsServices.map((row) => (\n                  <li key={row.id}>\n                    {row.title.trim()} - {formatINR(row.price)}\n                  </li>\n                ))}",
-     "<li>Current prices are shown at booking.</li>", "live price list (Plan 2b: no exact-price component on the new site)"],
+    // The live page lists the active rows behind FOOTER_SERVICES by title (no prices since the 26 Nov live fix).
+    // The static page lists the same titles, the ones resolveCanonical asserts, so the words are unchanged.
+    ["{termsServices.map((row) => (\n                  <li key={row.id}>\n                    {row.title.trim()}\n                  </li>\n                ))}",
+     FOOTER_SERVICES.map((e) => `<li>${e.expectedTitle}</li>`).join(""), "live service list read from the API becomes the same four titles, fixed at build"],
     ["A booking fee of ₹299 (₹499 for paint protection film services priced above ₹10,000) is required to secure your appointment.",
      "A booking fee, as shown at booking, is required to secure your appointment.", "rupee amounts (owner, 26 Nov)"],
   ],
@@ -25,14 +28,9 @@ export const FIXES = {
     ["charges a booking fee of ₹299 (₹499 for paint protection film services priced above ₹10,000) to secure your appointment.",
      "charges a booking fee, as shown at booking, to secure your appointment.", "rupee amounts (owner, 26 Nov)"],
     ["Full refund of the booking fee (₹299, or ₹499 for paint protection film services priced above ₹10,000)",
-     "Full refund of the booking fee", "rupee amounts"],
-    ["50% refund (₹149.50)", "50% refund of the booking fee", "rupee amount"],
-    ["No refund (₹0)", "No refund", "rupee amount"],
-    ["Premium Car Wash Special (₹999)", "Premium Car Wash Special", "old exact price in heading"],
-    ["Interior Detailing (₹4,000)", "Interior Detailing", "old exact price in heading"],
-    ["Exterior Detailing (₹3,500)", "Exterior Detailing", "old exact price in heading"],
-    ["Windshield Glass Coating (₹1,699)", "Windshield Glass Coating", "old exact price in heading"],
-    ["Headlight Restoration (₹1,499)", "Headlight Restoration", "old exact price in heading"],
+     "Full refund of the booking fee, as shown at booking", "rupee amounts"],
+    ["50% refund (₹149.50)", "50% refund of the booking fee, as shown at booking", "rupee amount"],
+    ["No refund (₹0)", "No refund", "rupee amount (₹0)"],
   ],
   privacy: [],
 };

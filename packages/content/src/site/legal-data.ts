@@ -180,12 +180,15 @@ export const LEGAL_BLOCKS: Record<"privacy" | "terms" | "refund", GuideBlock[]> 
     {
       "t": "ul",
       "items": [
-        "Current prices are shown at booking."
+        "Interior Rejuvenation Service",
+        "Exterior Detailing with Hard Water Spot Removal",
+        "Windshield Glass Coating",
+        "Headlight Restoration - Both Lights"
       ]
     },
     {
       "t": "p",
-      "text": "This list reflects our current published prices. The price shown on the service page at the time of booking is the price that applies."
+      "text": "Prices are quoted by the studio before work begins. The amount shown at checkout at the time of booking is the amount that applies."
     },
     {
       "t": "h2",
@@ -256,8 +259,8 @@ export const LEGAL_BLOCKS: Record<"privacy" | "terms" | "refund", GuideBlock[]> 
     {
       "t": "ul",
       "items": [
-        "**24+ hours before service:** Full refund of the booking fee",
-        "**12-24 hours before service:** 50% refund of the booking fee",
+        "**24+ hours before service:** Full refund of the booking fee, as shown at booking",
+        "**12-24 hours before service:** 50% refund of the booking fee, as shown at booking",
         "**Less than 12 hours:** No refund",
         "**Same-day cancellation:** No refund"
       ]
