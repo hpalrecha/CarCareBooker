@@ -24,3 +24,4 @@ cookies.txt
 
 # Next.js build output for the public site
 apps/web/.next
+apps/web/*.tsbuildinfo
