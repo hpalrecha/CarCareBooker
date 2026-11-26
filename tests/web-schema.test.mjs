@@ -18,19 +18,12 @@ test("business is an AutoRepair with a stable @id, address, phone and only open 
   assert.deepEqual(s.areaServed.map((a) => a.name), ["Koramangala", "HSR Layout", "Indiranagar", "Bengaluru"]);
 });
 
-test("service carries an AggregateOffer range in INR and points at the business", () => {
-  const s = serviceSchema({ name: "Paint protection film", path: "/services/paint-protection-film", description: "d", range: { low: 50000, high: 90000 } });
-  assert.equal(s.offers["@type"], "AggregateOffer");
-  assert.equal(s.offers.lowPrice, 50000);
-  assert.equal(s.offers.highPrice, 90000);
-  assert.equal(s.offers.priceCurrency, "INR");
+test("service points at the business and carries no offers or prices (owner, 26 Nov: no prices on the site)", () => {
+  const s = serviceSchema({ name: "Paint protection film", path: "/services/paint-protection-film", description: "d" });
   assert.equal(s.provider["@id"], BUSINESS_ID);
   assert.equal(s.url, "https://p91carcare.com/services/paint-protection-film");
-});
-
-test("service without a known range carries no offers", () => {
-  const s = serviceSchema({ name: "x", path: "/x", description: "d", range: null });
   assert.equal(s.offers, undefined);
+  assert.doesNotMatch(JSON.stringify(s), /Offer|price/i);
 });
 
 test("faq and breadcrumb shapes", () => {
@@ -39,4 +32,18 @@ test("faq and breadcrumb shapes", () => {
   const b = breadcrumbSchema([{ name: "Home", path: "/" }, { name: "Services", path: "/services" }]);
   assert.equal(b.itemListElement[1].position, 2);
   assert.equal(b.itemListElement[1].item, "https://p91carcare.com/services");
+});
+
+test("article schema: headline, dates, publisher; a [NEEDS] author falls back to the business", async () => {
+  const { articleSchema } = await import("../apps/web/lib/schema.ts");
+  const a = articleSchema({ path: "/guides/x", headline: "H", description: "D", date: "2026-08-12", updated: "2026-11-17", author: "[NEEDS: author]", image: "/photos/a.webp" });
+  assert.equal(a["@type"], "Article");
+  assert.equal(a.datePublished, "2026-08-12");
+  assert.equal(a.dateModified, "2026-11-17");
+  assert.equal(a.author["@id"], BUSINESS_ID);
+  assert.equal(a.publisher["@id"], BUSINESS_ID);
+  assert.equal(a.image, "https://p91carcare.com/photos/a.webp");
+  const b = articleSchema({ path: "/guides/x", headline: "H", description: "D", date: "2026-08-12", author: "Nikhil", image: "/p.webp" });
+  assert.equal(b.author.name, "Nikhil");
+  assert.equal(b.dateModified, "2026-08-12");
 });

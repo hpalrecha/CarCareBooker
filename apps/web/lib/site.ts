@@ -5,6 +5,8 @@ export const SITE = {
   phone: "+91 74066 19191",
   phoneHref: "tel:+917406619191",
   whatsapp: "https://wa.me/917406619191",
+  // Until Plan 2c ships the booking flow, every Book CTA goes to WhatsApp (owner, 26 Nov 2026).
+  book: { href: "https://wa.me/917406619191", label: "Book on WhatsApp" },
   address: {
     street: "49, 13th Cross, Ayappa Garden, Adugodi",
     locality: "Adugodi",
